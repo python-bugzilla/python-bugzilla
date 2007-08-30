@@ -23,15 +23,16 @@ def selftest():
     print "Reading product list"
     print b.products()
     print "Reading public bug (#%i)" % public_bug
-    print b.getbug(public_bug)
+    print b.getbugsimple(public_bug)
     print "Reading private bug (#%i)" % private_bug
     try:
-        print b.getbug(private_bug)
+        print b.getbugsimple(private_bug)
     except xmlrpclib.Fault, e:
         if 'NotPermitted' in e.faultString:
             print "Failed: Not authorized."
         else:
             print "Failed: Unknown XMLRPC error: %s"  % e
+    print "Awesome. We're done."
 
 if __name__ == '__main__':
     selftest()
