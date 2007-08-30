@@ -75,6 +75,10 @@ class Bugzilla(object):
             r = False
         return r
 
+    # Note that the bugzilla methods will ignore an empty user/password if you
+    # send authentication info as a cookie in the request headers. So it's
+    # OK if we keep sending empty / bogus login info.
+
     # ARGLE this should use properties or do some kind of caching or something
     def components(self,product):
         '''Return a dict of components for the given product.'''
