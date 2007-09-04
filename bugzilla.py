@@ -98,6 +98,7 @@ class Bugzilla(object):
         return self._proxy.bugzilla.getBugSimple(id, self.user, self.password)
 
     # TODO: createbug, addcomment, attachfile, searchbugs
+    # TODO: allow 'tagging' by adding text to the whiteboard(s)
 
 class CookieTransport(xmlrpclib.Transport):
     '''A subclass of xmlrpclib.Transport that supports cookies.'''
