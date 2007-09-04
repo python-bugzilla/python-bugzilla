@@ -2,7 +2,7 @@
 # Simple self-test of the bugzilla module
 
 from bugzilla import Bugzilla
-import os, glob
+import os, glob, sys
 
 def find_firefox_cookiefile():
     cookieglob = os.path.expanduser('~/.mozilla/firefox/default.*/cookies.txt')
@@ -18,6 +18,10 @@ def selftest():
     private_bug = 250666
     print "Woo, welcome to the bugzilla.py self-test."
     print "Using bugzilla at " + url
+    if not cookies:
+        print "Could not find any cookies for that URL!"
+        print "Log in with firefox or give me a username/password."
+        sys.exit(1)
     print "Reading cookies from " + cookies
     b = Bugzilla(url=url,cookies=cookies)
     print "Reading product list"
