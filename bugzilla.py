@@ -136,8 +136,7 @@ class Bugzilla(object):
 
     def query(self,query):
         '''Query bugzilla and return a list of matching bugs.
-        query should be a dict that matches the fields in querydata['fields']..
-        or something.
+        query must be a dict with fields like those in in querydata['fields'].
 
         Returns a dict like this: {'bugs':buglist,
                                    'displaycolumns':columnlist,
@@ -152,7 +151,7 @@ class Bugzilla(object):
         ''' 
         return self._proxy.bugzilla.runQuery(query,self.user,self.password)
 
-    # TODO: createbug, attachfile, searchbugs, setstatus, closebug, 
+    # TODO: createbug, attachfile, setstatus, closebug, 
     #       setassignee, updatedeps, setwhiteboard, updatecc
     # TODO: allow 'tagging' by adding text to the whiteboard(s)
     # TODO: flags?
