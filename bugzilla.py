@@ -26,6 +26,8 @@ class Bugzilla(object):
         self._cookiejar  = None
         self._proxy      = None
         self._opener     = None
+        self._querydata  = None
+        self._querydefaults = None
         if 'cookies' in kwargs:
             self.readcookiefile(kwargs['cookies'])
         if 'url' in kwargs:
@@ -97,8 +99,51 @@ class Bugzilla(object):
         '''Return a short dict of simple bug info for the given bug id'''
         return self._proxy.bugzilla.getBugSimple(id, self.user, self.password)
 
-    # TODO: createbug, addcomment, attachfile, searchbugs
+    def addcomment(self,id,comment,private=False,
+                   timestamp='',worktime='',bz_gid=''):
+        '''Add a comment to the bug with the given ID. Other optional 
+        arguments are as follows:
+            private:   if True, mark this comment as private.
+            timestamp: comment timestamp, in the form "YYYY-MM-DD HH:MM:SS"
+            worktime:  amount of time spent on this comment (undoc in upstream)
+            bz_gid:    if present, and the entire bug is *not* already private
+                       to this group ID, this comment will be marked private.'''
+        return self._proxy.bugzilla.addComment(id,comment,
+                   self.user,self.password,private,timestamp,worktime,bz_gid)
+
+    # Bug querying functions. These are not very well commented. Sorry.
+
+    def __get_queryinfo(self,force_refresh=False):
+        '''Calls getQueryInfo, which returns a (quite large!) structure that
+        contains all of the query data and query defaults for the bugzilla
+        instance. Since this is a weighty call - takes a good 5-10sec on
+        bugzilla.redhat.com - we load the info in this private method and the
+        user instead plays with the querydata and querydefaults attributes of
+        the bugzilla object.'''
+        # Only fetch the data if we don't already have it, or forced to
+        if force_refresh or not (self._querydata and self._querydefaults):
+            qi = self._proxy.bugzilla.getQueryInfo(self.user,self.password)
+            (self._querydata, self._querydefaults) = qi
+        return (self._querydata, self._querydefaults)
+
+    # Set querydata and querydefaults as properties so they auto-create
+    # themselves when touched by a user. This bit was lifted from YumBase,
+    # because skvidal is much smarter than I am.
+    querydata = property(fget=lambda self: self.__get_queryinfo()[0],
+                         fdel=lambda self: setattr(self,"_querydata",None))
+    querydefaults = property(fget=lambda self: self.__get_queryinfo()[1],
+                         fdel=lambda self: setattr(self,"_querydefaults",None))
+
+    def query(self,query):
+        '''Query bugzilla and return a list of matching bugs.
+        query should be a dict that matches the fields in queryinfo's
+        querydata['fields'].. or something.''' 
+        return self._proxy.bugzilla.runQuery(query,self.user,self.password)
+
+    # TODO: createbug, attachfile, searchbugs, setstatus, closebug, 
+    #       setassignee, updatedeps, setwhiteboard, updatecc
     # TODO: allow 'tagging' by adding text to the whiteboard(s)
+    # TODO: flags?
 
 class CookieTransport(xmlrpclib.Transport):
     '''A subclass of xmlrpclib.Transport that supports cookies.'''
@@ -149,7 +194,8 @@ class CookieTransport(xmlrpclib.Transport):
         # Okay, extract the cookies from the headers
         self.cookiejar.extract_cookies(cookie_response,cookie_request)
         # And write back any changes
-        self.cookiejar.save(self.cookiejar.filename)
+        if hasattr(self.cookiejar,'save'):
+            self.cookiejar.save(self.cookiejar.filename)
 
         if errcode != 200:
             raise xmlrpclib.ProtocolError(
