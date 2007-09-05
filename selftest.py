@@ -25,6 +25,11 @@ def selftest():
     cookies = find_firefox_cookiefile()
     public_bug = 1
     private_bug = 250666
+    query = {'product':'Fedora',
+             'component':'kernel',
+             'version':'devel',
+             'long_desc':'wireless'}
+    
     print "Woo, welcome to the bugzilla.py self-test."
     print "Using bugzilla at " + url
     if not cookies:
@@ -45,6 +50,19 @@ def selftest():
             print "Failed: Not authorized."
         else:
             print "Failed: Unknown XMLRPC error: %s"  % e
+    q_msg = "%s %s %s %s" % (query['product'],query['component'],
+                             query['version'],query['long_desc'])
+    print "Querying %s bugs" % q_msg
+    q_result = b.query(query)
+    bugs = q_result['bugs']
+    print "%s bugs found." % len(bugs)
+    for bug in bugs:
+        if 'short_short_desc' not in bug:
+            print "wtf? bug %s has no desc." % bug['bug_id']
+        else:
+            print "Bug #%s %-10s - %s - %s" % (bug['bug_id'],
+                    '('+bug['bug_status']+')',bug['assigned_to'],
+                    bug['short_short_desc'])
     print "Awesome. We're done."
 
 if __name__ == '__main__':
