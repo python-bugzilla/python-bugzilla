@@ -136,8 +136,20 @@ class Bugzilla(object):
 
     def query(self,query):
         '''Query bugzilla and return a list of matching bugs.
-        query should be a dict that matches the fields in queryinfo's
-        querydata['fields'].. or something.''' 
+        query should be a dict that matches the fields in querydata['fields']..
+        or something.
+
+        Returns a dict like this: {'bugs':buglist,
+                                   'displaycolumns':columnlist,
+                                   'sql':querystring}
+        
+        buglist is a list of dicts describing bugs. You can specify which 
+        columns/keys will be listed in the bugs by setting 'column_list' in
+        the query; otherwise the default columns are used (see the list in
+        querydefaults['default_column_list']). The list of columns will be
+        in 'displaycolumns', and the SQL query used by this query will be in
+        'sql'. 
+        ''' 
         return self._proxy.bugzilla.runQuery(query,self.user,self.password)
 
     # TODO: createbug, attachfile, searchbugs, setstatus, closebug, 
