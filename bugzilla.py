@@ -11,6 +11,7 @@
 # the full text of the license.
 
 import xmlrpclib, urllib2, cookielib
+import os.path, base64
 
 version = '0.1'
 user_agent = 'bugzilla.py/%s (Python-urllib2/%s)' % \
@@ -111,6 +112,74 @@ class Bugzilla(object):
         return self._proxy.bugzilla.addComment(id,comment,
                    self.user,self.password,private,timestamp,worktime,bz_gid)
 
+    def __attachment_encode(self,fh):
+        '''Return the contents of the file-like object fh in a form
+        appropriate for attaching to a bug in bugzilla.'''
+        # Read data in chunks so we don't end up with two copies of the file
+        # in RAM.
+        chunksize = 3072 # base64 encoding wants input in multiples of 3
+        data = ''
+        chunk = fh.read(chunksize)
+        while chunk:
+            # we could use chunk.encode('base64') but that throws a newline
+            # at the end of every output chunk, which increases the size of
+            # the output.
+            data = data + base64.b64encode(chunk)
+            chunk = fh.read(chunksize)
+        return data
+
+    def attachfile(self,id,attachfile,description,**kwargs):
+        '''Attach a file to the given bug ID. Returns the ID of the attachment
+        or raises xmlrpclib.Fault if something goes wrong.
+        attachfile may be a filename (which will be opened) or a file-like
+        object, which must provide a 'read' method. If it's not one of these,
+        this method will raise a TypeError.
+        description is the short description of this attachment.
+        Optional keyword args are as follows:
+            filename:  this will be used as the filename for the attachment.
+                       REQUIRED if attachfile is a file-like object with no
+                       'name' attribute, otherwise the filename or .name
+                       attribute will be used.
+            comment:   An optional comment about this attachment.
+            isprivate: Set to True if the attachment should be marked private.
+            ispatch:   Set to True if the attachment is a patch.
+            contenttype: The mime-type of the attached file. Defaults to
+                         application/octet-stream if not set. NOTE that text
+                         files will *not* be viewable in bugzilla unless you 
+                         remember to set this to text/plain. So remember that!
+        '''
+        if isinstance(attachfile,str):
+            f = open(attachfile)
+        elif hasattr(attachfile,'read'):
+            f = attachfile
+        else:
+            raise TypeError, "attachfile must be filename or file-like object"
+        kwargs['description'] = description
+        if 'filename' not in kwargs:
+            kwargs['filename'] = os.path.basename(f.name)
+        # TODO: guess contenttype?
+        if 'contenttype' not in kwargs:
+            kwargs['contenttype'] = 'application/octet-stream'
+        kwargs['data'] = self.__attachment_encode(f)
+        (attachid, mailresults) = server._proxy.bugzilla.addAttachment(id,kwargs,self.user,self.password)
+        return attachid
+
+    def openattachment(self,attachid):
+        '''Get the contents of the attachment with the given attachment ID.
+        Returns a file-like object.'''
+        att_uri = self.url.replace('xmlrpc.cgi','attachment.cgi')
+        att_uri = att_uri + '?%i' % attachid
+        att = urllib2.urlopen(att_uri)
+        # RFC 2183 defines the content-disposition header, if you're curious
+        disp = att.headers['content-disposition'].split(';')
+        [filename_parm] = [i for i in disp if i.strip().startswith('filename=')]
+        (dummy,filename) = filename_parm.split('=')
+        # RFC 2045/822 defines the grammar for the filename value, but
+        # I think we just need to remove the quoting. I hope.
+        att.name = filename.strip('"')
+        # Hooray, now we have a file-like object with .read() and .name
+        return att
+
     # Bug querying functions. These are not very well commented. Sorry.
 
     def __get_queryinfo(self,force_refresh=False):
@@ -151,10 +220,10 @@ class Bugzilla(object):
         ''' 
         return self._proxy.bugzilla.runQuery(query,self.user,self.password)
 
-    # TODO: createbug, attachfile, setstatus, closebug, 
-    #       setassignee, updatedeps, setwhiteboard, updatecc
-    # TODO: allow 'tagging' by adding text to the whiteboard(s)
-    # TODO: flags?
+    # TODO: createbug, setstatus, closebug, setassignee, updatedeps,
+    #       setwhiteboard, updatecc
+    # TODO: allow simple 'tagging' by adding/removing text to whiteboard(s)
+    # TODO: flag handling?
 
 class CookieTransport(xmlrpclib.Transport):
     '''A subclass of xmlrpclib.Transport that supports cookies.'''
