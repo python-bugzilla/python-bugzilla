@@ -39,7 +39,7 @@ def selftest():
     print "Reading cookies from " + cookies
     b = Bugzilla(url=url,cookies=cookies)
     print "Reading product list"
-    print b.products()
+    print b.getproducts()
     print "Reading public bug (#%i)" % public_bug
     print b.getbugsimple(public_bug)
     print "Reading private bug (#%i)" % private_bug
