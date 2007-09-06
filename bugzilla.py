@@ -29,8 +29,10 @@ class Bugzilla(object):
         self._opener     = None
         self._querydata  = None
         self._querydefaults = None
+        self._products   = None 
+        self._components = dict()
         if 'cookies' in kwargs:
-            self.readcookiefile(kwargs['cookies'])
+            self._readcookiefile(kwargs['cookies'])
         if 'url' in kwargs:
             self.connect(kwargs['url'])
         if 'user' in kwargs:
@@ -38,7 +40,9 @@ class Bugzilla(object):
         if 'password' in kwargs:
             self.password = kwargs['password']
 
-    def readcookiefile(self,cookiefile):
+    #---- Methods for establishing bugzilla connection and logging in
+
+    def _readcookiefile(self,cookiefile):
         '''Read the given (Mozilla-style) cookie file and fill in the cookiejar,
         allowing us to use the user's saved credentials to access bugzilla.'''
         cj = cookielib.MozillaCookieJar()
@@ -62,6 +66,9 @@ class Bugzilla(object):
         self._opener = urllib2.build_opener(handler)
         self._opener.addheaders = [('User-agent',user_agent)]
 
+    # Note that the bugzilla methods will ignore an empty user/password if you
+    # send authentication info as a cookie in the request headers. So it's
+    # OK if we keep sending empty / bogus login info in other methods.
     def login(self,user,password):
         '''Attempt to log in using the given username and password. Subsequent
         method calls will use this username and password. Returns False if 
@@ -78,19 +85,49 @@ class Bugzilla(object):
             r = False
         return r
 
-    # Note that the bugzilla methods will ignore an empty user/password if you
-    # send authentication info as a cookie in the request headers. So it's
-    # OK if we keep sending empty / bogus login info.
+    #---- Methods and properties with basic bugzilla info 
 
-    # ARGLE this should use properties or do some kind of caching or something
-    def components(self,product):
-        '''Return a dict of components for the given product.'''
-        return self._proxy.bugzilla.getProdCompInfo(product, self.user, 
-                                                             self.password)
+    def _get_queryinfo(self,force_refresh=False):
+        '''Calls getQueryInfo, which returns a (quite large!) structure that
+        contains all of the query data and query defaults for the bugzilla
+        instance. Since this is a weighty call - takes a good 5-10sec on
+        bugzilla.redhat.com - we load the info in this private method and the
+        user instead plays with the querydata and querydefaults attributes of
+        the bugzilla object.'''
+        # Only fetch the data if we don't already have it, or are forced to
+        if force_refresh or not (self._querydata and self._querydefaults):
+            qi = self._proxy.bugzilla.getQueryInfo(self.user,self.password)
+            (self._querydata, self._querydefaults) = qi
+        return (self._querydata, self._querydefaults)
+    # Set querydata and querydefaults as properties so they auto-create
+    # themselves when touched by a user. This bit was lifted from YumBase,
+    # because skvidal is much smarter than I am.
+    querydata = property(fget=lambda self: self.__get_queryinfo()[0],
+                         fdel=lambda self: setattr(self,"_querydata",None))
+    querydefaults = property(fget=lambda self: self.__get_queryinfo()[1],
+                         fdel=lambda self: setattr(self,"_querydefaults",None))
 
-    def products(self):
+    def getproducts(self,force_refresh=False):
         '''Return a dict of product names and product descriptions.'''
-        return self._proxy.bugzilla.getProdInfo(self.user, self.password)
+        if force_refresh or not self._products:
+            p = self._proxy.bugzilla.getProdInfo(self.user, self.password)
+            self._products = p
+        return self._products
+    # Bugzilla.products is a property - we cache the product list on the first
+    # call and return it for each subsequent call.
+    products = property(fget=lambda self: self.getproducts(),
+                        fdel=lambda self: setattr(self,'_products',None))
+
+    def getcomponents(self,product,force_refresh=False):
+        '''Return a dict of components for the given product.'''
+        if force_refresh or product not in self._components:
+            c = self._proxy.bugzilla.getProdCompInfo(product, 
+                                                     self.user,self.password)
+            self._components[product] = c
+        return self._components[product]
+    # TODO - add a .components property that acts like a dict?
+
+    #---- Methods for reading bugs
 
     def getbug(self,id):
         '''Return a dict of full bug info for the given bug id'''
@@ -99,6 +136,30 @@ class Bugzilla(object):
     def getbugsimple(self,id):
         '''Return a short dict of simple bug info for the given bug id'''
         return self._proxy.bugzilla.getBugSimple(id, self.user, self.password)
+
+    def query(self,query):
+        '''Query bugzilla and return a list of matching bugs.
+        query must be a dict with fields like those in in querydata['fields'].
+
+        Returns a dict like this: {'bugs':buglist,
+                                   'displaycolumns':columnlist,
+                                   'sql':querystring}
+        
+        buglist is a list of dicts describing bugs. You can specify which 
+        columns/keys will be listed in the bugs by setting 'column_list' in
+        the query; otherwise the default columns are used (see the list in
+        querydefaults['default_column_list']). The list of columns will be
+        in 'displaycolumns', and the SQL query used by this query will be in
+        'sql'. 
+        ''' 
+        return self._proxy.bugzilla.runQuery(query,self.user,self.password)
+
+    def getwhiteboard(self,id,which):
+        '''Get the current value of the whiteboard specified by 'which' on bug
+        with the the given id.'''
+        raise NotImplementedError
+
+    #---- Methods for modifying existing bugs
 
     def addcomment(self,id,comment,private=False,
                    timestamp='',worktime='',bz_gid=''):
@@ -111,6 +172,26 @@ class Bugzilla(object):
                        to this group ID, this comment will be marked private.'''
         return self._proxy.bugzilla.addComment(id,comment,
                    self.user,self.password,private,timestamp,worktime,bz_gid)
+    
+    def setstatus(self,id,status):
+        raise NotImplementedError
+
+    def closebug(self,id):
+        raise NotImplementedError
+    
+    def setwhiteboard(self,id,type,data):
+        raise NotImplmementedError
+
+    def setassignee(self,id,assignee):
+        raise NotImplementedError
+
+    def updatedeps(self,id,deplist):
+        raise NotImplementedError
+
+    def updatecc(self,id,cclist):
+        raise NotImplementedError
+
+    #---- Methods for working with attachments
 
     def __attachment_encode(self,fh):
         '''Return the contents of the file-like object fh in a form
@@ -167,7 +248,7 @@ class Bugzilla(object):
     def openattachment(self,attachid):
         '''Get the contents of the attachment with the given attachment ID.
         Returns a file-like object.'''
-        att_uri = self.url.replace('xmlrpc.cgi','attachment.cgi')
+        att_uri = self._url.replace('xmlrpc.cgi','attachment.cgi')
         att_uri = att_uri + '?%i' % attachid
         att = urllib2.urlopen(att_uri)
         # RFC 2183 defines the content-disposition header, if you're curious
@@ -180,48 +261,10 @@ class Bugzilla(object):
         # Hooray, now we have a file-like object with .read() and .name
         return att
 
-    # Bug querying functions. These are not very well commented. Sorry.
+    def createbug(self,**kwargs):
+        '''Create a bug with the given info. Returns the bug ID.'''
+        raise NotImplementedError
 
-    def __get_queryinfo(self,force_refresh=False):
-        '''Calls getQueryInfo, which returns a (quite large!) structure that
-        contains all of the query data and query defaults for the bugzilla
-        instance. Since this is a weighty call - takes a good 5-10sec on
-        bugzilla.redhat.com - we load the info in this private method and the
-        user instead plays with the querydata and querydefaults attributes of
-        the bugzilla object.'''
-        # Only fetch the data if we don't already have it, or forced to
-        if force_refresh or not (self._querydata and self._querydefaults):
-            qi = self._proxy.bugzilla.getQueryInfo(self.user,self.password)
-            (self._querydata, self._querydefaults) = qi
-        return (self._querydata, self._querydefaults)
-
-    # Set querydata and querydefaults as properties so they auto-create
-    # themselves when touched by a user. This bit was lifted from YumBase,
-    # because skvidal is much smarter than I am.
-    querydata = property(fget=lambda self: self.__get_queryinfo()[0],
-                         fdel=lambda self: setattr(self,"_querydata",None))
-    querydefaults = property(fget=lambda self: self.__get_queryinfo()[1],
-                         fdel=lambda self: setattr(self,"_querydefaults",None))
-
-    def query(self,query):
-        '''Query bugzilla and return a list of matching bugs.
-        query must be a dict with fields like those in in querydata['fields'].
-
-        Returns a dict like this: {'bugs':buglist,
-                                   'displaycolumns':columnlist,
-                                   'sql':querystring}
-        
-        buglist is a list of dicts describing bugs. You can specify which 
-        columns/keys will be listed in the bugs by setting 'column_list' in
-        the query; otherwise the default columns are used (see the list in
-        querydefaults['default_column_list']). The list of columns will be
-        in 'displaycolumns', and the SQL query used by this query will be in
-        'sql'. 
-        ''' 
-        return self._proxy.bugzilla.runQuery(query,self.user,self.password)
-
-    # TODO: createbug, setstatus, closebug, setassignee, updatedeps,
-    #       setwhiteboard, updatecc
     # TODO: allow simple 'tagging' by adding/removing text to whiteboard(s)
     # TODO: flag handling?
 
