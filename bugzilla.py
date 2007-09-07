@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# bugzilla.py - a Python interface to Bugzilla, using xmlrpclib.
+# bugzilla.py - a Python interface to bugzilla.redhat.com, using xmlrpclib.
 #
 # Copyright (C) 2007 Red Hat Inc.
 # Author: Will Woods <wwoods@redhat.com>
@@ -130,25 +130,12 @@ class Bugzilla(object):
     #---- Methods for reading bugs and bug info
 
     # Return raw dicts
-    def _getbug(self,id):
+    def _getbugfull(self,id):
         '''Return a dict of full bug info for the given bug id'''
         return self._proxy.bugzilla.getBug(id, self.user, self.password)
-    def _getbugsimple(self,id):
+    def _getbug(self,id):
         '''Return a short dict of simple bug info for the given bug id'''
         return self._proxy.bugzilla.getBugSimple(id, self.user, self.password)
-
-    # these return a Bug objects 
-    def getbugfull(self,id):
-        '''Return a Bug object with the full complement of bug data
-        already loaded.'''
-        r = self._proxy.bugzilla.getBug(id, self.user, self.password)
-        return Bug(bugzilla=self,dict=r)
-
-    def getbug(self,id):
-        '''Return a Bug object given bug id, populated with simple info'''
-        r = self._proxy.bugzilla.getBugSimple(id, self.user, self.password)
-        return Bug(bugzilla=self,dict=r)
-
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
@@ -166,6 +153,15 @@ class Bugzilla(object):
         ''' 
         return self._proxy.bugzilla.runQuery(query,self.user,self.password)
 
+    # these return Bug objects 
+    def getbugfull(self,id):
+        '''Return a Bug object with the full complement of bug data
+        already loaded.'''
+        return Bug(bugzilla=self,dict=self._getbugfull(id))
+    def getbug(self,id):
+        '''Return a Bug object given bug id, populated with simple info'''
+        r = self._getbug(id)
+        return Bug(bugzilla=self,dict=self._getbug(id))
     def query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
@@ -400,7 +396,7 @@ class Bug(object):
             if not 'bug_id' in self.__dict__:
                 raise AttributeError
             #print "Bug %i missing %s - loading" % (self.bug_id,name)
-            r = self.bugzilla._getbug(self.bug_id)
+            r = self.bugzilla._getbugfull(self.bug_id)
             self.__dict__.update(r)
             if name in self.__dict__:
                 return self.__dict__[name]
