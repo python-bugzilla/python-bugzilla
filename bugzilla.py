@@ -137,15 +137,19 @@ class Bugzilla(object):
         '''Return a short dict of simple bug info for the given bug id'''
         return self._proxy.bugzilla.getBugSimple(id, self.user, self.password)
 
-    # TODO return a Bug object instead
-    def getbug(self,id):
-        '''Return a dict of full bug info for the given bug id'''
-        return self._proxy.bugzilla.getBug(id, self.user, self.password)
-    def getbugsimple(self,id):
-        '''Return a short dict of simple bug info for the given bug id'''
-        return self._proxy.bugzilla.getBugSimple(id, self.user, self.password)
+    # these return a Bug objects 
+    def getbugfull(self,id):
+        '''Return a Bug object with the full complement of bug data
+        already loaded.'''
+        r = self._proxy.bugzilla.getBug(id, self.user, self.password)
+        return Bug(bugzilla=self,dict=r)
 
-    def query(self,query):
+    def getbug(self,id):
+        '''Return a Bug object given bug id, populated with simple info'''
+        r = self._proxy.bugzilla.getBugSimple(id, self.user, self.password)
+        return Bug(bugzilla=self,dict=r)
+
+    def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
 
@@ -161,6 +165,18 @@ class Bugzilla(object):
         'sql'. 
         ''' 
         return self._proxy.bugzilla.runQuery(query,self.user,self.password)
+
+    def query(self,query):
+        '''Query bugzilla and return a list of matching bugs.
+        query must be a dict with fields like those in in querydata['fields'].
+
+        Returns a list of Bug objects.
+        '''
+        r = self._query(query)
+        buglist = list()
+        for b in r['bugs']:
+            buglist.append(Bug(bugzilla=self,dict=b))
+        return buglist
 
     def query_comments(self,product,version,component,string,matchtype='allwordssubstr'):
         '''Convenience method - query for bugs filed against the given
@@ -381,6 +397,9 @@ class Bug(object):
                 '_getAttributeNames') and not name.endswith(')'):
             # FIXME: that .endswith hack is an extremely stupid way to figure
             # out if we're checking on a method call. Find a smarter one!
+            if not 'bug_id' in self.__dict__:
+                raise AttributeError
+            #print "Bug %i missing %s - loading" % (self.bug_id,name)
             r = self.bugzilla._getbug(self.bug_id)
             self.__dict__.update(r)
             if name in self.__dict__:
@@ -437,6 +456,14 @@ class Bug(object):
         tags = self.gettags(which)
         tags.remove(tag)
         self.setwhiteboard(' '.join(tags),which)
+    def __str__(self):
+        '''Return a simple string representation of this bug'''
+        if 'short_short_desc' in self.__dict__:
+            desc = self.short_short_desc
+        else:
+            desc = self.short_desc
+        return "#%-6s %-10s - %s - %s" % (self.bug_id,self.bug_status,
+                                          self.assigned_to,desc)
 
 # TODO: add a sync() method that writes the changed data in the Bug object
 # back to Bugzilla. Someday.

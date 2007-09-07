@@ -20,9 +20,8 @@ def find_firefox_cookiefile():
         # TODO return whichever is newest
         return cookiefiles[0]
 
-def selftest():
+def selftest(user='',password=''):
     url = 'https://bugzilla.redhat.com/xmlrpc.cgi'
-    cookies = find_firefox_cookiefile()
     public_bug = 1
     private_bug = 250666
     query = {'product':'Fedora',
@@ -32,19 +31,24 @@ def selftest():
     
     print "Woo, welcome to the bugzilla.py self-test."
     print "Using bugzilla at " + url
-    if not cookies:
-        print "Could not find any cookies for that URL!"
-        print "Log in with firefox or give me a username/password."
-        sys.exit(1)
-    print "Reading cookies from " + cookies
-    b = Bugzilla(url=url,cookies=cookies)
+    if user and password:
+        print 'Using username "%s", password "%s"' % (user,password)
+        b = Bugzilla(url=url,user=user,password=password)
+    else:
+        cookies = find_firefox_cookiefile()
+        if not cookies:
+            print "Could not find any cookies for that URL!"
+            print "Log in with firefox or give me a username/password."
+            sys.exit(1)
+        print "Reading cookies from " + cookies
+        b = Bugzilla(url=url,cookies=cookies)
     print "Reading product list"
     print b.getproducts()
     print "Reading public bug (#%i)" % public_bug
-    print b.getbugsimple(public_bug)
+    print b.getbug(public_bug)
     print "Reading private bug (#%i)" % private_bug
     try:
-        print b.getbugsimple(private_bug)
+        print b.getbug(private_bug)
     except xmlrpclib.Fault, e:
         if 'NotPermitted' in e.faultString:
             print "Failed: Not authorized."
@@ -53,17 +57,15 @@ def selftest():
     q_msg = "%s %s %s %s" % (query['product'],query['component'],
                              query['version'],query['long_desc'])
     print "Querying %s bugs" % q_msg
-    q_result = b.query(query)
-    bugs = q_result['bugs']
+    bugs = b.query(query)
     print "%s bugs found." % len(bugs)
     for bug in bugs:
-        if 'short_short_desc' not in bug:
-            print "wtf? bug %s has no desc." % bug['bug_id']
-        else:
-            print "Bug #%s %-10s - %s - %s" % (bug['bug_id'],
-                    '('+bug['bug_status']+')',bug['assigned_to'],
-                    bug['short_short_desc'])
+        print "Bug %s" % bug
     print "Awesome. We're done."
 
 if __name__ == '__main__':
-    selftest()
+    user = ''
+    password = ''
+    if len(sys.argv) > 2:
+        (user,password) = sys.argv[1:3]
+    selftest(user,password)
