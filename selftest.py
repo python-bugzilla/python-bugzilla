@@ -44,8 +44,12 @@ def selftest(user='',password=''):
         b = Bugzilla(url=url,cookies=cookies)
     print "Reading product list"
     print b.getproducts()
+    print
+
     print "Reading public bug (#%i)" % public_bug
     print b.getbug(public_bug)
+    print
+
     print "Reading private bug (#%i)" % private_bug
     try:
         print b.getbug(private_bug)
@@ -56,11 +60,15 @@ def selftest(user='',password=''):
             print "Failed: Unknown XMLRPC error: %s"  % e
     q_msg = "%s %s %s %s" % (query['product'],query['component'],
                              query['version'],query['long_desc'])
+    print
+
     print "Querying %s bugs" % q_msg
     bugs = b.query(query)
     print "%s bugs found." % len(bugs)
     for bug in bugs:
         print "Bug %s" % bug
+    print
+
     print "Awesome. We're done."
 
 if __name__ == '__main__':
