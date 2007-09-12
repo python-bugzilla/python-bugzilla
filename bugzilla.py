@@ -468,7 +468,7 @@ class Bug(object):
 
     def refreshattr(self,name):
         delattr(self,name)
-        r = self.bugzilla.query({'bug_id':self.bug_id,'column_list':[name]})
+        r = self.bugzilla._query({'bug_id':self.bug_id,'column_list':[name]})
         self.__dict__.update(r['bugs'][0])
         return self.__dict__[name]
 
@@ -483,10 +483,6 @@ class Bug(object):
         (append,prepend,overwrite) with the given text on the given whiteboard
         for the given bug.'''
         self.bugzilla._updatewhiteboard(self.bug_id,text,which,action)
-        # NOTE: right now we don't get to the refreshattr here, because the
-        # server is throwing an XMLRPC fault on _updatewhiteboard.
-        # It still *works* - you can manually refresh and see the change - but
-        # for some reason it's complaining. Might be a bugzilla bug.
         self.refreshattr("%s_whiteboard" % which)
     def appendwhiteboard(self,text,which='status'):
         '''Append the given text (with a space before it) to the given 
