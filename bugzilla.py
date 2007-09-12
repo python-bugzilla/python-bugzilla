@@ -443,6 +443,15 @@ class Bug(object):
         if 'bug_id' in kwargs:
             setattr(self,'bug_id',kwargs['bug_id'])
 
+    def __str__(self):
+        '''Return a simple string representation of this bug'''
+        if 'short_short_desc' in self.__dict__:
+            desc = self.short_short_desc
+        else:
+            desc = self.short_desc
+        return "#%-6s %-10s - %s - %s" % (self.bug_id,self.bug_status,
+                                          self.assigned_to,desc)
+
     def __getattr__(self,name):
         if name not in ('__members__','__methods__','trait_names',
                 '_getAttributeNames') and not name.endswith(')'):
@@ -507,14 +516,5 @@ class Bug(object):
         tags = self.gettags(which)
         tags.remove(tag)
         self.setwhiteboard(' '.join(tags),which)
-    def __str__(self):
-        '''Return a simple string representation of this bug'''
-        if 'short_short_desc' in self.__dict__:
-            desc = self.short_short_desc
-        else:
-            desc = self.short_desc
-        return "#%-6s %-10s - %s - %s" % (self.bug_id,self.bug_status,
-                                          self.assigned_to,desc)
-
 # TODO: add a sync() method that writes the changed data in the Bug object
 # back to Bugzilla. Someday.
