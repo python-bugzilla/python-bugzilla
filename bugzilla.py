@@ -127,6 +127,33 @@ class Bugzilla(object):
         return self._components[product]
     # TODO - add a .components property that acts like a dict?
 
+    def _get_info(self,product=None):
+        '''This is a convenience method that does getqueryinfo, getproducts,
+        and (optionally) getcomponents in one big fat multicall. This is much
+        faster than calling them all separately.
+        
+        If you're doing interactive stuff you should call this, with the
+        appropriate product name, after connecting to Bugzilla. This will
+        cache all the info for you and save you an ugly delay later on.'''
+        c = [{'methodName':'bugzilla.getQueryInfo',
+                'params':[self.user,self.password]},
+             {'methodName':'bugzilla.getProdInfo',
+                'params':[self.user,self.password]}]
+        if product:
+            c.append({'methodName':'bugzilla.getProdCompInfo',
+                      'params':[product,self.user,self.password]})
+        r = self._proxy.system.multicall(c)
+        (self._querydata,self._querydefaults) = r[0]
+        self._products = r[1]
+        if product:
+            self._components[product] = r[2]
+        # In theory, there should be some way to set a variable on Bug
+        # such that it contains attributes for all the keys listed in the
+        # getBug call.  This isn't it, though.
+        #{'methodName':'bugzilla.getBug','params':[1,self.user,self.password]}
+        #Bug.__slots__ = r[3].keys()
+                 
+
     #---- Methods for reading bugs and bug info
 
     # Return raw dicts
@@ -136,6 +163,16 @@ class Bugzilla(object):
     def _getbug(self,id):
         '''Return a short dict of simple bug info for the given bug id'''
         return self._proxy.bugzilla.getBugSimple(id, self.user, self.password)
+    def _getbugs(self,idlist):
+        '''Like _getbug, but takes a list of ids and returns a corresponding
+        list of bug objects. Uses multicall for awesome speed.'''
+        # This uses system.multicall, which takes a list of calls. Calls are
+        # dicts of the form {'methodName': string, 'params': array}.
+        calls = list()
+        for id in idlist:
+            calls.append({'methodName':'bugzilla.getBugSimple',
+                          'params':[id,self.user,self.password]})
+        return self._proxy.system.multicall(calls)
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
@@ -160,8 +197,12 @@ class Bugzilla(object):
         return Bug(bugzilla=self,dict=self._getbugfull(id))
     def getbug(self,id):
         '''Return a Bug object given bug id, populated with simple info'''
-        r = self._getbug(id)
         return Bug(bugzilla=self,dict=self._getbug(id))
+    def getbugs(self,idlist):
+        '''Return a list of Bug objects for the given bug ids, populated with
+        simple info'''
+        bugdictlist = self._getbugs(idlist)
+        return [Bug(bugzilla=self,dict=b) for b in bugdictlist]
     def query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
