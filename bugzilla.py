@@ -242,7 +242,10 @@ class Bugzilla(object):
              'long_desc':string,'long_desc_type':matchtype}
         return self.query(q)
 
-    #---- Methods for modifying existing bugs
+    #---- Methods for modifying existing bugs.
+    #     Most of these will probably also be available as Bug methods, e.g.:
+    #     Bugzilla.setstatus(id,status) ->
+    #       Bug.setstatus(status): self.bugzilla.setstatus(self.bug_id,status)
 
     def addcomment(self,id,comment,private=False,
                    timestamp='',worktime='',bz_gid=''):
@@ -263,12 +266,20 @@ class Bugzilla(object):
         raise NotImplementedError
 
     def setassignee(self,id,assignee):
+        #changeAssignment($id, $data, $username, $password)
+        #data: 'assigned_to','reporter','qa_contact','comment'
+        #returns: [$id, $mailresults]
         raise NotImplementedError
 
     def updatedeps(self,id,deplist):
+        #updateDepends($bug_id,$data,$username,$password,$nodependencyemail)
+        #data: 'blocked'=>id,'dependson'=>id,'action' => ('add','remove')
         raise NotImplementedError
 
     def updatecc(self,id,cclist):
+        #updateCC($data, $username, $password)
+        #data: 'id'=>id,'action'=>('add','remove','makeexact'),'cc'=>accounts,
+        #      'comment'=>comment,'nomail'=>(0,1)
         raise NotImplementedError
 
     def _updatewhiteboard(self,id,text,which,action):
