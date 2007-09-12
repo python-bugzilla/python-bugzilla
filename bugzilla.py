@@ -163,16 +163,30 @@ class Bugzilla(object):
     def _getbug(self,id):
         '''Return a short dict of simple bug info for the given bug id'''
         return self._proxy.bugzilla.getBugSimple(id, self.user, self.password)
+    def _multicall_simple(self,method,arglist):
+        '''Multicall magic - does an xmlrpc multicall of the given method
+        like so: method(arg,user,password), once for each arg in arglist.
+        Only one xmlrpc roundtrip happens, but the given method can be
+        called any number of times. This is good for speed.
+        Returns a list of the results of the calls.
+        This will work with any method that takes the above params,
+        most notably bugzilla.getBug and bugzilla.getBugSimple'''
+        # This uses system.multicall, which takes a list of calls. Calls are
+        # dicts of the form {'methodName': string, 'params': array}.
+        # I'd have used xmlrpclib.MultiCall but.. it doesn't work right.
+        calls = list()
+        for arg in arglist:
+            calls.append({'methodName':method,
+                          'params':[arg,self.user,self.password]})
+        return self._proxy.system.multicall(calls)
+    def _getbugsfull(self,idlist):
+        '''Like _getbugfull, but takes a list of ids and returns a corresponding
+        list of bug objects. Uses multicall for awesome speed.'''
+        return self._multicall_simple('bugzilla.getBug',idlist)
     def _getbugs(self,idlist):
         '''Like _getbug, but takes a list of ids and returns a corresponding
         list of bug objects. Uses multicall for awesome speed.'''
-        # This uses system.multicall, which takes a list of calls. Calls are
-        # dicts of the form {'methodName': string, 'params': array}.
-        calls = list()
-        for id in idlist:
-            calls.append({'methodName':'bugzilla.getBugSimple',
-                          'params':[id,self.user,self.password]})
-        return self._proxy.system.multicall(calls)
+        return self._multicall_simple('bugzilla.getBugSimple',idlist)
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
@@ -198,11 +212,14 @@ class Bugzilla(object):
     def getbug(self,id):
         '''Return a Bug object given bug id, populated with simple info'''
         return Bug(bugzilla=self,dict=self._getbug(id))
+    def getbugsfull(self,idlist):
+        '''Return a list of Bug objects with the full complement of bug data
+        already loaded.'''
+        return [Bug(bugzilla=self,dict=b) for b in self._getbugsfull(idlist)]
     def getbugs(self,idlist):
         '''Return a list of Bug objects for the given bug ids, populated with
         simple info'''
-        bugdictlist = self._getbugs(idlist)
-        return [Bug(bugzilla=self,dict=b) for b in bugdictlist]
+        return [Bug(bugzilla=self,dict=b) for b in self._getbugs(idlist)]
     def query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
@@ -210,10 +227,7 @@ class Bugzilla(object):
         Returns a list of Bug objects.
         '''
         r = self._query(query)
-        buglist = list()
-        for b in r['bugs']:
-            buglist.append(Bug(bugzilla=self,dict=b))
-        return buglist
+        return [Bug(bugzilla=self,dict=b) for b in r['bugs']]
 
     def query_comments(self,product,version,component,string,matchtype='allwordssubstr'):
         '''Convenience method - query for bugs filed against the given
