@@ -498,7 +498,7 @@ class Bug(object):
             self.appendwhiteboard(tag,which)
         else:
             self.setwhiteboard(tag,which)
-    def tags(self,which='status'):
+    def gettags(self,which='status'):
         '''Get a list of tags (basically just whitespace-split the given
         whiteboard)'''
         return self.getwhiteboard(which).split()
