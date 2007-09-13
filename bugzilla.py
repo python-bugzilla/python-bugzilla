@@ -274,7 +274,7 @@ class Bugzilla(object):
         r = self._query(query)
         return [Bug(bugzilla=self,dict=b) for b in r['bugs']]
 
-    def simplequery(self,product,version,component,string,matchtype='allwordssubstr'):
+    def simplequery(self,product,version='',component='',string='',matchtype='allwordssubstr'):
         '''Convenience method - query for bugs filed against the given
         product, version, and component whose comments match the given string.
         matchtype specifies the type of match to be done. matchtype may be
