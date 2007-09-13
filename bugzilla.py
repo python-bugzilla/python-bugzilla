@@ -11,7 +11,7 @@
 # the full text of the license.
 
 import xmlrpclib, urllib2, cookielib
-import os.path, base64
+import os.path, base64, copy
 
 version = '0.2'
 user_agent = 'bugzilla.py/%s (Python-urllib2/%s)' % \
@@ -106,6 +106,37 @@ class Bugzilla(object):
 
     #---- Methods and properties with basic bugzilla info 
 
+    def multicall(self):
+        '''This returns kind of a mash-up of the Bugzilla object and the 
+        xmlrpclib.MultiCall object. Methods you call on this object will be added
+        to the MultiCall queue, but they will return None. When you're ready, call
+        the run() method and all the methods in the queue will be run and the
+        results of each will be returned in a list. So, for example:
+    
+        mc._getbug(1)
+        mc._getbug(1337)
+        mc._query({'component': 'glibc', 'product': 'Fedora', 'version': 'devel'})
+        (bug1, bug1337, queryresult) = mc.run()
+    
+        Note that you should only use the raw xmlrpc calls (mostly the methods
+        starting with an underscore) - normal getbug() tries to return a Bug
+        object, but it'll be empty since we get no results until we actually 
+        Note that this gives us raw xmlrpc results; you'll need to wrap the
+        output in Bug objects yourself if you're doing that kind of thing. For
+        example, Bugzilla.getbugs() does:
+        mc = self.multicall()
+        for id in idlist:
+            mc._getbug(id)
+        rawlist = mc.run()
+        return [Bug(self,dict=b) for b in rawlist]
+        '''
+
+        mc = copy.copy(self)
+        mc._proxy = xmlrpclib.MultiCall(self._proxy)
+        def run(): return mc._proxy().results
+        mc.run = run
+        return mc
+
     def _get_queryinfo(self):
         return self._proxy.bugzilla.getQueryInfo(self.user,self.password)
 
@@ -185,29 +216,21 @@ class Bugzilla(object):
     def _getbugsimple(self,id):
         '''Return a short dict of simple bug info for the given bug id'''
         return self._proxy.bugzilla.getBugSimple(id, self.user, self.password)
-    def _multicall_simple(self,method,arglist):
-        '''Multicall magic - does an xmlrpc multicall of the given method
-        like so: method(arg,user,password), once for each arg in arglist.
-        Only one xmlrpc roundtrip happens, but the given method can be
-        called any number of times. This is good for speed.
-        Returns a list of the results of the calls.
-        This will work with any method that takes the above params,
-        most notably bugzilla.getBug and bugzilla.getBugSimple'''
-        # This uses system.multicall, which takes a list of calls. Calls are
-        # dicts of the form {'methodName': string, 'params': array}.
-        calls = list()
-        for arg in arglist:
-            calls.append({'methodName':method,
-                          'params':(arg,self.user,self.password)})
-        return self._proxy.system.multicall(calls)
     def _getbugs(self,idlist):
         '''Like _getbug, but takes a list of ids and returns a corresponding
         list of bug objects. Uses multicall for awesome speed.'''
-        return self._multicall_simple('bugzilla.getBug',idlist)
+        mc = self.multicall()
+        for id in idlist:
+            mc._getbug(id)
+        return mc.run()
+        # I sure hope mc gets garbage-collected here.
     def _getbugssimple(self,idlist):
         '''Like _getbugsimple, but takes a list of ids and returns a
         corresponding list of bug objects. Uses multicall for awesome speed.'''
-        return self._multicall_simple('bugzilla.getBugSimple',idlist)
+        mc = self.multicall()
+        for id in idlist:
+            mc._getbugsimple(id)
+        return mc.run()
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
@@ -313,11 +336,15 @@ class Bugzilla(object):
         #data: 'blocked'=>id,'dependson'=>id,'action' => ('add','remove')
         raise NotImplementedError
 
-    def _updatecc(self,id,cclist):
-        #updateCC($data, $username, $password)
-        #data: 'id'=>id,'action'=>('add','remove','makeexact'),'cc'=>accounts,
-        #      'comment'=>comment,'nomail'=>(0,1)
-        raise NotImplementedError
+    def _updatecc(self,id,cclist,action,comment='',nomail=False):
+        '''Updates the CC list using the action and account list specified.
+        action may be 'add', 'remove', or 'makeexact'.
+        comment specifies an optional comment to add to the bug.
+        if mail is True, email will be generated for this change.
+        '''
+        data = {'id':id, 'action':action, 'cc':','.join(cclist),
+                'comment':comment, 'nomail':nomail}
+        return self._proxy.bugzilla.updateCC(data,self.user,self.password)
 
     def _updatewhiteboard(self,id,text,which,action):
         '''Update the whiteboard given by 'which' for the given bug.
@@ -493,7 +520,7 @@ class Bug(object):
     # to run as multicalls which fetch the newly-updated data afterward.
     def __init__(self,bugzilla,**kwargs):
         self.bugzilla = bugzilla
-        if 'dict' in kwargs:
+        if 'dict' in kwargs and kwargs['dict']:
             self.__dict__.update(kwargs['dict'])
         if 'bug_id' in kwargs:
             setattr(self,'bug_id',kwargs['bug_id'])
@@ -525,17 +552,17 @@ class Bug(object):
         r = self.bugzilla._getbug(self.bug_id)
         self.__dict__.update(r)
 
+    def _dowhiteboard(self,text,which,action):
+        '''Actually does the updateWhiteboard call to perform the given action
+        (append,prepend,overwrite) with the given text on the given whiteboard
+        for the given bug.'''
+        self.bugzilla._updatewhiteboard(self.bug_id,text,which,action)
     def getwhiteboard(self,which='status'):
         '''Get the current value of the whiteboard specified by 'which'.
         Known whiteboard names: 'status','internal','devel','qa'.
         Defaults to the 'status' whiteboard.
         '''
         return getattr(self,"%s_whiteboard" % which)
-    def _dowhiteboard(self,text,which,action):
-        '''Actually does the updateWhiteboard call to perform the given action
-        (append,prepend,overwrite) with the given text on the given whiteboard
-        for the given bug.'''
-        self.bugzilla._updatewhiteboard(self.bug_id,text,which,action)
     def appendwhiteboard(self,text,which='status'):
         '''Append the given text (with a space before it) to the given 
         whiteboard. Defaults to using status_whiteboard.'''

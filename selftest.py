@@ -24,7 +24,7 @@ def selftest(user='',password=''):
     url = 'https://bugzilla.redhat.com/xmlrpc.cgi'
     public_bug = 1
     private_bug = 250666
-    bugidlist = (1,2,3)
+    bugidlist = (1,2,3,1337,123456)
     query = {'product':'Fedora',
              'component':'kernel',
              'version':'devel',
@@ -63,7 +63,12 @@ def selftest(user='',password=''):
                              query['version'],query['long_desc'])
     print
 
-    print "Reading multiple bugs: %s" % str(bugidlist)
+    print "Reading multiple bugs, one-at-a-time: %s" % str(bugidlist)
+    for b in bugidlist:
+        print bz.getbugsimple(b)
+    print
+
+    print "Reading multiple bugs, all-at-once: %s" % str(bugidlist)
     for b in bz.getbugssimple(bugidlist):
         print b
     print
