@@ -158,12 +158,12 @@ class Bugzilla(object):
         appropriate product name, after connecting to Bugzilla. This will
         cache all the info for you and save you an ugly delay later on.'''
         c = [{'methodName':'bugzilla.getQueryInfo',
-                'params':[self.user,self.password]},
+                'params':(self.user,self.password)},
              {'methodName':'bugzilla.getProdInfo',
-                'params':[self.user,self.password]}]
+                'params':(self.user,self.password)}]
         if product:
             c.append({'methodName':'bugzilla.getProdCompInfo',
-                      'params':[product,self.user,self.password]})
+                      'params':(product,self.user,self.password)})
         r = self._proxy.system.multicall(c)
         (self._querydata,self._querydefaults) = r[0]
         self._products = r[1]
@@ -172,7 +172,7 @@ class Bugzilla(object):
         # In theory, there should be some way to set a variable on Bug
         # such that it contains attributes for all the keys listed in the
         # getBug call.  This isn't it, though.
-        #{'methodName':'bugzilla.getBug','params':[1,self.user,self.password]}
+        #{'methodName':'bugzilla.getBug','params':(1,self.user,self.password)}
         #Bug.__slots__ = r[3].keys()
                  
 
