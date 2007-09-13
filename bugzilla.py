@@ -271,7 +271,7 @@ class Bugzilla(object):
 
     # FIXME: find a good way to make these multicallable.
 
-    def addcomment(self,id,comment,private=False,
+    def _addcomment(self,id,comment,private=False,
                    timestamp='',worktime='',bz_gid=''):
         '''Add a comment to the bug with the given ID. Other optional 
         arguments are as follows:
@@ -279,40 +279,52 @@ class Bugzilla(object):
             timestamp: comment timestamp, in the form "YYYY-MM-DD HH:MM:SS"
             worktime:  amount of time spent on this comment (undoc in upstream)
             bz_gid:    if present, and the entire bug is *not* already private
-                       to this group ID, this comment will be marked private.'''
+                       to this group ID, this comment will be marked private.
+        '''
         return self._proxy.bugzilla.addComment(id,comment,
                    self.user,self.password,private,timestamp,worktime,bz_gid)
     
-    def setstatus(self,id,status):
+    def _setstatus(self,id,status,comment='',private=False):
+        '''Set the status of the bug with the given ID. You may optionally
+        include a comment to be added, and may further choose to mark that
+        comment as private.
+        The status may be anything from querydefaults['bug_status_list'].
+        Common statuses: 'NEW','ASSIGNED','MODIFIED','NEEDINFO'
+        Less common: 'VERIFIED','ON_DEV','ON_QA','REOPENED'
+        'CLOSED' is not valid with this method; use closebug() instead.
+        '''
+        return self._proxy.bugzilla.setstatus(id,status,
+                self.user,self.password,comment,private)
+
+    def _closebug(self,id):
+        #closeBug($bugid, $new_resolution, $username, $password, $dupeid, $new_fixed_in, $comment, $isprivate)
+        # if new_resolution is 'DUPLICATE', dupeid is not optional
+        # new_fixed_id, comment, isprivate are optional
         raise NotImplementedError
 
-    def closebug(self,id):
-        raise NotImplementedError
-
-    def setassignee(self,id,assignee):
+    def _setassignee(self,id,assignee):
         #changeAssignment($id, $data, $username, $password)
         #data: 'assigned_to','reporter','qa_contact','comment'
         #returns: [$id, $mailresults]
         raise NotImplementedError
 
-    def updatedeps(self,id,deplist):
+    def _updatedeps(self,id,deplist):
         #updateDepends($bug_id,$data,$username,$password,$nodependencyemail)
         #data: 'blocked'=>id,'dependson'=>id,'action' => ('add','remove')
         raise NotImplementedError
 
-    def updatecc(self,id,cclist):
+    def _updatecc(self,id,cclist):
         #updateCC($data, $username, $password)
         #data: 'id'=>id,'action'=>('add','remove','makeexact'),'cc'=>accounts,
         #      'comment'=>comment,'nomail'=>(0,1)
         raise NotImplementedError
 
-    # Why is this _-prefixed and not the others?
     def _updatewhiteboard(self,id,text,which,action):
         '''Update the whiteboard given by 'which' for the given bug.
         performs the given action (which may be 'append',' prepend', or 
         'overwrite') using the given text.'''
         data = {'type':which,'text':text,'action':action}
-        self._proxy.bugzilla.updateWhiteboard(id,data,self.user,self.password)
+        return self._proxy.bugzilla.updateWhiteboard(id,data,self.user,self.password)
 
     # TODO: flag handling?
 
