@@ -13,7 +13,7 @@
 import xmlrpclib, urllib2, cookielib
 import os.path, base64
 
-version = '0.1'
+version = '0.2'
 user_agent = 'bugzilla.py/%s (Python-urllib2/%s)' % \
         (version,urllib2.__version__)
 
@@ -179,10 +179,10 @@ class Bugzilla(object):
     #---- Methods for reading bugs and bug info
 
     # Return raw dicts
-    def _getbugfull(self,id):
+    def _getbug(self,id):
         '''Return a dict of full bug info for the given bug id'''
         return self._proxy.bugzilla.getBug(id, self.user, self.password)
-    def _getbug(self,id):
+    def _getbugsimple(self,id):
         '''Return a short dict of simple bug info for the given bug id'''
         return self._proxy.bugzilla.getBugSimple(id, self.user, self.password)
     def _multicall_simple(self,method,arglist):
@@ -200,13 +200,13 @@ class Bugzilla(object):
             calls.append({'methodName':method,
                           'params':(arg,self.user,self.password)})
         return self._proxy.system.multicall(calls)
-    def _getbugsfull(self,idlist):
-        '''Like _getbugfull, but takes a list of ids and returns a corresponding
-        list of bug objects. Uses multicall for awesome speed.'''
-        return self._multicall_simple('bugzilla.getBug',idlist)
     def _getbugs(self,idlist):
         '''Like _getbug, but takes a list of ids and returns a corresponding
         list of bug objects. Uses multicall for awesome speed.'''
+        return self._multicall_simple('bugzilla.getBug',idlist)
+    def _getbugssimple(self,idlist):
+        '''Like _getbugsimple, but takes a list of ids and returns a
+        corresponding list of bug objects. Uses multicall for awesome speed.'''
         return self._multicall_simple('bugzilla.getBugSimple',idlist)
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
@@ -226,21 +226,21 @@ class Bugzilla(object):
         return self._proxy.bugzilla.runQuery(query,self.user,self.password)
 
     # these return Bug objects 
-    def getbugfull(self,id):
+    def getbug(self,id):
         '''Return a Bug object with the full complement of bug data
         already loaded.'''
-        return Bug(bugzilla=self,dict=self._getbugfull(id))
-    def getbug(self,id):
-        '''Return a Bug object given bug id, populated with simple info'''
         return Bug(bugzilla=self,dict=self._getbug(id))
-    def getbugsfull(self,idlist):
+    def getbugsimple(self,id):
+        '''Return a Bug object given bug id, populated with simple info'''
+        return Bug(bugzilla=self,dict=self._getbugsimple(id))
+    def getbugs(self,idlist):
         '''Return a list of Bug objects with the full complement of bug data
         already loaded.'''
-        return [Bug(bugzilla=self,dict=b) for b in self._getbugsfull(idlist)]
-    def getbugs(self,idlist):
+        return [Bug(bugzilla=self,dict=b) for b in self._getbugs(idlist)]
+    def getbugssimple(self,idlist):
         '''Return a list of Bug objects for the given bug ids, populated with
         simple info'''
-        return [Bug(bugzilla=self,dict=b) for b in self._getbugs(idlist)]
+        return [Bug(bugzilla=self,dict=b) for b in self._getbugssimple(idlist)]
     def query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
@@ -515,8 +515,7 @@ class Bug(object):
             if not 'bug_id' in self.__dict__:
                 raise AttributeError
             #print "Bug %i missing %s - loading" % (self.bug_id,name)
-            r = self.bugzilla._getbugfull(self.bug_id)
-            self.__dict__.update(r)
+            self.refresh()
             if name in self.__dict__:
                 return self.__dict__[name]
         raise AttributeError
