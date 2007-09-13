@@ -24,6 +24,7 @@ def selftest(user='',password=''):
     url = 'https://bugzilla.redhat.com/xmlrpc.cgi'
     public_bug = 1
     private_bug = 250666
+    bugidlist = (1,2,3)
     query = {'product':'Fedora',
              'component':'kernel',
              'version':'devel',
@@ -41,18 +42,18 @@ def selftest(user='',password=''):
             print "Log in with firefox or give me a username/password."
             sys.exit(1)
         print "Reading cookies from " + cookies
-        b = Bugzilla(url=url,cookies=cookies)
+        bz = Bugzilla(url=url,cookies=cookies)
     print "Reading product list"
-    print b.getproducts()
+    print bz.getproducts()
     print
 
     print "Reading public bug (#%i)" % public_bug
-    print b.getbug(public_bug)
+    print bz.getbugsimple(public_bug)
     print
 
     print "Reading private bug (#%i)" % private_bug
     try:
-        print b.getbug(private_bug)
+        print bz.getbugsimple(private_bug)
     except xmlrpclib.Fault, e:
         if 'NotPermitted' in e.faultString:
             print "Failed: Not authorized."
@@ -62,8 +63,13 @@ def selftest(user='',password=''):
                              query['version'],query['long_desc'])
     print
 
+    print "Reading multiple bugs: %s" % str(bugidlist)
+    for b in bz.getbugssimple(bugidlist):
+        print b
+    print
+
     print "Querying %s bugs" % q_msg
-    bugs = b.query(query)
+    bugs = bz.query(query)
     print "%s bugs found." % len(bugs)
     for bug in bugs:
         print "Bug %s" % bug
