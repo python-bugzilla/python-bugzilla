@@ -34,7 +34,7 @@ def selftest(user='',password=''):
     print "Using bugzilla at " + url
     if user and password:
         print 'Using username "%s", password "%s"' % (user,password)
-        b = Bugzilla(url=url,user=user,password=password)
+        bz = Bugzilla(url=url,user=user,password=password)
     else:
         cookies = find_firefox_cookiefile()
         if not cookies:
