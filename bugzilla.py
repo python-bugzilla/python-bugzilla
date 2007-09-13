@@ -337,6 +337,7 @@ class Bugzilla(object):
 
     def _updatecc(self,id,cclist,action,comment='',nomail=False):
         '''Updates the CC list using the action and account list specified.
+        cclist must be a list (not a tuple!) of addresses.
         action may be 'add', 'remove', or 'makeexact'.
         comment specifies an optional comment to add to the bug.
         if mail is True, email will be generated for this change.
