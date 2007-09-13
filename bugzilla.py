@@ -18,6 +18,24 @@ user_agent = 'bugzilla.py/%s (Python-urllib2/%s)' % \
         (version,urllib2.__version__)
 
 class Bugzilla(object):
+    '''An object which represents the data and methods exported by a Bugzilla
+    instance. Uses xmlrpclib to do its thing. You'll want to create one thusly:
+    bz=Bugzilla(url='https://bugzilla.redhat.com/xmlrpc.cgi',user=u,password=p)
+
+    If you so desire, you can use cookie headers for authentication instead.
+    So you could do:
+    cf=glob(os.path.expanduser('~/.mozilla/firefox/default.*/cookies.txt'))
+    bz=Bugzilla(url=url,cookies=cf)
+    and, assuming you have previously logged info bugzilla with firefox, your
+    pre-existing auth cookie would be used, thus saving you the trouble of
+    stuffing your username and password in the bugzilla call.
+    On the other hand, this currently munges up the cookie so you'll have to
+    log back in when you next use bugzilla in firefox. So this is not
+    currently recommended.
+
+    The methods which start with a single underscore are thin wrappers around
+    xmlrpc calls; those should be safe for multicall usage.
+    '''
     def __init__(self,**kwargs):
         # Settings the user might want to tweak
         self.user       = ''
@@ -32,7 +50,7 @@ class Bugzilla(object):
         self._products   = None 
         self._components = dict()
         if 'cookies' in kwargs:
-            self._readcookiefile(kwargs['cookies'])
+            self.__readcookiefile(kwargs['cookies'])
         if 'url' in kwargs:
             self.connect(kwargs['url'])
         if 'user' in kwargs:
@@ -42,7 +60,7 @@ class Bugzilla(object):
 
     #---- Methods for establishing bugzilla connection and logging in
 
-    def _readcookiefile(self,cookiefile):
+    def __readcookiefile(self,cookiefile):
         '''Read the given (Mozilla-style) cookie file and fill in the cookiejar,
         allowing us to use the user's saved credentials to access bugzilla.'''
         cj = cookielib.MozillaCookieJar()
@@ -65,6 +83,7 @@ class Bugzilla(object):
         handler = urllib2.HTTPCookieProcessor(self._cookiejar)
         self._opener = urllib2.build_opener(handler)
         self._opener.addheaders = [('User-agent',user_agent)]
+        self.url = url
 
     # Note that the bugzilla methods will ignore an empty user/password if you
     # send authentication info as a cookie in the request headers. So it's
@@ -87,7 +106,10 @@ class Bugzilla(object):
 
     #---- Methods and properties with basic bugzilla info 
 
-    def _get_queryinfo(self,force_refresh=False):
+    def _get_queryinfo(self):
+        return self._proxy.bugzilla.getQueryInfo(self.user,self.password)
+
+    def get_queryinfo(self,force_refresh=False):
         '''Calls getQueryInfo, which returns a (quite large!) structure that
         contains all of the query data and query defaults for the bugzilla
         instance. Since this is a weighty call - takes a good 5-10sec on
@@ -96,15 +118,15 @@ class Bugzilla(object):
         the bugzilla object.'''
         # Only fetch the data if we don't already have it, or are forced to
         if force_refresh or not (self._querydata and self._querydefaults):
-            qi = self._proxy.bugzilla.getQueryInfo(self.user,self.password)
+            qi = self._get_queryinfo()
             (self._querydata, self._querydefaults) = qi
         return (self._querydata, self._querydefaults)
     # Set querydata and querydefaults as properties so they auto-create
     # themselves when touched by a user. This bit was lifted from YumBase,
     # because skvidal is much smarter than I am.
-    querydata = property(fget=lambda self: self._get_queryinfo()[0],
+    querydata = property(fget=lambda self: self.get_queryinfo()[0],
                          fdel=lambda self: setattr(self,"_querydata",None))
-    querydefaults = property(fget=lambda self: self._get_queryinfo()[1],
+    querydefaults = property(fget=lambda self: self.get_queryinfo()[1],
                          fdel=lambda self: setattr(self,"_querydefaults",None))
 
     def getproducts(self,force_refresh=False):
@@ -173,11 +195,10 @@ class Bugzilla(object):
         most notably bugzilla.getBug and bugzilla.getBugSimple'''
         # This uses system.multicall, which takes a list of calls. Calls are
         # dicts of the form {'methodName': string, 'params': array}.
-        # I'd have used xmlrpclib.MultiCall but.. it doesn't work right.
         calls = list()
         for arg in arglist:
             calls.append({'methodName':method,
-                          'params':[arg,self.user,self.password]})
+                          'params':(arg,self.user,self.password)})
         return self._proxy.system.multicall(calls)
     def _getbugsfull(self,idlist):
         '''Like _getbugfull, but takes a list of ids and returns a corresponding
@@ -243,9 +264,12 @@ class Bugzilla(object):
         return self.query(q)
 
     #---- Methods for modifying existing bugs.
-    #     Most of these will probably also be available as Bug methods, e.g.:
-    #     Bugzilla.setstatus(id,status) ->
-    #       Bug.setstatus(status): self.bugzilla.setstatus(self.bug_id,status)
+
+    # Most of these will probably also be available as Bug methods, e.g.:
+    # Bugzilla.setstatus(id,status) ->
+    #   Bug.setstatus(status): self.bugzilla.setstatus(self.bug_id,status)
+
+    # FIXME: find a good way to make these multicallable.
 
     def addcomment(self,id,comment,private=False,
                    timestamp='',worktime='',bz_gid=''):
@@ -282,12 +306,15 @@ class Bugzilla(object):
         #      'comment'=>comment,'nomail'=>(0,1)
         raise NotImplementedError
 
+    # Why is this _-prefixed and not the others?
     def _updatewhiteboard(self,id,text,which,action):
         '''Update the whiteboard given by 'which' for the given bug.
         performs the given action (which may be 'append',' prepend', or 
         'overwrite') using the given text.'''
         data = {'type':which,'text':text,'action':action}
         self._proxy.bugzilla.updateWhiteboard(id,data,self.user,self.password)
+
+    # TODO: flag handling?
 
     #---- Methods for working with attachments
 
@@ -359,11 +386,12 @@ class Bugzilla(object):
         # Hooray, now we have a file-like object with .read() and .name
         return att
 
+    #---- createbug - big complicated call to create a new bug
+
     def createbug(self,**kwargs):
         '''Create a bug with the given info. Returns the bug ID.'''
         raise NotImplementedError
 
-    # TODO: flag handling?
 
 class CookieTransport(xmlrpclib.Transport):
     '''A subclass of xmlrpclib.Transport that supports cookies.'''
@@ -446,7 +474,11 @@ class Bug(object):
         bug_id=ID - if dict does not contain bug_id, this is required before
                     you can read any attributes or make modifications to this
                     bug.
+    Note that modifying a Bug will not update the data attributes - you can 
+    call refresh() to do this.
     '''
+    # TODO: Implement an 'autorefresh' attribute that causes update methods
+    # to run as multicalls which fetch the newly-updated data afterward.
     def __init__(self,bugzilla,**kwargs):
         self.bugzilla = bugzilla
         if 'dict' in kwargs:
@@ -477,11 +509,10 @@ class Bug(object):
                 return self.__dict__[name]
         raise AttributeError
 
-    def refreshattr(self,name):
-        delattr(self,name)
-        r = self.bugzilla._query({'bug_id':self.bug_id,'column_list':[name]})
-        self.__dict__.update(r['bugs'][0])
-        return self.__dict__[name]
+    def refresh(self):
+        '''Refresh all the data in this Bug.'''
+        r = self.bugzilla._getbug(self.bug_id)
+        self.__dict__.update(r)
 
     def getwhiteboard(self,which='status'):
         '''Get the current value of the whiteboard specified by 'which'.
@@ -494,7 +525,6 @@ class Bug(object):
         (append,prepend,overwrite) with the given text on the given whiteboard
         for the given bug.'''
         self.bugzilla._updatewhiteboard(self.bug_id,text,which,action)
-        self.refreshattr("%s_whiteboard" % which)
     def appendwhiteboard(self,text,which='status'):
         '''Append the given text (with a space before it) to the given 
         whiteboard. Defaults to using status_whiteboard.'''
