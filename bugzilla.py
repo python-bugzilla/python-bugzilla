@@ -106,41 +106,43 @@ class Bugzilla(object):
 
     #---- Methods and properties with basic bugzilla info 
 
-    def multicall(self):
+    def _multicall(self):
         '''This returns kind of a mash-up of the Bugzilla object and the 
         xmlrpclib.MultiCall object. Methods you call on this object will be added
         to the MultiCall queue, but they will return None. When you're ready, call
         the run() method and all the methods in the queue will be run and the
         results of each will be returned in a list. So, for example:
-    
+
+        mc = bz._multicall()
         mc._getbug(1)
         mc._getbug(1337)
-        mc._query({'component': 'glibc', 'product': 'Fedora', 'version': 'devel'})
+        mc._query({'component':'glibc','product':'Fedora','version':'devel'})
         (bug1, bug1337, queryresult) = mc.run()
     
         Note that you should only use the raw xmlrpc calls (mostly the methods
-        starting with an underscore) - normal getbug() tries to return a Bug
-        object, but it'll be empty since we get no results until we actually 
-        Note that this gives us raw xmlrpc results; you'll need to wrap the
-        output in Bug objects yourself if you're doing that kind of thing. For
-        example, Bugzilla.getbugs() does:
-        mc = self.multicall()
+        starting with an underscore). Normal getbug(), for example, tries to
+        return a Bug object, but with the multicall object it'll end up empty
+        and, therefore, useless.
+
+        Further note that run() returns a list of raw xmlrpc results; you'll
+        need to wrap the output in Bug objects yourself if you're doing that
+        kind of thing. For example, Bugzilla.getbugs() could be implemented:
+
+        mc = self._multicall()
         for id in idlist:
             mc._getbug(id)
         rawlist = mc.run()
         return [Bug(self,dict=b) for b in rawlist]
         '''
-
         mc = copy.copy(self)
         mc._proxy = xmlrpclib.MultiCall(self._proxy)
         def run(): return mc._proxy().results
         mc.run = run
         return mc
 
-    def _get_queryinfo(self):
+    def _getqueryinfo(self):
         return self._proxy.bugzilla.getQueryInfo(self.user,self.password)
-
-    def get_queryinfo(self,force_refresh=False):
+    def getqueryinfo(self,force_refresh=False):
         '''Calls getQueryInfo, which returns a (quite large!) structure that
         contains all of the query data and query defaults for the bugzilla
         instance. Since this is a weighty call - takes a good 5-10sec on
@@ -149,34 +151,35 @@ class Bugzilla(object):
         the bugzilla object.'''
         # Only fetch the data if we don't already have it, or are forced to
         if force_refresh or not (self._querydata and self._querydefaults):
-            qi = self._get_queryinfo()
-            (self._querydata, self._querydefaults) = qi
+            (self._querydata, self._querydefaults) = self._getqueryinfo()
         return (self._querydata, self._querydefaults)
     # Set querydata and querydefaults as properties so they auto-create
     # themselves when touched by a user. This bit was lifted from YumBase,
     # because skvidal is much smarter than I am.
-    querydata = property(fget=lambda self: self.get_queryinfo()[0],
+    querydata = property(fget=lambda self: self.getqueryinfo()[0],
                          fdel=lambda self: setattr(self,"_querydata",None))
-    querydefaults = property(fget=lambda self: self.get_queryinfo()[1],
+    querydefaults = property(fget=lambda self: self.getqueryinfo()[1],
                          fdel=lambda self: setattr(self,"_querydefaults",None))
 
+    def _getproducts(self):
+        return self._proxy.bugzilla.getProdInfo(self.user, self.password)
     def getproducts(self,force_refresh=False):
         '''Return a dict of product names and product descriptions.'''
         if force_refresh or not self._products:
-            p = self._proxy.bugzilla.getProdInfo(self.user, self.password)
-            self._products = p
+            self._products = self._getproducts()
         return self._products
     # Bugzilla.products is a property - we cache the product list on the first
     # call and return it for each subsequent call.
     products = property(fget=lambda self: self.getproducts(),
                         fdel=lambda self: setattr(self,'_products',None))
 
+    def _getcomponents(self,product):
+            return self._proxy.bugzilla.getProdCompInfo(product, 
+                                        self.user,self.password)
     def getcomponents(self,product,force_refresh=False):
         '''Return a dict of components for the given product.'''
         if force_refresh or product not in self._components:
-            c = self._proxy.bugzilla.getProdCompInfo(product, 
-                                                     self.user,self.password)
-            self._components[product] = c
+            self._components[product] = self._getcomponents(product)
         return self._components[product]
     # TODO - add a .components property that acts like a dict?
 
@@ -188,14 +191,12 @@ class Bugzilla(object):
         If you're doing interactive stuff you should call this, with the
         appropriate product name, after connecting to Bugzilla. This will
         cache all the info for you and save you an ugly delay later on.'''
-        c = [{'methodName':'bugzilla.getQueryInfo',
-                'params':(self.user,self.password)},
-             {'methodName':'bugzilla.getProdInfo',
-                'params':(self.user,self.password)}]
+        mc = self._multicall()
+        mc._getqueryinfo()
+        mc._getproducts()
         if product:
-            c.append({'methodName':'bugzilla.getProdCompInfo',
-                      'params':(product,self.user,self.password)})
-        r = self._proxy.system.multicall(c)
+            mc._getcomponents(product)
+        r = mc.run()
         (self._querydata,self._querydefaults) = r[0]
         self._products = r[1]
         if product:
@@ -219,7 +220,7 @@ class Bugzilla(object):
     def _getbugs(self,idlist):
         '''Like _getbug, but takes a list of ids and returns a corresponding
         list of bug objects. Uses multicall for awesome speed.'''
-        mc = self.multicall()
+        mc = self._multicall()
         for id in idlist:
             mc._getbug(id)
         return mc.run()
@@ -227,7 +228,7 @@ class Bugzilla(object):
     def _getbugssimple(self,idlist):
         '''Like _getbugsimple, but takes a list of ids and returns a
         corresponding list of bug objects. Uses multicall for awesome speed.'''
-        mc = self.multicall()
+        mc = self._multicall()
         for id in idlist:
             mc._getbugsimple(id)
         return mc.run()
@@ -291,8 +292,6 @@ class Bugzilla(object):
     # Most of these will probably also be available as Bug methods, e.g.:
     # Bugzilla.setstatus(id,status) ->
     #   Bug.setstatus(status): self.bugzilla.setstatus(self.bug_id,status)
-
-    # FIXME: find a good way to make these multicallable.
 
     def _addcomment(self,id,comment,private=False,
                    timestamp='',worktime='',bz_gid=''):
