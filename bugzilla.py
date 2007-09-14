@@ -536,9 +536,7 @@ class Bug(object):
 
     def __getattr__(self,name):
         if name not in ('__members__','__methods__','trait_names',
-                '_getAttributeNames') and not name.endswith(')'):
-            # FIXME: that .endswith hack is an extremely stupid way to figure
-            # out if we're checking on a method call. Find a smarter one!
+                '_getAttributeNames'):
             if not 'bug_id' in self.__dict__:
                 raise AttributeError
             #print "Bug %i missing %s - loading" % (self.bug_id,name)
