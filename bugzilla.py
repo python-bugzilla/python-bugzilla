@@ -50,7 +50,7 @@ class Bugzilla(object):
         self._products   = None 
         self._components = dict()
         if 'cookies' in kwargs:
-            self.__readcookiefile(kwargs['cookies'])
+            self.readcookiefile(kwargs['cookies'])
         if 'url' in kwargs:
             self.connect(kwargs['url'])
         if 'user' in kwargs:
@@ -60,7 +60,7 @@ class Bugzilla(object):
 
     #---- Methods for establishing bugzilla connection and logging in
 
-    def __readcookiefile(self,cookiefile):
+    def readcookiefile(self,cookiefile):
         '''Read the given (Mozilla-style) cookie file and fill in the cookiejar,
         allowing us to use the user's saved credentials to access bugzilla.'''
         cj = cookielib.MozillaCookieJar()
