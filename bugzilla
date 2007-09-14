@@ -1,0 +1,114 @@
+#!/usr/bin/python
+# bugzilla - a commandline frontend for the python bugzilla module
+#
+# Copyright (C) 2007 Red Hat Inc.
+# Author: Will Woods <wwoods@redhat.com>
+# 
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation; either version 2 of the License, or (at your
+# option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
+# the full text of the license.
+
+import bugzilla, optparse
+import os, sys, glob
+import logging
+
+version = '0.1'
+default_bz = 'https://partner-bugzilla.redhat.com/xmlrpc.cgi'
+
+def findcookie():
+    globs = ['~/.mozilla/firefox/default.*/cookies.txt']
+    for g in globs:
+        cookiefiles = glob.glob(os.path.expanduser(g))
+        if cookiefiles:
+            # return the first one we find.
+            # TODO: find all cookiefiles, sort by age, use newest
+            return cookiefiles[0]
+
+def setup_parser():
+    u =   "usage: %prog info|query|new|modify [options]"
+    p = optparse.OptionParser(usage=u)
+    # General bugzilla connection options
+    p.add_option('--bugzilla',default=default_bz)
+    p.add_option('--user')
+    p.add_option('--password')
+    p.add_option('--cookiefile')
+    return p
+
+def modify_parser(parser,action):
+    p = parser
+    if action == 'query':
+        # TODO: product and version could default to current system
+        # info (read from /etc/redhat-release?)
+        p.add_option('-p','--product')
+        p.add_option('-v','--version')
+        p.add_option('-c','--component')
+        p.add_option('-l','--long_desc',
+                help="Search bug comments")
+        p.add_option('-b','--bug_id',
+                help="Select an individual bug ID")
+        # output modifiers
+        p.add_option('-f','--full',action='store_true',
+                help="Give full bug info")
+    elif action == 'info':
+        p.add_option('-p','--products',action='store_true',
+                help='Get a list of products')
+        p.add_option('-c','--components',
+                help='List the components in the given product')
+    return p
+
+if __name__ == '__main__':
+    log = logging.getLogger("bugzilla")
+
+    parser = setup_parser()
+    if sys.argv and sys.argv[1] in ('info','query','new','modify'):
+        action = sys.argv[1]
+    else:
+        parser.error("you must specify an action")
+    parser = modify_parser(parser,action)
+    (opt,args) = parser.parse_args()
+
+    log.info('Connecting to %s',opt.bugzilla)
+    bz=bugzilla.Bugzilla(url=opt.bugzilla)
+    if opt.user and opt.password:
+        bz.login(opt.user,opt.password)
+    elif opt.cookiefile:
+        bz.readcookiefile(opt.cookiefile)
+    else:
+        cookiefile = findcookie()
+        if cookiefile:
+            bz.readcookiefile(cookiefile)
+        else:
+            parser.error("Could not find a Firefox cookie file. Try --user/--password.")
+    
+    if action == 'info':
+        if opt.products:
+            for k in sorted(bz.products):
+                print k
+        elif opt.components:
+            for c in sorted(bz.getcomponents(opt.components)):
+                print c
+
+    elif action == 'query':
+        # Construct the query from the list of queryable options
+        q = dict()
+        for a in ('product', 'component', 'version', 'long_desc', 'bug_id'):
+            if hasattr(opt,a):
+                i = getattr(opt,a)
+                if i:
+                    q[a] = i
+        buglist = bz.query(q)
+        if not opt.full:
+            for b in buglist:
+                print b
+        else:
+            fullbuglist = bz.getbugs([b.bug_id for b in buglist])
+            for b in fullbuglist:
+                print b
+                print "CC: %s" % b.cc
+                for c in b.longdescs:
+                    print "* %s - %s (%s):\n  %s\n" % (c['time'],c['name'],c['email'] or c['safe_email'],c['body'])
+        
+    else:
+        print "Sorry - '%s' not implemented yet." % action

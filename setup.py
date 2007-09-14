@@ -9,4 +9,5 @@ setup(name='bugzilla',
       author_email='wwoods@redhat.com',
       url='http://localhost/',
       py_modules=['bugzilla'],
+      scripts=['bugzilla'],
 )
