@@ -15,6 +15,7 @@ import os, sys, glob
 import logging
 
 version = '0.1'
+# Change this once we're ready for actual use
 default_bz = 'https://partner-bugzilla.redhat.com/xmlrpc.cgi'
 
 def findcookie():
@@ -61,14 +62,19 @@ def modify_parser(parser,action):
 if __name__ == '__main__':
     log = logging.getLogger("bugzilla")
 
-    parser = setup_parser()
+    # Set up parser
+    parser = init_parser()
+    # Get our action
     if sys.argv and sys.argv[1] in ('info','query','new','modify'):
         action = sys.argv[1]
     else:
         parser.error("you must specify an action")
+    # Add the action-specific args and such
     parser = modify_parser(parser,action)
+    # Parse the commandline, woo
     (opt,args) = parser.parse_args()
 
+    # Connect to bugzilla
     log.info('Connecting to %s',opt.bugzilla)
     bz=bugzilla.Bugzilla(url=opt.bugzilla)
     if opt.user and opt.password:
@@ -82,6 +88,7 @@ if __name__ == '__main__':
         else:
             parser.error("Could not find a Firefox cookie file. Try --user/--password.")
     
+    # And now we actually execute the given command
     if action == 'info':
         if opt.products:
             for k in sorted(bz.products):
