@@ -19,7 +19,7 @@ version = '0.1'
 default_bz = 'https://partner-bugzilla.redhat.com/xmlrpc.cgi'
 
 def findcookie():
-    globs = ['~/.mozilla/firefox/default.*/cookies.txt']
+    globs = ['~/.mozilla/firefox/*default*/cookies.txt']
     for g in globs:
         cookiefiles = glob.glob(os.path.expanduser(g))
         if cookiefiles:
@@ -63,9 +63,9 @@ if __name__ == '__main__':
     log = logging.getLogger("bugzilla")
 
     # Set up parser
-    parser = init_parser()
+    parser = setup_parser()
     # Get our action
-    if sys.argv and sys.argv[1] in ('info','query','new','modify'):
+    if len(sys.argv) > 1 and sys.argv[1] in ('info','query','new','modify'):
         action = sys.argv[1]
     else:
         parser.error("you must specify an action")
