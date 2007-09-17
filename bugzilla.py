@@ -49,6 +49,7 @@ class Bugzilla(object):
         self._querydefaults = None
         self._products   = None 
         self._components = dict()
+        self._components_details = dict()
         if 'cookies' in kwargs:
             self.readcookiefile(kwargs['cookies'])
         if 'url' in kwargs:
@@ -174,14 +175,43 @@ class Bugzilla(object):
                         fdel=lambda self: setattr(self,'_products',None))
 
     def _getcomponents(self,product):
-            return self._proxy.bugzilla.getProdCompInfo(product, 
-                                        self.user,self.password)
+        return self._proxy.bugzilla.getProdCompInfo(product,self.user,self.password)
+
     def getcomponents(self,product,force_refresh=False):
-        '''Return a dict of components for the given product.'''
+        '''Return a dict of components:descriptions for the given product.'''
         if force_refresh or product not in self._components:
             self._components[product] = self._getcomponents(product)
         return self._components[product]
     # TODO - add a .components property that acts like a dict?
+
+    def _getcomponentsdetails(self,product):
+        '''Returns a list of dicts giving details about the components in the
+        given product. Each item has the following keys:
+        component, description, initialowner, initialqacontact, initialcclist
+        '''
+        return self._proxy.bugzilla.getProdCompDetails(product,self.user,self.password)
+
+    def getcomponentsdetails(self,product,force_refresh=False):
+        '''Returns a dict of dicts, containing detailed component information
+        for the given product. The keys of the dict are component names. For 
+        each component, the value is a dict with the following keys: 
+        description, initialowner, initialqacontact, initialcclist'''
+        if force_refresh or product not in self._components_details:
+            clist = self._getcomponentsdetails(product)
+            cdict = dict()
+            for item in clist:
+                name = item['component']
+                del item['component']
+                cdict[name] = item
+            self._components_details[product] = cdict
+        return self._components_details[product]
+
+    def getcomponentdetails(self,product,component,force_refresh=False):
+        '''Get details for a single component. Returns a dict with the
+        following keys: 
+        description, initialowner, initialqacontact, initialcclist'''
+        d = self.getcomponentsdetails(product,force_refresh)
+        return d[component]
 
     def _get_info(self,product=None):
         '''This is a convenience method that does getqueryinfo, getproducts,
