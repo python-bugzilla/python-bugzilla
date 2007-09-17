@@ -31,12 +31,13 @@ def setup_parser():
     u =   "usage: %prog info|query|new|modify [options]"
     p = optparse.OptionParser(usage=u)
     # General bugzilla connection options
+    # TODO: OptionGroup
     p.add_option('--bugzilla',default=default_bz,
             help="bugzilla XMLRPC URI. default: %s" % default_bz)
     p.add_option('--user',
             help="username. Will attempt to use Firefox cookie if not specified.")
     p.add_option('--password',
-            help="password")
+            help="password. Will attempt to use Firefox cookie if not specified.")
     p.add_option('--cookiefile',
             help="cookie file to use for bugzilla authentication - default: %s" % findcookie())
     return p
@@ -75,6 +76,8 @@ def modify_parser(parser,action):
                 help='Get a list of products')
         p.add_option('-c','--components',metavar="PRODUCT",
                 help='List the components in the given product')
+        p.add_option('-o','--component_owners',metavar="PRODUCT",
+                help='List components (and their owners)')
         p.add_option('-v','--versions',metavar="PRODUCT",
                 help='List the versions for the given product')
     return p
@@ -118,6 +121,11 @@ if __name__ == '__main__':
             for c in sorted(bz.getcomponents(opt.components)):
                 print c
 
+        if opt.component_owners:
+            component_details = bz.getcomponentsdetails(opt.component_owners)
+            for c in sorted(component_details):
+                print "%s: %s" % (c, component_details[c]['initialowner'])
+
         if opt.versions:
             for p in bz.querydata['product']:
                 if p['name'] == opt.versions:
@@ -133,11 +141,11 @@ if __name__ == '__main__':
             if hasattr(opt,a):
                 i = getattr(opt,a)
                 if i:
-                    if a in ('bug_status'): # list arguments go here
+                    if a in ('bug_status'): # list args
                         q[a] = i.split(',')
                     elif a in ('cc','assigned_to'):
                         # the email query fields are kind of weird.
-                        # thanks to Florian La Roche for this bit.
+                        # thanks to Florian La Roche for figuring this bit out.
                         q['email%i' % email_count] = i #email1: foo@bar.com
                         q['email%s%i' % (a,email_count)] = True #emailcc1: True
                         email_count = email_count + 1
