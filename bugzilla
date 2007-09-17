@@ -11,7 +11,7 @@
 # the full text of the license.
 
 import bugzilla, optparse
-import os, sys, glob
+import os, sys, glob, re
 import logging
 
 version = '0.1'
@@ -62,14 +62,17 @@ def modify_parser(parser,action):
         p.add_option('-a','--assigned_to',
                 help="search for bugs assigned to this address")
         p.add_option('-b','--bug_id',
-                help="select an individual bug ID")
+                help="specify individual bugs by IDs, separated with commas")
         p.add_option('-t','--bug_status',default="NEW,VERIFIED,ASSIGNED,NEEDINFO,ON_DEV,FAILS_QA,REOPENED",
-                help="Comma-separated list of bug statuses to accept")
+                help="comma-separated list of bug statuses to accept")
         # output modifiers
         p.add_option('-f','--full',action='store_const',dest='output',
-                const='full',default='normal',help="Give full bug info")
+                const='full',default='normal',help="Give detailed bug info")
         p.add_option('-i','--ids',action='store_const',dest='output',
                 const='ids',help="Just list bug IDs")
+        p.add_option('--outputformat',
+                help="Print output in the form given. You can use RPM-style "+
+                "tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'")
     elif action == 'info':
         p.add_option('-p','--products',action='store_true',
                 help='Get a list of products')
@@ -132,34 +135,51 @@ if __name__ == '__main__':
                         print v
 
     elif action == 'query':
-        # Construct the query from the list of queryable options
-        q = dict()
-        email_count = 1
-        for a in ('product','component','version','long_desc','bug_id',
-                  'short_desc','cc','assigned_to','bug_status'):
-            if hasattr(opt,a):
-                i = getattr(opt,a)
-                if i:
-                    if a in ('bug_status'): # list args
-                        q[a] = i.split(',')
-                    elif a in ('cc','assigned_to'):
-                        # the email query fields are kind of weird.
-                        # thanks to Florian La Roche for figuring this bit out.
-                        q['email%i' % email_count] = i #email1: foo@bar.com
-                        q['email%s%i' % (a,email_count)] = True #emailcc1: True
-                        email_count = email_count + 1
-                    else:
-                        q[a] = i
-        buglist = bz.query(q)
+        # shortcut for specific bug_ids
+        if opt.bug_id:
+            if ',' in opt.bug_id:
+                buglist=bz.getbugs(opt.bug_id.split(','))
+            else:
+                buglist=[bz.getbug(opt.bug_id)]
+        else:
+            # Construct the query from the list of queryable options
+            q = dict()
+            email_count = 1
+            for a in ('product','component','version','long_desc','bug_id',
+                      'short_desc','cc','assigned_to','bug_status'):
+                if hasattr(opt,a):
+                    i = getattr(opt,a)
+                    if i:
+                        if a in ('bug_status'): # list args
+                            q[a] = i.split(',').strip()
+                        elif a in ('cc','assigned_to'):
+                            # the email query fields are kind of weird - thanks
+                            # to Florian La Roche for figuring this bit out.
+                            # ex.: {'email1':'foo@bar.com','emailcc1':True}
+                            q['email%i' % email_count] = i
+                            q['email%s%i' % (a,email_count)] = True
+                            email_count = email_count + 1
+                        else:
+                            q[a] = i
+            buglist = bz.query(q)
 
-        if opt.output == 'ids':
+        if opt.outputformat:
+            format_field_re = re.compile("%{[a-z0-9_]+}")
+            def bug_field(matchobj):
+                fieldname = matchobj.group()[2:-1]
+                return str(getattr(b,fieldname))
+            for b in buglist:
+                print format_field_re.sub(bug_field,opt.outputformat)
+        elif opt.output == 'ids':
             for b in buglist:
                 print b.bug_id
         elif opt.output == 'full':
             fullbuglist = bz.getbugs([b.bug_id for b in buglist])
             for b in fullbuglist:
                 print b
-                print "CC: %s" % b.cc
+                if b.cc: print "CC: %s" % " ".join(b.cc)
+                if b.blocked: print "Blocked: %s" % " ".join([str(i) for i in b.blocked])
+                if b.dependson: print "Depends: %s" % " ".join([str(i) for i in b.dependson])
                 for c in b.longdescs:
                     print "* %s - %s (%s):\n%s\n" % (c['time'],c['name'],c['email'] or c['safe_email'],c['body'])
         elif opt.output == 'normal':
