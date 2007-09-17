@@ -66,11 +66,10 @@ def modify_parser(parser,action):
         p.add_option('-t','--bug_status',default="NEW,VERIFIED,ASSIGNED,NEEDINFO,ON_DEV,FAILS_QA,REOPENED",
                 help="Comma-separated list of bug statuses to accept")
         # output modifiers
-        # FIXME: these should overwrite each other: store_const in output_type
-        p.add_option('-f','--full',action='store_true',
-                help="Give full bug info")
-        p.add_option('-i','--ids',action='store_true',
-                help="Just list bug IDs")
+        p.add_option('-f','--full',action='store_const',dest='output',
+                const='full',default='normal',help="Give full bug info")
+        p.add_option('-i','--ids',action='store_const',dest='output',
+                const='ids',help="Just list bug IDs")
     elif action == 'info':
         p.add_option('-p','--products',action='store_true',
                 help='Get a list of products')
@@ -153,19 +152,21 @@ if __name__ == '__main__':
                         q[a] = i
         buglist = bz.query(q)
 
-        if opt.ids:
+        if opt.output == 'ids':
             for b in buglist:
                 print b.bug_id
-        elif not opt.full:
-            for b in buglist:
-                print b
-        else:
+        elif opt.output == 'full':
             fullbuglist = bz.getbugs([b.bug_id for b in buglist])
             for b in fullbuglist:
                 print b
                 print "CC: %s" % b.cc
                 for c in b.longdescs:
-                    print "* %s - %s (%s):\n  %s\n" % (c['time'],c['name'],c['email'] or c['safe_email'],c['body'])
+                    print "* %s - %s (%s):\n%s\n" % (c['time'],c['name'],c['email'] or c['safe_email'],c['body'])
+        elif opt.output == 'normal':
+            for b in buglist:
+                print b
+        else:
+            parser.error("opt.output was set to something weird.")
         
     else:
         print "Sorry - '%s' not implemented yet." % action
