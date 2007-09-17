@@ -56,8 +56,14 @@ def modify_parser(parser,action):
                 help="search inside bug comments")
         p.add_option('-s','--short_desc',
                 help="search bug summaries")
+        p.add_option('-o','--cc',
+                help="search cc lists for given address")
+        p.add_option('-a','--assigned_to',
+                help="search for bugs assigned to this address")
         p.add_option('-b','--bug_id',
                 help="select an individual bug ID")
+        p.add_option('-t','--bug_status',default="NEW,VERIFIED,ASSIGNED,NEEDINFO,ON_DEV,FAILS_QA,REOPENED",
+                help="Comma-separated list of bug statuses to accept")
         # output modifiers
         # FIXME: these should overwrite each other: store_const in output_type
         p.add_option('-f','--full',action='store_true',
@@ -121,11 +127,22 @@ if __name__ == '__main__':
     elif action == 'query':
         # Construct the query from the list of queryable options
         q = dict()
-        for a in ('product', 'component', 'version', 'long_desc', 'bug_id', 'short_desc'):
+        email_count = 1
+        for a in ('product','component','version','long_desc','bug_id',
+                  'short_desc','cc','assigned_to','bug_status'):
             if hasattr(opt,a):
                 i = getattr(opt,a)
                 if i:
-                    q[a] = i
+                    if a in ('bug_status'): # list arguments go here
+                        q[a] = i.split(',')
+                    elif a in ('cc','assigned_to'):
+                        # the email query fields are kind of weird.
+                        # thanks to Florian La Roche for this bit.
+                        q['email%i' % email_count] = i #email1: foo@bar.com
+                        q['email%s%i' % (a,email_count)] = True #emailcc1: True
+                        email_count = email_count + 1
+                    else:
+                        q[a] = i
         buglist = bz.query(q)
 
         if opt.ids:
