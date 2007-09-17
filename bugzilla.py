@@ -153,6 +153,7 @@ class Bugzilla(object):
         # Only fetch the data if we don't already have it, or are forced to
         if force_refresh or not (self._querydata and self._querydefaults):
             (self._querydata, self._querydefaults) = self._getqueryinfo()
+            # TODO: map _querydata to a dict, as with _components_details?
         return (self._querydata, self._querydefaults)
     # Set querydata and querydefaults as properties so they auto-create
     # themselves when touched by a user. This bit was lifted from YumBase,
@@ -196,6 +197,7 @@ class Bugzilla(object):
         for the given product. The keys of the dict are component names. For 
         each component, the value is a dict with the following keys: 
         description, initialowner, initialqacontact, initialcclist'''
+        # XXX inconsistent: we don't do this list->dict mapping with querydata
         if force_refresh or product not in self._components_details:
             clist = self._getcomponentsdetails(product)
             cdict = dict()
@@ -457,10 +459,92 @@ class Bugzilla(object):
 
     #---- createbug - big complicated call to create a new bug
 
-    def createbug(self,**kwargs):
-        '''Create a bug with the given info. Returns the bug ID.'''
-        raise NotImplementedError
+    def _createbug(self,**data):
+        '''Raw xmlrpc call for createBug() Doesn't bother guessing defaults
+        or checking argument validity. Use with care.'''
+        return self._proxy.bugzilla.createBug(data,self.username,self.password)
 
+    def createbug(self,check_args=False,**data):
+        '''Create a bug with the given info. Returns the bug ID.
+        data should be given as keyword args - remember that you can also
+        populate a dict and call createbug(**dict) to fill in keyword args.
+        The arguments are as follows. Note that some are optional and some
+        are required. 
+
+        "product" => "<Product Name>",
+            # REQUIRED Name of Bugzilla product. 
+            # Ex: Red Hat Enterprise Linux
+        "component" => "<Component Name>",
+            # REQUIRED Name of component in Bugzilla product. 
+            # Ex: anaconda
+        "version" => "<Version of Product>",
+            # REQUIRED Version in the list for the Bugzilla product. 
+            # Ex: 4.5
+            # versions are listed in querydata['product'][<product>]['versions']
+        "rep_platform" => "<Platform>",
+            # REQUIRED Valid architecture from the rep_platform list. 
+            # Ex: i386
+            # See querydefaults['rep_platform_list'] for accepted values.
+        "bug_severity" => "medium",
+            # REQUIRED Valid severity from the list of severities.
+            # See querydefaults['bug_severity_list'] for accepted values.
+        "op_sys" => "Linux",
+            # REQUIRED Operating system bug occurs on. 
+            # See querydefaults['op_sys_list'] for accepted values.
+        "bug_file_loc" => "http://",
+            # REQUIRED URL to additional information for bug report. 
+            # Ex: http://people.redhat.com/dkl
+        "short_desc" => "<Brief text about bug>",
+            # REQUIRED One line summary describing the bug report.
+        "comment" => "<More Detailed Description>",
+            # REQUIRED A detail descript about the bug report.
+
+        "alias" => "<Bug Alias>",
+            # OPTIONAL Will give the bug an alias name.
+            # Alias can't be merely numerical.
+            # Alias can't contain spaces or commas.
+            # Alias can't be more than 20 chars long.
+            # Alias has to be unique.
+        "assigned_to" => "<Bugzilla Account>",          
+            # OPTIONAL Will be determined by component owner otherwise.
+        "reporter" => "<Bugzilla Account>",
+            # OPTIONAL Will use current login if blank.
+        "qa_contact" => "<Bugzilla Account>",
+            # OPTIONAL Will be determined by component qa_contact otherwise.
+        "cc" => "<Comma/Space separated list>",
+            # OPTIONAL Space or Comma separated list of Bugzilla accounts.
+        "priority" => "urgent",
+            # OPTIONAL Valid priority from the list of priorities.
+            # Ex: medium
+            # See querydefaults['priority_list'] for accepted values.
+        "bug_status" => 'NEW',
+            # OPTIONAL Status to place the new bug in. 
+            # Default: NEW
+        "blocked" => '',
+            # OPTIONAL Comma or space separate list of bug id's 
+            # this report blocks.
+        "dependson" => '',
+            # OPTIONAL Comma or space separate list of bug id's 
+            # this report depends on.
+        '''
+        required = ('product','component','version','short_desc','comment',
+                    'rep_platform','bug_severity','op_sys','bug_file_loc')
+        # The xmlrpc will raise an error if one of these is missing, but
+        # let's try to save a network roundtrip here if possible..
+        for i in required:
+            if i not in data or not data[i]:
+                raise TypeError, "required field missing or empty: '%s'" % i
+        # Sort of a chicken-and-egg problem here - check_args will save you a
+        # network roundtrip if your op_sys or rep_platform is bad, but at the
+        # expense of getting querydefaults, which is.. an added network
+        # roundtrip. Basically it's only useful if you're mucking around with
+        # createbug() in ipython.
+        if check_args:
+            if data['op_sys'] not in self.querydefaults['op_sys_list']:
+                raise ValueError, "invalid value for op_sys: %s" % data['op_sys']
+            if data['rep_platform'] not in self.querydefaults['rep_platform_list']:
+                raise ValueError, "invalid value for rep_platform: %s" % data['rep_platform']
+        return self._createbug(**data)
 
 class CookieTransport(xmlrpclib.Transport):
     '''A subclass of xmlrpclib.Transport that supports cookies.'''
