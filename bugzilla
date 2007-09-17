@@ -31,10 +31,14 @@ def setup_parser():
     u =   "usage: %prog info|query|new|modify [options]"
     p = optparse.OptionParser(usage=u)
     # General bugzilla connection options
-    p.add_option('--bugzilla',default=default_bz)
-    p.add_option('--user')
-    p.add_option('--password')
-    p.add_option('--cookiefile')
+    p.add_option('--bugzilla',default=default_bz,
+            help="bugzilla XMLRPC URI. default: %s" % default_bz)
+    p.add_option('--user',
+            help="username. Will attempt to use Firefox cookie if not specified.")
+    p.add_option('--password',
+            help="password")
+    p.add_option('--cookiefile',
+            help="cookie file to use for bugzilla authentication - default: %s" % findcookie())
     return p
 
 def modify_parser(parser,action):
@@ -42,21 +46,31 @@ def modify_parser(parser,action):
     if action == 'query':
         # TODO: product and version could default to current system
         # info (read from /etc/redhat-release?)
-        p.add_option('-p','--product')
-        p.add_option('-v','--version')
-        p.add_option('-c','--component')
+        p.add_option('-p','--product',
+                help="product name (list with 'bugzilla info -p')")
+        p.add_option('-v','--version',
+                help="version string to search for")
+        p.add_option('-c','--component',
+                help="component name (list with 'bugzilla info -c PRODUCT')")
         p.add_option('-l','--long_desc',
-                help="Search bug comments")
+                help="search inside bug comments")
+        p.add_option('-s','--short_desc',
+                help="search bug summaries")
         p.add_option('-b','--bug_id',
-                help="Select an individual bug ID")
+                help="select an individual bug ID")
         # output modifiers
+        # FIXME: these should overwrite each other: store_const in output_type
         p.add_option('-f','--full',action='store_true',
                 help="Give full bug info")
+        p.add_option('-i','--ids',action='store_true',
+                help="Just list bug IDs")
     elif action == 'info':
         p.add_option('-p','--products',action='store_true',
                 help='Get a list of products')
-        p.add_option('-c','--components',
+        p.add_option('-c','--components',metavar="PRODUCT",
                 help='List the components in the given product')
+        p.add_option('-v','--versions',metavar="PRODUCT",
+                help='List the versions for the given product')
     return p
 
 if __name__ == '__main__':
@@ -93,20 +107,31 @@ if __name__ == '__main__':
         if opt.products:
             for k in sorted(bz.products):
                 print k
-        elif opt.components:
+
+        if opt.components:
             for c in sorted(bz.getcomponents(opt.components)):
                 print c
+
+        if opt.versions:
+            for p in bz.querydata['product']:
+                if p['name'] == opt.versions:
+                    for v in p['versions']:
+                        print v
 
     elif action == 'query':
         # Construct the query from the list of queryable options
         q = dict()
-        for a in ('product', 'component', 'version', 'long_desc', 'bug_id'):
+        for a in ('product', 'component', 'version', 'long_desc', 'bug_id', 'short_desc'):
             if hasattr(opt,a):
                 i = getattr(opt,a)
                 if i:
                     q[a] = i
         buglist = bz.query(q)
-        if not opt.full:
+
+        if opt.ids:
+            for b in buglist:
+                print b.bug_id
+        elif not opt.full:
             for b in buglist:
                 print b
         else:
