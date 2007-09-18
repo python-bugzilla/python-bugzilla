@@ -144,7 +144,7 @@ class Bugzilla(object):
 
     def _getbugfields(self):
         return self._proxy.bugzilla.getBugFields(self.user,self.password)
-    def getbugfields(self):
+    def getbugfields(self,force_refresh=False):
         '''Calls getBugFields, which returns a list of fields in each bug
         for this bugzilla instance. This can be used to set the list of attrs
         on the Bug object.'''
@@ -247,12 +247,6 @@ class Bugzilla(object):
         if product:
             self._components[product] = r.pop(0)
             self._components_details[product] = r.pop(0)
-        # In theory, there should be some way to set a variable on Bug
-        # such that it contains attributes for all the keys listed in the
-        # getBug call.  This isn't it, though.
-        #{'methodName':'bugzilla.getBug','params':(1,self.user,self.password)}
-        #Bug.__slots__ = r.pop(0).keys()
-                 
 
     #---- Methods for reading bugs and bug info
 
@@ -656,6 +650,7 @@ class Bug(object):
     '''
     # TODO: Implement an 'autorefresh' attribute that causes update methods
     # to run as multicalls which fetch the newly-updated data afterward.
+    # TODO: use bugzilla.bugfields to fill in __dict__ or something
     def __init__(self,bugzilla,**kwargs):
         self.bugzilla = bugzilla
         if 'dict' in kwargs and kwargs['dict']:
