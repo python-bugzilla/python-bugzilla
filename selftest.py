@@ -12,16 +12,17 @@
 
 from bugzilla import Bugzilla
 import os, glob, sys
+import xmlrpclib
 
 def find_firefox_cookiefile():
-    cookieglob = os.path.expanduser('~/.mozilla/firefox/default.*/cookies.txt')
+    cookieglob = os.path.expanduser('~/.mozilla/firefox/*default*/cookies.txt')
     cookiefiles = glob.glob(cookieglob)
     if cookiefiles:
         # TODO return whichever is newest
         return cookiefiles[0]
 
 def selftest(user='',password=''):
-    url = 'https://bugzilla.redhat.com/xmlrpc.cgi'
+    url = 'https://partner-bugzilla.redhat.com/xmlrpc.cgi'
     public_bug = 1
     private_bug = 250666
     bugidlist = (1,2,3,1337,123456)
@@ -87,4 +88,7 @@ if __name__ == '__main__':
     password = ''
     if len(sys.argv) > 2:
         (user,password) = sys.argv[1:3]
-    selftest(user,password)
+    try:
+        selftest(user,password)
+    except KeyboardInterrupt:
+        print "Exiting on keyboard interrupt."
