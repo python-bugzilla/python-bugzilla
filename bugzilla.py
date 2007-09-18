@@ -650,7 +650,6 @@ class Bug(object):
     '''
     # TODO: Implement an 'autorefresh' attribute that causes update methods
     # to run as multicalls which fetch the newly-updated data afterward.
-    # TODO: use bugzilla.bugfields to fill in __dict__ or something
     def __init__(self,bugzilla,**kwargs):
         self.bugzilla = bugzilla
         if 'dict' in kwargs and kwargs['dict']:
@@ -659,6 +658,14 @@ class Bug(object):
             setattr(self,'bug_id',kwargs['bug_id'])
         self.url = bugzilla.url.replace('xmlrpc.cgi',
                                         'show_bug.cgi?id=%i' % self.bug_id)
+        # TODO: set properties for missing bugfields
+        # The problem here is that the property doesn't know its own name,
+        # otherwise we could just do .refresh() and return __dict__[f] after.
+        # basically I need a suicide property that can replace itself after
+        # it's called. Or something.
+        #for f in bugzilla.bugfields:
+        #    if f in self.__dict__: continue
+        #    setattr(self,f,property(fget=lambda self: self.refresh()))
 
     def __str__(self):
         '''Return a simple string representation of this bug'''
@@ -673,10 +680,7 @@ class Bug(object):
                                            id(self))
 
     def __getattr__(self,name):
-        if name not in ('__members__','__methods__','trait_names',
-                '_getAttributeNames'):
-            if not 'bug_id' in self.__dict__:
-                raise AttributeError
+        if 'bug_id' in self.__dict__ and name in self.bugzilla.bugfields:
             #print "Bug %i missing %s - loading" % (self.bug_id,name)
             self.refresh()
             if name in self.__dict__:
