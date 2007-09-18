@@ -463,7 +463,7 @@ class Bugzilla(object):
         '''Raw xmlrpc call for createBug() Doesn't bother guessing defaults
         or checking argument validity. Use with care.
         Returns [bug_id, mailresults]'''
-        return self._proxy.bugzilla.createBug(data,self.username,self.password)
+        return self._proxy.bugzilla.createBug(data,self.user,self.password)
 
     def createbug(self,check_args=False,**data):
         '''Create a bug with the given info. Returns the bug ID.
@@ -647,6 +647,8 @@ class Bug(object):
             self.__dict__.update(kwargs['dict'])
         if 'bug_id' in kwargs:
             setattr(self,'bug_id',kwargs['bug_id'])
+        self.url = bugzilla.url.replace('xmlrpc.cgi',
+                                        'show_bug.cgi?id=%i' % self.bug_id)
 
     def __str__(self):
         '''Return a simple string representation of this bug'''
@@ -656,6 +658,9 @@ class Bug(object):
             desc = self.short_desc
         return "#%-6s %-10s - %s - %s" % (self.bug_id,self.bug_status,
                                           self.assigned_to,desc)
+    def __repr__(self):
+        return '<Bug #%i on %s at %#x>' % (self.bug_id,self.bugzilla.url,
+                                           id(self))
 
     def __getattr__(self,name):
         if name not in ('__members__','__methods__','trait_names',
@@ -682,12 +687,21 @@ class Bug(object):
         You must set at least one of the three assignee fields, or this method
         will throw a ValueError.
         Returns [bug_id, mailresults].'''
-        if not assigned_to or reporter or qa_contact:
+        if not (assigned_to or reporter or qa_contact):
             # XXX is ValueError the right thing to throw here?
             raise ValueError, "You must set one of assigned_to, reporter, or qa_contact"
         # empty fields are ignored, so it's OK to send 'em
         return self.bugzilla._setassignee(self.bug_id,assigned_to=assigned_to,
                 reporter=reporter,qa_contact=qa_contact,comment=comment)
+
+    def addcomment(self,comment,private=False,timestamp='',worktime='',bz_gid=''):
+        '''Add the given comment to this bug. Set private to True to mark this
+        comment as private. You can also set a timestamp for the comment, in
+        "YYYY-MM-DD HH:MM:SS" form. Worktime is undocumented upstream.
+        If bz_gid is set, and the entire bug is not already private to that
+        group, this comment will be private.'''
+        self.bugzilla._addcomment(self.bug_id,comment,private,timestamp,
+                                  worktime,bz_gid)
 
     def _dowhiteboard(self,text,which,action):
         '''Actually does the updateWhiteboard call to perform the given action
