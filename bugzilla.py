@@ -362,22 +362,6 @@ class Bugzilla(object):
         returns: [$id, $mailresults]'''
         return self._proxy.bugzilla.changeAssignment(id,data,self.user,self.password)
 
-    def setassignee(self,id,assigned_to='',reporter='',qa_contact='',comment=''):
-        '''Set any of the assigned_to, reporter, or qa_contact fields to a new
-        bugzilla account, with an optional comment, e.g.
-        setassignee(id,reporter='sadguy@brokencomputer.org',
-                       assigned_to='wwoods@redhat.com')
-        setassignee(id,qa_contact='wwoods@redhat.com',comment='wwoods QA ftw')
-        You must set at least one of the three assignee fields, or this method
-        will throw a ValueError.
-        Returns [bug_id, mailresults].'''
-        if not assigned_to or reporter or qa_contact:
-            # XXX is ValueError the right thing to throw here?
-            raise ValueError, "You must set one of assigned_to, reporter, or qa_contact"
-        # empty fields are ignored, so it's OK to send 'em
-        return self._setassignee(id,assigned_to=assigned_to,reporter=reporter,
-                                    qa_contact=qa_contact,comment=comment)
-
     def _updatedeps(self,id,deplist):
         #updateDepends($bug_id,$data,$username,$password,$nodependencyemail)
         #data: 'blocked'=>id,'dependson'=>id,'action' => ('add','remove')
@@ -680,6 +664,22 @@ class Bug(object):
         r = self.bugzilla._getbug(self.bug_id)
         self.__dict__.update(r)
 
+    def setassignee(self,assigned_to='',reporter='',qa_contact='',comment=''):
+        '''Set any of the assigned_to, reporter, or qa_contact fields to a new
+        bugzilla account, with an optional comment, e.g.
+        setassignee(reporter='sadguy@brokencomputer.org',
+                       assigned_to='wwoods@redhat.com')
+        setassignee(qa_contact='wwoods@redhat.com',comment='wwoods QA ftw')
+        You must set at least one of the three assignee fields, or this method
+        will throw a ValueError.
+        Returns [bug_id, mailresults].'''
+        if not assigned_to or reporter or qa_contact:
+            # XXX is ValueError the right thing to throw here?
+            raise ValueError, "You must set one of assigned_to, reporter, or qa_contact"
+        # empty fields are ignored, so it's OK to send 'em
+        return self.bugzilla._setassignee(self.bug_id,assigned_to=assigned_to,
+                reporter=reporter,qa_contact=qa_contact,comment=comment)
+
     def _dowhiteboard(self,text,which,action):
         '''Actually does the updateWhiteboard call to perform the given action
         (append,prepend,overwrite) with the given text on the given whiteboard
@@ -688,8 +688,7 @@ class Bug(object):
     def getwhiteboard(self,which='status'):
         '''Get the current value of the whiteboard specified by 'which'.
         Known whiteboard names: 'status','internal','devel','qa'.
-        Defaults to the 'status' whiteboard.
-        '''
+        Defaults to the 'status' whiteboard.'''
         return getattr(self,"%s_whiteboard" % which)
     def appendwhiteboard(self,text,which='status'):
         '''Append the given text (with a space before it) to the given 
