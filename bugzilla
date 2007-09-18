@@ -155,7 +155,7 @@ if __name__ == '__main__':
                             # ex.: {'email1':'foo@bar.com','emailcc1':True}
                             q['email%i' % email_count] = i
                             q['email%s%i' % (a,email_count)] = True
-                            email_count = email_count + 1
+                            email_count += 1
                         else:
                             q[a] = i
             buglist = bz.query(q)
