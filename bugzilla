@@ -137,10 +137,7 @@ if __name__ == '__main__':
     elif action == 'query':
         # shortcut for specific bug_ids
         if opt.bug_id:
-            if ',' in opt.bug_id:
-                buglist=bz.getbugs(opt.bug_id.split(','))
-            else:
-                buglist=[bz.getbug(opt.bug_id)]
+            buglist=bz.getbugs(opt.bug_id.split(','))
         else:
             # Construct the query from the list of queryable options
             q = dict()
@@ -151,7 +148,7 @@ if __name__ == '__main__':
                     i = getattr(opt,a)
                     if i:
                         if a in ('bug_status'): # list args
-                            q[a] = i.split(',').strip()
+                            q[a] = i.split(',')
                         elif a in ('cc','assigned_to'):
                             # the email query fields are kind of weird - thanks
                             # to Florian La Roche for figuring this bit out.
