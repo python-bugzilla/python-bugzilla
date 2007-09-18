@@ -48,6 +48,7 @@ class Bugzilla(object):
         self._querydata  = None
         self._querydefaults = None
         self._products   = None 
+        self._bugfields  = None
         self._components = dict()
         self._components_details = dict()
         if 'cookies' in kwargs:
@@ -141,6 +142,18 @@ class Bugzilla(object):
         mc.run = run
         return mc
 
+    def _getbugfields(self):
+        return self._proxy.bugzilla.getBugFields(self.user,self.password)
+    def getbugfields(self):
+        '''Calls getBugFields, which returns a list of fields in each bug
+        for this bugzilla instance. This can be used to set the list of attrs
+        on the Bug object.'''
+        if force_refresh or not self._bugfields:
+            self._bugfields = self._getbugfields()
+        return self._bugfields
+    bugfields = property(fget=lambda self: self.getbugfields(),
+                         fdel=lambda self: setattr(self,_bugfields,None))
+
     def _getqueryinfo(self):
         return self._proxy.bugzilla.getQueryInfo(self.user,self.password)
     def getqueryinfo(self,force_refresh=False):
@@ -223,20 +236,22 @@ class Bugzilla(object):
         mc = self._multicall()
         mc._getqueryinfo()
         mc._getproducts()
+        mc._getbugfields()
         if product:
             mc._getcomponents(product)
             mc._getcomponentsdetails(product)
         r = mc.run()
-        (self._querydata,self._querydefaults) = r[0]
-        self._products = r[1]
+        (self._querydata,self._querydefaults) = r.pop(0)
+        self._products = r.pop(0)
+        self._bugfields = r.pop(0)
         if product:
-            self._components[product] = r[2]
-            self._components_details[product] = r[3]
+            self._components[product] = r.pop(0)
+            self._components_details[product] = r.pop(0)
         # In theory, there should be some way to set a variable on Bug
         # such that it contains attributes for all the keys listed in the
         # getBug call.  This isn't it, though.
         #{'methodName':'bugzilla.getBug','params':(1,self.user,self.password)}
-        #Bug.__slots__ = r[4].keys()
+        #Bug.__slots__ = r.pop(0).keys()
                  
 
     #---- Methods for reading bugs and bug info
@@ -349,18 +364,18 @@ class Bugzilla(object):
         return self._proxy.bugzilla.setstatus(id,status,
                 self.user,self.password,comment,private)
 
-    def _closebug(self,id):
-        #closeBug($bugid, $new_resolution, $username, $password, $dupeid, $new_fixed_in, $comment, $isprivate)
-        # if new_resolution is 'DUPLICATE', dupeid is not optional
-        # new_fixed_id, comment, isprivate are optional
-        raise NotImplementedError
-
     def _setassignee(self,id,**data):
         '''Raw xmlrpc call to set one of the assignee fields on a bug.
         changeAssignment($id, $data, $username, $password)
         data: 'assigned_to','reporter','qa_contact','comment'
         returns: [$id, $mailresults]'''
         return self._proxy.bugzilla.changeAssignment(id,data,self.user,self.password)
+
+    def _closebug(self,id):
+        #closeBug($bugid, $new_resolution, $username, $password, $dupeid, $new_fixed_in, $comment, $isprivate)
+        # if new_resolution is 'DUPLICATE', dupeid is not optional
+        # new_fixed_id, comment, isprivate are optional
+        raise NotImplementedError
 
     def _updatedeps(self,id,deplist):
         #updateDepends($bug_id,$data,$username,$password,$nodependencyemail)
