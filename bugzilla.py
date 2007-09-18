@@ -461,7 +461,8 @@ class Bugzilla(object):
 
     def _createbug(self,**data):
         '''Raw xmlrpc call for createBug() Doesn't bother guessing defaults
-        or checking argument validity. Use with care.'''
+        or checking argument validity. Use with care.
+        Returns [bug_id, mailresults]'''
         return self._proxy.bugzilla.createBug(data,self.username,self.password)
 
     def createbug(self,check_args=False,**data):
@@ -538,13 +539,21 @@ class Bugzilla(object):
         # network roundtrip if your op_sys or rep_platform is bad, but at the
         # expense of getting querydefaults, which is.. an added network
         # roundtrip. Basically it's only useful if you're mucking around with
-        # createbug() in ipython.
+        # createbug() in ipython and you've already loaded querydefaults.
         if check_args:
             if data['op_sys'] not in self.querydefaults['op_sys_list']:
                 raise ValueError, "invalid value for op_sys: %s" % data['op_sys']
             if data['rep_platform'] not in self.querydefaults['rep_platform_list']:
                 raise ValueError, "invalid value for rep_platform: %s" % data['rep_platform']
-        return self._createbug(**data)
+        # Actually perform the createbug call.
+        # We return a nearly-empty Bug object, which is kind of a bummer 'cuz
+        # it'll take another network roundtrip to fill it. We *could* fake it
+        # and fill in the blanks with the data given to this method, but the
+        # server might modify/add/drop stuff. Then we'd have a Bug object that
+        # lied about the actual contents of the database. That would be bad.
+        [bug_id, mail_results] = self._createbug(**data)
+        return Bug(self,bug_id=bug_id)
+        # Trivia: this method has ~5.8 lines of comment per line of code. Yow!
 
 class CookieTransport(xmlrpclib.Transport):
     '''A subclass of xmlrpclib.Transport that supports cookies.'''
