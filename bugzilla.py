@@ -177,7 +177,6 @@ class Bugzilla(object):
 
     def _getcomponents(self,product):
         return self._proxy.bugzilla.getProdCompInfo(product,self.user,self.password)
-
     def getcomponents(self,product,force_refresh=False):
         '''Return a dict of components:descriptions for the given product.'''
         if force_refresh or product not in self._components:
@@ -191,7 +190,6 @@ class Bugzilla(object):
         component, description, initialowner, initialqacontact, initialcclist
         '''
         return self._proxy.bugzilla.getProdCompDetails(product,self.user,self.password)
-
     def getcomponentsdetails(self,product,force_refresh=False):
         '''Returns a dict of dicts, containing detailed component information
         for the given product. The keys of the dict are component names. For 
@@ -207,7 +205,6 @@ class Bugzilla(object):
                 cdict[name] = item
             self._components_details[product] = cdict
         return self._components_details[product]
-
     def getcomponentdetails(self,product,component,force_refresh=False):
         '''Get details for a single component. Returns a dict with the
         following keys: 
@@ -217,7 +214,7 @@ class Bugzilla(object):
 
     def _get_info(self,product=None):
         '''This is a convenience method that does getqueryinfo, getproducts,
-        and (optionally) getcomponents in one big fat multicall. This is much
+        and (optionally) getcomponents in one big fat multicall. This is a bit
         faster than calling them all separately.
         
         If you're doing interactive stuff you should call this, with the
@@ -228,16 +225,18 @@ class Bugzilla(object):
         mc._getproducts()
         if product:
             mc._getcomponents(product)
+            mc._getcomponentsdetails(product)
         r = mc.run()
         (self._querydata,self._querydefaults) = r[0]
         self._products = r[1]
         if product:
             self._components[product] = r[2]
+            self._components_details[product] = r[3]
         # In theory, there should be some way to set a variable on Bug
         # such that it contains attributes for all the keys listed in the
         # getBug call.  This isn't it, though.
         #{'methodName':'bugzilla.getBug','params':(1,self.user,self.password)}
-        #Bug.__slots__ = r[3].keys()
+        #Bug.__slots__ = r[4].keys()
                  
 
     #---- Methods for reading bugs and bug info
