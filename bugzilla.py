@@ -355,11 +355,17 @@ class Bugzilla(object):
         # new_fixed_id, comment, isprivate are optional
         raise NotImplementedError
 
-    def _setassignee(self,id,assignee):
+    def _setassignee(self,id,assigned_to='',reporter='',qa_contact='',comment=''):
         #changeAssignment($id, $data, $username, $password)
         #data: 'assigned_to','reporter','qa_contact','comment'
         #returns: [$id, $mailresults]
-        raise NotImplementedError
+        if not assigned_to or reporter or qa_contact:
+            # XXX is ValueError the right thing to throw here?
+            raise ValueError, "You must set one of assigned_to, reporter, or qa_contact"
+        # empty fields are ignored, so it's OK to send 'em
+        data = {'assigned_to': assigned_to, 'reporter': reporter, 
+                'qa_contact': qa_contact, 'comment': comment}
+        return self._proxy.bugzilla.changeAssignment(id,data,self.user,self.password)
 
     def _updatedeps(self,id,deplist):
         #updateDepends($bug_id,$data,$username,$password,$nodependencyemail)
