@@ -206,12 +206,16 @@ if __name__ == '__main__':
 
     elif action == 'new':
         data = dict()
-        for a in ('product','component','version','short_desc','comment',
-                'rep_platform','bug_severity','op_sys','bug_file_loc','priority',
-                'cc'):
+        required=['product','component','version','short_desc','comment',
+             'rep_platform','bug_severity','op_sys','bug_file_loc','priority']
+        optional=['cc']
+        for a in required + optional:
             i = getattr(opt,a)
             if i:
                 data[a] = i
+        for k in required:
+            if k not in data:
+                parser.error('Missing required argument: %s' % k)
         log.debug("bz.createbug(%s)", data)
         b = bz.createbug(**data)
         buglist = [b]
