@@ -102,14 +102,6 @@ def modify_parser(parser,action):
                 help="specify individual bugs by IDs, separated with commas")
         p.add_option('-t','--bug_status',default="NEW,VERIFIED,ASSIGNED,NEEDINFO,ON_DEV,FAILS_QA,REOPENED",
                 help="comma-separated list of bug statuses to accept")
-        # output modifiers
-        p.add_option('-f','--full',action='store_const',dest='output',
-                const='full',default='normal',help="Give detailed bug info")
-        p.add_option('-i','--ids',action='store_const',dest='output',
-                const='ids',help="Just list bug IDs")
-        p.add_option('--outputformat',
-                help="Print output in the form given. You can use RPM-style "+
-                "tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'")
     elif action == 'info':
         p.add_option('-p','--products',action='store_true',
                 help='Get a list of products')
@@ -119,6 +111,16 @@ def modify_parser(parser,action):
                 help='List components (and their owners)')
         p.add_option('-v','--versions',metavar="PRODUCT",
                 help='List the versions for the given product')
+
+    if action in ('new','query'):
+        # output modifiers
+        p.add_option('-f','--full',action='store_const',dest='output',
+                const='full',default='normal',help="output detailed bug info")
+        p.add_option('-i','--ids',action='store_const',dest='output',
+                const='ids',help="output only bug IDs")
+        p.add_option('--outputformat',
+                help="Print output in the form given. You can use RPM-style "+
+                "tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'")
     return p
 
 if __name__ == '__main__':
@@ -153,6 +155,7 @@ if __name__ == '__main__':
             parser.error("Could not find a Firefox cookie file. Try --user/--password.")
     
     # And now we actually execute the given command
+    buglist = list() # save the results of query/new/modify here
     if action == 'info':
         if opt.products:
             for k in sorted(bz.products):
@@ -201,6 +204,23 @@ if __name__ == '__main__':
             log.debug("bz.query: %s", q)
             buglist = bz.query(q)
 
+    elif action == 'new':
+        data = dict()
+        for a in ('product','component','version','short_desc','comment',
+                'rep_platform','bug_severity','op_sys','bug_file_loc','priority',
+                'cc'):
+            i = getattr(opt,a)
+            if i:
+                data[a] = i
+        log.debug("bz.createbug(%s)", data)
+        b = bz.createbug(**data)
+        buglist = [b]
+        
+    else:
+        print "Sorry - '%s' not implemented yet." % action
+
+    # If we're doing new/query/modify, output our results
+    if action in ('new','query'):
         if opt.outputformat:
             format_field_re = re.compile("%{[a-z0-9_]+}")
             def bug_field(matchobj):
@@ -226,17 +246,3 @@ if __name__ == '__main__':
         else:
             parser.error("opt.output was set to something weird.")
 
-    elif action == 'new':
-        data = dict()
-        for a in ('product','component','version','short_desc','comment',
-                'rep_platform','bug_severity','op_sys','bug_file_loc','priority',
-                'cc'):
-            i = getattr(opt,a)
-            if i:
-                data[a] = i
-        log.debug("bz.createbug(%s)", data)
-        b = bz.createbug(**data)
-        print b
-        
-    else:
-        print "Sorry - '%s' not implemented yet." % action
