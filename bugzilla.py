@@ -149,7 +149,16 @@ class Bugzilla(object):
         for this bugzilla instance. This can be used to set the list of attrs
         on the Bug object.'''
         if force_refresh or not self._bugfields:
-            self._bugfields = self._getbugfields()
+            try:
+                self._bugfields = self._getbugfields()
+            except xmlrpclib.Fault, f:
+                if f.faultCode == 'Client':
+                    # okay, this instance doesn't have getbugfields. fine.
+                    self._bugfields = []
+                else:
+                    # something bad actually happened on the server. blow up.
+                    raise f
+
         return self._bugfields
     bugfields = property(fget=lambda self: self.getbugfields(),
                          fdel=lambda self: setattr(self,_bugfields,None))
@@ -680,7 +689,10 @@ class Bug(object):
                                            id(self))
 
     def __getattr__(self,name):
-        if 'bug_id' in self.__dict__ and name in self.bugzilla.bugfields:
+        if 'bug_id' in self.__dict__:
+            if self.bugzilla.bugfields and name not in self.bugzilla.bugfields:
+                # We have a list of fields, and you ain't on it. Bail out.
+                raise AttributeError
             #print "Bug %i missing %s - loading" % (self.bug_id,name)
             self.refresh()
             if name in self.__dict__:
