@@ -57,13 +57,37 @@ def setup_parser():
 
 def modify_parser(parser,action):
     p = parser
-    if action == 'query':
         # TODO: product and version could default to current system
         # info (read from /etc/redhat-release?)
+    if action == 'new':
+        p.add_option('-p','--product',
+                help="REQUIRED: product name (list with 'bugzilla info -p')")
+        p.add_option('-v','--version',
+                help="REQUIRED: product version")
+        p.add_option('-c','--component',
+                help="REQUIRED: component name (list with 'bugzilla info -c PRODUCT')")
+        p.add_option('-l','--comment',
+                help="REQUIRED: initial bug comment")
+        p.add_option('-s','--summary',dest='short_desc',
+                help="REQUIRED: bug summary")
+        p.add_option('-o','--os',default='Linux',dest='op_sys',
+                help="OPTIONAL: operating system (default: Linux)")
+        p.add_option('-a','--arch',default='All',dest='rep_platform',
+                help="OPTIONAL: arch this bug occurs on (default: All)")
+        p.add_option('--severity',default='medium',dest='bug_severity',
+                help="OPTIONAL: bug severity (default: medium)")
+        p.add_option('--priority',default='medium',dest='priority',
+                help="OPTIONAL: bug priority (default: medium)")
+        p.add_option('-u','--url',dest='bug_file_loc',default='http://',
+                help="OPTIONAL: URL for further bug info")
+        p.add_option('--cc',
+                help="OPTIONAL: add emails to initial CC list")
+        # TODO: alias, assigned_to, reporter, qa_contact, dependson, blocked
+    elif action == 'query':
         p.add_option('-p','--product',
                 help="product name (list with 'bugzilla info -p')")
         p.add_option('-v','--version',
-                help="version string to search for")
+                help="product version")
         p.add_option('-c','--component',
                 help="component name (list with 'bugzilla info -c PRODUCT')")
         p.add_option('-l','--long_desc',
@@ -201,6 +225,18 @@ if __name__ == '__main__':
                 print b
         else:
             parser.error("opt.output was set to something weird.")
+
+    elif action == 'new':
+        data = dict()
+        for a in ('product','component','version','short_desc','comment',
+                'rep_platform','bug_severity','op_sys','bug_file_loc','priority',
+                'cc'):
+            i = getattr(opt,a)
+            if i:
+                data[a] = i
+        log.debug("bz.createbug(%s)", data)
+        b = bz.createbug(**data)
+        print b
         
     else:
         print "Sorry - '%s' not implemented yet." % action
