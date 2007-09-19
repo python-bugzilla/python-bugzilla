@@ -15,17 +15,26 @@ import os, sys, glob, re
 import logging
 
 version = '0.1'
-# Change this once we're ready for actual use
-default_bz = 'https://partner-bugzilla.redhat.com/xmlrpc.cgi'
+default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
+# Initial simple logging stuff
+logging.basicConfig()
+log = logging.getLogger("bugzilla")
+if '--debug' in sys.argv:
+    log.setLevel(logging.DEBUG)
+elif '--verbose' in sys.argv:
+    log.setLevel(logging.INFO)
+        
 def findcookie():
     globs = ['~/.mozilla/firefox/*default*/cookies.txt']
     for g in globs:
+        log.debug("Looking for cookies.txt in %s", g)
         cookiefiles = glob.glob(os.path.expanduser(g))
         if cookiefiles:
             # return the first one we find.
             # TODO: find all cookiefiles, sort by age, use newest
             return cookiefiles[0]
+cookiefile = None
 
 def setup_parser():
     u =   "usage: %prog info|query|new|modify [options]"
@@ -35,11 +44,15 @@ def setup_parser():
     p.add_option('--bugzilla',default=default_bz,
             help="bugzilla XMLRPC URI. default: %s" % default_bz)
     p.add_option('--user',
-            help="username. Will attempt to use Firefox cookie if not specified.")
+            help="username. Will attempt to use browser cookie if not specified.")
     p.add_option('--password',
-            help="password. Will attempt to use Firefox cookie if not specified.")
+            help="password. Will attempt to use browser cookie if not specified.")
     p.add_option('--cookiefile',
-            help="cookie file to use for bugzilla authentication - default: %s" % findcookie())
+            help="cookie file to use for bugzilla authentication")
+    p.add_option('--verbose',action='store_true',
+            help="give more info about what's going on")
+    p.add_option('--debug',action='store_true',
+            help="output bunches of debugging info")
     return p
 
 def modify_parser(parser,action):
@@ -85,7 +98,6 @@ def modify_parser(parser,action):
     return p
 
 if __name__ == '__main__':
-    log = logging.getLogger("bugzilla")
 
     # Set up parser
     parser = setup_parser()
@@ -98,17 +110,20 @@ if __name__ == '__main__':
     parser = modify_parser(parser,action)
     # Parse the commandline, woo
     (opt,args) = parser.parse_args()
-
+    
     # Connect to bugzilla
     log.info('Connecting to %s',opt.bugzilla)
     bz=bugzilla.Bugzilla(url=opt.bugzilla)
     if opt.user and opt.password:
+        log.info('Using username/password for authentication')
         bz.login(opt.user,opt.password)
     elif opt.cookiefile:
+        log.info('Using cookies in %s for authentication', opt.cookiefile)
         bz.readcookiefile(opt.cookiefile)
     else:
         cookiefile = findcookie()
         if cookiefile:
+            log.info('Using cookies in %s for authentication', cookiefile)
             bz.readcookiefile(cookiefile)
         else:
             parser.error("Could not find a Firefox cookie file. Try --user/--password.")
@@ -137,6 +152,7 @@ if __name__ == '__main__':
     elif action == 'query':
         # shortcut for specific bug_ids
         if opt.bug_id:
+            log.debug("bz.getbugs(%s)", opt.bug_id.split(','))
             buglist=bz.getbugs(opt.bug_id.split(','))
         else:
             # Construct the query from the list of queryable options
@@ -158,6 +174,7 @@ if __name__ == '__main__':
                             email_count += 1
                         else:
                             q[a] = i
+            log.debug("bz.query: %s", q)
             buglist = bz.query(q)
 
         if opt.outputformat:

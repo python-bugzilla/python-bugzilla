@@ -696,7 +696,7 @@ class Bug(object):
         '''Set any of the assigned_to, reporter, or qa_contact fields to a new
         bugzilla account, with an optional comment, e.g.
         setassignee(reporter='sadguy@brokencomputer.org',
-                       assigned_to='wwoods@redhat.com')
+                    assigned_to='wwoods@redhat.com')
         setassignee(qa_contact='wwoods@redhat.com',comment='wwoods QA ftw')
         You must set at least one of the three assignee fields, or this method
         will throw a ValueError.
