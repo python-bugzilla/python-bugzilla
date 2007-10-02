@@ -98,6 +98,10 @@ def modify_parser(parser,action):
                 help="search cc lists for given address")
         p.add_option('-a','--assigned_to',
                 help="search for bugs assigned to this address")
+        p.add_option('--blocked',
+                help="search for bugs that block this bug ID")
+        p.add_option('--dependson',
+                help="search for bugs that depend on this bug ID")
         p.add_option('-b','--bug_id',
                 help="specify individual bugs by IDs, separated with commas")
         p.add_option('-t','--bug_status',default="NEW,VERIFIED,ASSIGNED,NEEDINFO,ON_DEV,FAILS_QA,REOPENED",
@@ -185,8 +189,10 @@ if __name__ == '__main__':
             # Construct the query from the list of queryable options
             q = dict()
             email_count = 1
+            chart_id = 0
             for a in ('product','component','version','long_desc','bug_id',
-                      'short_desc','cc','assigned_to','bug_status'):
+                      'short_desc','cc','assigned_to','bug_status',
+                      'blocked','dependson'):
                 if hasattr(opt,a):
                     i = getattr(opt,a)
                     if i:
@@ -199,6 +205,12 @@ if __name__ == '__main__':
                             q['email%i' % email_count] = i
                             q['email%s%i' % (a,email_count)] = True
                             email_count += 1
+                        elif a in ('blocked','dependson'): 
+                            # Chart args are weird.
+                            q['field%i-0-0' % chart_id] = a
+                            q['type%i-0-0' % chart_id]  = 'equals'
+                            q['value%i-0-0' % chart_id] = i
+                            chart_id += 1
                         else:
                             q[a] = i
             log.debug("bz.query: %s", q)
@@ -249,4 +261,3 @@ if __name__ == '__main__':
                 print b
         else:
             parser.error("opt.output was set to something weird.")
-
