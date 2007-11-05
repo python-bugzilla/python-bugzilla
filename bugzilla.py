@@ -161,7 +161,7 @@ class Bugzilla(object):
 
         return self._bugfields
     bugfields = property(fget=lambda self: self.getbugfields(),
-                         fdel=lambda self: setattr(self,_bugfields,None))
+                         fdel=lambda self: setattr(self,'_bugfields',None))
 
     def _getqueryinfo(self):
         return self._proxy.bugzilla.getQueryInfo(self.user,self.password)
@@ -456,7 +456,7 @@ class Bugzilla(object):
         if 'contenttype' not in kwargs:
             kwargs['contenttype'] = 'application/octet-stream'
         kwargs['data'] = self.__attachment_encode(f)
-        (attachid, mailresults) = server._proxy.bugzilla.addAttachment(id,kwargs,self.user,self.password)
+        (attachid, mailresults) = self._proxy.bugzilla.addAttachment(id,kwargs,self.user,self.password)
         return attachid
 
     def openattachment(self,attachid):
