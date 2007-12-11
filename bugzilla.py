@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # bugzilla.py - a Python interface to bugzilla.redhat.com, using xmlrpclib.
 #
 # Copyright (C) 2007 Red Hat Inc.
