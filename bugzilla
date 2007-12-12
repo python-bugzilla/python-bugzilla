@@ -41,6 +41,7 @@ def setup_parser():
     u =   "usage: %prog [global options] COMMAND [options]"
     u +=  "\nCommands: %s" % ', '.join(cmdlist)
     p = optparse.OptionParser(usage=u)
+    p.disable_interspersed_args()
     # General bugzilla connection options
     p.add_option('--bugzilla',default=default_bz,
             help="bugzilla XMLRPC URI. default: %s" % default_bz)
@@ -239,6 +240,19 @@ if __name__ == '__main__':
         b = bz.createbug(**data)
         buglist = [b]
         
+    elif action == 'modify':
+        buglist = []
+        for a in args:
+            if ',' in a:
+                for b in a.split(','):
+                    buglist.append(b)
+            else:
+                buglist.append(a)
+        # Surely there's a simpler way to do that..
+        print "Sorry, modify isn't done yet."
+        print "opt: %s" % str(opt)
+        print "buglist: %s" % str(buglist)
+
     else:
         print "Sorry - '%s' not implemented yet." % action
 
