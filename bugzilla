@@ -121,8 +121,10 @@ def setup_action_parser(action):
         p.set_usage("usage: %prog modify [options] BUGID BUGID ...")
         p.add_option('-l','--comment',
                 help='Add a comment')
-        p.add_option('-k','--close',action='store_true',
-                help='Close the bug(s)')
+        # FIXME: check value for resolution
+        p.add_option('-k','--close',metavar="RESOLUTION"
+                help='Close with the given resolution')
+        # TODO: --keyword, --flag, --tag, --status, --assignee, --cc, ...
 
     if action in ('new','query'):
         # output modifiers
