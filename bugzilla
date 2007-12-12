@@ -36,11 +36,12 @@ def findcookie():
             return cookiefiles[0]
 cookiefile = None
 
+cmdlist = ('info','query','new','modify')
 def setup_parser():
-    u =   "usage: %prog info|query|new|modify [options]"
+    u =   "usage: %prog [global options] COMMAND [options]"
+    u +=  "\nCommands: %s" % ', '.join(cmdlist)
     p = optparse.OptionParser(usage=u)
     # General bugzilla connection options
-    # TODO: OptionGroup
     p.add_option('--bugzilla',default=default_bz,
             help="bugzilla XMLRPC URI. default: %s" % default_bz)
     p.add_option('--user',
@@ -55,10 +56,10 @@ def setup_parser():
             help="output bunches of debugging info")
     return p
 
-def modify_parser(parser,action):
-    p = parser
-        # TODO: product and version could default to current system
-        # info (read from /etc/redhat-release?)
+def setup_action_parser(action):
+    p = optparse.OptionParser(usage="usage: %%prog %s [options]" % action)
+    # TODO: product and version could default to current system
+    # info (read from /etc/redhat-release?)
     if action == 'new':
         p.add_option('-p','--product',
                 help="REQUIRED: product name (list with 'bugzilla info -p')")
@@ -115,6 +116,12 @@ def modify_parser(parser,action):
                 help='List components (and their owners)')
         p.add_option('-v','--versions',metavar="PRODUCT",
                 help='List the versions for the given product')
+    elif action == 'modify':
+        p.set_usage("usage: %prog modify [options] BUGID BUGID ...")
+        p.add_option('-l','--comment',
+                help='Add a comment')
+        p.add_option('-k','--close',action='store_true',
+                help='Close the bug(s)')
 
     if action in ('new','query'):
         # output modifiers
@@ -128,28 +135,28 @@ def modify_parser(parser,action):
     return p
 
 if __name__ == '__main__':
-
-    # Set up parser
+    # Set up parser for global args
     parser = setup_parser()
-    # Get our action
-    if len(sys.argv) > 1 and sys.argv[1] in ('info','query','new','modify'):
-        action = sys.argv[1]
-    else:
-        parser.error("you must specify an action")
-    # Add the action-specific args and such
-    parser = modify_parser(parser,action)
     # Parse the commandline, woo
-    (opt,args) = parser.parse_args()
-    
+    (global_opt,args) = parser.parse_args()
+    # Get our action from these args
+    if len(args) and args[0] in cmdlist:
+        action = args.pop(0)
+    else:
+        parser.error("command must be one of: %s" % ','.join(cmdlist))
+    # Parse action-specific args
+    action_parser = setup_action_parser(action)
+    (opt, args) = action_parser.parse_args(args)
+
     # Connect to bugzilla
-    log.info('Connecting to %s',opt.bugzilla)
-    bz=bugzilla.Bugzilla(url=opt.bugzilla)
-    if opt.user and opt.password:
+    log.info('Connecting to %s',global_opt.bugzilla)
+    bz=bugzilla.Bugzilla(url=global_opt.bugzilla)
+    if global_opt.user and global_opt.password:
         log.info('Using username/password for authentication')
-        bz.login(opt.user,opt.password)
-    elif opt.cookiefile:
-        log.info('Using cookies in %s for authentication', opt.cookiefile)
-        bz.readcookiefile(opt.cookiefile)
+        bz.login(global_opt.user,global_opt.password)
+    elif global_opt.cookiefile:
+        log.info('Using cookies in %s for authentication', global_opt.cookiefile)
+        bz.readcookiefile(global_opt.cookiefile)
     else:
         cookiefile = findcookie()
         if cookiefile:
