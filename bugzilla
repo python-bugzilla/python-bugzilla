@@ -122,7 +122,7 @@ def setup_action_parser(action):
         p.add_option('-l','--comment',
                 help='Add a comment')
         # FIXME: check value for resolution
-        p.add_option('-k','--close',metavar="RESOLUTION"
+        p.add_option('-k','--close',metavar="RESOLUTION",
                 help='Close with the given resolution')
         # TODO: --keyword, --flag, --tag, --status, --assignee, --cc, ...
 
