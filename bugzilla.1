@@ -3,15 +3,34 @@
 bugzilla - command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
 .B bugzilla
-[command] [options]
+[options] [command] [command-options]
 .SH DESCRIPTION
+.PP
 .B bugzilla
 is a command-line utility that allows access to the XML-RPC interface provided
-by Bugzilla.
-.SH OPTIONS
-.TP
-\-\-help
-Get help.
+by Bugzilla. 
+.PP
+\fIcommand\fP is one of:
+.br
+.I \fR * new - create a new bug
+.br
+.I \fR * query - search for bugs matching given criteria
+.br
+.I \fR * modify - modify existing bugs
+.br
+.I \fR * info - get info about the given bugzilla instance
+.SH "GENERAL OPTIONS"
+These options apply to any command.
+.PP
+.IP "\fB\-h, \-\-help\fP"
+Displays a help message and then quits. If given after the command,
+this will give command-specific help.
+.IP "\fB\-\-bugzilla=BUGZILLA\fP"
+.IP "\fB\-\-user=USER\fP"
+.IP "\fB\-\-password=PASSWORD\fP"
+.IP "\fB\-\-cookiefile=COOKIEFILE\fP"
+.IP "\fB\-\-verbose\fP"
+.IP "\fB\-\-debug\fP"
 .SH EXAMPLES
 .TP
 TODO.
