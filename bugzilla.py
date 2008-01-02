@@ -711,6 +711,9 @@ class Bug(object):
 
     def __str__(self):
         '''Return a simple string representation of this bug'''
+        # XXX Not really sure why we get short_desc sometimes and
+        # short_short_desc other times. I feel like I'm working around
+        # a bug here, so keep an eye on this.
         if 'short_short_desc' in self.__dict__:
             desc = self.short_short_desc
         else:
@@ -750,8 +753,10 @@ class Bug(object):
             # XXX is ValueError the right thing to throw here?
             raise ValueError, "You must set one of assigned_to, reporter, or qa_contact"
         # empty fields are ignored, so it's OK to send 'em
-        return self.bugzilla._setassignee(self.bug_id,assigned_to=assigned_to,
+        r = self.bugzilla._setassignee(self.bug_id,assigned_to=assigned_to,
                 reporter=reporter,qa_contact=qa_contact,comment=comment)
+        # FIXME reload bug data here
+        return r
 
     def addcomment(self,comment,private=False,timestamp='',worktime='',bz_gid=''):
         '''Add the given comment to this bug. Set private to True to mark this
@@ -788,6 +793,8 @@ class Bug(object):
         (append,prepend,overwrite) with the given text on the given whiteboard
         for the given bug.'''
         self.bugzilla._updatewhiteboard(self.bug_id,text,which,action)
+        # FIXME reload bug data here
+
     def getwhiteboard(self,which='status'):
         '''Get the current value of the whiteboard specified by 'which'.
         Known whiteboard names: 'status','internal','devel','qa'.
