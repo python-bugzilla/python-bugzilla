@@ -373,11 +373,45 @@ class Bugzilla(object):
         returns: [$id, $mailresults]'''
         return self._proxy.bugzilla.changeAssignment(id,data,self.user,self.password)
 
-    def _closebug(self,id):
-        #closeBug($bugid, $new_resolution, $username, $password, $dupeid, $new_fixed_in, $comment, $isprivate)
-        # if new_resolution is 'DUPLICATE', dupeid is not optional
-        # new_fixed_id, comment, isprivate are optional
-        raise NotImplementedError
+    def _closebug(self,id,resolution,dupeid,fixedin,comment,isprivate,private_in_it,nomail):
+        '''Raw xmlrpc call for closing bugs. Documentation from Bug.pm is
+        below. Note that we drop the username and password fields because the
+        Bugzilla object contains them already.
+
+        closeBug($bugid, $new_resolution, $username, $password, $dupeid,
+            $new_fixed_in, $comment, $isprivate, $private_in_it, $nomail)
+        
+        Close a current Bugzilla bug report with a specific resolution. This will eventually be done in Bugzilla/Bug.pm 
+        instead and is meant to only be a quick fix. Please use bugzilla.changesStatus to changed to an opened state.
+        This method will change the bug report's status to CLOSED.
+        
+            $bugid 
+                # ID of bug report to add comment to.
+            $new_resolution
+                # Valid Bugzilla resolution to transition the report into. 
+                # DUPLICATE requires $dupeid to be passed in.
+            $dupeid
+                # Bugzilla report ID that this bug is being closed as 
+                # duplicate of. 
+                # Requires $new_resolution to be DUPLICATE.
+            $new_fixed_in
+                # OPTIONAL String representing version of product/component 
+                # that bug is fixed in.
+            $comment
+                # OPTIONAL Text string containing comment to add.
+            $isprivate
+                # OPTIONAL Whether the comment will be private to the 
+                # 'private_comment' Bugzilla group. 
+                # Default: false
+            $private_in_it 
+                # OPTIONAL if true will make the comment private in 
+                # Issue Tracker
+                # Default: follows $isprivate
+            $nomail 
+                # OPTIONAL Flag that is either 1 or 0 if you want email to be sent or not for this change
+        '''
+        return self._proxy.bugzilla.closeBug(id,resolution,self.user,self.password,
+                dupeid,fixedin,comment,isprivate,private_in_it,nomail)
 
     def _updatedeps(self,id,deplist):
         #updateDepends($bug_id,$data,$username,$password,$nodependencyemail)
@@ -727,6 +761,27 @@ class Bug(object):
         group, this comment will be private.'''
         self.bugzilla._addcomment(self.bug_id,comment,private,timestamp,
                                   worktime,bz_gid)
+        # FIXME reload bug data here
+
+    def close(self,resolution,dupeid=0,fixedin='',comment='',isprivate=False,private_in_it=False,nomail=False):
+        '''Close this bug. 
+        Valid values for resolution are in bz.querydefaults['resolution_list']
+        For bugzilla.redhat.com that's:
+        ['NOTABUG','WONTFIX','DEFERRED','WORKSFORME','CURRENTRELEASE',
+         'RAWHIDE','ERRATA','DUPLICATE','UPSTREAM','NEXTRELEASE','CANTFIX',
+         'INSUFFICIENT_DATA']
+        If using DUPLICATE, you need to set dupeid to the ID of the other bug.
+        If using WORKSFORME/CURRENTRELEASE/RAWHIDE/ERRATA/UPSTREAM/NEXTRELEASE
+          you can (and should) set 'new_fixed_in' to a string representing the 
+          version that fixes the bug.
+        You can optionally add a comment while closing the bug. Set 'isprivate'
+          to True if you want that comment to be private.
+        If you want to suppress sending out mail for this bug closing, set
+          nomail=True.
+        '''
+        self.bugzilla._closebug(self.bug_id,resolution,dupeid,fixedin,
+                                comment,isprivate,private_in_it,nomail)
+        # FIXME reload bug data here
 
     def _dowhiteboard(self,text,which,action):
         '''Actually does the updateWhiteboard call to perform the given action
