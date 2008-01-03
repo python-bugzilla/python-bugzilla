@@ -354,7 +354,7 @@ class Bugzilla(object):
         return self._proxy.bugzilla.addComment(id,comment,
                    self.user,self.password,private,timestamp,worktime,bz_gid)
     
-    def _setstatus(self,id,status,comment='',private=False):
+    def _setstatus(self,id,status,comment='',private=False,private_in_it=False,nomail=False):
         '''Set the status of the bug with the given ID. You may optionally
         include a comment to be added, and may further choose to mark that
         comment as private.
@@ -363,8 +363,8 @@ class Bugzilla(object):
         Less common: 'VERIFIED','ON_DEV','ON_QA','REOPENED'
         'CLOSED' is not valid with this method; use closebug() instead.
         '''
-        return self._proxy.bugzilla.setstatus(id,status,
-                self.user,self.password,comment,private)
+        return self._proxy.bugzilla.changeStatus(id,status,
+                self.user,self.password,comment,private,private_in_it,nomail)
 
     def _setassignee(self,id,**data):
         '''Raw xmlrpc call to set one of the assignee fields on a bug.
@@ -683,23 +683,26 @@ class Bug(object):
     '''A container object for a bug report. Requires a Bugzilla instance - 
     every Bug is on a Bugzilla, obviously.
     Optional keyword args:
-        dict=DICT - populate attributes with the result of a getBug() call
-        bug_id=ID - if dict does not contain bug_id, this is required before
-                    you can read any attributes or make modifications to this
-                    bug.
-    Note that modifying a Bug will not update the data attributes - you can 
-    call refresh() to do this.
+        dict=DICT   - populate attributes with the result of a getBug() call
+        bug_id=ID   - if dict does not contain bug_id, this is required before
+                      you can read any attributes or make modifications to this
+                      bug.
+        autorefresh - automatically refresh the data in this bug after calling
+                      a method that modifies the bug. Defaults to True. You can
+                      call refresh() to do this manually.
     '''
-    # TODO: Implement an 'autorefresh' attribute that causes update methods
-    # to run as multicalls which fetch the newly-updated data afterward.
     def __init__(self,bugzilla,**kwargs):
         self.bugzilla = bugzilla
+        self.autorefresh = True
         if 'dict' in kwargs and kwargs['dict']:
             self.__dict__.update(kwargs['dict'])
         if 'bug_id' in kwargs:
             setattr(self,'bug_id',kwargs['bug_id'])
+        if 'autorefresh' in kwargs:
+            self.autorefresh = kwargs['autorefresh']
         self.url = bugzilla.url.replace('xmlrpc.cgi',
                                         'show_bug.cgi?id=%i' % self.bug_id)
+
         # TODO: set properties for missing bugfields
         # The problem here is that the property doesn't know its own name,
         # otherwise we could just do .refresh() and return __dict__[f] after.
@@ -740,6 +743,15 @@ class Bug(object):
         r = self.bugzilla._getbug(self.bug_id)
         self.__dict__.update(r)
 
+    def setstatus(self,status,comment='',private=False,private_in_it=False,nomail=False):
+        '''Update the status for this bug report. 
+        Valid values for status are listed in querydefaults['bug_status_list']
+        Commonly-used values are ASSIGNED, MODIFIED, and NEEDINFO.
+        To change bugs to CLOSED, use .close() instead.
+        See Bugzilla._setstatus() for details.'''
+        self.bugzilla._setstatus(self.bug_id,status,comment,private,private_in_it,nomail)
+        # FIXME reload bug data here
+
     def setassignee(self,assigned_to='',reporter='',qa_contact='',comment=''):
         '''Set any of the assigned_to, reporter, or qa_contact fields to a new
         bugzilla account, with an optional comment, e.g.
@@ -757,7 +769,6 @@ class Bug(object):
                 reporter=reporter,qa_contact=qa_contact,comment=comment)
         # FIXME reload bug data here
         return r
-
     def addcomment(self,comment,private=False,timestamp='',worktime='',bz_gid=''):
         '''Add the given comment to this bug. Set private to True to mark this
         comment as private. You can also set a timestamp for the comment, in
@@ -767,7 +778,6 @@ class Bug(object):
         self.bugzilla._addcomment(self.bug_id,comment,private,timestamp,
                                   worktime,bz_gid)
         # FIXME reload bug data here
-
     def close(self,resolution,dupeid=0,fixedin='',comment='',isprivate=False,private_in_it=False,nomail=False):
         '''Close this bug. 
         Valid values for resolution are in bz.querydefaults['resolution_list']
@@ -787,7 +797,6 @@ class Bug(object):
         self.bugzilla._closebug(self.bug_id,resolution,dupeid,fixedin,
                                 comment,isprivate,private_in_it,nomail)
         # FIXME reload bug data here
-
     def _dowhiteboard(self,text,which,action):
         '''Actually does the updateWhiteboard call to perform the given action
         (append,prepend,overwrite) with the given text on the given whiteboard
