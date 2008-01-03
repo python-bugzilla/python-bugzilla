@@ -251,29 +251,19 @@ if __name__ == '__main__':
             else:
                 bugid_list.append(a)
         # Surely there's a simpler way to do that..
-
         # bail out if no bugs were given
         if not bugid_list:
             parser.error('No bug IDs given (maybe you forgot an argument somewhere?)')
         # Iterate over a list of Bug objects
         # FIXME: this should totally use some multicall magic
-        buglist = bz.getbugs(bugid_list)
-        for bug in buglist:
+        for bug in bz.getbugssimple(bugid_list):
             log.debug("modifying bug %s" % bug.bug_id)
-            for cmd in ['comment','close']:
-                val = getattr(opt,cmd) 
-                if not val:
-                    continue
-                if cmd == 'comment':
-                    log.debug("  add comment: %s" % val)
-                    bug.addcomment(val)
-                elif cmd == 'close':
-                    log.debug("  close %s" % val)
-                    bug.close(val)
-                else:
-                    # FIXME error out properly
-                    log.error("Unknown command %s slipped through" % cmd)
-
+            if opt.comment:
+                log.debug("  add comment: %s" % opt.comment)
+                bug.addcomment(opt.comment)
+            if opt.close:
+                log.debug("  close %s" % opt.close)
+                bug.close(opt.close)
     else:
         print "Sorry - '%s' not implemented yet." % action
 
