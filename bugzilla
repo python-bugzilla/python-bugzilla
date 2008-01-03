@@ -243,17 +243,35 @@ if __name__ == '__main__':
         buglist = [b]
         
     elif action == 'modify':
-        buglist = []
+        bugid_list = []
         for a in args:
             if ',' in a:
                 for b in a.split(','):
-                    buglist.append(b)
+                    bugid_list.append(b)
             else:
-                buglist.append(a)
+                bugid_list.append(a)
         # Surely there's a simpler way to do that..
-        print "Sorry, modify isn't done yet."
-        print "opt: %s" % str(opt)
-        print "buglist: %s" % str(buglist)
+
+        # bail out if no bugs were given
+        if not bugid_list:
+            parser.error('No bug IDs given (maybe you forgot an argument somewhere?)')
+        # Iterate over a list of Bug objects
+        buglist = bz.getbugs(bugid_list)
+        for bug in buglist:
+            log.debug("modifying bug %s" % bug.bug_id)
+            for cmd in ['comment','close']:
+                val = getattr(opt,cmd) 
+                if not val:
+                    continue
+                if cmd == 'comment':
+                    log.debug("  add comment: %s" % val)
+                    bug.addcomment(val)
+                elif cmd == 'close':
+                    log.debug("  close %s" % val)
+                    bug.close(val)
+                else:
+                    # FIXME error out properly
+                    log.error("Unknown command %s slipped through" % cmd)
 
     else:
         print "Sorry - '%s' not implemented yet." % action
