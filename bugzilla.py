@@ -731,7 +731,7 @@ class Bug(object):
         if 'bug_id' in self.__dict__:
             if self.bugzilla.bugfields and name not in self.bugzilla.bugfields:
                 # We have a list of fields, and you ain't on it. Bail out.
-                raise AttributeError
+                raise AttributeError, "field %s not in bugzilla.bugfields" % name
             #print "Bug %i missing %s - loading" % (self.bug_id,name)
             self.refresh()
             if name in self.__dict__:
@@ -742,6 +742,10 @@ class Bug(object):
         '''Refresh all the data in this Bug.'''
         r = self.bugzilla._getbug(self.bug_id)
         self.__dict__.update(r)
+
+    def reload(self): 
+        '''An alias for reload()'''
+        self.refresh()
 
     def setstatus(self,status,comment='',private=False,private_in_it=False,nomail=False):
         '''Update the status for this bug report. 
