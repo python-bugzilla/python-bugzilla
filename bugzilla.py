@@ -16,6 +16,17 @@ version = '0.2'
 user_agent = 'bugzilla.py/%s (Python-urllib2/%s)' % \
         (version,urllib2.__version__)
 
+def replace_errors_with_None(r):
+    '''r is a raw xmlrpc response. 
+    If it represents an error, None is returned.
+    Otherwise, r is returned.
+    This is mostly used for XMLRPC Multicall handling.'''
+    # Yes, this is a naive implementation
+    if isinstance(r,dict):
+        return r
+    else:
+        return None
+
 class Bugzilla(object):
     '''An object which represents the data and methods exported by a Bugzilla
     instance. Uses xmlrpclib to do its thing. You'll want to create one thusly:
@@ -264,22 +275,33 @@ class Bugzilla(object):
         return self._proxy.bugzilla.getBug(id, self.user, self.password)
     def _getbugsimple(self,id):
         '''Return a short dict of simple bug info for the given bug id'''
-        return self._proxy.bugzilla.getBugSimple(id, self.user, self.password)
+        r = self._proxy.bugzilla.getBugSimple(id, self.user, self.password)
+        if r and 'bug_id' not in r:
+            # XXX hurr. getBugSimple doesn't fault if the bug is missing.
+            # Let's synthesize one ourselves.
+            raise xmlrpclib.Fault("Server","Could not load bug %s" % id)
+        else:
+            return r
     def _getbugs(self,idlist):
         '''Like _getbug, but takes a list of ids and returns a corresponding
         list of bug objects. Uses multicall for awesome speed.'''
         mc = self._multicall()
         for id in idlist:
             mc._getbug(id)
-        return mc.run()
-        # I sure hope mc gets garbage-collected here.
+        raw_results = mc.run()
+        del mc
+        # check results for xmlrpc errors, and replace them with None
+        return map(replace_errors_with_None, raw_results)
     def _getbugssimple(self,idlist):
         '''Like _getbugsimple, but takes a list of ids and returns a
         corresponding list of bug objects. Uses multicall for awesome speed.'''
         mc = self._multicall()
         for id in idlist:
             mc._getbugsimple(id)
-        return mc.run()
+        raw_results = mc.run()
+        del mc
+        # check results for xmlrpc errors, and replace them with None
+        return map(replace_errors_with_None, raw_results)
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
@@ -308,11 +330,11 @@ class Bugzilla(object):
     def getbugs(self,idlist):
         '''Return a list of Bug objects with the full complement of bug data
         already loaded.'''
-        return [Bug(bugzilla=self,dict=b) for b in self._getbugs(idlist)]
+        return [(b and Bug(bugzilla=self,dict=b)) or None for b in self._getbugs(idlist)]
     def getbugssimple(self,idlist):
         '''Return a list of Bug objects for the given bug ids, populated with
         simple info'''
-        return [Bug(bugzilla=self,dict=b) for b in self._getbugssimple(idlist)]
+        return [(b and Bug(bugzilla=self,dict=b)) or None for b in self._getbugssimple(idlist)]
     def query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
@@ -700,6 +722,10 @@ class Bug(object):
             setattr(self,'bug_id',kwargs['bug_id'])
         if 'autorefresh' in kwargs:
             self.autorefresh = kwargs['autorefresh']
+        # No bug_id? this bug is invalid!
+        if not hasattr(self,'bug_id'):
+            raise TypeError, "Bug object needs a bug_id"
+
         self.url = bugzilla.url.replace('xmlrpc.cgi',
                                         'show_bug.cgi?id=%i' % self.bug_id)
 
@@ -736,7 +762,7 @@ class Bug(object):
             self.refresh()
             if name in self.__dict__:
                 return self.__dict__[name]
-        raise AttributeError
+        raise AttributeError, "Bug object has no attribute '%s'" % name
 
     def refresh(self):
         '''Refresh all the data in this Bug.'''
