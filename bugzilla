@@ -256,7 +256,11 @@ if __name__ == '__main__':
             parser.error('No bug IDs given (maybe you forgot an argument somewhere?)')
         # Iterate over a list of Bug objects
         # FIXME: this should totally use some multicall magic
-        for bug in bz.getbugssimple(bugid_list):
+        buglist = bz.getbugssimple(bugid_list)
+        for id,bug in zip(bugid_list,buglist):
+            if not bug: 
+                log.error("  failed to load bug %s" % id)
+                continue
             log.debug("modifying bug %s" % bug.bug_id)
             if opt.comment:
                 log.debug("  add comment: %s" % opt.comment)
