@@ -22,7 +22,9 @@ def replace_errors_with_None(r):
     Otherwise, r is returned.
     This is mostly used for XMLRPC Multicall handling.'''
     # Yes, this is a naive implementation
-    if isinstance(r,dict):
+    # FIXME that bug_id thing is only good for getbug, but I want
+    # to leave the git tree in a usable state...
+    if isinstance(r,dict) and 'bug_id' in r:
         return r
     else:
         return None
@@ -329,11 +331,14 @@ class Bugzilla(object):
         return Bug(bugzilla=self,dict=self._getbugsimple(id))
     def getbugs(self,idlist):
         '''Return a list of Bug objects with the full complement of bug data
-        already loaded.'''
+        already loaded. If there's a problem getting the data for a given id,
+        the corresponding item in the returned list will be None.'''
         return [(b and Bug(bugzilla=self,dict=b)) or None for b in self._getbugs(idlist)]
     def getbugssimple(self,idlist):
         '''Return a list of Bug objects for the given bug ids, populated with
-        simple info'''
+        simple info. As with getbugs(), if there's a problem getting the data
+        for a given bug ID, the corresponding item in the returned list will
+        be None.'''
         return [(b and Bug(bugzilla=self,dict=b)) or None for b in self._getbugssimple(idlist)]
     def query(self,query):
         '''Query bugzilla and return a list of matching bugs.
