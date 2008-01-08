@@ -463,7 +463,16 @@ class Bugzilla(object):
         data = {'type':which,'text':text,'action':action}
         return self._proxy.bugzilla.updateWhiteboard(id,data,self.user,self.password)
 
-    # TODO: flag handling?
+    # TODO: update this when the XMLRPC interface grows requestee support
+    def _updateflags(self,id,flags):
+        '''Updates the flags associated with a bug report.
+        data should be a hash of {'flagname':'value'} pairs, like so:
+        {'needinfo':'?','fedora-cvs':'+'}
+        You may also add a "nomail":1 item, which will suppress email if set.
+
+        NOTE: the Red Hat XMLRPC interface does not yet support setting the
+        requestee (as in: needinfo from smartguy@answers.com). Alas.'''
+        return self._proxy.bugzilla.updateFlags(id,flags,self.user,self.password)
 
     #---- Methods for working with attachments
 
