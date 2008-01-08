@@ -16,18 +16,20 @@ version = '0.2'
 user_agent = 'bugzilla.py/%s (Python-urllib2/%s)' % \
         (version,urllib2.__version__)
 
-def replace_errors_with_None(r):
+def replace_getbug_errors_with_None(rawlist):
     '''r is a raw xmlrpc response. 
     If it represents an error, None is returned.
     Otherwise, r is returned.
     This is mostly used for XMLRPC Multicall handling.'''
     # Yes, this is a naive implementation
-    # FIXME that bug_id thing is only good for getbug, but I want
-    # to leave the git tree in a usable state...
-    if isinstance(r,dict) and 'bug_id' in r:
-        return r
-    else:
-        return None
+    # XXX: return a generator?
+    result = []
+    for r in rawlist:
+        if isinstance(r,dict) and 'bug_id' in r:
+            result.append(r)
+        else:
+            result.append(None)
+    return result
 
 class Bugzilla(object):
     '''An object which represents the data and methods exported by a Bugzilla
@@ -293,7 +295,7 @@ class Bugzilla(object):
         raw_results = mc.run()
         del mc
         # check results for xmlrpc errors, and replace them with None
-        return map(replace_errors_with_None, raw_results)
+        return replace_getbug_errors_with_None(raw_results)
     def _getbugssimple(self,idlist):
         '''Like _getbugsimple, but takes a list of ids and returns a
         corresponding list of bug objects. Uses multicall for awesome speed.'''
@@ -303,7 +305,7 @@ class Bugzilla(object):
         raw_results = mc.run()
         del mc
         # check results for xmlrpc errors, and replace them with None
-        return map(replace_errors_with_None, raw_results)
+        return replace_getbug_errors_with_None(raw_results)
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
