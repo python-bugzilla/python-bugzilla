@@ -12,7 +12,7 @@
 import xmlrpclib, urllib2, cookielib
 import os.path, base64, copy
 
-version = '0.2'
+version = '0.3'
 user_agent = 'bugzilla.py/%s (Python-urllib2/%s)' % \
         (version,urllib2.__version__)
 

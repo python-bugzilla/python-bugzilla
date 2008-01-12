@@ -14,7 +14,7 @@ import bugzilla, optparse
 import os, sys, glob, re
 import logging
 
-version = '0.1'
+version = '0.2'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
 # Initial simple logging stuff
