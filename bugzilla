@@ -98,6 +98,8 @@ def setup_action_parser(action):
                 help="search bug summaries")
         p.add_option('-o','--cc',
                 help="search cc lists for given address")
+        p.add_option('-r','--reporter',
+                help="search for bugs reported by this address")
         p.add_option('-a','--assigned_to',
                 help="search for bugs assigned to this address")
         p.add_option('--blocked',
@@ -106,7 +108,8 @@ def setup_action_parser(action):
                 help="search for bugs that depend on this bug ID")
         p.add_option('-b','--bug_id',
                 help="specify individual bugs by IDs, separated with commas")
-        p.add_option('-t','--bug_status',default="NEW,VERIFIED,ASSIGNED,NEEDINFO,ON_DEV,FAILS_QA,REOPENED",
+        p.add_option('-t','--bug_status','--status',
+                default="NEW,VERIFIED,ASSIGNED,NEEDINFO,ON_DEV,FAILS_QA,REOPENED",
                 help="comma-separated list of bug statuses to accept")
     elif action == 'info':
         p.add_option('-p','--products',action='store_true',
@@ -201,14 +204,14 @@ if __name__ == '__main__':
             email_count = 1
             chart_id = 0
             for a in ('product','component','version','long_desc','bug_id',
-                      'short_desc','cc','assigned_to','bug_status',
+                      'short_desc','cc','assigned_to','reporter','bug_status',
                       'blocked','dependson'):
                 if hasattr(opt,a):
                     i = getattr(opt,a)
                     if i:
                         if a in ('bug_status'): # list args
                             q[a] = i.split(',')
-                        elif a in ('cc','assigned_to'):
+                        elif a in ('cc','assigned_to','reporter'):
                             # the email query fields are kind of weird - thanks
                             # to Florian La Roche for figuring this bit out.
                             # ex.: {'email1':'foo@bar.com','emailcc1':True}
