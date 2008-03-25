@@ -1,6 +1,6 @@
 # bugzilla.py - a Python interface to bugzilla.redhat.com, using xmlrpclib.
 #
-# Copyright (C) 2007 Red Hat Inc.
+# Copyright (C) 2007,2008 Red Hat Inc.
 # Author: Will Woods <wwoods@redhat.com>
 # 
 # This program is free software; you can redistribute it and/or modify it
@@ -12,9 +12,9 @@
 import xmlrpclib, urllib2, cookielib
 import os.path, base64, copy
 
-version = '0.3'
-user_agent = 'bugzilla.py/%s (Python-urllib2/%s)' % \
-        (version,urllib2.__version__)
+version = '0.5'
+user_agent = 'Python-urllib2/%s bugzilla.py/%s' % \
+        (urllib2.__version__,version)
 
 def replace_getbug_errors_with_None(rawlist):
     '''r is a raw xmlrpc response. 
@@ -31,7 +31,7 @@ def replace_getbug_errors_with_None(rawlist):
             result.append(None)
     return result
 
-class Bugzilla(object):
+class BugzillaBase(object):
     '''An object which represents the data and methods exported by a Bugzilla
     instance. Uses xmlrpclib to do its thing. You'll want to create one thusly:
     bz=Bugzilla(url='https://bugzilla.redhat.com/xmlrpc.cgi',user=u,password=p)
@@ -49,12 +49,17 @@ class Bugzilla(object):
 
     The methods which start with a single underscore are thin wrappers around
     xmlrpc calls; those should be safe for multicall usage.
+
+    This is an abstract class; it must be implemented by a concrete subclass
+    which actually connects the methods provided here to the appropriate
+    methods on the bugzilla instance.
     '''
     def __init__(self,**kwargs):
         # Settings the user might want to tweak
         self.user       = ''
         self.password   = ''
         self.url        = ''
+        self.user_agent = user_agent
         # Bugzilla object state info that users shouldn't mess with
         self._cookiejar  = None
         self._proxy      = None
@@ -91,14 +96,14 @@ class Bugzilla(object):
             self._transport = SafeCookieTransport()
         else:
             self._transport = CookieTransport() 
-        self._transport.user_agent = user_agent
+        self._transport.user_agent = self.user_agent
         self._transport.cookiejar = self._cookiejar or cookielib.CookieJar()
         # Set up the proxy, using the transport
         self._proxy = xmlrpclib.ServerProxy(url,self._transport)
         # Set up the urllib2 opener (using the same cookiejar)
         handler = urllib2.HTTPCookieProcessor(self._cookiejar)
         self._opener = urllib2.build_opener(handler)
-        self._opener.addheaders = [('User-agent',user_agent)]
+        self._opener.addheaders = [('User-agent',self.user_agent)]
         self.url = url
 
     # Note that the bugzilla methods will ignore an empty user/password if you
@@ -157,7 +162,21 @@ class Bugzilla(object):
         return mc
 
     def _getbugfields(self):
-        return self._proxy.bugzilla.getBugFields(self.user,self.password)
+        '''IMPLEMENT ME: Get bugfields from Bugzilla.'''
+        raise NotImplementedError
+    def _getqueryinfo(self):
+        '''IMPLEMENT ME: Get queryinfo from Bugzilla.'''
+        raise NotImplementedError
+    def _getproducts(self):
+        '''IMPLEMENT ME: Get product info from Bugzilla.'''
+        raise NotImplementedError
+    def _getcomponentsdetails(self,product):
+        '''IMPLEMENT ME: get component details for a product'''
+        raise NotImplementedError
+    def _getcomponents(self,product):
+        '''IMPLEMENT ME: Get component dict for a product'''
+        raise NotImplementedError
+
     def getbugfields(self,force_refresh=False):
         '''Calls getBugFields, which returns a list of fields in each bug
         for this bugzilla instance. This can be used to set the list of attrs
@@ -177,8 +196,6 @@ class Bugzilla(object):
     bugfields = property(fget=lambda self: self.getbugfields(),
                          fdel=lambda self: setattr(self,'_bugfields',None))
 
-    def _getqueryinfo(self):
-        return self._proxy.bugzilla.getQueryInfo(self.user,self.password)
     def getqueryinfo(self,force_refresh=False):
         '''Calls getQueryInfo, which returns a (quite large!) structure that
         contains all of the query data and query defaults for the bugzilla
@@ -199,8 +216,6 @@ class Bugzilla(object):
     querydefaults = property(fget=lambda self: self.getqueryinfo()[1],
                          fdel=lambda self: setattr(self,"_querydefaults",None))
 
-    def _getproducts(self):
-        return self._proxy.bugzilla.getProdInfo(self.user, self.password)
     def getproducts(self,force_refresh=False):
         '''Return a dict of product names and product descriptions.'''
         if force_refresh or not self._products:
@@ -211,8 +226,6 @@ class Bugzilla(object):
     products = property(fget=lambda self: self.getproducts(),
                         fdel=lambda self: setattr(self,'_products',None))
 
-    def _getcomponents(self,product):
-        return self._proxy.bugzilla.getProdCompInfo(product,self.user,self.password)
     def getcomponents(self,product,force_refresh=False):
         '''Return a dict of components:descriptions for the given product.'''
         if force_refresh or product not in self._components:
@@ -220,12 +233,6 @@ class Bugzilla(object):
         return self._components[product]
     # TODO - add a .components property that acts like a dict?
 
-    def _getcomponentsdetails(self,product):
-        '''Returns a list of dicts giving details about the components in the
-        given product. Each item has the following keys:
-        component, description, initialowner, initialqacontact, initialcclist
-        '''
-        return self._proxy.bugzilla.getProdCompDetails(product,self.user,self.password)
     def getcomponentsdetails(self,product,force_refresh=False):
         '''Returns a dict of dicts, containing detailed component information
         for the given product. The keys of the dict are component names. For 
@@ -273,19 +280,18 @@ class Bugzilla(object):
 
     #---- Methods for reading bugs and bug info
 
-    # Return raw dicts
     def _getbug(self,id):
-        '''Return a dict of full bug info for the given bug id'''
-        return self._proxy.bugzilla.getBug(id, self.user, self.password)
+        '''IMPLEMENT ME: Return a dict of full bug info for the given bug id'''
+        raise NotImplementedError
     def _getbugsimple(self,id):
-        '''Return a short dict of simple bug info for the given bug id'''
-        r = self._proxy.bugzilla.getBugSimple(id, self.user, self.password)
-        if r and 'bug_id' not in r:
-            # XXX hurr. getBugSimple doesn't fault if the bug is missing.
-            # Let's synthesize one ourselves.
-            raise xmlrpclib.Fault("Server","Could not load bug %s" % id)
-        else:
-            return r
+        '''IMPLEMENT ME: Return a short dict of simple bug info for the given
+        bug id'''
+        raise NotImplementedError
+    def _query(self,query):
+        '''IMPLEMENT ME: Query bugzilla and return a list of matching bugs.'''
+        raise NotImplementedError
+
+    # Multicall methods
     def _getbugs(self,idlist):
         '''Like _getbug, but takes a list of ids and returns a corresponding
         list of bug objects. Uses multicall for awesome speed.'''
@@ -306,22 +312,6 @@ class Bugzilla(object):
         del mc
         # check results for xmlrpc errors, and replace them with None
         return replace_getbug_errors_with_None(raw_results)
-    def _query(self,query):
-        '''Query bugzilla and return a list of matching bugs.
-        query must be a dict with fields like those in in querydata['fields'].
-
-        Returns a dict like this: {'bugs':buglist,
-                                   'displaycolumns':columnlist,
-                                   'sql':querystring}
-        
-        buglist is a list of dicts describing bugs. You can specify which 
-        columns/keys will be listed in the bugs by setting 'column_list' in
-        the query; otherwise the default columns are used (see the list in
-        querydefaults['default_column_list']). The list of columns will be
-        in 'displaycolumns', and the SQL query used by this query will be in
-        'sql'. 
-        ''' 
-        return self._proxy.bugzilla.runQuery(query,self.user,self.password)
 
     # these return Bug objects 
     def getbug(self,id):
@@ -370,117 +360,53 @@ class Bugzilla(object):
     # Bugzilla.setstatus(id,status) ->
     #   Bug.setstatus(status): self.bugzilla.setstatus(self.bug_id,status)
 
+    # FIXME inconsistent method signatures
+    # FIXME add more comments on proper implementation
     def _addcomment(self,id,comment,private=False,
                    timestamp='',worktime='',bz_gid=''):
-        '''Add a comment to the bug with the given ID. Other optional 
-        arguments are as follows:
-            private:   if True, mark this comment as private.
-            timestamp: comment timestamp, in the form "YYYY-MM-DD HH:MM:SS"
-            worktime:  amount of time spent on this comment (undoc in upstream)
-            bz_gid:    if present, and the entire bug is *not* already private
-                       to this group ID, this comment will be marked private.
-        '''
-        return self._proxy.bugzilla.addComment(id,comment,
-                   self.user,self.password,private,timestamp,worktime,bz_gid)
-    
-    def _setstatus(self,id,status,comment='',private=False,private_in_it=False,nomail=False):
-        '''Set the status of the bug with the given ID. You may optionally
-        include a comment to be added, and may further choose to mark that
-        comment as private.
-        The status may be anything from querydefaults['bug_status_list'].
-        Common statuses: 'NEW','ASSIGNED','MODIFIED','NEEDINFO'
-        Less common: 'VERIFIED','ON_DEV','ON_QA','REOPENED'
-        'CLOSED' is not valid with this method; use closebug() instead.
-        '''
-        return self._proxy.bugzilla.changeStatus(id,status,
-                self.user,self.password,comment,private,private_in_it,nomail)
-
-    def _setassignee(self,id,**data):
-        '''Raw xmlrpc call to set one of the assignee fields on a bug.
-        changeAssignment($id, $data, $username, $password)
-        data: 'assigned_to','reporter','qa_contact','comment'
-        returns: [$id, $mailresults]'''
-        return self._proxy.bugzilla.changeAssignment(id,data,self.user,self.password)
-
-    def _closebug(self,id,resolution,dupeid,fixedin,comment,isprivate,private_in_it,nomail):
-        '''Raw xmlrpc call for closing bugs. Documentation from Bug.pm is
-        below. Note that we drop the username and password fields because the
-        Bugzilla object contains them already.
-
-        closeBug($bugid, $new_resolution, $username, $password, $dupeid,
-            $new_fixed_in, $comment, $isprivate, $private_in_it, $nomail)
-        
-        Close a current Bugzilla bug report with a specific resolution. This will eventually be done in Bugzilla/Bug.pm 
-        instead and is meant to only be a quick fix. Please use bugzilla.changesStatus to changed to an opened state.
-        This method will change the bug report's status to CLOSED.
-        
-            $bugid 
-                # ID of bug report to add comment to.
-            $new_resolution
-                # Valid Bugzilla resolution to transition the report into. 
-                # DUPLICATE requires $dupeid to be passed in.
-            $dupeid
-                # Bugzilla report ID that this bug is being closed as 
-                # duplicate of. 
-                # Requires $new_resolution to be DUPLICATE.
-            $new_fixed_in
-                # OPTIONAL String representing version of product/component 
-                # that bug is fixed in.
-            $comment
-                # OPTIONAL Text string containing comment to add.
-            $isprivate
-                # OPTIONAL Whether the comment will be private to the 
-                # 'private_comment' Bugzilla group. 
-                # Default: false
-            $private_in_it 
-                # OPTIONAL if true will make the comment private in 
-                # Issue Tracker
-                # Default: follows $isprivate
-            $nomail 
-                # OPTIONAL Flag that is either 1 or 0 if you want email to be sent or not for this change
-        '''
-        return self._proxy.bugzilla.closeBug(id,resolution,self.user,self.password,
-                dupeid,fixedin,comment,isprivate,private_in_it,nomail)
-
-    def _updatedeps(self,id,deplist):
-        #updateDepends($bug_id,$data,$username,$password,$nodependencyemail)
-        #data: 'blocked'=>id,'dependson'=>id,'action' => ('add','remove')
+        '''IMPLEMENT ME: add a comment to the given bug ID'''
         raise NotImplementedError
-
+    def _setstatus(self,id,status,comment='',private=False,private_in_it=False,nomail=False):
+        '''IMPLEMENT ME: Set the status of the given bug ID'''
+        raise NotImplementedError
+    def _closebug(self,id,resolution,dupeid,fixedin,comment,isprivate,private_in_it,nomail):
+        '''IMPLEMENT ME: close the given bug ID'''
+        raise NotImplementedError
+    def _setassignee(self,id,**data):
+        '''IMPLEMENT ME: set the assignee of the given bug ID'''
+        raise NotImplementedError
+    def _updatedeps(self,id,deplist):
+        '''IMPLEMENT ME: update the deps (blocked/dependson) for the given bug.
+        updateDepends($bug_id,$data,$username,$password,$nodependencyemail)
+        #data: 'blocked'=>id,'dependson'=>id,'action' => ('add','remove')'''
+        raise NotImplementedError
     def _updatecc(self,id,cclist,action,comment='',nomail=False):
-        '''Updates the CC list using the action and account list specified.
+        '''IMPLEMENT ME: Update the CC list using the action and account list
+        specified.
         cclist must be a list (not a tuple!) of addresses.
         action may be 'add', 'remove', or 'makeexact'.
         comment specifies an optional comment to add to the bug.
         if mail is True, email will be generated for this change.
         '''
-        data = {'id':id, 'action':action, 'cc':','.join(cclist),
-                'comment':comment, 'nomail':nomail}
-        return self._proxy.bugzilla.updateCC(data,self.user,self.password)
-
+        raise NotImplementedError
     def _updatewhiteboard(self,id,text,which,action):
-        '''Update the whiteboard given by 'which' for the given bug.
-        performs the given action (which may be 'append',' prepend', or 
+        '''IMPLEMENT ME: Update the whiteboard given by 'which' for the given
+        bug. performs the given action (which may be 'append',' prepend', or 
         'overwrite') using the given text.'''
-        data = {'type':which,'text':text,'action':action}
-        return self._proxy.bugzilla.updateWhiteboard(id,data,self.user,self.password)
-
-    # TODO: update this when the XMLRPC interface grows requestee support
+        raise NotImplementedError
     def _updateflags(self,id,flags):
         '''Updates the flags associated with a bug report.
         data should be a hash of {'flagname':'value'} pairs, like so:
         {'needinfo':'?','fedora-cvs':'+'}
-        You may also add a "nomail":1 item, which will suppress email if set.
-
-        NOTE: the Red Hat XMLRPC interface does not yet support setting the
-        requestee (as in: needinfo from smartguy@answers.com). Alas.'''
-        return self._proxy.bugzilla.updateFlags(id,flags,self.user,self.password)
+        You may also add a "nomail":1 item, which will suppress email if set.'''
+        raise NotImplementedError
 
     #---- Methods for working with attachments
 
-    def __attachment_encode(self,fh):
+    def _attachment_encode(self,fh):
         '''Return the contents of the file-like object fh in a form
-        appropriate for attaching to a bug in bugzilla.'''
+        appropriate for attaching to a bug in bugzilla. This is the default
+        encoding method, base64.'''
         # Read data in chunks so we don't end up with two copies of the file
         # in RAM.
         chunksize = 3072 # base64 encoding wants input in multiples of 3
@@ -493,6 +419,25 @@ class Bugzilla(object):
             data = data + base64.b64encode(chunk)
             chunk = fh.read(chunksize)
         return data
+
+    def _attachfile(self,id,**attachdata):
+        '''IMPLEMENT ME: attach a file to the given bug.
+        attachdata MUST contain the following keys:
+            data:        File data, encoded in the bugzilla-preferred format.
+                         attachfile() will encode it with _attachment_encode().
+            description: Short description of this attachment.
+            filename:    Filename for the attachment.
+        The following optional keys may also be added:
+            comment:   An optional comment about this attachment.
+            isprivate: Set to True if the attachment should be marked private.
+            ispatch:   Set to True if the attachment is a patch.
+            contenttype: The mime-type of the attached file. Defaults to
+                         application/octet-stream if not set. NOTE that text
+                         files will *not* be viewable in bugzilla unless you 
+                         remember to set this to text/plain. So remember that!
+        Returns (attachment_id,mailresults).
+        '''
+        raise NotImplementedError
 
     def attachfile(self,id,attachfile,description,**kwargs):
         '''Attach a file to the given bug ID. Returns the ID of the attachment
@@ -526,15 +471,20 @@ class Bugzilla(object):
         # TODO: guess contenttype?
         if 'contenttype' not in kwargs:
             kwargs['contenttype'] = 'application/octet-stream'
-        kwargs['data'] = self.__attachment_encode(f)
-        (attachid, mailresults) = self._proxy.bugzilla.addAttachment(id,kwargs,self.user,self.password)
+        kwargs['data'] = self._attachment_encode(f)
+        (attachid, mailresults) = self._attachfile(id,kwargs)
         return attachid
+
+    def _attachment_uri(self,attachid):
+        '''Returns the URI for the given attachment ID.'''
+        att_uri = self._url.replace('xmlrpc.cgi','attachment.cgi')
+        att_uri = att_uri + '?%i' % attachid
+        return att_uri
 
     def openattachment(self,attachid):
         '''Get the contents of the attachment with the given attachment ID.
         Returns a file-like object.'''
-        att_uri = self._url.replace('xmlrpc.cgi','attachment.cgi')
-        att_uri = att_uri + '?%i' % attachid
+        att_uri = self._attachment_uri(attachid)
         att = urllib2.urlopen(att_uri)
         # RFC 2183 defines the content-disposition header, if you're curious
         disp = att.headers['content-disposition'].split(';')
@@ -549,10 +499,10 @@ class Bugzilla(object):
     #---- createbug - big complicated call to create a new bug
 
     def _createbug(self,**data):
-        '''Raw xmlrpc call for createBug() Doesn't bother guessing defaults
-        or checking argument validity. Use with care.
+        '''IMPLEMENT ME: Raw xmlrpc call for createBug() 
+        Doesn't bother guessing defaults or checking argument validity. 
         Returns [bug_id, mailresults]'''
-        return self._proxy.bugzilla.createBug(data,self.user,self.password)
+        raise NotImplementedError
 
     def createbug(self,check_args=False,**data):
         '''Create a bug with the given info. Returns the bug ID.
@@ -885,3 +835,9 @@ class Bug(object):
         self.setwhiteboard(' '.join(tags),which)
 # TODO: add a sync() method that writes the changed data in the Bug object
 # back to Bugzilla. Someday.
+
+class Bugzilla(object):
+    '''Magical Bugzilla class that figures out which Bugzilla implementation
+    to use and uses that.'''
+    # FIXME STUB
+    pass

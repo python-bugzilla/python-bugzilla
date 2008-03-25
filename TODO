@@ -1,4 +1,4 @@
-- Bugzilla class should be renamed RHBugzilla
-- Create a Bugzilla3 class that uses the Bugzilla3.0 web services
-- connect method should move out of Bugzilla class, return one of the two
-  above classes (depending on what type of bugzilla instance we're talking to)
+- flesh out Bugzilla3 class
+- better documentation for abstract methods in BugzillaBase
+- more consistent calls for abstract methods
+- make the abstract methods return stuff closer to Bugzilla3's return values
