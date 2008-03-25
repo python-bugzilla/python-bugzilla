@@ -23,16 +23,33 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
 
     #---- Methods and properties with basic bugzilla info 
 
+    def _getuserforid(self,userid):
+        '''Get the username for the given userid'''
+        # STUB FIXME
+        return str(userid)
+
     # Connect the backend methods to the XMLRPC methods
     def _getbugfields(self):
-        #return self._proxy.bugzilla.getBugFields(self.user,self.password)
-        raise NotImplementedError
+        '''Get a list of valid fields for bugs.'''
+        #I don't think BZ3 provides a getbugfields() method, so right 
+        #we fake it by looking at bug #1. Yuck.
+        keylist = self._getbug(1).keys()
+        if 'assigned_to' not in keylist:
+            keylist.append('assigned_to')
+        return keylist
     def _getqueryinfo(self):
         #return self._proxy.bugzilla.getQueryInfo(self.user,self.password)
         raise NotImplementedError
     def _getproducts(self):
+        '''This throws away a bunch of data that RH's getProdInfo
+        didn't return. Ah, abstraction.'''
         product_ids = self._proxy.Product.get_accessible_products()
-        return self._proxy.Product.get_products(product_ids)
+        r = self._proxy.Product.get_products(product_ids)
+        pdict = {}
+        for p in r['products']:
+            pdict[p['name']] = p['description']
+        return pdict
+
     def _getcomponents(self,product):
         #return self._proxy.bugzilla.getProdCompInfo(product,self.user,self.password)
         raise NotImplementedError
@@ -42,13 +59,17 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
 
     #---- Methods for reading bugs and bug info
 
+    def _getbugs(self,idlist):
+        r = self._proxy.Bug.get_bugs({'ids':idlist})
+        return [i['internals'] for i in r['bugs']]
     def _getbug(self,id):
         '''Return a dict of full bug info for the given bug id'''
-        return self._proxy.Bug.get(id)
+        return self._getbugs([id])[0]
     def _getbugsimple(self,id):
         '''Return a short dict of simple bug info for the given bug id'''
         # Bugzilla3 doesn't have this
         return self._getbug(id)
+
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].

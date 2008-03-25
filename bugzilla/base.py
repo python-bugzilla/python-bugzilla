@@ -713,6 +713,10 @@ class Bug(object):
             desc = self.short_short_desc
         else:
             desc = self.short_desc
+        # Some BZ3 implementations give us an ID instead of a name.
+        if 'assigned_to' not in self.__dict__:
+            if 'assigned_to_id' in self.__dict__:
+                self.assigned_to = self.bugzilla._getuserforid(self.assigned_to_id)
         return "#%-6s %-10s - %s - %s" % (self.bug_id,self.bug_status,
                                           self.assigned_to,desc)
     def __repr__(self):
