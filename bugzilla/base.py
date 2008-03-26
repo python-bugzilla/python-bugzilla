@@ -127,6 +127,10 @@ class BugzillaBase(object):
 
     #---- Methods and properties with basic bugzilla info 
 
+    # XXX FIXME Uh-oh. I think MultiCall support is a RHism.
+    # Even worse, RH's bz3 instance supports the RH methods but *NOT* mc!
+    # 1) move all multicall-calls into RHBugzilla, and
+    # 2) either make MC optional, or prefer Bugzilla3 over RHBugzilla
     def _multicall(self):
         '''This returns kind of a mash-up of the Bugzilla object and the 
         xmlrpclib.MultiCall object. Methods you call on this object will be added
