@@ -1,12 +1,12 @@
-.TH bugzilla 1  "December 12, 2007" "version 0.1" "USER COMMANDS"
+.TH bugzilla 1  "March 25, 2008" "version 0.5" "User Commands"
 .SH NAME
-bugzilla - command-line interface to Bugzilla over XML-RPC
+bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
 .B bugzilla
-[options] [command] [command-options]
+[\fIoptions\fR] [\fIcommand\fR] [\fIcommand-options\fR]
 .SH DESCRIPTION
 .PP
-.B bugzilla
+.BR bugzilla
 is a command-line utility that allows access to the XML-RPC interface provided
 by Bugzilla. 
 .PP
@@ -19,22 +19,58 @@ by Bugzilla.
 .I \fR * modify - modify existing bugs
 .br
 .I \fR * info - get info about the given bugzilla instance
-.SH "GENERAL OPTIONS"
-These options apply to any command.
+.SH "OPTIONS"
+These options apply to all commands. They must come before the command name.
 .PP
-.IP "\fB\-h, \-\-help\fP"
+.IP "\fB\-h\fR, \fB\-\-help\fP"
 Displays a help message and then quits. If given after the command,
 this will give command-specific help.
-.IP "\fB\-\-bugzilla=BUGZILLA\fP"
-.IP "\fB\-\-user=USER\fP"
-.IP "\fB\-\-password=PASSWORD\fP"
-.IP "\fB\-\-cookiefile=COOKIEFILE\fP"
+.IP "\fB\-\-bugzilla\fP=\fIURL\fP"
+URL for the XML-RPC interface provided by the bugzilla instance. Typically
+something like https://bugzilla.redhat.com/xmlrpc.cgi.
+.IP "\fB\-\-user\fP=\fIUSER\fP"
+Bugzilla username. If \fIuser\fP and \fIpassword\fP are not specified, 
+.BR bugzilla
+will try to use cookie authentication instead.
+.IP "\fB\-\-password\fP=\fIPASSWORD\fP"
+Bugzilla password. If \fIuser\fP and \fIpassword\fP are not specified,
+.BR bugzilla
+will try to use cookie authentication instead.
+.IP "\fB\-\-cookiefile\fP=\fICOOKIEFILE\fP"
+Cookie file to use for bugzilla authentication. If not specified, 
+.BR bugzilla
+will search the user's home directory for
+.BR firefox (1)
+or
+.BR mozilla (1)
+style cookie files.
 .IP "\fB\-\-verbose\fP"
+Give some extra information about what's going on.
 .IP "\fB\-\-debug\fP"
+Give lots of noisy debugging info about every step of the process.
+.PP
+These options apply to the \fIinfo\fP command.
+.IP "\fB\-h\fR, \fB\-\-help\fP"
+Show usage information for the \fIinfo\fP command.
+.IP "\fB\-p\fR, \fB\-\-products\fP"
+Show a list of products.
+.IP "\fB\-c\fR, \fB\-\-components\fP=\fIPRODUCT\fP"
+List the components in the given product.
+.IP "\fB\-o\fR, \fB\-\-component_owners\fP=\fIPRODUCT\fP"
+List components and their owners.
+.IP "\fB\-v\fR, \fB\-\-versions\fP=\fIPRODUCT\fP"
+List the versions for the given product.
 .SH EXAMPLES
 .TP
-TODO.
+bugzilla query --bug_id 62037
 .SH EXIT STATUS
-Also TODO.
+.BR bugzilla
+currently returns 0 for all operations. Sorry about that.
+.SH NOTES
+Not everything that's exposed in the Web UI is exposed by XML-RPC, and not
+everything that's exposed by XML-RPC is used by
+.BR bugzilla .
+.SH BUGS
+Bugs? In a sub-1.0 release? Preposterous.
 .SH AUTHOR
 Will Woods <wwoods@redhat.com>
