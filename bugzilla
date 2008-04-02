@@ -84,6 +84,10 @@ def setup_action_parser(action):
                 help="OPTIONAL: URL for further bug info")
         p.add_option('--cc',
                 help="OPTIONAL: add emails to initial CC list")
+        p.add_option('--blocked',
+                help="OPTIONAL: block bugs with this new bug")
+        p.add_option('--dependson',
+                help="OPTIONAL: mark this bug as depending on this list of bugs", default=' ')
         # TODO: alias, assigned_to, reporter, qa_contact, dependson, blocked
     elif action == 'query':
         p.add_option('-p','--product',
@@ -233,7 +237,7 @@ if __name__ == '__main__':
         data = dict()
         required=['product','component','version','short_desc','comment',
              'rep_platform','bug_severity','op_sys','bug_file_loc','priority']
-        optional=['cc']
+        optional=['cc', 'blocked', 'dependson']
         for a in required + optional:
             i = getattr(opt,a)
             if i:
