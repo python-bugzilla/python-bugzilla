@@ -509,7 +509,7 @@ class BugzillaBase(object):
         raise NotImplementedError
 
     def createbug(self,check_args=False,**data):
-        '''Create a bug with the given info. Returns the bug ID.
+        '''Create a bug with the given info. Returns a new Bug object.
         data should be given as keyword args - remember that you can also
         populate a dict and call createbug(**dict) to fill in keyword args.
         The arguments are as follows. Note that some are optional and some
