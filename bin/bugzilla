@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # bugzilla - a commandline frontend for the python bugzilla module
 #
-# Copyright (C) 2007 Red Hat Inc.
+# Copyright (C) 2007,2008 Red Hat Inc.
 # Author: Will Woods <wwoods@redhat.com>
 # 
 # This program is free software; you can redistribute it and/or modify it

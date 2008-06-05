@@ -42,4 +42,4 @@ class Bugzilla(object):
             if c:
                 self.__class__ = c
                 c.__init__(self,**kwargs)
-        # FIXME raise an error or something here, jeez
+        # FIXME no url? raise an error or something here, jeez
