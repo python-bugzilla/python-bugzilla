@@ -12,6 +12,8 @@
 from bugzilla3 import Bugzilla3
 from rhbugzilla import RHBugzilla
 import xmlrpclib
+import logging
+log = logging.getLogger("bugzilla")
 
 def getBugzillaClassForURL(url):
     s = xmlrpclib.ServerProxy(url)
@@ -42,4 +44,5 @@ class Bugzilla(object):
             if c:
                 self.__class__ = c
                 c.__init__(self,**kwargs)
+                log.debug("Using Bugzilla subclass: %s" % c.__name__)
         # FIXME no url? raise an error or something here, jeez
