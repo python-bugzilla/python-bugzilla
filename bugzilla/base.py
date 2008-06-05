@@ -577,7 +577,10 @@ class BugzillaBase(object):
         # let's try to save a network roundtrip here if possible..
         for i in required:
             if i not in data or not data[i]:
-                raise TypeError, "required field missing or empty: '%s'" % i
+                if i == 'bug_file_loc':
+                    data[i] = 'http://'
+                else:
+                    raise TypeError, "required field missing or empty: '%s'" % i
         # Sort of a chicken-and-egg problem here - check_args will save you a
         # network roundtrip if your op_sys or rep_platform is bad, but at the
         # expense of getting querydefaults, which is.. an added network
