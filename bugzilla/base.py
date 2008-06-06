@@ -72,8 +72,6 @@ class BugzillaBase(object):
         self._bugfields  = None
         self._components = dict()
         self._components_details = dict()
-        if 'cookies' in kwargs:
-            self.readcookiefile(kwargs['cookies'])
         if 'url' in kwargs:
             self.connect(kwargs['url'])
         if 'user' in kwargs:
@@ -82,14 +80,6 @@ class BugzillaBase(object):
             self.password = kwargs['password']
 
     #---- Methods for establishing bugzilla connection and logging in
-
-    def readcookiefile(self,cookiefile):
-        '''Read the given (Mozilla-style) cookie file and fill in the cookiejar,
-        allowing us to use the user's saved credentials to access bugzilla.'''
-        cj = cookielib.MozillaCookieJar()
-        cj.load(cookiefile)
-        self._cookiejar = cj
-        self._cookiejar.filename = cookiefile
 
     def connect(self,url):
         '''Connect to the bugzilla instance with the given url.'''
@@ -328,6 +318,7 @@ class BugzillaBase(object):
     def getbug(self,id):
         '''Return a Bug object with the full complement of bug data
         already loaded.'''
+        log.debug("getbug(%i)" % id)
         return Bug(bugzilla=self,dict=self._getbug(id))
     def getbugsimple(self,id):
         '''Return a Bug object given bug id, populated with simple info'''
@@ -645,6 +636,8 @@ class CookieTransport(xmlrpclib.Transport):
             # ...and put them over the connection
             for h,v in cookielist:
                 connection.putheader(h,v)
+        else:
+            log.debug("send_cookies(): cookiejar empty. Nothing to send.")
 
     # This is the same request() method from xmlrpclib.Transport,
     # with a couple additions noted below
@@ -712,14 +705,19 @@ class Bug(object):
         self.bugzilla = bugzilla
         self.autorefresh = True
         if 'dict' in kwargs and kwargs['dict']:
+            log.debug("Bug(%s)" % kwargs['dict'].keys())
             self.__dict__.update(kwargs['dict'])
         if 'bug_id' in kwargs:
+            log.debug("Bug(%i)" % kwargs['bug_id'])
             setattr(self,'bug_id',kwargs['bug_id'])
         if 'autorefresh' in kwargs:
             self.autorefresh = kwargs['autorefresh']
         # No bug_id? this bug is invalid!
         if not hasattr(self,'bug_id'):
-            raise TypeError, "Bug object needs a bug_id"
+            if hasattr(self,'id'):
+                self.bug_id = self.id
+            else:
+                raise TypeError, "Bug object needs a bug_id"
 
         self.url = bugzilla.url.replace('xmlrpc.cgi',
                                         'show_bug.cgi?id=%i' % self.bug_id)

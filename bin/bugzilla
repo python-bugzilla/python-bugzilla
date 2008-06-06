@@ -25,17 +25,6 @@ if '--debug' in sys.argv:
 elif '--verbose' in sys.argv:
     log.setLevel(logging.INFO)
         
-def findcookie():
-    globs = ['~/.mozilla/firefox/*default*/cookies.txt']
-    for g in globs:
-        log.debug("Looking for cookies.txt in %s", g)
-        cookiefiles = glob.glob(os.path.expanduser(g))
-        if cookiefiles:
-            # return the first one we find.
-            # TODO: find all cookiefiles, sort by age, use newest
-            return cookiefiles[0]
-cookiefile = None
-
 cmdlist = ('info','query','new','modify')
 def setup_parser():
     u =   "usage: %prog [global options] COMMAND [options]"
@@ -46,11 +35,9 @@ def setup_parser():
     p.add_option('--bugzilla',default=default_bz,
             help="bugzilla XMLRPC URI. default: %s" % default_bz)
     p.add_option('--user',
-            help="username. Will attempt to use browser cookie if not specified.")
+            help="username")
     p.add_option('--password',
-            help="password. Will attempt to use browser cookie if not specified.")
-    p.add_option('--cookiefile',
-            help="cookie file to use for bugzilla authentication")
+            help="password")
     p.add_option('--verbose',action='store_true',
             help="give more info about what's going on")
     p.add_option('--debug',action='store_true',
@@ -205,16 +192,8 @@ if __name__ == '__main__':
     if global_opt.user and global_opt.password:
         log.info('Using username/password for authentication')
         bz.login(global_opt.user,global_opt.password)
-    elif global_opt.cookiefile:
-        log.info('Using cookies in %s for authentication', global_opt.cookiefile)
-        bz.readcookiefile(global_opt.cookiefile)
     else:
-        cookiefile = findcookie()
-        if cookiefile:
-            log.info('Using cookies in %s for authentication', cookiefile)
-            bz.readcookiefile(cookiefile)
-        else:
-            parser.error("Could not find a Firefox cookie file. Try --user/--password.")
+        log.info('No authentication info found.')
     
     # And now we actually execute the given command
     buglist = list() # save the results of query/new/modify here
