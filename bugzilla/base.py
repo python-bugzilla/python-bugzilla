@@ -1,4 +1,4 @@
-# bugzilla.py - a Python interface to bugzilla.redhat.com, using xmlrpclib.
+# base.py - the base classes etc. for a Python interface to bugzilla
 #
 # Copyright (C) 2007,2008 Red Hat Inc.
 # Author: Will Woods <wwoods@redhat.com>
@@ -81,6 +81,20 @@ class BugzillaBase(object):
 
     #---- Methods for establishing bugzilla connection and logging in
 
+    configpath = ['/etc/bugzillarc','~/.bugzillarc']
+    def readconfig(self,configpath=None):
+        '''Read bugzillarc file(s) into memory.'''
+        configpath = [os.path.expanduser(p) for p in configpath]
+        import ConfigParser
+        c = ConfigParser.SafeConfigParser()
+        if not configpath:
+            configpath = self.configpath
+        r = c.read(configpath)
+        if not r:
+            return
+        # FIXME save parsed config in a more lightweight form?
+        self.conf = c
+
     def connect(self,url):
         '''Connect to the bugzilla instance with the given url.'''
         # Set up the transport
@@ -97,6 +111,8 @@ class BugzillaBase(object):
         self._opener = urllib2.build_opener(handler)
         self._opener.addheaders = [('User-agent',self.user_agent)]
         self.url = url
+        # TODO if we have a matching config section for this url, load those
+        # values now
 
     # Note that the bugzilla methods will ignore an empty user/password if you
     # send authentication info as a cookie in the request headers. So it's
