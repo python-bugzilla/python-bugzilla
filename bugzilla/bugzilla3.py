@@ -21,6 +21,10 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         bugzilla.base.BugzillaBase.__init__(self,**kwargs)
         self.user_agent = user_agent
 
+    def _login(self,user,password):
+        '''Backend login method for Bugzilla3'''
+        return self._proxy.User.login({'login':user,'password':password})
+
     #---- Methods and properties with basic bugzilla info 
 
     def _getuserforid(self,userid):
@@ -83,7 +87,8 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         in 'displaycolumns', and the SQL query used by this query will be in
         'sql'. 
         ''' 
-        return self._proxy.bugzilla.runQuery(query,self.user,self.password)
+        #return self._proxy.bugzilla.runQuery(query,self.user,self.password)
+        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
 
     #---- Methods for modifying existing bugs.
 
@@ -203,8 +208,12 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
 
     #---- createbug - call to create a new bug
 
+    createbug_required = ('product','component','summary','version',
+                          'op_sys','platform')
+
     def _createbug(self,**data):
         '''Raw xmlrpc call for createBug() Doesn't bother guessing defaults
         or checking argument validity. Use with care.
-        Returns [bug_id, mailresults]'''
-        return self._proxy.bugzilla.createBug(data,self.user,self.password)
+        Returns bug_id'''
+        r = self._proxy.Bug.create(data)
+        return r['id']

@@ -11,6 +11,8 @@
 
 import xmlrpclib, urllib2, cookielib
 import os.path, base64, copy
+import logging
+log = logging.getLogger('bugzilla')
 
 version = '0.5'
 user_agent = 'Python-urllib2/%s bugzilla.py/%s' % \
@@ -109,10 +111,15 @@ class BugzillaBase(object):
     # Note that the bugzilla methods will ignore an empty user/password if you
     # send authentication info as a cookie in the request headers. So it's
     # OK if we keep sending empty / bogus login info in other methods.
+    def _login(self,user,password):
+        '''IMPLEMENT ME: backend login method'''
+        raise NotImplementedError
+
     def login(self,user,password):
         '''Attempt to log in using the given username and password. Subsequent
         method calls will use this username and password. Returns False if 
-        login fails, otherwise returns a dict of user info.
+        login fails, otherwise returns some kind of login info - typically
+        either a numeric userid, or a dict of user info.
         
         Note that it is not required to login before calling other methods;
         you may just set user and password and call whatever methods you like.
@@ -120,7 +127,7 @@ class BugzillaBase(object):
         self.user = user
         self.password = password
         try: 
-            r = self._proxy.bugzilla.login(self.user,self.password)
+            r = self._login(self.user,self.password)
         except xmlrpclib.Fault, f:
             r = False
         return r
@@ -502,10 +509,14 @@ class BugzillaBase(object):
 
     #---- createbug - big complicated call to create a new bug
 
+    # Default list of required fields for createbug
+    createbug_required = ('product','component','version','short_desc','comment',
+                          'rep_platform','bug_severity','op_sys','bug_file_loc')
+
     def _createbug(self,**data):
         '''IMPLEMENT ME: Raw xmlrpc call for createBug() 
         Doesn't bother guessing defaults or checking argument validity. 
-        Returns [bug_id, mailresults]'''
+        Returns bug_id'''
         raise NotImplementedError
 
     def createbug(self,check_args=False,**data):
@@ -571,11 +582,9 @@ class BugzillaBase(object):
             # OPTIONAL Comma or space separate list of bug id's 
             # this report depends on.
         '''
-        required = ('product','component','version','short_desc','comment',
-                    'rep_platform','bug_severity','op_sys','bug_file_loc')
         # The xmlrpc will raise an error if one of these is missing, but
         # let's try to save a network roundtrip here if possible..
-        for i in required:
+        for i in self.createbug_required:
             if i not in data or not data[i]:
                 if i == 'bug_file_loc':
                     data[i] = 'http://'
@@ -597,9 +606,19 @@ class BugzillaBase(object):
         # and fill in the blanks with the data given to this method, but the
         # server might modify/add/drop stuff. Then we'd have a Bug object that
         # lied about the actual contents of the database. That would be bad.
-        [bug_id, mail_results] = self._createbug(**data)
+        bug_id = self._createbug(**data)
         return Bug(self,bug_id=bug_id)
         # Trivia: this method has ~5.8 lines of comment per line of code. Yow!
+
+class CookieResponse:
+    '''Fake HTTPResponse object that we can fill with headers we got elsewhere.
+    We can then pass it to CookieJar.extract_cookies() to make it pull out the
+    cookies from the set of headers we have.'''
+    def __init__(self,headers): 
+        self.headers = headers
+        #log.debug("CookieResponse() headers = %s" % headers)
+    def info(self): 
+        return self.headers
 
 class CookieTransport(xmlrpclib.Transport):
     '''A subclass of xmlrpclib.Transport that supports cookies.'''
@@ -609,14 +628,19 @@ class CookieTransport(xmlrpclib.Transport):
     # Cribbed from xmlrpclib.Transport.send_user_agent 
     def send_cookies(self, connection, cookie_request):
         if self.cookiejar is None:
+            log.debug("send_cookies(): creating cookiejar")
             self.cookiejar = cookielib.CookieJar()
         elif self.cookiejar:
+            log.debug("send_cookies(): using existing cookiejar")
             # Let the cookiejar figure out what cookies are appropriate
+            log.debug("cookie_request headers currently: %s" % cookie_request.header_items())
             self.cookiejar.add_cookie_header(cookie_request)
+            log.debug("cookie_request headers now: %s" % cookie_request.header_items())
             # Pull the cookie headers out of the request object...
             cookielist=list()
             for h,v in cookie_request.header_items():
                 if h.startswith('Cookie'):
+                    log.debug("sending cookie: %s=%s" % (h,v))
                     cookielist.append([h,v])
             # ...and put them over the connection
             for h,v in cookielist:
@@ -630,7 +654,8 @@ class CookieTransport(xmlrpclib.Transport):
             h.set_debuglevel(1)
 
         # ADDED: construct the URL and Request object for proper cookie handling
-        request_url = "%s://%s/" % (self.scheme,host)
+        request_url = "%s://%s%s" % (self.scheme,host,handler)
+        log.debug("request_url is %s" % request_url)
         cookie_request  = urllib2.Request(request_url) 
 
         self.send_request(h,handler,request_body)
@@ -642,13 +667,10 @@ class CookieTransport(xmlrpclib.Transport):
         errcode, errmsg, headers = h.getreply()
 
         # ADDED: parse headers and get cookies here
-        # fake a response object that we can fill with the headers above
-        class CookieResponse:
-            def __init__(self,headers): self.headers = headers
-            def info(self): return self.headers
         cookie_response = CookieResponse(headers)
         # Okay, extract the cookies from the headers
         self.cookiejar.extract_cookies(cookie_response,cookie_request)
+        log.debug("cookiejar now contains: %s" % self.cookiejar._cookies)
         # And write back any changes
         if hasattr(self.cookiejar,'save'):
             self.cookiejar.save(self.cookiejar.filename)

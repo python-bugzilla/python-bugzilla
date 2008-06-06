@@ -21,6 +21,10 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         bugzilla.base.BugzillaBase.__init__(self,**kwargs)
         self.user_agent = user_agent
 
+    def _login(self,user,password):
+        '''Backend login method for RHBugzilla.'''
+        return self._proxy.bugzilla.login(user,password)
+
     #---- Methods and properties with basic bugzilla info 
 
     # Connect the backend methods to the XMLRPC methods
@@ -185,5 +189,6 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
     def _createbug(self,**data):
         '''Raw xmlrpc call for createBug() Doesn't bother guessing defaults
         or checking argument validity. Use with care.
-        Returns [bug_id, mailresults]'''
-        return self._proxy.bugzilla.createBug(data,self.user,self.password)
+        Returns bug_id'''
+        r = self._proxy.bugzilla.createBug(data,self.user,self.password)
+        return r[0]
