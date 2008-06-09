@@ -84,16 +84,28 @@ class BugzillaBase(object):
     configpath = ['/etc/bugzillarc','~/.bugzillarc']
     def readconfig(self,configpath=None):
         '''Read bugzillarc file(s) into memory.'''
-        configpath = [os.path.expanduser(p) for p in configpath]
         import ConfigParser
-        c = ConfigParser.SafeConfigParser()
         if not configpath:
             configpath = self.configpath
+        configpath = [os.path.expanduser(p) for p in configpath]
+        c = ConfigParser.SafeConfigParser()
         r = c.read(configpath)
         if not r:
             return
-        # FIXME save parsed config in a more lightweight form?
-        self.conf = c
+        # See if we have a config section that matches this url.
+        section = ""
+        # Substring match - prefer the longest match found
+        log.debug("Searching for config section matching %s" % self.url)
+        for s in sorted(c.sections(), lambda a,b: cmp(len(a),len(b)) or cmp(a,b)):
+            if s in self.url:
+                log.debug("Found matching section: %s" % s)
+                section = s
+        if not section:
+            return
+        for k,v in c.items(section):
+            if k in ('user','password'):
+                log.debug("Setting '%s' from configfile" % k)
+                setattr(self,k,v)
 
     def connect(self,url):
         '''Connect to the bugzilla instance with the given url.'''
@@ -111,8 +123,10 @@ class BugzillaBase(object):
         self._opener = urllib2.build_opener(handler)
         self._opener.addheaders = [('User-agent',self.user_agent)]
         self.url = url
-        # TODO if we have a matching config section for this url, load those
-        # values now
+        self.readconfig() # we've changed URLs - reload config
+        if (self.user and self.password):
+            log.info("user and password present - doing login()")
+            self.login()
 
     # Note that the bugzilla methods will ignore an empty user/password if you
     # send authentication info as a cookie in the request headers. So it's
@@ -121,17 +135,29 @@ class BugzillaBase(object):
         '''IMPLEMENT ME: backend login method'''
         raise NotImplementedError
 
-    def login(self,user,password):
+    def login(self,user=None,password=None):
         '''Attempt to log in using the given username and password. Subsequent
         method calls will use this username and password. Returns False if 
         login fails, otherwise returns some kind of login info - typically
         either a numeric userid, or a dict of user info.
-        
-        Note that it is not required to login before calling other methods;
-        you may just set user and password and call whatever methods you like.
+
+        If user is not set, the value of Bugzilla.user will be used. If *that*
+        is not set, ValueError will be raised. 
+
+        This method will be called implicitly at the end of connect() if user
+        and password are both set. So under most circumstances you won't need
+        to call this yourself.
         '''
-        self.user = user
-        self.password = password
+        if user:
+            self.user = user
+        if password:
+            self.password = password
+
+        if not self.user:
+            raise ValueError, "missing username"
+        if not self.password:
+            raise ValueError, "missing password"
+           
         try: 
             r = self._login(self.user,self.password)
         except xmlrpclib.Fault, f:
@@ -754,8 +780,14 @@ class Bug(object):
         # a bug here, so keep an eye on this.
         if 'short_short_desc' in self.__dict__:
             desc = self.short_short_desc
-        else:
+        elif 'short_desc' in self.__dict__:
             desc = self.short_desc
+        elif 'summary' in self.__dict__:
+            desc = self.summary
+        else:
+            log.warn("Weird; this bug has no summary?")
+            desc = "[ERROR: SUMMARY MISSING]"
+            log.debug(self.__dict__)
         # Some BZ3 implementations give us an ID instead of a name.
         if 'assigned_to' not in self.__dict__:
             if 'assigned_to_id' in self.__dict__:
