@@ -33,10 +33,24 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
     def _getqueryinfo(self):
         return self._proxy.bugzilla.getQueryInfo()
     def _getproducts(self):
-        return self._proxy.bugzilla.getProdInfo()
+        '''Backend _getproducts method for RH Bugzilla. This predates the
+        Bugzilla3 Products stuff, so we need to massage this data to make it
+        fit the proper format'''
+        r = self._proxy.bugzilla.getProdInfo()
+        n = 0
+        prod = []
+        for name,desc in r.iteritems(): 
+            # We're making up a fake id, since RHBugzilla doesn't use them
+            prod.append({'id':n,'name':name,'description':desc})
+            n += 1
+        return prod
     def _getcomponents(self,product):
+        if type(product) == int:
+            product = self._product_id_to_name(product)
         return self._proxy.bugzilla.getProdCompInfo(product)
     def _getcomponentsdetails(self,product):
+        if type(product) == int:
+            product = self._product_id_to_name(product)
         return self._proxy.bugzilla.getProdCompDetails(product)
 
     #---- Methods for reading bugs and bug info

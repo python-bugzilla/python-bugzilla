@@ -273,7 +273,13 @@ class BugzillaBase(object):
                          fdel=lambda self: setattr(self,"_querydefaults",None))
 
     def getproducts(self,force_refresh=False):
-        '''Return a dict of product names and product descriptions.'''
+        '''Get product data: names, descriptions, etc.
+        The data varies between Bugzilla versions but the basic format is a 
+        list of dicts, where the dicts will have at least the following keys:
+        {'id':1,'name':"Some Product",'description':"This is a product"}
+
+        Any method that requires a 'product' can be given either the 
+        id or the name.'''
         if force_refresh or not self._products:
             self._products = self._getproducts()
         return self._products
@@ -281,6 +287,17 @@ class BugzillaBase(object):
     # call and return it for each subsequent call.
     products = property(fget=lambda self: self.getproducts(),
                         fdel=lambda self: setattr(self,'_products',None))
+    def _product_id_to_name(self,productid):
+        '''Convert a product ID (int) to a product name (str).'''
+        # This will auto-create the 'products' list
+        for p in self.products:
+            if p['id'] == productid:
+                return p['name']
+    def _product_name_to_id(self,product):
+        '''Convert a product name (str) to a product ID (int).'''
+        for p in self.products:
+            if p['name'] == product:
+                return p['id']
 
     def getcomponents(self,product,force_refresh=False):
         '''Return a dict of components:descriptions for the given product.'''

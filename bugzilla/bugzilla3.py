@@ -42,19 +42,18 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
             keylist.append('assigned_to')
         return keylist
     def _getqueryinfo(self):
-        raise NotImplementedError
+        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
     def _getproducts(self):
         '''This throws away a bunch of data that RH's getProdInfo
         didn't return. Ah, abstraction.'''
         product_ids = self._proxy.Product.get_accessible_products()
         r = self._proxy.Product.get_products(product_ids)
-        pdict = {}
-        for p in r['products']:
-            pdict[p['name']] = p['description']
-        return pdict
-
+        return r['products']
     def _getcomponents(self,product):
-        raise NotImplementedError
+        if type(product) == str:
+            product = self._product_name_to_id(product)
+        r = self._proxy.Bug.legal_values({'product_id':product,'field':'component'})
+        return r['values']
     def _getcomponentsdetails(self,product):
         raise NotImplementedError
 
@@ -102,7 +101,7 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
             bz_gid:    if present, and the entire bug is *not* already private
                        to this group ID, this comment will be marked private.
         '''
-        raise NotImplementedError
+        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
     def _setstatus(self,id,status,comment='',private=False,private_in_it=False,nomail=False):
         '''Set the status of the bug with the given ID. You may optionally
         include a comment to be added, and may further choose to mark that
@@ -112,7 +111,7 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         Less common: 'VERIFIED','ON_DEV','ON_QA','REOPENED'
         'CLOSED' is not valid with this method; use closebug() instead.
         '''
-        raise NotImplementedError
+        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
     def _closebug(self,id,resolution,dupeid,fixedin,comment,isprivate,private_in_it,nomail):
         '''Raw xmlrpc call for closing bugs. Documentation from Bug.pm is
         below. Note that we drop the username and password fields because the
@@ -150,18 +149,18 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
             $nomail 
                 # OPTIONAL Flag that is either 1 or 0 if you want email to be sent or not for this change
         '''
-        raise NotImplementedError
+        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
     def _setassignee(self,id,**data):
         '''Raw xmlrpc call to set one of the assignee fields on a bug.
         changeAssignment($id, $data, $username, $password)
         data: 'assigned_to','reporter','qa_contact','comment'
         returns: [$id, $mailresults]'''
-        raise NotImplementedError
+        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
     def _updatedeps(self,id,deplist):
         '''IMPLEMENT ME: update the deps (blocked/dependson) for the given bug.
         updateDepends($bug_id,$data,$username,$password,$nodependencyemail)
         #data: 'blocked'=>id,'dependson'=>id,'action' => ('add','remove')'''
-        raise NotImplementedError
+        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
     def _updatecc(self,id,cclist,action,comment='',nomail=False):
         '''Updates the CC list using the action and account list specified.
         cclist must be a list (not a tuple!) of addresses.
@@ -169,15 +168,13 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         comment specifies an optional comment to add to the bug.
         if mail is True, email will be generated for this change.
         '''
-        data = {'id':id, 'action':action, 'cc':','.join(cclist),
-                'comment':comment, 'nomail':nomail}
-        raise NotImplementedError
+        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
     def _updatewhiteboard(self,id,text,which,action):
         '''Update the whiteboard given by 'which' for the given bug.
         performs the given action (which may be 'append',' prepend', or 
         'overwrite') using the given text.'''
         data = {'type':which,'text':text,'action':action}
-        raise NotImplementedError
+        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
     # TODO: update this when the XMLRPC interface grows requestee support
     def _updateflags(self,id,flags):
         '''Updates the flags associated with a bug report.
@@ -187,7 +184,7 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
 
         NOTE: the Red Hat XMLRPC interface does not yet support setting the
         requestee (as in: needinfo from smartguy@answers.com). Alas.'''
-        raise NotImplementedError
+        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
 
     #---- Methods for working with attachments
 
@@ -197,7 +194,7 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
     # want to override _attachment_uri here.
 
     def _attachfile(self,id,**attachdata):
-        raise NotImplementedError
+        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
 
     #---- createbug - call to create a new bug
 
