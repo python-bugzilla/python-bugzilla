@@ -42,7 +42,6 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
             keylist.append('assigned_to')
         return keylist
     def _getqueryinfo(self):
-        #return self._proxy.bugzilla.getQueryInfo(self.user,self.password)
         raise NotImplementedError
     def _getproducts(self):
         '''This throws away a bunch of data that RH's getProdInfo
@@ -55,10 +54,8 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         return pdict
 
     def _getcomponents(self,product):
-        #return self._proxy.bugzilla.getProdCompInfo(product,self.user,self.password)
         raise NotImplementedError
     def _getcomponentsdetails(self,product):
-        #return self._proxy.bugzilla.getProdCompDetails(product,self.user,self.password)
         raise NotImplementedError
 
     #---- Methods for reading bugs and bug info
@@ -87,7 +84,6 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         in 'displaycolumns', and the SQL query used by this query will be in
         'sql'. 
         ''' 
-        #return self._proxy.bugzilla.runQuery(query,self.user,self.password)
         raise NotImplementedError, "Bugzilla 3.0 does not support this method."
 
     #---- Methods for modifying existing bugs.
@@ -106,8 +102,7 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
             bz_gid:    if present, and the entire bug is *not* already private
                        to this group ID, this comment will be marked private.
         '''
-        return self._proxy.bugzilla.addComment(id,comment,
-                   self.user,self.password,private,timestamp,worktime,bz_gid)
+        raise NotImplementedError
     def _setstatus(self,id,status,comment='',private=False,private_in_it=False,nomail=False):
         '''Set the status of the bug with the given ID. You may optionally
         include a comment to be added, and may further choose to mark that
@@ -117,8 +112,7 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         Less common: 'VERIFIED','ON_DEV','ON_QA','REOPENED'
         'CLOSED' is not valid with this method; use closebug() instead.
         '''
-        return self._proxy.bugzilla.changeStatus(id,status,
-                self.user,self.password,comment,private,private_in_it,nomail)
+        raise NotImplementedError
     def _closebug(self,id,resolution,dupeid,fixedin,comment,isprivate,private_in_it,nomail):
         '''Raw xmlrpc call for closing bugs. Documentation from Bug.pm is
         below. Note that we drop the username and password fields because the
@@ -156,14 +150,13 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
             $nomail 
                 # OPTIONAL Flag that is either 1 or 0 if you want email to be sent or not for this change
         '''
-        return self._proxy.bugzilla.closeBug(id,resolution,self.user,self.password,
-                dupeid,fixedin,comment,isprivate,private_in_it,nomail)
+        raise NotImplementedError
     def _setassignee(self,id,**data):
         '''Raw xmlrpc call to set one of the assignee fields on a bug.
         changeAssignment($id, $data, $username, $password)
         data: 'assigned_to','reporter','qa_contact','comment'
         returns: [$id, $mailresults]'''
-        return self._proxy.bugzilla.changeAssignment(id,data,self.user,self.password)
+        raise NotImplementedError
     def _updatedeps(self,id,deplist):
         '''IMPLEMENT ME: update the deps (blocked/dependson) for the given bug.
         updateDepends($bug_id,$data,$username,$password,$nodependencyemail)
@@ -178,13 +171,13 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         '''
         data = {'id':id, 'action':action, 'cc':','.join(cclist),
                 'comment':comment, 'nomail':nomail}
-        return self._proxy.bugzilla.updateCC(data,self.user,self.password)
+        raise NotImplementedError
     def _updatewhiteboard(self,id,text,which,action):
         '''Update the whiteboard given by 'which' for the given bug.
         performs the given action (which may be 'append',' prepend', or 
         'overwrite') using the given text.'''
         data = {'type':which,'text':text,'action':action}
-        return self._proxy.bugzilla.updateWhiteboard(id,data,self.user,self.password)
+        raise NotImplementedError
     # TODO: update this when the XMLRPC interface grows requestee support
     def _updateflags(self,id,flags):
         '''Updates the flags associated with a bug report.
@@ -194,7 +187,7 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
 
         NOTE: the Red Hat XMLRPC interface does not yet support setting the
         requestee (as in: needinfo from smartguy@answers.com). Alas.'''
-        return self._proxy.bugzilla.updateFlags(id,flags,self.user,self.password)
+        raise NotImplementedError
 
     #---- Methods for working with attachments
 
@@ -204,7 +197,7 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
     # want to override _attachment_uri here.
 
     def _attachfile(self,id,**attachdata):
-        return self._proxy.bugzilla.addAttachment(id,attachdata,self.user,self.password)
+        raise NotImplementedError
 
     #---- createbug - call to create a new bug
 

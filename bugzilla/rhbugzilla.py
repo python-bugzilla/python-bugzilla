@@ -11,7 +11,7 @@
 
 import bugzilla.base
 
-version = '0.1'
+version = '0.2'
 user_agent = bugzilla.base.user_agent + ' RHBugzilla/%s' % version
 
 class RHBugzilla(bugzilla.base.BugzillaBase):
@@ -29,24 +29,24 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
 
     # Connect the backend methods to the XMLRPC methods
     def _getbugfields(self):
-        return self._proxy.bugzilla.getBugFields(self.user,self.password)
+        return self._proxy.bugzilla.getBugFields()
     def _getqueryinfo(self):
-        return self._proxy.bugzilla.getQueryInfo(self.user,self.password)
+        return self._proxy.bugzilla.getQueryInfo()
     def _getproducts(self):
-        return self._proxy.bugzilla.getProdInfo(self.user, self.password)
+        return self._proxy.bugzilla.getProdInfo()
     def _getcomponents(self,product):
-        return self._proxy.bugzilla.getProdCompInfo(product,self.user,self.password)
+        return self._proxy.bugzilla.getProdCompInfo(product)
     def _getcomponentsdetails(self,product):
-        return self._proxy.bugzilla.getProdCompDetails(product,self.user,self.password)
+        return self._proxy.bugzilla.getProdCompDetails(product)
 
     #---- Methods for reading bugs and bug info
 
     def _getbug(self,id):
         '''Return a dict of full bug info for the given bug id'''
-        return self._proxy.bugzilla.getBug(id, self.user, self.password)
+        return self._proxy.bugzilla.getBug(id)
     def _getbugsimple(self,id):
         '''Return a short dict of simple bug info for the given bug id'''
-        r = self._proxy.bugzilla.getBugSimple(id, self.user, self.password)
+        r = self._proxy.bugzilla.getBugSimple(id)
         if r and 'bug_id' not in r:
             # XXX hurr. getBugSimple doesn't fault if the bug is missing.
             # Let's synthesize one ourselves.
@@ -66,7 +66,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         in 'displaycolumns', and the SQL query used by this query will be in
         'sql'. 
         ''' 
-        return self._proxy.bugzilla.runQuery(query,self.user,self.password)
+        return self._proxy.bugzilla.runQuery(query)
 
     #---- Methods for modifying existing bugs.
 
@@ -84,8 +84,8 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
             bz_gid:    if present, and the entire bug is *not* already private
                        to this group ID, this comment will be marked private.
         '''
-        return self._proxy.bugzilla.addComment(id,comment,
-                   self.user,self.password,private,timestamp,worktime,bz_gid)
+        return self._proxy.bugzilla.addComment(id,comment,self.user,'',
+                private,timestamp,worktime,bz_gid)
     def _setstatus(self,id,status,comment='',private=False,private_in_it=False,nomail=False):
         '''Set the status of the bug with the given ID. You may optionally
         include a comment to be added, and may further choose to mark that
@@ -95,8 +95,8 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         Less common: 'VERIFIED','ON_DEV','ON_QA','REOPENED'
         'CLOSED' is not valid with this method; use closebug() instead.
         '''
-        return self._proxy.bugzilla.changeStatus(id,status,
-                self.user,self.password,comment,private,private_in_it,nomail)
+        return self._proxy.bugzilla.changeStatus(id,status,self.user,'',
+                comment,private,private_in_it,nomail)
     def _closebug(self,id,resolution,dupeid,fixedin,comment,isprivate,private_in_it,nomail):
         '''Raw xmlrpc call for closing bugs. Documentation from Bug.pm is
         below. Note that we drop the username and password fields because the
@@ -134,14 +134,14 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
             $nomail 
                 # OPTIONAL Flag that is either 1 or 0 if you want email to be sent or not for this change
         '''
-        return self._proxy.bugzilla.closeBug(id,resolution,self.user,self.password,
+        return self._proxy.bugzilla.closeBug(id,resolution,self.user,'',
                 dupeid,fixedin,comment,isprivate,private_in_it,nomail)
     def _setassignee(self,id,**data):
         '''Raw xmlrpc call to set one of the assignee fields on a bug.
         changeAssignment($id, $data, $username, $password)
         data: 'assigned_to','reporter','qa_contact','comment'
         returns: [$id, $mailresults]'''
-        return self._proxy.bugzilla.changeAssignment(id,data,self.user,self.password)
+        return self._proxy.bugzilla.changeAssignment(id,data)
     def _updatedeps(self,id,deplist):
         '''IMPLEMENT ME: update the deps (blocked/dependson) for the given bug.
         updateDepends($bug_id,$data,$username,$password,$nodependencyemail)
@@ -156,13 +156,13 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         '''
         data = {'id':id, 'action':action, 'cc':','.join(cclist),
                 'comment':comment, 'nomail':nomail}
-        return self._proxy.bugzilla.updateCC(data,self.user,self.password)
+        return self._proxy.bugzilla.updateCC(data)
     def _updatewhiteboard(self,id,text,which,action):
         '''Update the whiteboard given by 'which' for the given bug.
         performs the given action (which may be 'append',' prepend', or 
         'overwrite') using the given text.'''
         data = {'type':which,'text':text,'action':action}
-        return self._proxy.bugzilla.updateWhiteboard(id,data,self.user,self.password)
+        return self._proxy.bugzilla.updateWhiteboard(id,data)
     # TODO: update this when the XMLRPC interface grows requestee support
     def _updateflags(self,id,flags):
         '''Updates the flags associated with a bug report.
@@ -172,7 +172,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
 
         NOTE: the Red Hat XMLRPC interface does not yet support setting the
         requestee (as in: needinfo from smartguy@answers.com). Alas.'''
-        return self._proxy.bugzilla.updateFlags(id,flags,self.user,self.password)
+        return self._proxy.bugzilla.updateFlags(id,flags)
 
     #---- Methods for working with attachments
 
@@ -182,7 +182,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
     # want to override _attachment_uri here.
 
     def _attachfile(self,id,**attachdata):
-        return self._proxy.bugzilla.addAttachment(id,attachdata,self.user,self.password)
+        return self._proxy.bugzilla.addAttachment(id,attachdata)
 
     #---- createbug - call to create a new bug
 
@@ -190,5 +190,5 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         '''Raw xmlrpc call for createBug() Doesn't bother guessing defaults
         or checking argument validity. Use with care.
         Returns bug_id'''
-        r = self._proxy.bugzilla.createBug(data,self.user,self.password)
+        r = self._proxy.bugzilla.createBug(data)
         return r[0]

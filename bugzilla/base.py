@@ -62,6 +62,7 @@ class BugzillaBase(object):
         self.password   = ''
         self.url        = ''
         self.user_agent = user_agent
+        self.logged_in  = False
         # Bugzilla object state info that users shouldn't mess with
         self._cookiejar  = None
         self._proxy      = None
@@ -108,7 +109,14 @@ class BugzillaBase(object):
                 setattr(self,k,v)
 
     def connect(self,url):
-        '''Connect to the bugzilla instance with the given url.'''
+        '''Connect to the bugzilla instance with the given url.
+        
+        This will also read any available config files (see readconfig()),
+        which may set 'user' and 'password'.
+
+        If 'user' and 'password' are both set, we'll run login(). Otherwise
+        you'll have to login() yourself before some methods will work.
+        '''
         # Set up the transport
         if url.startswith('https'):
             self._transport = SafeCookieTransport()
@@ -139,7 +147,8 @@ class BugzillaBase(object):
         '''Attempt to log in using the given username and password. Subsequent
         method calls will use this username and password. Returns False if 
         login fails, otherwise returns some kind of login info - typically
-        either a numeric userid, or a dict of user info.
+        either a numeric userid, or a dict of user info. It also sets the 
+        logged_in attribute to True, if successful.
 
         If user is not set, the value of Bugzilla.user will be used. If *that*
         is not set, ValueError will be raised. 
@@ -147,6 +156,7 @@ class BugzillaBase(object):
         This method will be called implicitly at the end of connect() if user
         and password are both set. So under most circumstances you won't need
         to call this yourself.
+
         '''
         if user:
             self.user = user
@@ -160,6 +170,9 @@ class BugzillaBase(object):
            
         try: 
             r = self._login(self.user,self.password)
+            self.logged_in = True
+            log.info("login successful - dropping password from memory")
+            self.password = ''
         except xmlrpclib.Fault, f:
             r = False
         return r
