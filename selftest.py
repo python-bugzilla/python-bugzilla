@@ -17,7 +17,7 @@ import xmlrpclib
 bugzillas = {
         'Red Hat':{
             'url':'https://bugzilla.redhat.com/xmlrpc.cgi',
-            'public_bug':1,
+            'public_bug':427301,
             'private_bug':250666,
             'bugidlist':(1,2,3,1337),
             'query':{'product':'Fedora',
@@ -26,8 +26,8 @@ bugzillas = {
             },
         'Bugzilla 3.0':{
             'url':'https://landfill.bugzilla.org/bugzilla-3.0-branch/xmlrpc.cgi',
-            'public_bug':1,
-            'private_bug':31337, # FIXME
+            'public_bug':4433,
+            'private_bug':6620, # FIXME - does this instance have groups?
             'bugidlist':(1,2,3,4433),
             'query':{'product':'WorldControl',
                      'component':'WeatherControl',
@@ -54,8 +54,16 @@ def selftest(data,user='',password=''):
 
     print "Reading product list"
     prod = bz.getproducts()
-    k = sorted(prod.keys())
-    print "Products found: %s, %s, %s...(%i more)" % (k[0],k[1],k[2],len(k)-3)
+    prodlist = [p['name'] for p in prod]
+    print "Products found: %s, %s, %s...(%i more)" % \
+        (prodlist[0],prodlist[1],prodlist[2],len(prodlist)-3)
+
+    p = data['query']['product']
+    assert p in prodlist
+    print "Getting component list for %s" % p
+    comp = bz.getcomponents(p)
+    print "%i components found" % len(comp)
+
 
     print "Reading public bug (#%i)" % data['public_bug']
     print bz.getbugsimple(data['public_bug'])
@@ -103,5 +111,5 @@ if __name__ == '__main__':
             selftest(data,user,password)
         except KeyboardInterrupt:
             print "Exiting on keyboard interrupt."
-            break
+            sys.exit(1)
     print "Awesome. We're done."
