@@ -34,6 +34,7 @@ def replace_getbug_errors_with_None(rawlist):
     return result
 
 class BugzillaBase(object):
+    # FIXME: remove doc info about cookie handling, add info about .bugzillarc
     '''An object which represents the data and methods exported by a Bugzilla
     instance. Uses xmlrpclib to do its thing. You'll want to create one thusly:
     bz=Bugzilla(url='https://bugzilla.redhat.com/xmlrpc.cgi',user=u,password=p)
@@ -409,8 +410,9 @@ class BugzillaBase(object):
     def query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
-
         Returns a list of Bug objects.
+        Also see the _query() method for details about the underlying
+        implementation.
         '''
         r = self._query(query)
         return [Bug(bugzilla=self,dict=b) for b in r['bugs']]
@@ -943,10 +945,4 @@ class Bug(object):
         tags.remove(tag)
         self.setwhiteboard(' '.join(tags),which)
 # TODO: add a sync() method that writes the changed data in the Bug object
-# back to Bugzilla. Someday.
-
-class Bugzilla(object):
-    '''Magical Bugzilla class that figures out which Bugzilla implementation
-    to use and uses that.'''
-    # FIXME STUB
-    pass
+# back to Bugzilla?
