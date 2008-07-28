@@ -9,7 +9,11 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-import xmlrpclib, urllib2, cookielib
+import xmlrpclib, urllib2
+try:
+       import cookielib
+except ImportError:
+       import ClientCookie as cookielib
 import os.path, base64, copy
 
 version = '0.3'
