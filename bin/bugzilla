@@ -39,6 +39,8 @@ def setup_parser():
             help="username")
     p.add_option('--password',
             help="password")
+    p.add_option('--cookiefile',
+            help="cookie file to use for bugzilla authentication")
     p.add_option('--verbose',action='store_true',
             help="give more info about what's going on")
     p.add_option('--debug',action='store_true',
