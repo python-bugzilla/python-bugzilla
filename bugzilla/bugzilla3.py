@@ -11,19 +11,24 @@
 
 import bugzilla.base
 
-version = '0.1'
-user_agent = bugzilla.base.user_agent + ' Bugzilla3/%s' % version
-
 class Bugzilla3(bugzilla.base.BugzillaBase):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
-    methods provided by standard Bugzilla 3.x releases.'''
+    methods provided by standard Bugzilla 3.0.x releases.'''
+
+    version = '0.1'
+    user_agent = bugzilla.base.user_agent + ' Bugzilla3/%s' % version
+
     def __init__(self,**kwargs):
         bugzilla.base.BugzillaBase.__init__(self,**kwargs)
-        self.user_agent = user_agent
+        self.user_agent = self.__class__.user_agent
 
     def _login(self,user,password):
         '''Backend login method for Bugzilla3'''
         return self._proxy.User.login({'login':user,'password':password})
+
+    def _logout(self):
+        '''Backend login method for Bugzilla3'''
+        return self._proxy.User.logout()
 
     #---- Methods and properties with basic bugzilla info 
 
@@ -207,3 +212,13 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         Returns bug_id'''
         r = self._proxy.Bug.create(data)
         return r['id']
+
+# Bugzilla 3.2 adds a whole bunch of new goodies.
+class Bugzilla32(Bugzilla3):
+    '''Concrete implementation of the Bugzilla protocol. This one uses the
+    methods provided by standard Bugzilla 3.2.x releases.'''
+
+    version = '0.1'
+    user_agent = bugzilla.base.user_agent + ' Bugzilla32/%s' % version
+
+    # TODO: add goodies (_query, etc)
