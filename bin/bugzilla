@@ -13,6 +13,7 @@
 import bugzilla, optparse
 import os, sys, glob, re
 import logging
+import getpass
 
 version = '0.3'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
@@ -25,7 +26,7 @@ if '--debug' in sys.argv:
 elif '--verbose' in sys.argv:
     log.setLevel(logging.INFO)
         
-cmdlist = ('info','query','new','modify')
+cmdlist = ('info','query','new','modify','login')
 def setup_parser():
     u =   "usage: %prog [global options] COMMAND [options]"
     u +=  "\nCommands: %s" % ', '.join(cmdlist)
@@ -189,15 +190,25 @@ if __name__ == '__main__':
     # Connect to bugzilla
     log.info('Connecting to %s',global_opt.bugzilla)
     bz=bugzilla.Bugzilla(url=global_opt.bugzilla)
-    if global_opt.user and global_opt.password:
+    if global_opt.user:
+        if not global_opt.password:
+            global_opt.password = getpass.getpass()
         log.info('Using username/password for authentication')
         bz.login(global_opt.user,global_opt.password)
     else:
-        log.info('No authentication info found.')
+        if global_opt.cookiefile:
+            bz.cookiefile = global_opt.cookiefile
+        cookiefile = bz.cookiefile
+        if os.path.exists(cookiefile):
+            log.info('Using cookies in %s for authentication', cookiefile)
+        else:
+            log.info('No authentication info found.')
     
     # And now we actually execute the given command
     buglist = list() # save the results of query/new/modify here
-    if action == 'info':
+    if action == 'login':
+        pass
+    elif action == 'info':
         if opt.products:
             for k in sorted(bz.products):
                 print k

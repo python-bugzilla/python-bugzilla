@@ -39,16 +39,14 @@ class BugzillaBase(object):
     instance. Uses xmlrpclib to do its thing. You'll want to create one thusly:
     bz=Bugzilla(url='https://bugzilla.redhat.com/xmlrpc.cgi',user=u,password=p)
 
-    If you so desire, you can use cookie headers for authentication instead.
-    So you could do:
-    cf=glob(os.path.expanduser('~/.mozilla/firefox/default.*/cookies.txt'))
-    bz=Bugzilla(url=url,cookies=cf)
-    and, assuming you have previously logged info bugzilla with firefox, your
-    pre-existing auth cookie would be used, thus saving you the trouble of
-    stuffing your username and password in the bugzilla call.
-    On the other hand, this currently munges up the cookie so you'll have to
-    log back in when you next use bugzilla in firefox. So this is not
-    currently recommended.
+    You can get authentication cookies by calling the login() method. These
+    cookies will be stored in a MozillaCookieJar-style file specified by the
+    'cookiefile' attribute (which defaults to ~/.bugzillacookies).
+    
+    You can also specify 'user' and 'password' in a bugzillarc file, either
+    /etc/bugzillarc or ~/.bugzillarc. The latter will override the former.
+    Be sure to set appropriate permissions on those files if you choose to
+    store your password in one of them!
 
     The methods which start with a single underscore are thin wrappers around
     xmlrpc calls; those should be safe for multicall usage.
@@ -62,6 +60,7 @@ class BugzillaBase(object):
         self.user       = ''
         self.password   = ''
         self.url        = ''
+        self.cookiefile = os.path.expanduser('~/.bugzillacookies')
         self.user_agent = user_agent
         self.logged_in  = False
         # Bugzilla object state info that users shouldn't mess with
@@ -82,6 +81,18 @@ class BugzillaBase(object):
             self.password = kwargs['password']
 
     #---- Methods for establishing bugzilla connection and logging in
+
+    def initcookiefile(self,cookiefile=None):
+        '''Read the given (Mozilla-style) cookie file and fill in the
+        cookiejar, allowing us to use saved credentials to access Bugzilla.
+        If no file is given, self.cookiefile will be used.'''
+        if cookiefile: 
+            self.cookiefile = cookiefile
+        cj = cookielib.MozillaCookieJar(self.cookiefile)
+        if os.path.exists(self.cookiefile):
+            cj.load()
+        self._cookiejar = cj
+        self._cookiejar.filename = self.cookiefile
 
     configpath = ['/etc/bugzillarc','~/.bugzillarc']
     def readconfig(self,configpath=None):
@@ -119,12 +130,13 @@ class BugzillaBase(object):
         you'll have to login() yourself before some methods will work.
         '''
         # Set up the transport
+        self.initcookiefile()
         if url.startswith('https'):
             self._transport = SafeCookieTransport()
         else:
             self._transport = CookieTransport() 
         self._transport.user_agent = self.user_agent
-        self._transport.cookiejar = self._cookiejar or cookielib.CookieJar()
+        self._transport.cookiejar = self._cookiejar
         # Set up the proxy, using the transport
         self._proxy = xmlrpclib.ServerProxy(url,self._transport)
         # Set up the urllib2 opener (using the same cookiejar)
@@ -693,7 +705,7 @@ class CookieTransport(xmlrpclib.Transport):
     # Cribbed from xmlrpclib.Transport.send_user_agent 
     def send_cookies(self, connection, cookie_request):
         if self.cookiejar is None:
-            log.debug("send_cookies(): creating cookiejar")
+            log.debug("send_cookies(): creating in-memory cookiejar")
             self.cookiejar = cookielib.CookieJar()
         elif self.cookiejar:
             log.debug("send_cookies(): using existing cookiejar")
@@ -740,7 +752,11 @@ class CookieTransport(xmlrpclib.Transport):
         log.debug("cookiejar now contains: %s" % self.cookiejar._cookies)
         # And write back any changes
         if hasattr(self.cookiejar,'save'):
-            self.cookiejar.save(self.cookiejar.filename)
+            try:
+                self.cookiejar.save(self.cookiejar.filename)
+            except e:
+                log.error("Couldn't write cookiefile %s: %s" % \
+                        (self.cookiejar.filename,str(e))
 
         if errcode != 200:
             raise xmlrpclib.ProtocolError(
