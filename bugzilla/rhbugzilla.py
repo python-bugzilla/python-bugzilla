@@ -25,6 +25,13 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         '''Backend login method for RHBugzilla.'''
         return self._proxy.bugzilla.login(user,password)
 
+    def _logout(self):
+        '''Backend logout method for RHBugzilla.'''
+        # "Logouts are not implemented due to the non-session nature of
+        # XML-RPC communication."
+        # That's funny, since we get a (session-based) login cookie...
+        return True
+
     #---- Methods and properties with basic bugzilla info 
 
     # Connect the backend methods to the XMLRPC methods

@@ -41,12 +41,20 @@ class BugzillaBase(object):
 
     You can get authentication cookies by calling the login() method. These
     cookies will be stored in a MozillaCookieJar-style file specified by the
-    'cookiefile' attribute (which defaults to ~/.bugzillacookies).
+    'cookiefile' attribute (which defaults to ~/.bugzillacookies). Once you
+    get cookies this way, you will be considered logged in until the cookie
+    expires.
     
-    You can also specify 'user' and 'password' in a bugzillarc file, either
+    You may also specify 'user' and 'password' in a bugzillarc file, either
     /etc/bugzillarc or ~/.bugzillarc. The latter will override the former.
-    Be sure to set appropriate permissions on those files if you choose to
-    store your password in one of them!
+    The format works like this:
+      [bugzilla.yoursite.com]
+      user = username
+      password = password
+    You can also use the [DEFAULT] section to set defaults that apply to 
+    any site without a specific section of its own.
+    Be sure to set appropriate permissions on bugzillarc if you choose to
+    store your password in it!
 
     The methods which start with a single underscore are thin wrappers around
     xmlrpc calls; those should be safe for multicall usage.
@@ -64,8 +72,19 @@ class BugzillaBase(object):
         self.user_agent = user_agent
         self.logged_in  = False
         # Bugzilla object state info that users shouldn't mess with
+        self.init_private_data()
+        if 'url' in kwargs:
+            self.connect(kwargs['url'])
+        if 'user' in kwargs:
+            self.user = kwargs['user']
+        if 'password' in kwargs:
+            self.password = kwargs['password']
+
+    def init_private_data(self):
+        '''initialize private variables used by this bugzilla instance.'''
         self._cookiejar  = None
         self._proxy      = None
+        self._transport  = None
         self._opener     = None
         self._querydata  = None
         self._querydefaults = None
@@ -73,12 +92,6 @@ class BugzillaBase(object):
         self._bugfields  = None
         self._components = dict()
         self._components_details = dict()
-        if 'url' in kwargs:
-            self.connect(kwargs['url'])
-        if 'user' in kwargs:
-            self.user = kwargs['user']
-        if 'password' in kwargs:
-            self.password = kwargs['password']
 
     #---- Methods for establishing bugzilla connection and logging in
 
@@ -130,7 +143,7 @@ class BugzillaBase(object):
         you'll have to login() yourself before some methods will work.
         '''
         # Set up the transport
-        self.initcookiefile()
+        self.initcookiefile() # sets _cookiejar
         if url.startswith('https'):
             self._transport = SafeCookieTransport()
         else:
@@ -148,6 +161,10 @@ class BugzillaBase(object):
         if (self.user and self.password):
             log.info("user and password present - doing login()")
             self.login()
+
+    def disconnect(self):
+        '''Disconnect from the given bugzilla instance.'''
+        self.init_private_data() # clears all the connection state
 
     # Note that the bugzilla methods will ignore an empty user/password if you
     # send authentication info as a cookie in the request headers. So it's
@@ -169,7 +186,6 @@ class BugzillaBase(object):
         This method will be called implicitly at the end of connect() if user
         and password are both set. So under most circumstances you won't need
         to call this yourself.
-
         '''
         if user:
             self.user = user
@@ -190,12 +206,23 @@ class BugzillaBase(object):
             r = False
         return r
 
+    def _logout(self):
+        '''IMPLEMENT ME: backend login method'''
+        raise NotImplementedError
+
+    def logout(self):
+        '''Log out of bugzilla. Drops server connection and user info, and
+        destroys authentication cookies.'''
+        self._logout()
+        self.disconnect()
+        self.user = ''
+        self.password = ''
+        self.logged_in  = False
+
     #---- Methods and properties with basic bugzilla info 
 
-    # XXX FIXME Uh-oh. I think MultiCall support is a RHism.
-    # Even worse, RH's bz3 instance supports the RH methods but *NOT* mc!
-    # 1) move all multicall-calls into RHBugzilla, and
-    # 2) either make MC optional, or prefer Bugzilla3 over RHBugzilla
+    # XXX FIXME Uh-oh. I think MultiCall support is a RHism. We should probably
+    # move all multicall-based methods into RHBugzilla.
     def _multicall(self):
         '''This returns kind of a mash-up of the Bugzilla object and the 
         xmlrpclib.MultiCall object. Methods you call on this object will be added
