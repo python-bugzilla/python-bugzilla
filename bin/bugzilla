@@ -15,7 +15,7 @@ import os, sys, glob, re
 import logging
 import getpass
 
-version = '0.3'
+version = '0.4'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
 # Initial simple logging stuff
@@ -192,6 +192,26 @@ if __name__ == '__main__':
     # Connect to bugzilla
     log.info('Connecting to %s',global_opt.bugzilla)
     bz=bugzilla.Bugzilla(url=global_opt.bugzilla)
+
+    # Handle 'login' action
+    if action == 'login':
+        if not global_opt.user:
+            sys.stdout.write('Username: ')
+            user = sys.stdin.readline()
+            global_opt.user = user.strip()
+        if not global_opt.password:
+            global_opt.password = getpass.getpass()
+        sys.stdout.write('Logging in... ')
+        # XXX NOTE: This will return success if you have a valid login cookie,
+        # even if you give a bad username and password. WEIRD.
+        if bz.login(global_opt.user,global_opt.password):
+            print 'Authorization cookie received.'
+            sys.exit(0)
+        else:
+            print 'failed.'
+            sys.exit(1)
+
+    # Set up authentication
     if global_opt.user:
         if not global_opt.password:
             global_opt.password = getpass.getpass()
@@ -204,13 +224,12 @@ if __name__ == '__main__':
         if os.path.exists(cookiefile):
             log.info('Using cookies in %s for authentication', cookiefile)
         else:
-            log.info('No authentication info found.')
+            # FIXME check to see if .bugzillarc is in use
+            log.info('No authentication info provided.')
     
     # And now we actually execute the given command
     buglist = list() # save the results of query/new/modify here
-    if action == 'login':
-        pass
-    elif action == 'info':
+    if action == 'info':
         if opt.products:
             for k in sorted(bz.products):
                 print k
