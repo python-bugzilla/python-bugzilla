@@ -756,7 +756,7 @@ class CookieTransport(xmlrpclib.Transport):
                 self.cookiejar.save(self.cookiejar.filename)
             except e:
                 log.error("Couldn't write cookiefile %s: %s" % \
-                        (self.cookiejar.filename,str(e))
+                        (self.cookiejar.filename,str(e)))
 
         if errcode != 200:
             raise xmlrpclib.ProtocolError(
