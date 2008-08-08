@@ -396,35 +396,21 @@ class BugzillaBase(object):
     def _getbug(self,id):
         '''IMPLEMENT ME: Return a dict of full bug info for the given bug id'''
         raise NotImplementedError
+    def _getbugs(self,idlist):
+        '''IMPLEMENT ME: Return a list of full bug dicts, one for each of the 
+        given bug ids'''
+        raise NotImplementedError
     def _getbugsimple(self,id):
         '''IMPLEMENT ME: Return a short dict of simple bug info for the given
         bug id'''
         raise NotImplementedError
+    def _getbugssimple(self,idlist):
+        '''IMPLEMENT ME: Return a list of short bug dicts, one for each of the
+        given bug ids'''
+        raise NotImplementedError
     def _query(self,query):
         '''IMPLEMENT ME: Query bugzilla and return a list of matching bugs.'''
         raise NotImplementedError
-
-    # Multicall methods
-    def _getbugs(self,idlist):
-        '''Like _getbug, but takes a list of ids and returns a corresponding
-        list of bug objects. Uses multicall for awesome speed.'''
-        mc = self._multicall()
-        for id in idlist:
-            mc._getbug(id)
-        raw_results = mc.run()
-        del mc
-        # check results for xmlrpc errors, and replace them with None
-        return replace_getbug_errors_with_None(raw_results)
-    def _getbugssimple(self,idlist):
-        '''Like _getbugsimple, but takes a list of ids and returns a
-        corresponding list of bug objects. Uses multicall for awesome speed.'''
-        mc = self._multicall()
-        for id in idlist:
-            mc._getbugsimple(id)
-        raw_results = mc.run()
-        del mc
-        # check results for xmlrpc errors, and replace them with None
-        return replace_getbug_errors_with_None(raw_results)
 
     # these return Bug objects 
     def getbug(self,id):

@@ -74,6 +74,28 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
             raise xmlrpclib.Fault("Server","Could not load bug %s" % id)
         else:
             return r
+    # Multicall methods
+    def _getbugs(self,idlist):
+        '''Like _getbug, but takes a list of ids and returns a corresponding
+        list of bug objects. Uses multicall for awesome speed.'''
+        mc = self._multicall()
+        for id in idlist:
+            mc._getbug(id)
+        raw_results = mc.run()
+        del mc
+        # check results for xmlrpc errors, and replace them with None
+        return replace_getbug_errors_with_None(raw_results)
+    def _getbugssimple(self,idlist):
+        '''Like _getbugsimple, but takes a list of ids and returns a
+        corresponding list of bug objects. Uses multicall for awesome speed.'''
+        mc = self._multicall()
+        for id in idlist:
+            mc._getbugsimple(id)
+        raw_results = mc.run()
+        del mc
+        # check results for xmlrpc errors, and replace them with None
+        return replace_getbug_errors_with_None(raw_results)
+
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
