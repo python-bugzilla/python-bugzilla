@@ -65,15 +65,15 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
     #---- Methods for reading bugs and bug info
 
     def _getbugs(self,idlist):
+        '''Return a list of dicts of full bug info for each given bug id'''
         r = self._proxy.Bug.get_bugs({'ids':idlist})
         return [i['internals'] for i in r['bugs']]
     def _getbug(self,id):
         '''Return a dict of full bug info for the given bug id'''
         return self._getbugs([id])[0]
-    def _getbugsimple(self,id):
-        '''Return a short dict of simple bug info for the given bug id'''
-        # Bugzilla3 doesn't have this
-        return self._getbug(id)
+   # Bugzilla3 doesn't have getbugsimple - alias to the full method(s)
+    _getbugsimple = _getbug
+    _getbugssimple = _getbugs
 
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
