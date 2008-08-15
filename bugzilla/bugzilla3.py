@@ -242,12 +242,24 @@ class RHBugzilla32(Bugzilla32):
         if mail is True, email will be generated for this change.
         '''
         raise NotImplementedError, "wwoods needs to port this method."
+
     def _updatewhiteboard(self,id,text,which,action):
         '''Update the whiteboard given by 'which' for the given bug.
         performs the given action (which may be 'append',' prepend', or 
-        'overwrite') using the given text.'''
-        data = {'type':which,'text':text,'action':action}
-        raise NotImplementedError, "wwoods needs to port this method."
+        'overwrite') using the given text.
+
+        RHBZ3 Bug.update() only supports overwriting, so append/prepend
+        may cause two server roundtrips - one to fetch, and one to update.
+        '''
+        if not which.endswith('_whiteboard'):
+            which = which + '_whiteboard'
+        update = {}
+        if action == 'overwrite':
+            update[which] = text
+        else:
+            raise NotImplementedError, "append/prepend not supported yet"
+        self._update_bug(ids=[id],updates=update)
+
     # TODO: update this when the XMLRPC interface grows requestee support
     def _updateflags(self,id,flags):
         '''Updates the flags associated with a bug report.
