@@ -185,11 +185,29 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         data: 'assigned_to','reporter','qa_contact','comment'
         returns: [$id, $mailresults]'''
         return self._proxy.bugzilla.changeAssignment(id,data)
-    def _updatedeps(self,id,deplist):
-        '''IMPLEMENT ME: update the deps (blocked/dependson) for the given bug.
+    def _updatedeps(self,id,blocked,dependson,action):
+        '''update the deps (blocked/dependson) for the given bug.
+        blocked/dependson: list of bug ids/aliases
+        action: 'add' or 'delete'
+
+        RHBZ call:
         updateDepends($bug_id,$data,$username,$password,$nodependencyemail)
-        #data: 'blocked'=>id,'dependson'=>id,'action' => ('add','remove')'''
-        raise NotImplementedError
+        #data: 'blocked'=>id,'dependson'=>id,'action' => ('add','remove')
+
+        RHBZ only does one bug at a time, so this method will loop through
+        the blocked/dependson lists. This may be slow.
+        '''
+        r = []
+        if action == 'delete':
+            action == 'remove'
+        data = {'id':id, 'action':action, 'blocked':'', 'dependson':''} 
+        for b in blocked:
+            data['blocked'] = b
+            self._proxy.bugzilla.updateDepends(id,data)
+        data['blocked'] = ''
+        for d in dependson:
+            data['dependson'] = d
+            self._proxy.bugzilla.updateDepends(id,data)
     def _updatecc(self,id,cclist,action,comment='',nomail=False):
         '''Updates the CC list using the action and account list specified.
         cclist must be a list (not a tuple!) of addresses.

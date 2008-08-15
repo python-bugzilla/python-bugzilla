@@ -476,10 +476,11 @@ class BugzillaBase(object):
     def _setassignee(self,id,**data):
         '''IMPLEMENT ME: set the assignee of the given bug ID'''
         raise NotImplementedError
-    def _updatedeps(self,id,deplist):
+    def _updatedeps(self,id,blocked,dependson,action):
         '''IMPLEMENT ME: update the deps (blocked/dependson) for the given bug.
-        updateDepends($bug_id,$data,$username,$password,$nodependencyemail)
-        #data: 'blocked'=>id,'dependson'=>id,'action' => ('add','remove')'''
+        blocked, dependson: list of bug ids/aliases
+        action: 'add' or 'remove'
+        '''
         raise NotImplementedError
     def _updatecc(self,id,cclist,action,comment='',nomail=False):
         '''IMPLEMENT ME: Update the CC list using the action and account list

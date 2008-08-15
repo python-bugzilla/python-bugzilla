@@ -207,11 +207,17 @@ class Bugzilla32(Bugzilla3):
         update = dict([(k,v) for k,v in data.iteritems() if v != ''])
         return self._update_bug(ids=[id],updates=data)
 
-    def _updatedeps(self,id,deplist):
-        '''IMPLEMENT ME: update the deps (blocked/dependson) for the given bug.
-        updateDepends($bug_id,$data,$username,$password,$nodependencyemail)
-        #data: 'blocked'=>id,'dependson'=>id,'action' => ('add','remove')'''
-        raise NotImplementedError, "wwoods needs to port this method."
+    def _updatedeps(self,id,blocked,dependson,action):
+        '''Update the deps (blocked/dependson) for the given bug.
+        blocked, dependson: list of bug ids/aliases
+        action: 'add' or 'delete'
+        '''
+        if action not in ('add','delete'):
+            raise ValueError, "action must be 'add' or 'delete'"
+        update={'%s_blocked' % action: blocked,
+                '%s_dependson' % action: dependson}
+        self._update_bug(ids=id,updates=update)
+
     def _updatecc(self,id,cclist,action,comment='',nomail=False):
         '''Updates the CC list using the action and account list specified.
         cclist must be a list (not a tuple!) of addresses.
