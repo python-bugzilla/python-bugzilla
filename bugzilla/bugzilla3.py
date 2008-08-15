@@ -259,7 +259,14 @@ class RHBugzilla32(Bugzilla32):
         if action == 'overwrite':
             update[which] = text
         else:
-            raise NotImplementedError, "append/prepend not supported yet"
+            r = self._getbug(id)
+            if which not in r:
+                raise ValueError, "No such whiteboard %s in bug %i" % (which,id)
+            wb = r[which]
+            if action == 'prepend':
+                update[which] = text+' '+wb
+            elif action == 'append':
+                update[which] = wb+' '+text
         self._update_bug(id,update)
 
     # TODO: update this when the XMLRPC interface grows requestee support
