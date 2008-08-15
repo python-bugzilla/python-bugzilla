@@ -205,7 +205,7 @@ class Bugzilla32(Bugzilla3):
         returns: [$id, $mailresults]'''
         # drop empty items
         update = dict([(k,v) for k,v in data.iteritems() if v != ''])
-        return self._update_bug(ids=[id],updates=data)
+        return self._update_bug(ids=[id],updates=update)
 
     def _updatedeps(self,id,blocked,dependson,action):
         '''Update the deps (blocked/dependson) for the given bug.
