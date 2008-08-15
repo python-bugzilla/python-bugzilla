@@ -110,13 +110,45 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         r = self._proxy.Bug.create(data)
         return r['id']
 
-# Bugzilla 3.2 adds a whole bunch of new goodies on top of Bugzilla3.
+# Bugzilla 3.2 adds some new goodies on top of Bugzilla3.
 class Bugzilla32(Bugzilla3):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
-    methods provided by standard Bugzilla 3.2.x releases.'''
+    methods provided by standard Bugzilla 3.2.x releases.
+    
+    For further information on the methods defined here, see the API docs:
+    http://www.bugzilla.org/docs/3.2/en/html/api/
+    '''
 
     version = '0.1'
     user_agent = bugzilla.base.user_agent + ' Bugzilla32/%s' % version
+
+    def _addcomment(self,id,comment,private=False,
+                   timestamp='',worktime='',bz_gid=''):
+        '''Add a comment to the bug with the given ID. Other optional 
+        arguments are as follows:
+            private:   if True, mark this comment as private.
+            timestamp: comment timestamp, in the form "YYYY-MM-DD HH:MM:SS"
+                       Ignored by BZ32.
+            worktime:  amount of time spent on this comment, in hours
+            bz_gid:    if present, and the entire bug is *not* already private
+                       to this group ID, this comment will be marked private.
+        '''
+        return self._proxy.Bug.add_comment({'id':id,
+                                            'comment':comment,
+                                            'private':private,
+                                            'work_time':worktime})
+
+class RHBugzilla32(Bugzilla32):
+    '''Concrete implementation of the Bugzilla protocol. This one uses the
+    methods provided by Red Hat's Bugzilla 3.1.4+ instance, which are supposed
+    to make their way into Bugzilla 3.4.
+    
+    This class was written using bugzilla.redhat.com's API docs:
+    https://bugzilla.redhat.com/docs/en/html/api/
+    '''
+
+    version = '0.1'
+    user_agent = bugzilla.base.user_agent + ' RHBugzilla32/%s' % version
 
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
@@ -137,6 +169,8 @@ class Bugzilla32(Bugzilla3):
         #used (see the list in querydefaults['default_column_list']). 
         return self._proxy.Bug.search(query)
 
+    #---- Methods for updating bugs.
+
     def _update_bug(self,id,updates):
         '''Update a single bug, specified by integer ID or (string) bug alias.
         Really just a convenience method for _update_bugs(ids=[id],updates)'''
@@ -151,24 +185,6 @@ class Bugzilla32(Bugzilla3):
         # TODO document changeable fields & return values
         # TODO I think we need to catch XMLRPC exceptions to get 
         return self._proxy.Bug.update({'ids':ids,'updates':updates})
-
-    def _addcomment(self,id,comment,private=False,
-                   timestamp='',worktime='',bz_gid=''):
-        '''Add a comment to the bug with the given ID. Other optional 
-        arguments are as follows:
-            private:   if True, mark this comment as private.
-            timestamp: comment timestamp, in the form "YYYY-MM-DD HH:MM:SS"
-                       Ignored by BZ32.
-            worktime:  amount of time spent on this comment, in hours
-            bz_gid:    if present, and the entire bug is *not* already private
-                       to this group ID, this comment will be marked private.
-        '''
-        return self._proxy.Bug.add_comment({'id':id,
-                                            'comment':comment,
-                                            'private':private,
-                                            'worktime':worktime})
-
-    #---- Methods for updating bugs.
 
     # Eventually - when RHBugzilla is well and truly obsolete - we'll delete
     # all of these methods and refactor the Base Bugzilla object so all the bug
