@@ -191,12 +191,14 @@ class RHBugzilla32(Bugzilla32):
     # modification calls go through _update_bug. 
     # Until then, all of these methods are basically just wrappers around it.
 
+    # TODO: allow multiple bug IDs
+
     def _setstatus(self,id,status,comment='',private=False,private_in_it=False,nomail=False):
         '''Set the status of the bug with the given ID.'''
         update={'bug_status':status}
         if comment:
             update['comment'] = comment
-        return self._update_bug(ids=[id],updates=update)
+        return self._update_bug(id,update)
 
     def _closebug(self,id,resolution,dupeid,fixedin,comment,isprivate,private_in_it,nomail):
         '''Close the given bug. This is the raw call, and no data checking is
@@ -212,7 +214,7 @@ class RHBugzilla32(Bugzilla32):
             update['comment'] = comment
             if isprivate:
                 update['commentprivacy'] = True
-        return self._update_bug(ids=[id],updates=update)
+        return self._update_bug(id,update)
 
     def _setassignee(self,id,**data):
         '''Raw xmlrpc call to set one of the assignee fields on a bug.
@@ -221,7 +223,7 @@ class RHBugzilla32(Bugzilla32):
         returns: [$id, $mailresults]'''
         # drop empty items
         update = dict([(k,v) for k,v in data.iteritems() if v != ''])
-        return self._update_bug(ids=[id],updates=update)
+        return self._update_bug(id,update)
 
     def _updatedeps(self,id,blocked,dependson,action):
         '''Update the deps (blocked/dependson) for the given bug.
@@ -232,7 +234,7 @@ class RHBugzilla32(Bugzilla32):
             raise ValueError, "action must be 'add' or 'delete'"
         update={'%s_blocked' % action: blocked,
                 '%s_dependson' % action: dependson}
-        self._update_bug(ids=id,updates=update)
+        self._update_bug(id,update)
 
     def _updatecc(self,id,cclist,action,comment='',nomail=False):
         '''Updates the CC list using the action and account list specified.
@@ -258,7 +260,7 @@ class RHBugzilla32(Bugzilla32):
             update[which] = text
         else:
             raise NotImplementedError, "append/prepend not supported yet"
-        self._update_bug(ids=[id],updates=update)
+        self._update_bug(id,update)
 
     # TODO: update this when the XMLRPC interface grows requestee support
     def _updateflags(self,id,flags):
