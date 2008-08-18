@@ -275,7 +275,7 @@ class RHBugzilla32(Bugzilla32):
         else:
             r = self._getbug(id)
             if which not in r:
-                raise ValueError, "No such whiteboard %s in bug %s" % 
+                raise ValueError, "No such whiteboard %s in bug %s" % \
                                    (which,str(id))
             wb = r[which]
             if action == 'prepend':
