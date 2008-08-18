@@ -479,16 +479,18 @@ class BugzillaBase(object):
     def _updatedeps(self,id,blocked,dependson,action):
         '''IMPLEMENT ME: update the deps (blocked/dependson) for the given bug.
         blocked, dependson: list of bug ids/aliases
-        action: 'add' or 'remove'
+        action: 'add' or 'delete'
         '''
         raise NotImplementedError
     def _updatecc(self,id,cclist,action,comment='',nomail=False):
         '''IMPLEMENT ME: Update the CC list using the action and account list
         specified.
         cclist must be a list (not a tuple!) of addresses.
-        action may be 'add', 'remove', or 'makeexact'.
+        action may be 'add', 'delete', or 'overwrite'.
         comment specifies an optional comment to add to the bug.
         if mail is True, email will be generated for this change.
+        Note that using 'overwrite' may result in up to three XMLRPC calls
+        (fetch list, remove each element, add new elements). Avoid if possible.
         '''
         raise NotImplementedError
     def _updatewhiteboard(self,id,text,which,action):

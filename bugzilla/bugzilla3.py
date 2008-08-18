@@ -239,11 +239,25 @@ class RHBugzilla32(Bugzilla32):
     def _updatecc(self,id,cclist,action,comment='',nomail=False):
         '''Updates the CC list using the action and account list specified.
         cclist must be a list (not a tuple!) of addresses.
-        action may be 'add', 'remove', or 'makeexact'.
+        action may be 'add', 'delete', or 'overwrite'.
         comment specifies an optional comment to add to the bug.
         if mail is True, email will be generated for this change.
         '''
-        raise NotImplementedError, "wwoods needs to port this method."
+        update = {}
+        if comment:
+            update['comment'] = comment
+
+        if action in ('add','delete'):
+            update['%s_cc' % action] = cclist
+            self._update_bug(id,update)
+        elif action == 'overwrite':
+            r = self._getbug(id)
+            if 'cc' not in r:
+                raise AttributeError, "Can't find cc list in bug %s" % str(id)
+            self._updatecc(id,r['cc'],'delete')
+            self._updatecc(id,cclist,'add')
+        else:
+            raise ValueError, "action must be 'add','delete', or 'overwrite'"
 
     def _updatewhiteboard(self,id,text,which,action):
         '''Update the whiteboard given by 'which' for the given bug.

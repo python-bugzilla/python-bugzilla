@@ -211,10 +211,15 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
     def _updatecc(self,id,cclist,action,comment='',nomail=False):
         '''Updates the CC list using the action and account list specified.
         cclist must be a list (not a tuple!) of addresses.
-        action may be 'add', 'remove', or 'makeexact'.
+        action may be 'add', 'delete', or 'overwrite'.
         comment specifies an optional comment to add to the bug.
         if mail is True, email will be generated for this change.
         '''
+        # Massage the 'action' param into what the old updateCC call expects
+        if action == 'delete':
+            action = 'remove'
+        elif action == 'overwrite':
+            action = 'makeexact'
         data = {'id':id, 'action':action, 'cc':','.join(cclist),
                 'comment':comment, 'nomail':nomail}
         return self._proxy.bugzilla.updateCC(data)
