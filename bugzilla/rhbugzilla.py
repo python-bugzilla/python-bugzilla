@@ -198,6 +198,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         the blocked/dependson lists. This may be slow.
         '''
         r = []
+        # Massage input to match what RHBZ expects
         if action == 'delete':
             action == 'remove'
         data = {'id':id, 'action':action, 'blocked':'', 'dependson':''} 

@@ -179,7 +179,8 @@ class RHBugzilla32(Bugzilla32):
         updates is a dict containing pairs like so: {'fieldname':'newvalue'}
         '''
         # TODO document changeable fields & return values
-        # TODO I think we need to catch XMLRPC exceptions to get 
+        # TODO I think we need to catch XMLRPC exceptions to get a useful
+        # return value
         return self._proxy.Bug.update({'ids':ids,'updates':updates})
 
     def _update_bug(self,id,updates):
