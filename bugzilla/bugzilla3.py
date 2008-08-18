@@ -111,6 +111,7 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         return r['id']
 
 # Bugzilla 3.2 adds some new goodies on top of Bugzilla3.
+# Well, okay. It adds one new goodie.
 class Bugzilla32(Bugzilla3):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
     methods provided by standard Bugzilla 3.2.x releases.
@@ -138,10 +139,11 @@ class Bugzilla32(Bugzilla3):
                                             'private':private,
                                             'work_time':worktime})
 
+# FIXME: 
 class RHBugzilla32(Bugzilla32):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
     methods provided by Red Hat's Bugzilla 3.1.4+ instance, which are supposed
-    to make their way into Bugzilla 3.4.
+    to make their way into a later upstream Bugzilla release (probably 4.0).
     
     This class was written using bugzilla.redhat.com's API docs:
     https://bugzilla.redhat.com/docs/en/html/api/
@@ -256,6 +258,8 @@ class RHBugzilla32(Bugzilla32):
                 raise AttributeError, "Can't find cc list in bug %s" % str(id)
             self._updatecc(id,r['cc'],'delete')
             self._updatecc(id,cclist,'add')
+        # FIXME we don't check inputs on other backend methods, maybe this
+        # is more appropriate in the public method(s)
         else:
             raise ValueError, "action must be 'add','delete', or 'overwrite'"
 
