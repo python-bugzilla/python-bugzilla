@@ -39,7 +39,10 @@ def getBugzillaClassForURL(url):
     # RH BZ 3.2 will have rhbz == True and bzversion == 3.1.x or 3.2.x. 
     # To prefer Bugzilla32 over RHBugzilla do: if rhbz and (bzversion == '')
     if rhbz:
-        c = RHBugzilla
+        if bzversion.startswith('3.'):
+            c = RHBugzilla3
+        else:
+            c = RHBugzilla
     elif bzversion.startswith('3.'):
         if bzversion.startswith('3.0'):
             c = Bugzilla3
