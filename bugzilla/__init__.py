@@ -10,7 +10,7 @@
 # the full text of the license.
 
 from bugzilla3 import Bugzilla3, Bugzilla32
-from rhbugzilla import RHBugzilla
+from rhbugzilla import RHBugzilla, RHBugzilla3
 import xmlrpclib
 import logging
 log = logging.getLogger("bugzilla")
