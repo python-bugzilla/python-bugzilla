@@ -263,7 +263,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
 
 class RHBugzilla3(Bugzilla32, RHBugzilla):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
-    methods provided by Red Hat's Bugzilla 3.1.4+ instance, which is a superset
+    methods provided by Red Hat's Bugzilla 3.2+ instance, which is a superset
     of the Bugzilla 3.2 methods. The additional methods (Bug.search, Bug.update)
     should make their way into a later upstream Bugzilla release (probably 4.0).
 
