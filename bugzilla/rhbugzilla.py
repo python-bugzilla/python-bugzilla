@@ -85,7 +85,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         raw_results = mc.run()
         del mc
         # check results for xmlrpc errors, and replace them with None
-        return replace_getbug_errors_with_None(raw_results)
+        return bugzilla.base.replace_getbug_errors_with_None(raw_results)
     def _getbugssimple(self,idlist):
         '''Like _getbugsimple, but takes a list of ids and returns a
         corresponding list of bug objects. Uses multicall for awesome speed.'''
@@ -95,7 +95,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         raw_results = mc.run()
         del mc
         # check results for xmlrpc errors, and replace them with None
-        return replace_getbug_errors_with_None(raw_results)
+        return bugzilla.base.replace_getbug_errors_with_None(raw_results)
 
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
