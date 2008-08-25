@@ -175,7 +175,7 @@ def setup_action_parser(action):
                 "tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'")
     return p
 
-if __name__ == '__main__':
+def main():
     # Set up parser for global args
     parser = setup_parser()
     # Parse the commandline, woo
@@ -424,3 +424,10 @@ if __name__ == '__main__':
             print "\nBugs listed: ",len(buglist)
         else:
             parser.error("opt.output was set to something weird.")
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        print "\ninterrupted."
+        sys.exit(0)
