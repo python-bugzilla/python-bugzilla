@@ -11,6 +11,7 @@
 
 from bugzilla3 import Bugzilla3, Bugzilla32
 from rhbugzilla import RHBugzilla, RHBugzilla3
+from base import version
 import xmlrpclib
 import logging
 log = logging.getLogger("bugzilla")
@@ -55,10 +56,13 @@ class Bugzilla(object):
     '''Magical Bugzilla class that figures out which Bugzilla implementation
     to use and uses that.'''
     def __init__(self,**kwargs):
+        log.debug("Bugzilla v%s initializing" % base.version)
         if 'url' in kwargs:
+            log.debug("Choosing implementation for %s" % kwargs['url'])
             c = getBugzillaClassForURL(kwargs['url'])
             if c:
                 self.__class__ = c
                 c.__init__(self,**kwargs)
-                log.debug("Using Bugzilla subclass: %s" % c.__name__)
+                log.debug("Using Bugzilla subclass %s v%s" % \
+                        (c.__name__,c.version))
         # FIXME no url? raise an error or something here, jeez

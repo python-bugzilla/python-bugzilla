@@ -984,5 +984,6 @@ class Bug(object):
     def deletecc(self,cclist,comment=''):
         '''Removes the given email addresses from the CC list for this bug.'''
         self.bugzilla.updatecc(self.bug_id,cclist,'delete',comment)
+# TODO: attach(), getflag(), setflag()
 # TODO: add a sync() method that writes the changed data in the Bug object
 # back to Bugzilla?

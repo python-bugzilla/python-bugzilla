@@ -128,11 +128,9 @@ class Bugzilla32(Bugzilla3):
         '''Add a comment to the bug with the given ID. Other optional 
         arguments are as follows:
             private:   if True, mark this comment as private.
-            timestamp: comment timestamp, in the form "YYYY-MM-DD HH:MM:SS"
-                       Ignored by BZ32.
+            timestamp: Ignored by BZ32.
             worktime:  amount of time spent on this comment, in hours
-            bz_gid:    if present, and the entire bug is *not* already private
-                       to this group ID, this comment will be marked private.
+            bz_gid:    Ignored by BZ32.
         '''
         return self._proxy.Bug.add_comment({'id':id,
                                             'comment':comment,
