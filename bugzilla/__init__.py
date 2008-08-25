@@ -17,6 +17,7 @@ import logging
 log = logging.getLogger("bugzilla")
 
 def getBugzillaClassForURL(url):
+    log.debug("Choosing subclass for %s" % url)
     s = xmlrpclib.ServerProxy(url)
     rhbz = False
     bzversion = ''
@@ -24,17 +25,21 @@ def getBugzillaClassForURL(url):
 
     # Check for a RH-only method
     try:
+        log.debug("Checking for RH Bugzilla method bugzilla.getProdInfo()")
         prodinfo = s.bugzilla.getProdInfo()
         rhbz = True
     except xmlrpclib.Fault:
         pass
+    log.debug("rhbz=%s" % str(rhbz))
 
     # Try to get the bugzilla version string
     try:
+        log.debug("Checking return value of Buzilla.version()")
         r = s.Bugzilla.version()
         bzversion = r['version']
     except xmlrpclib.Fault:
         pass
+    log.debug("bzversion='%s'" % str(bzversion))
 
     # current preference order: RHBugzilla, Bugzilla3
     # RH BZ 3.2 will have rhbz == True and bzversion == 3.1.x or 3.2.x. 
@@ -56,13 +61,11 @@ class Bugzilla(object):
     '''Magical Bugzilla class that figures out which Bugzilla implementation
     to use and uses that.'''
     def __init__(self,**kwargs):
-        log.debug("Bugzilla v%s initializing" % base.version)
+        log.info("Bugzilla v%s initializing" % base.version)
         if 'url' in kwargs:
-            log.debug("Choosing implementation for %s" % kwargs['url'])
             c = getBugzillaClassForURL(kwargs['url'])
             if c:
                 self.__class__ = c
                 c.__init__(self,**kwargs)
-                log.debug("Using Bugzilla subclass %s v%s" % \
-                        (c.__name__,c.version))
+                log.info("Chose subclass %s v%s" % (c.__name__,c.version))
         # FIXME no url? raise an error or something here, jeez
