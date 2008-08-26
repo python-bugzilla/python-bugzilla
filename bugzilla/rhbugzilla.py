@@ -11,7 +11,7 @@
 
 import bugzilla.base
 from bugzilla3 import Bugzilla32
-import copy
+import copy, xmlrpclib
 
 class RHBugzilla(bugzilla.base.BugzillaBase):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
