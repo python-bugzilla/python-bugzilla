@@ -14,7 +14,15 @@ from bugzilla3 import Bugzilla32
 
 class RHBugzilla(bugzilla.base.BugzillaBase):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
-    methods provided by Red Hat's Bugzilla 2.18 variant.'''
+    methods provided by Red Hat's Bugzilla 2.18 variant.
+
+    RHBugzilla supports XMLRPC MultiCall. The methods which start with a
+    single underscore are thin wrappers around XMLRPC methods and should thus
+    be safe for multicall use.
+
+    Documentation for most of these methods can be found here:
+    https://bugzilla.redhat.com/docs/en/html/api/extensions/compat_xmlrpc/code/webservice.html
+    '''
 
     version = '0.2'
     user_agent = bugzilla.base.user_agent + ' RHBugzilla/%s' % version
@@ -35,6 +43,40 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         return True
 
     #---- Methods and properties with basic bugzilla info 
+
+    def _multicall(self):
+        '''This returns kind of a mash-up of the Bugzilla object and the 
+        xmlrpclib.MultiCall object. Methods you call on this object will be
+        added to the MultiCall queue, but they will return None. When you're
+        ready, call the run() method and all the methods in the queue will be
+        run and the results of each will be returned in a list. So, for example:
+
+        mc = bz._multicall()
+        mc._getbug(1)
+        mc._getbug(1337)
+        mc._query({'component':'glibc','product':'Fedora','version':'devel'})
+        (bug1, bug1337, queryresult) = mc.run()
+    
+        Note that you should only use the raw xmlrpc calls (mostly the methods
+        starting with an underscore). Normal getbug(), for example, tries to
+        return a Bug object, but with the multicall object it'll end up empty
+        and, therefore, useless.
+
+        Further note that run() returns a list of raw xmlrpc results; you'll
+        need to wrap the output in Bug objects yourself if you're doing that
+        kind of thing. For example, Bugzilla.getbugs() could be implemented:
+
+        mc = self._multicall()
+        for id in idlist:
+            mc._getbug(id)
+        rawlist = mc.run()
+        return [Bug(self,dict=b) for b in rawlist]
+        '''
+        mc = copy.copy(self)
+        mc._proxy = xmlrpclib.MultiCall(self._proxy)
+        def run(): return mc._proxy().results
+        mc.run = run
+        return mc
 
     # Connect the backend methods to the XMLRPC methods
     def _getbugfields(self):
@@ -61,6 +103,28 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         if type(product) == int:
             product = self._product_id_to_name(product)
         return self._proxy.bugzilla.getProdCompDetails(product)
+    def _get_info(self,product=None): 
+        '''This is a convenience method that does getqueryinfo, getproducts, 
+        and (optionally) getcomponents in one big fat multicall. This is a bit 
+        faster than calling them all separately. 
+         
+        If you're doing interactive stuff you should call this, with the 
+        appropriate product name, after connecting to Bugzilla. This will 
+        cache all the info for you and save you an ugly delay later on.''' 
+        mc = self._multicall() 
+        mc._getqueryinfo() 
+        mc._getproducts() 
+        mc._getbugfields() 
+        if product: 
+            mc._getcomponents(product) 
+            mc._getcomponentsdetails(product) 
+        r = mc.run() 
+        (self._querydata,self._querydefaults) = r.pop(0) 
+        self._products = r.pop(0) 
+        self._bugfields = r.pop(0) 
+        if product: 
+            self._components[product] = r.pop(0) 
+            self._components_details[product] = r.pop(0) 
 
     #---- Methods for reading bugs and bug info
 
