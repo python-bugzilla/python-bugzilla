@@ -332,15 +332,40 @@ class RHBugzilla3(Bugzilla32, RHBugzilla):
     of the Bugzilla 3.2 methods. The additional methods (Bug.search, Bug.update)
     should make their way into a later upstream Bugzilla release (probably 4.0).
 
-    Note that RHBZ3 *also* supports most of the old RHBZ methods, under the 
-    'bugzilla' namespace.
-    
+    Note that RHBZ3 *also* supports most of the old RHBZ methods, under the
+    'bugzilla' namespace, so we use those when BZ3 methods aren't available.
+
     This class was written using bugzilla.redhat.com's API docs:
     https://bugzilla.redhat.com/docs/en/html/api/
+
+    By default, _getbugs will multicall Bug.get(id) multiple times, rather than
+    doing a single Bug.get(idlist) call. You can disable this behavior by
+    setting the 'multicall' property to False. This is faster, but less
+    compatible with RHBugzilla.
     '''
 
     version = '0.1'
     user_agent = bugzilla.base.user_agent + ' RHBugzilla3/%s' % version
+
+    def __init__(self,**kwargs):
+        Bugzilla32.__init__(self,**kwargs)
+        self.user_agent = self.__class__.user_agent
+        self.multicall = kwargs.get('multicall',True)
+
+    def _getbugs(self,idlist):
+        r = []
+        if self.multicall:
+            mc = self._multicall()
+            for id in idlist:
+                mc._proxy.bugzilla.getBug(id)
+            raw_results = mc.run()
+            del mc
+            # check results for xmlrpc errors, and replace them with None
+            r = bugzilla.base.replace_getbug_errors_with_None(raw_results)
+        else:
+            raw_results = self._proxy.Bug.get({'ids':idlist})
+            r = [i['internals'] for i in raw_results['bugs']]
+        return r
 
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
