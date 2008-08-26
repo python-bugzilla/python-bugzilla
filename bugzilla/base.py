@@ -10,7 +10,7 @@
 # the full text of the license.
 
 import xmlrpclib, urllib2, cookielib
-import os.path, base64, copy
+import os.path, base64
 import logging
 log = logging.getLogger('bugzilla')
 
