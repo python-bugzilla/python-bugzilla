@@ -34,7 +34,6 @@ def replace_getbug_errors_with_None(rawlist):
     return result
 
 class BugzillaBase(object):
-    # FIXME: remove doc info about cookie handling, add info about .bugzillarc
     '''An object which represents the data and methods exported by a Bugzilla
     instance. Uses xmlrpclib to do its thing. You'll want to create one thusly:
     bz=Bugzilla(url='https://bugzilla.redhat.com/xmlrpc.cgi',user=u,password=p)
@@ -221,8 +220,7 @@ class BugzillaBase(object):
 
     #---- Methods and properties with basic bugzilla info 
 
-    # XXX FIXME Uh-oh. I think MultiCall support is a RHism. We should probably
-    # move all multicall-based methods into RHBugzilla.
+    # FIXME MultiCall support is a RHism, so this should move into rhbugzilla
     def _multicall(self):
         '''This returns kind of a mash-up of the Bugzilla object and the 
         xmlrpclib.MultiCall object. Methods you call on this object will be added
@@ -889,7 +887,7 @@ class Bug(object):
         To change bugs to CLOSED, use .close() instead.
         See Bugzilla._setstatus() for details.'''
         self.bugzilla._setstatus(self.bug_id,status,comment,private,private_in_it,nomail)
-        # FIXME reload bug data here
+        # TODO reload bug data here?
 
     def setassignee(self,assigned_to='',reporter='',qa_contact='',comment=''):
         '''Set any of the assigned_to, reporter, or qa_contact fields to a new
@@ -906,7 +904,7 @@ class Bug(object):
         # empty fields are ignored, so it's OK to send 'em
         r = self.bugzilla._setassignee(self.bug_id,assigned_to=assigned_to,
                 reporter=reporter,qa_contact=qa_contact,comment=comment)
-        # FIXME reload bug data here
+        # TODO reload bug data here?
         return r
     def addcomment(self,comment,private=False,timestamp='',worktime='',bz_gid=''):
         '''Add the given comment to this bug. Set private to True to mark this
@@ -916,7 +914,7 @@ class Bug(object):
         group, this comment will be private.'''
         self.bugzilla._addcomment(self.bug_id,comment,private,timestamp,
                                   worktime,bz_gid)
-        # FIXME reload bug data here
+        # TODO reload bug data here?
     def close(self,resolution,dupeid=0,fixedin='',comment='',isprivate=False,private_in_it=False,nomail=False):
         '''Close this bug. 
         Valid values for resolution are in bz.querydefaults['resolution_list']
@@ -935,13 +933,13 @@ class Bug(object):
         '''
         self.bugzilla._closebug(self.bug_id,resolution,dupeid,fixedin,
                                 comment,isprivate,private_in_it,nomail)
-        # FIXME reload bug data here
+        # TODO reload bug data here?
     def _dowhiteboard(self,text,which,action):
         '''Actually does the updateWhiteboard call to perform the given action
         (append,prepend,overwrite) with the given text on the given whiteboard
         for the given bug.'''
         self.bugzilla._updatewhiteboard(self.bug_id,text,which,action)
-        # FIXME reload bug data here
+        # TODO reload bug data here?
 
     def getwhiteboard(self,which='status'):
         '''Get the current value of the whiteboard specified by 'which'.
@@ -984,6 +982,6 @@ class Bug(object):
     def deletecc(self,cclist,comment=''):
         '''Removes the given email addresses from the CC list for this bug.'''
         self.bugzilla.updatecc(self.bug_id,cclist,'delete',comment)
-# TODO: attach(), getflag(), setflag()
+# TODO: attach(file), getflag(), setflag()
 # TODO: add a sync() method that writes the changed data in the Bug object
 # back to Bugzilla?
