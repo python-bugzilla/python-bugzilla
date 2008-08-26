@@ -12,15 +12,16 @@
 import bugzilla.base
 from bugzilla3 import Bugzilla32
 
-version = '0.2'
-user_agent = bugzilla.base.user_agent + ' RHBugzilla/%s' % version
-
 class RHBugzilla(bugzilla.base.BugzillaBase):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
     methods provided by Red Hat's Bugzilla 2.18 variant.'''
+
+    version = '0.2'
+    user_agent = bugzilla.base.user_agent + ' RHBugzilla/%s' % version
+
     def __init__(self,**kwargs):
         bugzilla.base.BugzillaBase.__init__(self,**kwargs)
-        self.user_agent = user_agent
+        self.user_agent = self.__class__.user_agent
 
     def _login(self,user,password):
         '''Backend login method for RHBugzilla.'''
@@ -380,7 +381,7 @@ class RHBugzilla3(Bugzilla32, RHBugzilla):
                 raise AttributeError, "Can't find cc list in bug %s" % str(id)
             self._updatecc(id,r['cc'],'delete')
             self._updatecc(id,cclist,'add')
-        # FIXME we don't check inputs on other backend methods, maybe this
+        # XXX we don't check inputs on other backend methods, maybe this
         # is more appropriate in the public method(s)
         else:
             raise ValueError, "action must be 'add','delete', or 'overwrite'"
