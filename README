@@ -3,18 +3,19 @@ over XMLRPC.
 
 Currently it targets Red Hat's xmlrpc services, because:
 a) That's what the Fedora project uses, and
-b) Even if it is ugly, it's got more methods than the Bugzilla 3.0 API
+b) Even if it is ugly, it's got more methods than the Bugzilla 3.x API
 
-In the near future (see TODO) we may support the Bugzilla 3.0 API, although
-it probably won't not support all the same methods as the RHBugzilla class.
+In the near future (see TODO) we may fully support the Bugzilla 3.x API, 
+although it still probably won't not support all the same methods as the
+RHBugzilla class.
 
 In the long-term future, Red Hat is planning on porting their interfaces to
 the Bugzilla 3.0 framework and contributing them to upstream Bugzilla, so in
 time we may drop the Red Hat implementation in favor of one unified Bugzilla
-interface. Won't that be nice?
+interface. Won't that be nice? 
 
 Comments, suggestions, and - most of all - patches are welcomed and encouraged.
 
 Enjoy.
 
-Will Woods <wwoods@redhat.com>, 7 Sep 2007
+Will Woods <wwoods@redhat.com>, 25 Mar 2008

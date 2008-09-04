@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # bugzilla - a commandline frontend for the python bugzilla module
 #
-# Copyright (C) 2007 Red Hat Inc.
+# Copyright (C) 2007,2008 Red Hat Inc.
 # Author: Will Woods <wwoods@redhat.com>
 # 
 # This program is free software; you can redistribute it and/or modify it
@@ -13,8 +13,9 @@
 import bugzilla, optparse
 import os, sys, glob, re
 import logging
+import getpass
 
-version = '0.2'
+version = '0.4'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
 # Initial simple logging stuff
@@ -25,18 +26,7 @@ if '--debug' in sys.argv:
 elif '--verbose' in sys.argv:
     log.setLevel(logging.INFO)
         
-def findcookie():
-    globs = ['~/.mozilla/firefox/*default*/cookies.txt']
-    for g in globs:
-        log.debug("Looking for cookies.txt in %s", g)
-        cookiefiles = glob.glob(os.path.expanduser(g))
-        if cookiefiles:
-            # return the first one we find.
-            # TODO: find all cookiefiles, sort by age, use newest
-            return cookiefiles[0]
-cookiefile = None
-
-cmdlist = ('info','query','new','modify')
+cmdlist = ('info','query','new','modify','login')
 def setup_parser():
     u =   "usage: %prog [global options] COMMAND [options]"
     u +=  "\nCommands: %s" % ', '.join(cmdlist)
@@ -46,9 +36,9 @@ def setup_parser():
     p.add_option('--bugzilla',default=default_bz,
             help="bugzilla XMLRPC URI. default: %s" % default_bz)
     p.add_option('--user',
-            help="username. Will attempt to use browser cookie if not specified.")
+            help="username")
     p.add_option('--password',
-            help="password. Will attempt to use browser cookie if not specified.")
+            help="password")
     p.add_option('--cookiefile',
             help="cookie file to use for bugzilla authentication")
     p.add_option('--verbose',action='store_true',
@@ -84,37 +74,76 @@ def setup_action_parser(action):
                 help="OPTIONAL: URL for further bug info")
         p.add_option('--cc',
                 help="OPTIONAL: add emails to initial CC list")
-        p.add_option('--blocked',
-                help="OPTIONAL: block bugs with this new bug")
-        p.add_option('--dependson',
-                help="OPTIONAL: mark this bug as depending on this list of bugs", default=' ')
-        # TODO: alias, assigned_to, reporter, qa_contact, dependson, blocked
+
     elif action == 'query':
+        # General bug metadata
+        p.add_option('-b','--bug_id',
+                help="specify individual bugs by IDs, separated with commas")
         p.add_option('-p','--product',
-                help="product name (list with 'bugzilla info -p')")
+                help="product name, comma-separated (list with 'bugzilla info -p')")
         p.add_option('-v','--version',
                 help="product version")
         p.add_option('-c','--component',
-                help="component name (list with 'bugzilla info -c PRODUCT')")
+                help="component name(s), comma-separated (list with 'bugzilla info -c PRODUCT')")
+        p.add_option('--components_file',
+                help="list of component names from a file, one component per line (list with 'bugzilla info -c PRODUCT')")
         p.add_option('-l','--long_desc',
                 help="search inside bug comments")
         p.add_option('-s','--short_desc',
                 help="search bug summaries")
+        p.add_option('-t','--bug_status',default="NEW",
+                help="comma-separated list of bug statuses to accept [Default:NEW] [Available:NEW,ASSIGNED,NEEDINFO,ON_DEV,MODIFIED,POST,ON_QA,FAILS_QA,PASSES_QA,REOPENED,VERIFIED,RELEASE_PENDING,CLOSED]")
+        p.add_option('-x','--severity',
+                help="search severities, comma-separated")
+        p.add_option('-z','--priority',
+                help="search priorities, comma-separated")
+
+        # Email
+        p.add_option('-E','--emailtype',
+                help="Email: specify searching option for emails, ie. substring,notsubstring,exact,... [Default: substring]",default="substring")
         p.add_option('-o','--cc',
-                help="search cc lists for given address")
+                help="Email: search cc lists for given address")
         p.add_option('-r','--reporter',
-                help="search for bugs reported by this address")
+                help="Email: search reporter email for given address")
         p.add_option('-a','--assigned_to',
-                help="search for bugs assigned to this address")
+                help="Email: search for bugs assigned to this address")
+        p.add_option('-q','--qa_contact',
+                help="Email: search for bugs which have QA Contact assigned to this address")
+
+        # Strings
+        p.add_option('-u','--url',
+                help="search keywords field for given url")
+        p.add_option('-U','--url_type',
+                help="specify searching option for urls, ie. anywords,allwords,nowords")
+        p.add_option('-k','--keywords',
+                help="search keywords field for specified words")
+        p.add_option('-K','--keywords_type',
+                help="specify searching option for keywords, ie. anywords,allwords,nowords")
+        p.add_option('-w','--status_whiteboard',
+                help="search Status Whiteboard field for specified words")
+        p.add_option('-W','--status_whiteboard_type',
+                help="specify searching option for Status Whiteboard, ie. anywords,allwords,nowords")
+
+        # Boolean Charts
+        p.add_option('-B','--booleantype',
+                help="specify searching option for booleans, ie. substring,notsubstring,exact,... [Default: substring]",default="substring")
+        p.add_option('--boolean_query',
+                help="Boolean:Create your own query. Format: BooleanName-Condition-Parameter &/| ... . ie, keywords-substring-Partner & keywords-notsubstring-OtherQA")
         p.add_option('--blocked',
-                help="search for bugs that block this bug ID")
+                help="Boolean:search for bugs that block this bug ID")
         p.add_option('--dependson',
-                help="search for bugs that depend on this bug ID")
-        p.add_option('-b','--bug_id',
-                help="specify individual bugs by IDs, separated with commas")
-        p.add_option('-t','--bug_status','--status',
-                default="NEW,VERIFIED,ASSIGNED,NEEDINFO,ON_DEV,FAILS_QA,REOPENED",
-                help="comma-separated list of bug statuses to accept")
+                help="Boolean:search for bugs that depend on this bug ID")
+        p.add_option('--flag',
+                help="Boolean:search for bugs that have certain flag states present")
+        p.add_option('--qa_whiteboard',
+                help="Boolean:search for bugs that have certain QA Whiteboard text present")
+        p.add_option('--devel_whiteboard',
+                help="Boolean:search for bugs that have certain Devel Whiteboard text present")
+        p.add_option('--alias',
+                help="Boolean:search for bugs that have the provided alias")
+        p.add_option('--fixed_in',
+                help="search Status Whiteboard field for specified words")
+
     elif action == 'info':
         p.add_option('-p','--products',action='store_true',
                 help='Get a list of products')
@@ -139,12 +168,14 @@ def setup_action_parser(action):
                 const='full',default='normal',help="output detailed bug info")
         p.add_option('-i','--ids',action='store_const',dest='output',
                 const='ids',help="output only bug IDs")
+        p.add_option('-e','--extra',action='store_const',dest='output',
+                const='extra',help="output additional bug information (keywords, Whiteboards, etc.)")
         p.add_option('--outputformat',
                 help="Print output in the form given. You can use RPM-style "+
                 "tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'")
     return p
 
-if __name__ == '__main__':
+def main():
     # Set up parser for global args
     parser = setup_parser()
     # Parse the commandline, woo
@@ -161,19 +192,40 @@ if __name__ == '__main__':
     # Connect to bugzilla
     log.info('Connecting to %s',global_opt.bugzilla)
     bz=bugzilla.Bugzilla(url=global_opt.bugzilla)
-    if global_opt.user and global_opt.password:
+
+    # Handle 'login' action
+    if action == 'login':
+        if not global_opt.user:
+            sys.stdout.write('Username: ')
+            user = sys.stdin.readline()
+            global_opt.user = user.strip()
+        if not global_opt.password:
+            global_opt.password = getpass.getpass()
+        sys.stdout.write('Logging in... ')
+        # XXX NOTE: This will return success if you have a valid login cookie,
+        # even if you give a bad username and password. WEIRD.
+        if bz.login(global_opt.user,global_opt.password):
+            print 'Authorization cookie received.'
+            sys.exit(0)
+        else:
+            print 'failed.'
+            sys.exit(1)
+
+    # Set up authentication
+    if global_opt.user:
+        if not global_opt.password:
+            global_opt.password = getpass.getpass()
         log.info('Using username/password for authentication')
         bz.login(global_opt.user,global_opt.password)
-    elif global_opt.cookiefile:
-        log.info('Using cookies in %s for authentication', global_opt.cookiefile)
-        bz.readcookiefile(global_opt.cookiefile)
     else:
-        cookiefile = findcookie()
-        if cookiefile:
+        if global_opt.cookiefile:
+            bz.cookiefile = global_opt.cookiefile
+        cookiefile = bz.cookiefile
+        if os.path.exists(cookiefile):
             log.info('Using cookies in %s for authentication', cookiefile)
-            bz.readcookiefile(cookiefile)
         else:
-            parser.error("Could not find a Firefox cookie file. Try --user/--password.")
+            # FIXME check to see if .bugzillarc is in use
+            log.info('No authentication info provided.')
     
     # And now we actually execute the given command
     buglist = list() # save the results of query/new/modify here
@@ -207,27 +259,85 @@ if __name__ == '__main__':
             q = dict()
             email_count = 1
             chart_id = 0
-            for a in ('product','component','version','long_desc','bug_id',
-                      'short_desc','cc','assigned_to','reporter','bug_status',
-                      'blocked','dependson'):
+            for a in ('product','component','components_file','version','long_desc','bug_id',
+                      'short_desc','cc','assigned_to','reporter','qa_contact','bug_status',
+                      'blocked','dependson','keywords','keywords_type','url','url_type','status_whiteboard',
+                      'status_whiteboard_type','fixed_in','fixed_in_type','flag','alias','qa_whiteboard',
+                      'devel_whiteboard','boolean_query','severity','priority'):
                 if hasattr(opt,a):
                     i = getattr(opt,a)
                     if i:
                         if a in ('bug_status'): # list args
-                            q[a] = i.split(',')
-                        elif a in ('cc','assigned_to','reporter'):
-                            # the email query fields are kind of weird - thanks
-                            # to Florian La Roche for figuring this bit out.
+                            # FIXME: statuses can differ between bugzilla instances..
+                            if i == 'ALL':
+                            # Alias for all available bug statuses
+                                q[a] = 'NEW,ASSIGNED,NEEDINFO,ON_DEV,MODIFIED,POST,ON_QA,FAILS_QA,PASSES_QA,REOPENED,VERIFIED,RELEASE_PENDING,CLOSED'.split(',')
+                            elif i == 'DEV':
+                            # Alias for all development bug statuses
+                                q[a] = 'NEW,ASSIGNED,NEEDINFO,ON_DEV,MODIFIED,POST,REOPENED'.split(',')
+                            elif i == 'QE':
+                            # Alias for all QE relevant bug statuses
+                                q[a] = 'ASSIGNED,ON_QA,FAILS_QA,PASSES_QA'.split(',')
+                            elif i == 'EOL':
+                            # Alias for EndOfLife bug statuses
+                                q[a] = 'VERIFIED,RELEASE_PENDING,CLOSED'.split(',')
+                            else:
+                                q[a] = i.split(',')
+                        elif a in ('cc','assigned_to','reporter','qa_contact'):
+                            # Emails
                             # ex.: {'email1':'foo@bar.com','emailcc1':True}
                             q['email%i' % email_count] = i
                             q['email%s%i' % (a,email_count)] = True
+                            q['emailtype%i' % email_count] = opt.emailtype
                             email_count += 1
-                        elif a in ('blocked','dependson'): 
-                            # Chart args are weird.
-                            q['field%i-0-0' % chart_id] = a
-                            q['type%i-0-0' % chart_id]  = 'equals'
+                        elif a in ('components_file'): 
+                            # Components slurped in from file (one component per line)
+                            # This can be made more robust
+                            arr = []
+                            f = open (i, 'r')
+                            for line in f.readlines():
+                                line = line.rstrip("\n")
+                                arr.append(line)
+                            q['component'] = ",".join(arr)
+                        elif a in ('keywords','keywords_type','url','url_type','status_whiteboard',
+                                'status_whiteboard_type','severity','priority'): 
+                            if a in ('url'):
+                                q['bug_file_loc'] = i
+                            elif a in ('url'):
+                                q['bug_file_loc_type'] = i
+                            else:
+                                q['%s' % a] = i
+                        elif a in ('fixed_in','blocked','dependson','flag','qa_whiteboard','devel_whiteboard','alias'): 
+                            # Boolean Charts
+                            if a in ('flag'):
+                            # Flags have strange parameter name
+                                q['field%i-0-0' % chart_id] = 'flagtypes.name'
+                            else:
+                                q['field%i-0-0' % chart_id] = a
                             q['value%i-0-0' % chart_id] = i
+                            q['type%i-0-0' % chart_id]  = opt.booleantype
                             chart_id += 1
+                        elif a in ('boolean_query'): 
+                            # Custom Boolean Chart query
+                            # Format: BooleanName-Condition-Parameter &/| BooleanName-Condition-Parameter &/| ...
+                            # ie, keywords-substring-Partner | keywords-notsubstring-PartnerVerified & keywords-notsubstring-OtherQA 
+                            chart_id = 0
+                            and_count = 0
+                            or_count = 0
+                           # Manually specified boolean query
+                            x = i.split(' ')
+                            for par in x :
+                                if par.find('&') != -1:
+                                    and_count += 1
+                                elif par.find('|') != -1:
+                                    or_count += 1
+                                elif par.find('-') != -1:
+                                    args = par.split('-')
+                                    q['field%i-%i-%i' % (chart_id,and_count,or_count)] = args[0]
+                                    q['type%i-%i-%i' % (chart_id,and_count,or_count)]  = args[1]
+                                    q['value%i-%i-%i' % (chart_id,and_count,or_count)] = args[2]
+                                else:
+                                    parser.error('Malformed boolean query: %s' % i)
                         else:
                             q[a] = i
             log.debug("bz.query: %s", q)
@@ -237,7 +347,7 @@ if __name__ == '__main__':
         data = dict()
         required=['product','component','version','short_desc','comment',
              'rep_platform','bug_severity','op_sys','bug_file_loc','priority']
-        optional=['cc', 'blocked', 'dependson']
+        optional=['cc']
         for a in required + optional:
             i = getattr(opt,a)
             if i:
@@ -302,5 +412,22 @@ if __name__ == '__main__':
         elif opt.output == 'normal':
             for b in buglist:
                 print b
+        elif opt.output == 'extra':
+            print "Grabbing 'extra' bug information. This could take a moment."
+            fullbuglist = bz.getbugs([b.bug_id for b in buglist])
+            for b in fullbuglist:
+                print b
+                if b.keywords: print " +Keywords: ",b.keywords
+                if b.qa_whiteboard: print " +QA Whiteboard: ",b.qa_whiteboard
+                if b.status_whiteboard: print " +Status Whiteboard: ",b.status_whiteboard
+                if b.devel_whiteboard: print " +Devel Whiteboard: ",b.devel_whiteboard
+            print "\nBugs listed: ",len(buglist)
         else:
             parser.error("opt.output was set to something weird.")
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        print "\ninterrupted."
+        sys.exit(0)

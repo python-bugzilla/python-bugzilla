@@ -1,4 +1,10 @@
-- Bugzilla class should be renamed RHBugzilla
-- Create a Bugzilla3 class that uses the Bugzilla3.0 web services
-- connect method should move out of Bugzilla class, return one of the two
-  above classes (depending on what type of bugzilla instance we're talking to)
+- better documentation for abstract methods in BugzillaBase
+- more consistent calls for abstract methods
+- make the abstract methods return stuff closer to Bugzilla3's return values
+- make Bugzilla methods all take a bug ID list
+  - BZ 3 methods all take idlist
+  - RHBZ can use multicall to emulate that
+- auto-generate the man page
+- actually install the man page
+- Document the 0.x API as it stands
+- Work on a cleaner 1.x API
