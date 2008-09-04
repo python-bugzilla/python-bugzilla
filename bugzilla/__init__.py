@@ -41,9 +41,8 @@ def getBugzillaClassForURL(url):
         pass
     log.debug("bzversion='%s'" % str(bzversion))
 
-    # current preference order: RHBugzilla, Bugzilla3
+    # XXX note preference order: RHBugzilla* wins if available
     # RH BZ 3.2 will have rhbz == True and bzversion == 3.1.x or 3.2.x. 
-    # To prefer Bugzilla32 over RHBugzilla do: if rhbz and (bzversion == '')
     if rhbz:
         if bzversion.startswith('3.'):
             c = RHBugzilla3
@@ -59,7 +58,8 @@ def getBugzillaClassForURL(url):
 
 class Bugzilla(object):
     '''Magical Bugzilla class that figures out which Bugzilla implementation
-    to use and uses that.'''
+    to use and uses that. Requires 'url' parameter so we can check available
+    XMLRPC methods to determine the Bugzilla version.'''
     def __init__(self,**kwargs):
         log.info("Bugzilla v%s initializing" % base.version)
         if 'url' in kwargs:
@@ -68,4 +68,7 @@ class Bugzilla(object):
                 self.__class__ = c
                 c.__init__(self,**kwargs)
                 log.info("Chose subclass %s v%s" % (c.__name__,c.version))
-        # FIXME no url? raise an error or something here, jeez
+            else:
+                raise ValueError, "Couldn't determine Bugzilla version for %s" % kwargs['url']
+        else:
+            raise TypeError, "You must pass a valid bugzilla xmlrpc.cgi URL"

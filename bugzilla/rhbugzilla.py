@@ -353,6 +353,7 @@ class RHBugzilla3(Bugzilla32, RHBugzilla):
         self.user_agent = self.__class__.user_agent
         self.multicall = kwargs.get('multicall',True)
 
+    # XXX it'd be nice if this wasn't just a copy of RHBugzilla's _getbugs
     def _getbugs(self,idlist):
         r = []
         if self.multicall:

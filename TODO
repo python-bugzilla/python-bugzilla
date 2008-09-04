@@ -1,4 +1,3 @@
-- Finish up RHBZ3
 - better documentation for abstract methods in BugzillaBase
 - more consistent calls for abstract methods
 - make the abstract methods return stuff closer to Bugzilla3's return values
