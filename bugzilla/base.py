@@ -18,7 +18,7 @@ import os.path, base64
 import logging
 log = logging.getLogger('bugzilla')
 
-version = '0.4'
+version = '0.4-rc1'
 user_agent = 'Python-urllib2/%s bugzilla.py/%s' % \
         (urllib2.__version__,version)
 
