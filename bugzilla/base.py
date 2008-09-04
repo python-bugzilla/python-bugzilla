@@ -105,10 +105,9 @@ class BugzillaBase(object):
         if os.path.exists(self.cookiefile):
             cj.load()
         else:
-            # Create an empty file that's only readable by this user
+            # Create an empty cookiefile that's only readable by this user
             old_umask = os.umask(0077)
-            f = open(self.cookiefile,"w")
-            f.close()
+            cj.save(self.cookiefile)
             os.umask(old_umask)
         self._cookiejar = cj
         self._cookiejar.filename = self.cookiefile
