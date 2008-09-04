@@ -1,10 +1,16 @@
-- better documentation for abstract methods in BugzillaBase
-- more consistent calls for abstract methods
-- make the abstract methods return stuff closer to Bugzilla3's return values
+For 0.4:
+- Fix up selftest.py
+- actually install the man page
+
+For 0.5:
 - make Bugzilla methods all take a bug ID list
   - BZ 3 methods all take idlist
   - RHBZ can use multicall to emulate that
+
+Someday:
+- better documentation for abstract methods in BugzillaBase
+- more consistent calls for abstract methods
+- make the abstract methods return stuff closer to Bugzilla3's return values
 - auto-generate the man page
-- actually install the man page
 - Document the 0.x API as it stands
 - Work on a cleaner 1.x API
