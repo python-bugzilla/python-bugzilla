@@ -122,6 +122,7 @@ class Bugzilla32(Bugzilla3):
 
     version = '0.1'
     user_agent = bugzilla.base.user_agent + ' Bugzilla32/%s' % version
+    createbug_required = ('product','component','summary','version')
 
     def _addcomment(self,id,comment,private=False,
                    timestamp='',worktime='',bz_gid=''):
