@@ -357,6 +357,7 @@ def main():
                 parser.error('Missing required argument: %s' % k)
         log.debug("bz.createbug(%s)", data)
         b = bz.createbug(**data)
+        b.refresh()
         buglist = [b]
         
     elif action == 'modify':
