@@ -548,9 +548,20 @@ class BugzillaBase(object):
 
     #---- createbug - big complicated call to create a new bug
 
-    # Default list of required fields for createbug
+    # Default list of required fields for createbug.
+    # May be overridden by concrete subclasses.
     createbug_required = ('product','component','version','short_desc','comment',
                           'rep_platform','bug_severity','op_sys','bug_file_loc')
+
+    # List of field aliases. If a createbug() call lacks a required field, but
+    # a corresponding alias field is present, we'll automatically switch the
+    # field name. This lets us avoid having to change the call to match the 
+    # bugzilla instance quite so much.
+    field_aliases = (('summary','short_desc'),
+                     ('description','comment'),
+                     ('platform','rep_platform'),
+                     ('severity','bug_severity'),
+                     ('status','bug_status'))
 
     def _createbug(self,**data):
         '''IMPLEMENT ME: Raw xmlrpc call for createBug() 
@@ -562,65 +573,74 @@ class BugzillaBase(object):
         '''Create a bug with the given info. Returns a new Bug object.
         data should be given as keyword args - remember that you can also
         populate a dict and call createbug(**dict) to fill in keyword args.
-        The arguments are as follows. Note that some are optional and some
-        are required. 
+        The arguments are as follows. Note that some are required, some are
+        defaulted, and some are completely optional.
 
-        "product" => "<Product Name>",
-            # REQUIRED Name of Bugzilla product. 
-            # Ex: Red Hat Enterprise Linux
-        "component" => "<Component Name>",
-            # REQUIRED Name of component in Bugzilla product. 
-            # Ex: anaconda
-        "version" => "<Version of Product>",
-            # REQUIRED Version in the list for the Bugzilla product. 
-            # Ex: 4.5
-            # versions are listed in querydata['product'][<product>]['versions']
-        "rep_platform" => "<Platform>",
-            # REQUIRED Valid architecture from the rep_platform list. 
-            # Ex: i386
-            # See querydefaults['rep_platform_list'] for accepted values.
-        "bug_severity" => "medium",
-            # REQUIRED Valid severity from the list of severities.
-            # See querydefaults['bug_severity_list'] for accepted values.
-        "op_sys" => "Linux",
-            # REQUIRED Operating system bug occurs on. 
-            # See querydefaults['op_sys_list'] for accepted values.
-        "bug_file_loc" => "http://",
-            # REQUIRED URL to additional information for bug report. 
-            # Ex: http://people.redhat.com/dkl
-        "short_desc" => "<Brief text about bug>",
-            # REQUIRED One line summary describing the bug report.
-        "comment" => "<More Detailed Description>",
-            # REQUIRED A detail descript about the bug report.
+        The Bugzilla 3.2 docs say the following:
 
-        "alias" => "<Bug Alias>",
-            # OPTIONAL Will give the bug an alias name.
-            # Alias can't be merely numerical.
-            # Alias can't contain spaces or commas.
-            # Alias can't be more than 20 chars long.
-            # Alias has to be unique.
-        "assigned_to" => "<Bugzilla Account>",          
-            # OPTIONAL Will be determined by component owner otherwise.
-        "reporter" => "<Bugzilla Account>",
-            # OPTIONAL Will use current login if blank.
-        "qa_contact" => "<Bugzilla Account>",
-            # OPTIONAL Will be determined by component qa_contact otherwise.
-        "cc" => "<Comma/Space separated list>",
-            # OPTIONAL Space or Comma separated list of Bugzilla accounts.
-        "priority" => "urgent",
-            # OPTIONAL Valid priority from the list of priorities.
-            # Ex: medium
-            # See querydefaults['priority_list'] for accepted values.
-        "bug_status" => 'NEW',
-            # OPTIONAL Status to place the new bug in. 
-            # Default: NEW
-        "blocked" => '',
-            # OPTIONAL Comma or space separate list of bug id's 
-            # this report blocks.
-        "dependson" => '',
-            # OPTIONAL Comma or space separate list of bug id's 
-            # this report depends on.
+        "Clients that want to be able to interact uniformly with multiple
+        Bugzillas should always set both the params marked Required and those 
+        marked Defaulted, because some Bugzillas may not have defaults set for 
+        Defaulted parameters, and then this method will throw an error if you 
+        don't specify them."
+
+        REQUIRED:
+          product: Name of Bugzilla product. 
+            Ex: Red Hat Enterprise Linux
+          component: Name of component in Bugzilla product. 
+            Ex: anaconda
+          version: Version in the list for the Bugzilla product. 
+            Ex: 4.5
+            See querydata['product'][<product>]['versions'] for values.
+          summary: One line summary describing the bug report.
+            ALIAS: short_desc
+
+        DEFAULTED:
+          platform: Hardware type where this bug was experienced.  
+            Ex: i386
+            See querydefaults['rep_platform_list'] for accepted values.
+            ALIAS: rep_platform
+          severity: Bug severity.  
+            Ex: medium
+            See querydefaults['bug_severity_list'] for accepted values.
+            ALIAS: bug_severity
+          priority: Bug priority.
+            Ex: medium
+            See querydefaults['priority_list'] for accepted values.
+          op_sys: Operating system bug occurs on. 
+            Ex: Linux
+            See querydefaults['op_sys_list'] for accepted values.
+          description: A detailed description of the bug report.
+            ALIAS: comment
+
+        OPTIONAL: 
+          alias: Give the bug a (string) alias name.
+            Alias can't be merely numerical.
+            Alias can't contain spaces or commas.
+            Alias can't be more than 20 chars long.
+            Alias has to be unique.
+          assigned_to: Bugzilla username to assign this bug to.
+          qa_contact: Bugzilla username of QA contact for this bug.
+          cc: List of Bugzilla usernames to CC on this bug.
+          status: Status to place the new bug in. Defaults to NEW.
+            ALIAS: bug_status
+
+        Important custom fields (used by RH Bugzilla and maybe others):
+        DEFAULTED: 
+          bug_file_loc: URL pointing to additional information for bug report. 
+            Ex: http://username.fedorapeople.org/logs/crashlog.txt
+          reporter: Bugzilla username to use as reporter. 
+        OPTIONAL: 
+          blocked: List of bug ids this report blocks.
+          dependson: List of bug ids this report depends on.
         '''
+        # If we're getting a call that uses an old fieldname, convert it to the
+        # new fieldname instead.
+        for newfield, oldfield in self.field_aliases:
+            if newfield in self.createbug_required and newfield not in data \
+                    and oldfield in data:
+                data[newfield] = data.pop(oldfield)
+
         # The xmlrpc will raise an error if one of these is missing, but
         # let's try to save a network roundtrip here if possible..
         for i in self.createbug_required:
@@ -629,6 +649,7 @@ class BugzillaBase(object):
                     data[i] = 'http://'
                 else:
                     raise TypeError, "required field missing or empty: '%s'" % i
+
         # Sort of a chicken-and-egg problem here - check_args will save you a
         # network roundtrip if your op_sys or rep_platform is bad, but at the
         # expense of getting querydefaults, which is.. an added network
@@ -647,7 +668,6 @@ class BugzillaBase(object):
         # lied about the actual contents of the database. That would be bad.
         bug_id = self._createbug(**data)
         return Bug(self,bug_id=bug_id)
-        # Trivia: this method has ~5.8 lines of comment per line of code. Yow!
 
 class CookieResponse:
     '''Fake HTTPResponse object that we can fill with headers we got elsewhere.
