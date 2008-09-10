@@ -1,4 +1,4 @@
-.TH bugzilla 1  "March 25, 2008" "version 0.5" "User Commands"
+.TH bugzilla 1  "March 25, 2008" "version 0.4" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -11,6 +11,8 @@ is a command-line utility that allows access to the XML-RPC interface provided
 by Bugzilla. 
 .PP
 \fIcommand\fP is one of:
+.br
+.I \fR * login - log into the given bugzilla instance
 .br
 .I \fR * new - create a new bug
 .br
@@ -37,13 +39,8 @@ Bugzilla password. If \fIuser\fP and \fIpassword\fP are not specified,
 .BR bugzilla
 will try to use cookie authentication instead.
 .IP "\fB\-\-cookiefile\fP=\fICOOKIEFILE\fP"
-Cookie file to use for bugzilla authentication. If not specified, 
-.BR bugzilla
-will search the user's home directory for
-.BR firefox (1)
-or
-.BR mozilla (1)
-style cookie files.
+Cookie file to use for bugzilla authentication. Default:
+.I ~/.bugzillacookies
 .IP "\fB\-\-verbose\fP"
 Give some extra information about what's going on.
 .IP "\fB\-\-debug\fP"

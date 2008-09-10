@@ -9,7 +9,9 @@ For 0.5:
 
 Someday:
 - better documentation for abstract methods in BugzillaBase
-- more consistent calls for abstract methods
+- more consistent calls for abstract methods. 
+  - fix bz.createbug(description=desc,...) vs. bug.close(comment=desc,...)
+  - use field_aliases to fix up bug.close and friends?
 - make the abstract methods return stuff closer to Bugzilla3's return values
 - auto-generate the man page
 - Document the 0.x API as it stands
