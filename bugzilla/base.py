@@ -522,7 +522,7 @@ class BugzillaBase(object):
         if 'contenttype' not in kwargs:
             kwargs['contenttype'] = 'application/octet-stream'
         kwargs['data'] = self._attachment_encode(f)
-        (attachid, mailresults) = self._attachfile(id,kwargs)
+        (attachid, mailresults) = self._attachfile(id,**kwargs)
         return attachid
 
     def _attachment_uri(self,attachid):
