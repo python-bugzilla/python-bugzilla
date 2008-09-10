@@ -593,17 +593,14 @@ class BugzillaBase(object):
             Ex: 4.5
             See querydata['product'][<product>]['versions'] for values.
           summary: One line summary describing the bug report.
-            ALIAS: short_desc
 
         DEFAULTED:
           platform: Hardware type where this bug was experienced.  
             Ex: i386
             See querydefaults['rep_platform_list'] for accepted values.
-            ALIAS: rep_platform
           severity: Bug severity.  
             Ex: medium
             See querydefaults['bug_severity_list'] for accepted values.
-            ALIAS: bug_severity
           priority: Bug priority.
             Ex: medium
             See querydefaults['priority_list'] for accepted values.
@@ -611,7 +608,6 @@ class BugzillaBase(object):
             Ex: Linux
             See querydefaults['op_sys_list'] for accepted values.
           description: A detailed description of the bug report.
-            ALIAS: comment
 
         OPTIONAL: 
           alias: Give the bug a (string) alias name.
@@ -623,7 +619,6 @@ class BugzillaBase(object):
           qa_contact: Bugzilla username of QA contact for this bug.
           cc: List of Bugzilla usernames to CC on this bug.
           status: Status to place the new bug in. Defaults to NEW.
-            ALIAS: bug_status
 
         Important custom fields (used by RH Bugzilla and maybe others):
         DEFAULTED: 
@@ -636,6 +631,7 @@ class BugzillaBase(object):
         '''
         # If we're getting a call that uses an old fieldname, convert it to the
         # new fieldname instead.
+        # XXX - emit deprecation warnings here
         for newfield, oldfield in self.field_aliases:
             if newfield in self.createbug_required and newfield not in data \
                     and oldfield in data:
