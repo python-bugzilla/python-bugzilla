@@ -175,6 +175,67 @@ def setup_action_parser(action):
                 "tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'")
     return p
 
+def generate_man_page():
+    try:
+        from logilab.common.optik_ext import ManHelpFormatter
+        import datetime
+    except ImportError:
+        return
+    today = datetime.date.today()
+    datestr = today.strftime("%B %d, %Y")
+    manpage = \
+'''.TH bugzilla 1  "%s" "version %s" "User Commands"
+.SH NAME
+bugzilla \- command-line interface to Bugzilla over XML-RPC
+.SH SYNOPSIS
+.B bugzilla
+[\\fIoptions\\fR] [\\fIcommand\\fR] [\\fIcommand-options\\fR]
+.SH DESCRIPTION
+.PP
+.BR bugzilla
+is a command-line utility that allows access to the XML-RPC interface provided
+by Bugzilla.
+.PP
+\\fIcommand\\fP is one of:
+.br
+.I \\fR * login - log into the given bugzilla instance
+.br
+.I \\fR * new - create a new bug
+.br
+.I \\fR * query - search for bugs matching given criteria
+.br
+.I \\fR * modify - modify existing bugs
+.br
+.I \\fR * info - get info about the given bugzilla instance
+''' % (datestr,version)
+    manformatter = ManHelpFormatter()
+    parser = setup_parser()
+    parser.formatter = manformatter
+    opt_section = parser.format_option_help()
+    manpage += opt_section.replace("OPTIONS","GLOBAL OPTIONS")
+    for action in cmdlist:
+        action_parser = setup_action_parser(action)
+        action_parser.formatter = manformatter
+        opt_section = action_parser.format_option_help()
+        manpage += opt_section.replace("OPTIONS",
+                                       '\[oq]%s\[cq] OPTIONS' % action.upper())
+    manpage += \
+'''.SH EXAMPLES
+.TP
+bugzilla query --bug_id 62037
+.SH EXIT STATUS
+.BR bugzilla
+returns 1 if login fails or it is interrupted, and 0 otherwise.
+.SH NOTES
+Not everything that's exposed in the Web UI is exposed by XML-RPC, and not
+everything that's exposed by XML-RPC is used by
+.BR bugzilla .
+.SH BUGS
+Bugs? In a sub-1.0 release? Preposterous.
+.SH AUTHOR
+Will Woods <wwoods@redhat.com>'''
+    print manpage
+
 def main():
     # Set up parser for global args
     parser = setup_parser()
@@ -428,7 +489,10 @@ def main():
 
 if __name__ == '__main__':
     try:
-        main()
+        if '--generate-man' in sys.argv:
+            generate_man_page()
+        else:
+            main()
     except KeyboardInterrupt:
         print "\ninterrupted."
-        sys.exit(0)
+        sys.exit(1)
