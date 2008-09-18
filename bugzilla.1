@@ -1,4 +1,4 @@
-.TH bugzilla 1  "March 25, 2008" "version 0.4" "User Commands"
+.TH bugzilla 1  "September 18, 2008" "version 0.4" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -8,7 +8,7 @@ bugzilla \- command-line interface to Bugzilla over XML-RPC
 .PP
 .BR bugzilla
 is a command-line utility that allows access to the XML-RPC interface provided
-by Bugzilla. 
+by Bugzilla.
 .PP
 \fIcommand\fP is one of:
 .br
@@ -21,53 +21,156 @@ by Bugzilla.
 .I \fR * modify - modify existing bugs
 .br
 .I \fR * info - get info about the given bugzilla instance
-.SH "OPTIONS"
-These options apply to all commands. They must come before the command name.
-.PP
-.IP "\fB\-h\fR, \fB\-\-help\fP"
-Displays a help message and then quits. If given after the command,
-this will give command-specific help.
-.IP "\fB\-\-bugzilla\fP=\fIURL\fP"
-URL for the XML-RPC interface provided by the bugzilla instance. Typically
-something like https://bugzilla.redhat.com/xmlrpc.cgi.
-.IP "\fB\-\-user\fP=\fIUSER\fP"
-Bugzilla username. If \fIuser\fP and \fIpassword\fP are not specified, 
-.BR bugzilla
-will try to use cookie authentication instead.
-.IP "\fB\-\-password\fP=\fIPASSWORD\fP"
-Bugzilla password. If \fIuser\fP and \fIpassword\fP are not specified,
-.BR bugzilla
-will try to use cookie authentication instead.
-.IP "\fB\-\-cookiefile\fP=\fICOOKIEFILE\fP"
-Cookie file to use for bugzilla authentication. Default:
-.I ~/.bugzillacookies
-.IP "\fB\-\-verbose\fP"
-Give some extra information about what's going on.
-.IP "\fB\-\-debug\fP"
-Give lots of noisy debugging info about every step of the process.
-.PP
-These options apply to the \fIinfo\fP command.
-.IP "\fB\-h\fR, \fB\-\-help\fP"
-Show usage information for the \fIinfo\fP command.
-.IP "\fB\-p\fR, \fB\-\-products\fP"
-Show a list of products.
-.IP "\fB\-c\fR, \fB\-\-components\fP=\fIPRODUCT\fP"
-List the components in the given product.
-.IP "\fB\-o\fR, \fB\-\-component_owners\fP=\fIPRODUCT\fP"
-List components and their owners.
-.IP "\fB\-v\fR, \fB\-\-versions\fP=\fIPRODUCT\fP"
-List the versions for the given product.
+.SH GLOBAL OPTIONS
+.IP "--help, -h"
+show this help message and exit
+.IP "--bugzilla=BUGZILLA"
+bugzilla XMLRPC URI. default: https://bugzilla.redhat.com/xmlrpc.cgi
+.IP "--user=USER"
+username
+.IP "--password=PASSWORD"
+password
+.IP "--cookiefile=COOKIEFILE"
+cookie file to use for bugzilla authentication
+.IP "--verbose"
+give more info about what's going on
+.IP "--debug"
+output bunches of debugging info
+.SH \[oq]INFO\[cq] OPTIONS
+.IP "--help, -h"
+show this help message and exit
+.IP "--products, -p"
+Get a list of products
+.IP "--components=PRODUCT, -c PRODUCT"
+List the components in the given product
+.IP "--component_owners=PRODUCT, -o PRODUCT"
+List components (and their owners)
+.IP "--versions=PRODUCT, -v PRODUCT"
+List the versions for the given product
+.SH \[oq]QUERY\[cq] OPTIONS
+.IP "--help, -h"
+show this help message and exit
+.IP "--bug_id=BUG_ID, -b BUG_ID"
+specify individual bugs by IDs, separated with commas
+.IP "--product=PRODUCT, -p PRODUCT"
+product name, comma-separated (list with 'bugzilla info -p')
+.IP "--version=VERSION, -v VERSION"
+product version
+.IP "--component=COMPONENT, -c COMPONENT"
+component name(s), comma-separated (list with 'bugzilla info -c PRODUCT')
+.IP "--components_file=COMPONENTS_FILE"
+list of component names from a file, one component per line (list with 'bugzilla info -c PRODUCT')
+.IP "--long_desc=LONG_DESC, -l LONG_DESC"
+search inside bug comments
+.IP "--short_desc=SHORT_DESC, -s SHORT_DESC"
+search bug summaries
+.IP "--bug_status=BUG_STATUS, -t BUG_STATUS"
+comma-separated list of bug statuses to accept [Default:NEW] [Available:NEW,ASSIGNED,NEEDINFO,ON_DEV,MODIFIED,POST,ON_QA,FAILS_QA,PASSES_QA,REOPENED,VERIFIED,RELEASE_PENDING,CLOSED]
+.IP "--severity=SEVERITY, -x SEVERITY"
+search severities, comma-separated
+.IP "--priority=PRIORITY, -z PRIORITY"
+search priorities, comma-separated
+.IP "--emailtype=EMAILTYPE, -E EMAILTYPE"
+Email: specify searching option for emails, ie. substring,notsubstring,exact,... [Default: substring]
+.IP "--cc=CC, -o CC"
+Email: search cc lists for given address
+.IP "--reporter=REPORTER, -r REPORTER"
+Email: search reporter email for given address
+.IP "--assigned_to=ASSIGNED_TO, -a ASSIGNED_TO"
+Email: search for bugs assigned to this address
+.IP "--qa_contact=QA_CONTACT, -q QA_CONTACT"
+Email: search for bugs which have QA Contact assigned to this address
+.IP "--url=URL, -u URL"
+search keywords field for given url
+.IP "--url_type=URL_TYPE, -U URL_TYPE"
+specify searching option for urls, ie. anywords,allwords,nowords
+.IP "--keywords=KEYWORDS, -k KEYWORDS"
+search keywords field for specified words
+.IP "--keywords_type=KEYWORDS_TYPE, -K KEYWORDS_TYPE"
+specify searching option for keywords, ie. anywords,allwords,nowords
+.IP "--status_whiteboard=STATUS_WHITEBOARD, -w STATUS_WHITEBOARD"
+search Status Whiteboard field for specified words
+.IP "--status_whiteboard_type=STATUS_WHITEBOARD_TYPE, -W STATUS_WHITEBOARD_TYPE"
+specify searching option for Status Whiteboard, ie. anywords,allwords,nowords
+.IP "--booleantype=BOOLEANTYPE, -B BOOLEANTYPE"
+specify searching option for booleans, ie. substring,notsubstring,exact,... [Default: substring]
+.IP "--boolean_query=BOOLEAN_QUERY"
+Boolean:Create your own query. Format: BooleanName-Condition-Parameter &/| ... . ie, keywords-substring-Partner & keywords-notsubstring-OtherQA
+.IP "--blocked=BLOCKED"
+Boolean:search for bugs that block this bug ID
+.IP "--dependson=DEPENDSON"
+Boolean:search for bugs that depend on this bug ID
+.IP "--flag=FLAG"
+Boolean:search for bugs that have certain flag states present
+.IP "--qa_whiteboard=QA_WHITEBOARD"
+Boolean:search for bugs that have certain QA Whiteboard text present
+.IP "--devel_whiteboard=DEVEL_WHITEBOARD"
+Boolean:search for bugs that have certain Devel Whiteboard text present
+.IP "--alias=ALIAS"
+Boolean:search for bugs that have the provided alias
+.IP "--fixed_in=FIXED_IN"
+search Status Whiteboard field for specified words
+.IP "--full, -f"
+output detailed bug info
+.IP "--ids, -i"
+output only bug IDs
+.IP "--extra, -e"
+output additional bug information (keywords, Whiteboards, etc.)
+.IP "--outputformat=OUTPUTFORMAT"
+Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'
+.SH \[oq]NEW\[cq] OPTIONS
+.IP "--help, -h"
+show this help message and exit
+.IP "--product=PRODUCT, -p PRODUCT"
+REQUIRED: product name (list with 'bugzilla info -p')
+.IP "--version=VERSION, -v VERSION"
+REQUIRED: product version
+.IP "--component=COMPONENT, -c COMPONENT"
+REQUIRED: component name (list with 'bugzilla info -c PRODUCT')
+.IP "--comment=COMMENT, -l COMMENT"
+REQUIRED: initial bug comment
+.IP "--summary=SHORT_DESC, -s SHORT_DESC"
+REQUIRED: bug summary
+.IP "--os=OP_SYS, -o OP_SYS"
+OPTIONAL: operating system (default: Linux)
+.IP "--arch=REP_PLATFORM, -a REP_PLATFORM"
+OPTIONAL: arch this bug occurs on (default: All)
+.IP "--severity=BUG_SEVERITY"
+OPTIONAL: bug severity (default: medium)
+.IP "--priority=PRIORITY"
+OPTIONAL: bug priority (default: medium)
+.IP "--url=BUG_FILE_LOC, -u BUG_FILE_LOC"
+OPTIONAL: URL for further bug info
+.IP "--cc=CC"
+OPTIONAL: add emails to initial CC list
+.IP "--full, -f"
+output detailed bug info
+.IP "--ids, -i"
+output only bug IDs
+.IP "--extra, -e"
+output additional bug information (keywords, Whiteboards, etc.)
+.IP "--outputformat=OUTPUTFORMAT"
+Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'
+.SH \[oq]MODIFY\[cq] OPTIONS
+.IP "--help, -h"
+show this help message and exit
+.IP "--comment=COMMENT, -l COMMENT"
+Add a comment
+.IP "--close=RESOLUTION, -k RESOLUTION"
+Close with the given resolution
+.SH \[oq]LOGIN\[cq] OPTIONS
+.IP "--help, -h"
+show this help message and exit
 .SH EXAMPLES
 .TP
 bugzilla query --bug_id 62037
 .SH EXIT STATUS
 .BR bugzilla
-currently returns 0 for all operations. Sorry about that.
+returns 1 if login fails or it is interrupted, and 0 otherwise.
 .SH NOTES
 Not everything that's exposed in the Web UI is exposed by XML-RPC, and not
 everything that's exposed by XML-RPC is used by
 .BR bugzilla .
-Furthermore, this documentation is woefully incomplete.
 .SH BUGS
 Bugs? In a sub-1.0 release? Preposterous.
 .SH AUTHOR
