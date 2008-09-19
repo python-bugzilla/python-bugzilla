@@ -10,4 +10,5 @@ setup(name='python-bugzilla',
       url='http://wwoods.fedorapeople.org/python-bugzilla/',
       packages = ['bugzilla'],
       scripts=['bin/bugzilla'],
+      data_files=[('share/man/man1', ['bugzilla.1'])],
 )
