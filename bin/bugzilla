@@ -170,6 +170,8 @@ def setup_action_parser(action):
                 const='ids',help="output only bug IDs")
         p.add_option('-e','--extra',action='store_const',dest='output',
                 const='extra',help="output additional bug information (keywords, Whiteboards, etc.)")
+	p.add_option('--oneline', action='store_const', dest='output',
+		const='oneline',help="one line summary of the bug (useful for scripts)")
         p.add_option('--outputformat',
                 help="Print output in the form given. You can use RPM-style "+
                 "tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'")
@@ -484,6 +486,22 @@ def main():
                 if b.status_whiteboard: print " +Status Whiteboard: ",b.status_whiteboard
                 if b.devel_whiteboard: print " +Devel Whiteboard: ",b.devel_whiteboard
             print "\nBugs listed: ",len(buglist)
+	elif opt.output == 'oneline':
+	    for b in fullbuglist:
+		flags=''
+		cve=''
+		#grab all the flags that are set
+		for i in b.flag_types:
+			for s in i['flags']:
+				if s['status']: flags += i['name'] + ":" + str(s['status']) + " "
+		#grab CVEs by searching the keywords and grabbing that bugzilla
+                if b.keywords.find("Security") != -1:
+			for bl in b.blocked:
+				cvebug = bz.getbug(bl)
+				if cvebug.alias.find("CVE") != -1:
+					cve += cvebug.alias + " "
+		print "#%s %8s %22s %s\t[%s] %s %s" % (b.bug_id, b.bug_status,
+			b.assigned_to, b.component, b.target_milestone, flags, cve)
         else:
             parser.error("opt.output was set to something weird.")
 
