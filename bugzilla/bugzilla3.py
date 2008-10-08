@@ -46,8 +46,6 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         if 'assigned_to' not in keylist:
             keylist.append('assigned_to')
         return keylist
-    def _getqueryinfo(self):
-        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
     def _getproducts(self):
         '''This throws away a bunch of data that RH's getProdInfo
         didn't return. Ah, abstraction.'''
@@ -59,8 +57,6 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
             product = self._product_name_to_id(product)
         r = self._proxy.Bug.legal_values({'product_id':product,'field':'component'})
         return r['values']
-    def _getcomponentsdetails(self,product):
-        raise NotImplementedError
 
     #---- Methods for reading bugs and bug info
 
@@ -74,30 +70,6 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
    # Bugzilla3 doesn't have getbugsimple - alias to the full method(s)
     _getbugsimple = _getbug
     _getbugssimple = _getbugs
-
-    # Bugzilla 3.0 doesn't have a *lot* of things, actually. 
-    def _query(self,query):
-        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
-    def _addcomment(self,id,comment,private=False,
-                   timestamp='',worktime='',bz_gid=''):
-        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
-    def _setstatus(self,id,status,comment='',private=False,private_in_it=False,nomail=False):
-        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
-    def _closebug(self,id,resolution,dupeid,fixedin,comment,isprivate,private_in_it,nomail):
-        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
-    def _setassignee(self,id,**data):
-        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
-    def _updatedeps(self,id,deplist):
-        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
-    def _updatecc(self,id,cclist,action,comment='',nomail=False):
-        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
-    def _updatewhiteboard(self,id,text,which,action):
-        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
-    # TODO: update this when the XMLRPC interface grows requestee support
-    def _updateflags(self,id,flags):
-        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
-    def _attachfile(self,id,**attachdata):
-        raise NotImplementedError, "Bugzilla 3.0 does not support this method."
 
     #---- createbug - call to create a new bug
 
