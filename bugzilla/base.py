@@ -357,6 +357,9 @@ class BugzillaBase(object):
     def _query(self,query):
         '''IMPLEMENT ME: Query bugzilla and return a list of matching bugs.'''
         raise NotImplementedError
+    def _updateperms(self,user,action,group):
+        '''IMPLEMEMT ME: Update Bugzilla user permissions'''
+        raise NotImplementedError
 
     # these return Bug objects 
     def getbug(self,id):
@@ -664,6 +667,16 @@ class BugzillaBase(object):
         # lied about the actual contents of the database. That would be bad.
         bug_id = self._createbug(**data)
         return Bug(self,bug_id=bug_id)
+
+    def updateperms(self,user,action,groups):
+        '''A method to update  the permissions (group membership) of a bugzilla
+        user. Takes the following:
+
+        user: The e-mail address of the user to be acted upon
+        action: either add or rem
+        groups: list of groups to be added to (i.e. ['fedora_contrib'])
+        '''
+        self._updateperms(user,action,groups)
 
 class CookieResponse:
     '''Fake HTTPResponse object that we can fill with headers we got elsewhere.
