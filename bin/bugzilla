@@ -470,7 +470,7 @@ def main():
                 if b.blocked: print "Blocked: %s" % " ".join([str(i) for i in b.blocked])
                 if b.dependson: print "Depends: %s" % " ".join([str(i) for i in b.dependson])
                 for c in b.longdescs:
-                    print "* %s - %s (%s):\n%s\n" % (c['time'],c['name'],c['email'] or c['safe_email'],c['body'])
+                    print "* %s - %s (%s):\n%s\n" % (c['time'],c['author'],c['email'] or c['safe_email'],c['body'])
         elif opt.output == 'normal':
             for b in buglist:
                 print b
