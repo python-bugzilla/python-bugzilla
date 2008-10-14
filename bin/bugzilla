@@ -94,8 +94,8 @@ def setup_action_parser(action):
                 help="search inside bug comments")
         p.add_option('-s','--short_desc',
                 help="search bug summaries")
-        p.add_option('-t','--bug_status',default="NEW",
-                help="comma-separated list of bug statuses to accept [Default:NEW] [Available:NEW,ASSIGNED,NEEDINFO,ON_DEV,MODIFIED,POST,ON_QA,FAILS_QA,PASSES_QA,REOPENED,VERIFIED,RELEASE_PENDING,CLOSED]")
+        p.add_option('-t','--bug_status',default="ALL",
+                help="comma-separated list of bug statuses to accept [Default:all] [Available:NEW,ASSIGNED,NEEDINFO,ON_DEV,MODIFIED,POST,ON_QA,FAILS_QA,PASSES_QA,REOPENED,VERIFIED,RELEASE_PENDING,CLOSED]")
         p.add_option('-x','--severity',
                 help="search severities, comma-separated")
         p.add_option('-z','--priority',
@@ -325,98 +325,93 @@ def main():
                         print v
 
     elif action == 'query':
-        # shortcut for specific bug_ids
-        if opt.bug_id:
-            log.debug("bz.getbugs(%s)", opt.bug_id.split(','))
-            buglist=bz.getbugs(opt.bug_id.split(','))
-        else:
-            # Construct the query from the list of queryable options
-            q = dict()
-            email_count = 1
-            chart_id = 0
-            for a in ('product','component','components_file','version','long_desc','bug_id',
-                      'short_desc','cc','assigned_to','reporter','qa_contact','bug_status',
-                      'blocked','dependson','keywords','keywords_type','url','url_type','status_whiteboard',
-                      'status_whiteboard_type','fixed_in','fixed_in_type','flag','alias','qa_whiteboard',
-                      'devel_whiteboard','boolean_query','severity','priority'):
-                if hasattr(opt,a):
-                    i = getattr(opt,a)
-                    if i:
-                        if a in ('bug_status'): # list args
-                            # FIXME: statuses can differ between bugzilla instances..
-                            if i == 'ALL':
-                            # Alias for all available bug statuses
-                                q[a] = 'NEW,ASSIGNED,NEEDINFO,ON_DEV,MODIFIED,POST,ON_QA,FAILS_QA,PASSES_QA,REOPENED,VERIFIED,RELEASE_PENDING,CLOSED'.split(',')
-                            elif i == 'DEV':
+        # Construct the query from the list of queryable options
+        q = dict()
+        email_count = 1
+        chart_id = 0
+        for a in ('product','component','components_file','version','long_desc','bug_id',
+                  'short_desc','cc','assigned_to','reporter','qa_contact','bug_status',
+                  'blocked','dependson','keywords','keywords_type','url','url_type','status_whiteboard',
+                  'status_whiteboard_type','fixed_in','fixed_in_type','flag','alias','qa_whiteboard',
+                  'devel_whiteboard','boolean_query','severity','priority'):
+            if hasattr(opt,a):
+                i = getattr(opt,a)
+                if i:
+                    if a in ('bug_status'): # list args
+                        # FIXME: statuses can differ between bugzilla instances..
+                        if i == 'ALL':
+                            # leaving this out should return bugs of any status
+                            pass
+                        elif i == 'DEV':
                             # Alias for all development bug statuses
-                                q[a] = 'NEW,ASSIGNED,NEEDINFO,ON_DEV,MODIFIED,POST,REOPENED'.split(',')
-                            elif i == 'QE':
+                            q[a] = 'NEW,ASSIGNED,NEEDINFO,ON_DEV,MODIFIED,POST,REOPENED'.split(',')
+                        elif i == 'QE':
                             # Alias for all QE relevant bug statuses
-                                q[a] = 'ASSIGNED,ON_QA,FAILS_QA,PASSES_QA'.split(',')
-                            elif i == 'EOL':
+                            q[a] = 'ASSIGNED,ON_QA,FAILS_QA,PASSES_QA'.split(',')
+                        elif i == 'EOL':
                             # Alias for EndOfLife bug statuses
-                                q[a] = 'VERIFIED,RELEASE_PENDING,CLOSED'.split(',')
-                            else:
-                                q[a] = i.split(',')
-                        elif a in ('cc','assigned_to','reporter','qa_contact'):
-                            # Emails
-                            # ex.: {'email1':'foo@bar.com','emailcc1':True}
-                            q['email%i' % email_count] = i
-                            q['email%s%i' % (a,email_count)] = True
-                            q['emailtype%i' % email_count] = opt.emailtype
-                            email_count += 1
-                        elif a in ('components_file'): 
-                            # Components slurped in from file (one component per line)
-                            # This can be made more robust
-                            arr = []
-                            f = open (i, 'r')
-                            for line in f.readlines():
-                                line = line.rstrip("\n")
-                                arr.append(line)
-                            q['component'] = ",".join(arr)
-                        elif a in ('keywords','keywords_type','url','url_type','status_whiteboard',
-                                'status_whiteboard_type','severity','priority'): 
-                            if a in ('url'):
-                                q['bug_file_loc'] = i
-                            elif a in ('url'):
-                                q['bug_file_loc_type'] = i
-                            else:
-                                q['%s' % a] = i
-                        elif a in ('fixed_in','blocked','dependson','flag','qa_whiteboard','devel_whiteboard','alias'): 
-                            # Boolean Charts
-                            if a in ('flag'):
-                            # Flags have strange parameter name
-                                q['field%i-0-0' % chart_id] = 'flagtypes.name'
-                            else:
-                                q['field%i-0-0' % chart_id] = a
-                            q['value%i-0-0' % chart_id] = i
-                            q['type%i-0-0' % chart_id]  = opt.booleantype
-                            chart_id += 1
-                        elif a in ('boolean_query'): 
-                            # Custom Boolean Chart query
-                            # Format: BooleanName-Condition-Parameter &/| BooleanName-Condition-Parameter &/| ...
-                            # ie, keywords-substring-Partner | keywords-notsubstring-PartnerVerified & keywords-notsubstring-OtherQA 
-                            chart_id = 0
-                            and_count = 0
-                            or_count = 0
-                           # Manually specified boolean query
-                            x = i.split(' ')
-                            for par in x :
-                                if par.find('&') != -1:
-                                    and_count += 1
-                                elif par.find('|') != -1:
-                                    or_count += 1
-                                elif par.find('-') != -1:
-                                    args = par.split('-')
-                                    q['field%i-%i-%i' % (chart_id,and_count,or_count)] = args[0]
-                                    q['type%i-%i-%i' % (chart_id,and_count,or_count)]  = args[1]
-                                    q['value%i-%i-%i' % (chart_id,and_count,or_count)] = args[2]
-                                else:
-                                    parser.error('Malformed boolean query: %s' % i)
+                            q[a] = 'VERIFIED,RELEASE_PENDING,CLOSED'.split(',')
                         else:
-                            q[a] = i
-            log.debug("bz.query: %s", q)
-            buglist = bz.query(q)
+                            q[a] = i.split(',')
+                    elif a in ('cc','assigned_to','reporter','qa_contact'):
+                        # Emails
+                        # ex.: {'email1':'foo@bar.com','emailcc1':True}
+                        q['email%i' % email_count] = i
+                        q['email%s%i' % (a,email_count)] = True
+                        q['emailtype%i' % email_count] = opt.emailtype
+                        email_count += 1
+                    elif a in ('components_file'): 
+                        # Components slurped in from file (one component per line)
+                        # This can be made more robust
+                        arr = []
+                        f = open (i, 'r')
+                        for line in f.readlines():
+                            line = line.rstrip("\n")
+                            arr.append(line)
+                        q['component'] = ",".join(arr)
+                    elif a in ('keywords','keywords_type','url','url_type','status_whiteboard',
+                            'status_whiteboard_type','severity','priority'): 
+                        if a in ('url'):
+                            q['bug_file_loc'] = i
+                        elif a in ('url'):
+                            q['bug_file_loc_type'] = i
+                        else:
+                            q['%s' % a] = i
+                    elif a in ('fixed_in','blocked','dependson','flag','qa_whiteboard','devel_whiteboard','alias'): 
+                        # Boolean Charts
+                        if a in ('flag'):
+                        # Flags have strange parameter name
+                            q['field%i-0-0' % chart_id] = 'flagtypes.name'
+                        else:
+                            q['field%i-0-0' % chart_id] = a
+                        q['value%i-0-0' % chart_id] = i
+                        q['type%i-0-0' % chart_id]  = opt.booleantype
+                        chart_id += 1
+                    elif a in ('boolean_query'): 
+                        # Custom Boolean Chart query
+                        # Format: BooleanName-Condition-Parameter &/| BooleanName-Condition-Parameter &/| ...
+                        # ie, keywords-substring-Partner | keywords-notsubstring-PartnerVerified & keywords-notsubstring-OtherQA 
+                        chart_id = 0
+                        and_count = 0
+                        or_count = 0
+                        # Manually specified boolean query
+                        x = i.split(' ')
+                        for par in x :
+                            if par.find('&') != -1:
+                                and_count += 1
+                            elif par.find('|') != -1:
+                                or_count += 1
+                            elif par.find('-') != -1:
+                                args = par.split('-')
+                                q['field%i-%i-%i' % (chart_id,and_count,or_count)] = args[0]
+                                q['type%i-%i-%i' % (chart_id,and_count,or_count)]  = args[1]
+                                q['value%i-%i-%i' % (chart_id,and_count,or_count)] = args[2]
+                            else:
+                                parser.error('Malformed boolean query: %s' % i)
+                    else:
+                        q[a] = i
+        log.debug("bz.query: %s", q)
+        buglist = bz.query(q)
 
     elif action == 'new':
         data = dict()
