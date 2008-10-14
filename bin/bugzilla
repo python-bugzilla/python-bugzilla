@@ -35,6 +35,9 @@ def setup_parser():
     # General bugzilla connection options
     p.add_option('--bugzilla',default=default_bz,
             help="bugzilla XMLRPC URI. default: %s" % default_bz)
+    p.add_option('--bztype',default='auto',
+            help="Bugzilla type. Autodetected if not set."
+                 "Available types: %s" % " ".join(bugzilla.classlist))
     p.add_option('--user',
             help="username")
     p.add_option('--password',
@@ -254,7 +257,16 @@ def main():
 
     # Connect to bugzilla
     log.info('Connecting to %s',global_opt.bugzilla)
-    bz=bugzilla.Bugzilla(url=global_opt.bugzilla)
+
+    if global_opt.bztype == 'auto':
+        bzclass = bugzilla.Bugzilla 
+        log.info('Autodetecting Bugzilla type')
+    elif global_opt.bztype in bugzilla.classlist:
+        log.info('Using Bugzilla class %s' % global_opt.bztype)
+        bzclass = getattr(bugzilla,global_opt.bztype)
+    else:
+        parser.error("bztype must be one of: %s" % str(bugzilla.classlist))
+    bz=bzclass(url=global_opt.bugzilla)
 
     # Handle 'login' action
     if action == 'login':
