@@ -366,7 +366,7 @@ class RHBugzilla3(Bugzilla32, RHBugzilla):
         r = []
         if self.multicall:
             if len(idlist) == 1:
-                return self._proxy.bugzilla.getBug(idlist[0])
+                return [self._proxy.bugzilla.getBug(idlist[0])]
             mc = self._multicall()
             for id in idlist:
                 mc._proxy.bugzilla.getBug(id)
