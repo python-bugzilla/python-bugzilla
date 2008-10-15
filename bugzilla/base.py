@@ -955,10 +955,10 @@ class Bug(object):
         '''Adds the given email addresses to the CC list for this bug.
         cclist: list of email addresses (strings)
         comment: optional comment to add to the bug'''
-        self.bugzilla.updatecc(self.bug_id,cclist,'add',comment)
+        self.bugzilla._updatecc(self.bug_id,cclist,'add',comment)
     def deletecc(self,cclist,comment=''):
         '''Removes the given email addresses from the CC list for this bug.'''
-        self.bugzilla.updatecc(self.bug_id,cclist,'delete',comment)
+        self.bugzilla._updatecc(self.bug_id,cclist,'delete',comment)
 # TODO: attach(file), getflag(), setflag()
 # TODO: add a sync() method that writes the changed data in the Bug object
 # back to Bugzilla?
