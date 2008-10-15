@@ -368,7 +368,7 @@ class BugzillaBase(object):
     def getbug(self,id):
         '''Return a Bug object with the full complement of bug data
         already loaded.'''
-        log.debug("getbug(%i)" % id)
+        log.debug("getbug(%s)" % str(id))
         return Bug(bugzilla=self,dict=self._getbug(id))
     def getbugsimple(self,id):
         '''Return a Bug object given bug id, populated with simple info'''
