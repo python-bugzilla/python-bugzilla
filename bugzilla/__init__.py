@@ -16,6 +16,9 @@ import xmlrpclib
 import logging
 log = logging.getLogger("bugzilla")
 
+# advertised class list
+classlist = ['Bugzilla3', 'Bugzilla32', 'RHBugzilla3']
+
 def getBugzillaClassForURL(url):
     log.debug("Choosing subclass for %s" % url)
     s = xmlrpclib.ServerProxy(url)
