@@ -330,6 +330,9 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
     def _updateperms(self,user,action,groups):
         r = self._proxy.bugzilla.updatePerms(user, action, groups, self.user)
         return r
+    def _adduser(self,user,name):
+        r = self._proxy.bugzilla.addUser(user, name, self.user)
+        return r
 
 class RHBugzilla3(Bugzilla32, RHBugzilla):
     '''Concrete implementation of the Bugzilla protocol. This one uses the

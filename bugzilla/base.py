@@ -360,6 +360,9 @@ class BugzillaBase(object):
     def _updateperms(self,user,action,group):
         '''IMPLEMEMT ME: Update Bugzilla user permissions'''
         raise NotImplementedError
+    def _adduser(self,email,name):
+        '''IMPLEMENT ME: Add a bugzilla user'''
+        raise NotImplementedError
 
     # these return Bug objects 
     def getbug(self,id):
@@ -677,6 +680,13 @@ class BugzillaBase(object):
         groups: list of groups to be added to (i.e. ['fedora_contrib'])
         '''
         self._updateperms(user,action,groups)
+    def adduser(self,user,name):
+        '''A method to create a user in Bugzilla. Takes the following:
+
+        email: The email address of the user to create
+        name: The full name of the user to create
+        '''
+        self._adduser(user,name)
 
 class CookieResponse:
     '''Fake HTTPResponse object that we can fill with headers we got elsewhere.
