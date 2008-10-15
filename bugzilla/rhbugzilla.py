@@ -343,10 +343,11 @@ class RHBugzilla3(Bugzilla32, RHBugzilla):
     This class was written using bugzilla.redhat.com's API docs:
     https://bugzilla.redhat.com/docs/en/html/api/
 
-    By default, _getbugs will multicall Bug.get(id) multiple times, rather than
+    By default, _getbugs will multicall getBug(id) multiple times, rather than
     doing a single Bug.get(idlist) call. You can disable this behavior by
-    setting the 'multicall' property to False. This is faster, but less
-    compatible with RHBugzilla.
+    setting the 'multicall' property to False. This will make it somewhat
+    faster, but any missing/unreadable bugs will cause the entire call to
+    Fault rather than returning any data.
     '''
 
     version = '0.1'
@@ -361,6 +362,8 @@ class RHBugzilla3(Bugzilla32, RHBugzilla):
     def _getbugs(self,idlist):
         r = []
         if self.multicall:
+            if len(idlist) == 1:
+                return self._proxy.bugzilla.getBug(idlist[0])
             mc = self._multicall()
             for id in idlist:
                 mc._proxy.bugzilla.getBug(id)
