@@ -864,7 +864,7 @@ class Bug(object):
         self.__dict__.update(r)
 
     def reload(self): 
-        '''An alias for reload()'''
+        '''An alias for refresh()'''
         self.refresh()
 
     def setstatus(self,status,comment='',private=False,private_in_it=False,nomail=False):
