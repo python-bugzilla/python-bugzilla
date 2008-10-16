@@ -36,7 +36,7 @@ def setup_parser():
     p.add_option('--bugzilla',default=default_bz,
             help="bugzilla XMLRPC URI. default: %s" % default_bz)
     p.add_option('--bztype',default='auto',
-            help="Bugzilla type. Autodetected if not set."
+            help="Bugzilla type. Autodetected if not set. "
                  "Available types: %s" % " ".join(bugzilla.classlist))
     p.add_option('--user',
             help="username")

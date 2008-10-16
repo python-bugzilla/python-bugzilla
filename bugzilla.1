@@ -1,4 +1,4 @@
-.TH bugzilla 1  "September 18, 2008" "version 0.4" "User Commands"
+.TH bugzilla 1  "October 16, 2008" "version 0.4" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -26,6 +26,8 @@ by Bugzilla.
 show this help message and exit
 .IP "--bugzilla=BUGZILLA"
 bugzilla XMLRPC URI. default: https://bugzilla.redhat.com/xmlrpc.cgi
+.IP "--bztype=BZTYPE"
+Bugzilla type. Autodetected if not set. Available types: Bugzilla3 Bugzilla32 RHBugzilla3
 .IP "--user=USER"
 username
 .IP "--password=PASSWORD"
@@ -65,7 +67,7 @@ search inside bug comments
 .IP "--short_desc=SHORT_DESC, -s SHORT_DESC"
 search bug summaries
 .IP "--bug_status=BUG_STATUS, -t BUG_STATUS"
-comma-separated list of bug statuses to accept [Default:NEW] [Available:NEW,ASSIGNED,NEEDINFO,ON_DEV,MODIFIED,POST,ON_QA,FAILS_QA,PASSES_QA,REOPENED,VERIFIED,RELEASE_PENDING,CLOSED]
+comma-separated list of bug statuses to accept [Default:all] [Available:NEW,ASSIGNED,NEEDINFO,ON_DEV,MODIFIED,POST,ON_QA,FAILS_QA,PASSES_QA,REOPENED,VERIFIED,RELEASE_PENDING,CLOSED]
 .IP "--severity=SEVERITY, -x SEVERITY"
 search severities, comma-separated
 .IP "--priority=PRIORITY, -z PRIORITY"
@@ -116,6 +118,8 @@ output detailed bug info
 output only bug IDs
 .IP "--extra, -e"
 output additional bug information (keywords, Whiteboards, etc.)
+.IP "--oneline"
+one line summary of the bug (useful for scripts)
 .IP "--outputformat=OUTPUTFORMAT"
 Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'
 .SH \[oq]NEW\[cq] OPTIONS
@@ -149,6 +153,8 @@ output detailed bug info
 output only bug IDs
 .IP "--extra, -e"
 output additional bug information (keywords, Whiteboards, etc.)
+.IP "--oneline"
+one line summary of the bug (useful for scripts)
 .IP "--outputformat=OUTPUTFORMAT"
 Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'
 .SH \[oq]MODIFY\[cq] OPTIONS
