@@ -1,21 +1,15 @@
 This is a python module that provides a nice, python-ish interface to Bugzilla
 over XMLRPC.
 
-Currently it targets Red Hat's xmlrpc services, because:
-a) That's what the Fedora project uses, and
-b) Even if it is ugly, it's got more methods than the Bugzilla 3.x API
+It was originally written specifically for Red Hat's Bugzilla instance, but
+now supports the Web Services provided by upstream Bugzilla 3.0 and 3.2 also.
 
-In the near future (see TODO) we may fully support the Bugzilla 3.x API, 
-although it still probably won't not support all the same methods as the
-RHBugzilla class.
-
-In the long-term future, Red Hat is planning on porting their interfaces to
-the Bugzilla 3.0 framework and contributing them to upstream Bugzilla, so in
-time we may drop the Red Hat implementation in favor of one unified Bugzilla
-interface. Won't that be nice? 
+It also includes a 'bugzilla' commandline client which can be used for quick, 
+ad-hoc bugzilla jiggery-pokery. I guess you could use it in shell scripts too,
+but gosh - why not just write something in Python instead?
 
 Comments, suggestions, and - most of all - patches are welcomed and encouraged.
 
 Enjoy.
 
-Will Woods <wwoods@redhat.com>, 25 Mar 2008
+Will Woods <wwoods@redhat.com>, Oct 16 2008

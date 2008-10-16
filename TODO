@@ -1,6 +1,5 @@
 For 0.4:
-- Fix up selftest.py
-- actually install the man page
+- Fix up selftest.py (it's a big fat mess)
 
 For 0.5:
 - make Bugzilla methods all take a bug ID list
@@ -13,6 +12,5 @@ Someday:
   - fix bz.createbug(description=desc,...) vs. bug.close(comment=desc,...)
   - use field_aliases to fix up bug.close and friends?
 - make the abstract methods return stuff closer to Bugzilla3's return values
-- auto-generate the man page
 - Document the 0.x API as it stands
 - Work on a cleaner 1.x API
