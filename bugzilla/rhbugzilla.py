@@ -333,6 +333,15 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
     def _adduser(self,user,name):
         r = self._proxy.bugzilla.addUser(user, name, self.user)
         return r
+    def _addcomponent(self,data):
+        add_required_fields = ('product','component','initialowner')
+        for field in add_required_fields:
+            if field not in data or not data[field]:
+                raise TypeError, "mandatory fields missing: %s" % field
+        if type(data['product']) == int:
+            data['product'] = self._product_id_to_name(data['product'])
+        r = self._proxy.bugzilla.addComponent(data)
+        return r
 
 class RHBugzilla3(Bugzilla32, RHBugzilla):
     '''Concrete implementation of the Bugzilla protocol. This one uses the

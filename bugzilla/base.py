@@ -363,6 +363,9 @@ class BugzillaBase(object):
     def _adduser(self,email,name):
         '''IMPLEMENT ME: Add a bugzilla user'''
         raise NotImplementedError
+    def _addcomponent(self,data):
+        '''IMPLEMENT ME: Add a component'''
+        raise NotImplementedError
 
     # these return Bug objects 
     def getbug(self,id):
@@ -687,6 +690,21 @@ class BugzillaBase(object):
         name: The full name of the user to create
         '''
         self._adduser(user,name)
+    def addcomponent(self,data):
+        '''A method to create a component in Bugzilla. Takes a dict, with the
+        following elements:
+
+        product: The product to create the component in
+        component: The name of the component to create
+        initialowner: The bugzilla login (email address) of the initial owner
+        of the component
+        initialqacontact: The bugzilla login of the initial QA contact
+        initialcclist: The initial list of users to be CC'ed on new bugs for
+        the component.
+
+        product, component, and initalowner are mandatory.
+        '''
+        self._addcomponent(data)
 
 class CookieResponse:
     '''Fake HTTPResponse object that we can fill with headers we got elsewhere.
