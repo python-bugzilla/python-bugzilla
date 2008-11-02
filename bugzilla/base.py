@@ -366,6 +366,9 @@ class BugzillaBase(object):
     def _addcomponent(self,data):
         '''IMPLEMENT ME: Add a component'''
         raise NotImplementedError
+    def _editcomponent(self,data):
+        '''IMPLEMENT ME: Edit a component'''
+        raise NotImplementedError
 
     # these return Bug objects 
     def getbug(self,id):
@@ -706,6 +709,13 @@ class BugzillaBase(object):
         product, component, description and initalowner are mandatory.
         '''
         self._addcomponent(data)
+    def editcomponent(self,data):
+        '''A method to edit a component in Bugzilla. Takes a dict, with a
+        madatory element of 'initialowner'. All other elements are optional,
+        using the same elements as in the addcomponent() method.'''
+        # FIXME - initialowner is mandatory for some reason now. Toshio
+        # following up with dkl as to why.
+        self._editcomponent(data)
 
 class CookieResponse:
     '''Fake HTTPResponse object that we can fill with headers we got elsewhere.
