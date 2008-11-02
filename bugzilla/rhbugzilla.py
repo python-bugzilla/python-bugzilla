@@ -334,7 +334,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         r = self._proxy.bugzilla.addUser(user, name, self.user)
         return r
     def _addcomponent(self,data):
-        add_required_fields = ('product','component','initialowner')
+        add_required_fields = ('product','component','initialowner','description')
         for field in add_required_fields:
             if field not in data or not data[field]:
                 raise TypeError, "mandatory fields missing: %s" % field

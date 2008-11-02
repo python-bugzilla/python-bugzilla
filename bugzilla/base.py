@@ -701,8 +701,9 @@ class BugzillaBase(object):
         initialqacontact: The bugzilla login of the initial QA contact
         initialcclist: The initial list of users to be CC'ed on new bugs for
         the component.
+        desription: A one sentence summary of the component
 
-        product, component, and initalowner are mandatory.
+        product, component, description and initalowner are mandatory.
         '''
         self._addcomponent(data)
 
