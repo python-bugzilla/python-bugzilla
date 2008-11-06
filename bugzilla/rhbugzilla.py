@@ -328,10 +328,11 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         return r[0]
     # Methods for updating a user
     def _updateperms(self,user,action,groups):
-        r = self._proxy.bugzilla.updatePerms(user, action, groups, self.user)
+        r = self._proxy.bugzilla.updatePerms(user, action, groups, self.user,
+                self.password)
         return r
     def _adduser(self,user,name):
-        r = self._proxy.bugzilla.addUser(user, name, self.user)
+        r = self._proxy.bugzilla.addUser(user, name, self.user, self.password)
         return r
     def _addcomponent(self,data):
         add_required_fields = ('product','component','initialowner','description')

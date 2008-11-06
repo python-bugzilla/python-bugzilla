@@ -689,7 +689,7 @@ class BugzillaBase(object):
     def adduser(self,user,name):
         '''A method to create a user in Bugzilla. Takes the following:
 
-        email: The email address of the user to create
+        user: The email address of the user to create
         name: The full name of the user to create
         '''
         self._adduser(user,name)
@@ -710,9 +710,10 @@ class BugzillaBase(object):
         '''
         self._addcomponent(data)
     def editcomponent(self,data):
-        '''A method to edit a component in Bugzilla. Takes a dict, with a
-        madatory element of 'initialowner'. All other elements are optional,
-        using the same elements as in the addcomponent() method.'''
+        '''A method to edit a component in Bugzilla. Takes a dict, with
+            mandatory elements of product. component, and initialowner.
+            All other elements are optional and use the same names as the
+            addcomponent() method.'''
         # FIXME - initialowner is mandatory for some reason now. Toshio
         # following up with dkl as to why.
         self._editcomponent(data)
