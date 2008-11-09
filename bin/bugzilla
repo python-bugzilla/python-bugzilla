@@ -364,11 +364,14 @@ def main():
                         # Components slurped in from file (one component per line)
                         # This can be made more robust
                         arr = []
-                        f = open (i, 'r')
-                        for line in f.readlines():
-                            line = line.rstrip("\n")
-                            arr.append(line)
-                        q['component'] = ",".join(arr)
+			try:
+				f = open (i, 'r')
+				for line in f.readlines():
+					line = line.rstrip("\n")
+					arr.append(line)
+				q['component'] = ",".join(arr)
+			except IOError:
+				q['component'] = i
                     elif a in ('keywords','keywords_type','url','url_type','status_whiteboard',
                             'status_whiteboard_type','severity','priority'): 
                         if a in ('url'):
