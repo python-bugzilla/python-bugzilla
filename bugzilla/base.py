@@ -363,6 +363,12 @@ class BugzillaBase(object):
     def _adduser(self,email,name):
         '''IMPLEMENT ME: Add a bugzilla user'''
         raise NotImplementedError
+    def _addcomponent(self,data):
+        '''IMPLEMENT ME: Add a component'''
+        raise NotImplementedError
+    def _editcomponent(self,data):
+        '''IMPLEMENT ME: Edit a component'''
+        raise NotImplementedError
 
     # these return Bug objects 
     def getbug(self,id):
@@ -683,10 +689,34 @@ class BugzillaBase(object):
     def adduser(self,user,name):
         '''A method to create a user in Bugzilla. Takes the following:
 
-        email: The email address of the user to create
+        user: The email address of the user to create
         name: The full name of the user to create
         '''
         self._adduser(user,name)
+    def addcomponent(self,data):
+        '''A method to create a component in Bugzilla. Takes a dict, with the
+        following elements:
+
+        product: The product to create the component in
+        component: The name of the component to create
+        initialowner: The bugzilla login (email address) of the initial owner
+        of the component
+        initialqacontact: The bugzilla login of the initial QA contact
+        initialcclist: The initial list of users to be CC'ed on new bugs for
+        the component.
+        desription: A one sentence summary of the component
+
+        product, component, description and initalowner are mandatory.
+        '''
+        self._addcomponent(data)
+    def editcomponent(self,data):
+        '''A method to edit a component in Bugzilla. Takes a dict, with
+            mandatory elements of product. component, and initialowner.
+            All other elements are optional and use the same names as the
+            addcomponent() method.'''
+        # FIXME - initialowner is mandatory for some reason now. Toshio
+        # following up with dkl as to why.
+        self._editcomponent(data)
 
 class CookieResponse:
     '''Fake HTTPResponse object that we can fill with headers we got elsewhere.

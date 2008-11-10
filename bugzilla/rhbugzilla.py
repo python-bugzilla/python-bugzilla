@@ -328,10 +328,29 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         return r[0]
     # Methods for updating a user
     def _updateperms(self,user,action,groups):
-        r = self._proxy.bugzilla.updatePerms(user, action, groups, self.user)
+        r = self._proxy.bugzilla.updatePerms(user, action, groups, self.user,
+                self.password)
         return r
     def _adduser(self,user,name):
-        r = self._proxy.bugzilla.addUser(user, name, self.user)
+        r = self._proxy.bugzilla.addUser(user, name, self.user, self.password)
+        return r
+    def _addcomponent(self,data):
+        add_required_fields = ('product','component','initialowner','description')
+        for field in add_required_fields:
+            if field not in data or not data[field]:
+                raise TypeError, "mandatory fields missing: %s" % field
+        if type(data['product']) == int:
+            data['product'] = self._product_id_to_name(data['product'])
+        r = self._proxy.bugzilla.addComponent(data,self.user,self.password)
+        return r
+    def _editcomponent(self,data):
+        edit_required_fields = ('initialowner','product','component')
+        for field in edit_required_fields:
+            if field not in data or not data[field]:
+                raise TypeError, "mandatory field missing: %s" % field
+        if type(data['product']) == int:
+            data['product'] = self._product_id_to_name(data['product'])
+        r = self._proxy.bugzilla.editComponent(data,self.user,self.password)
         return r
 
 class RHBugzilla3(Bugzilla32, RHBugzilla):

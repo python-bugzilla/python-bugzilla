@@ -364,6 +364,7 @@ def main():
                         # Components slurped in from file (one component per line)
                         # This can be made more robust
                         arr = []
+<<<<<<< HEAD:bin/bugzilla
                         f = open (i, 'r')
                         for line in f.readlines():
                             line = line.rstrip("\n")
@@ -372,6 +373,19 @@ def main():
                     elif a in ['keywords','keywords_type','url','url_type','status_whiteboard',
                             'status_whiteboard_type','severity','priority']: 
                         if a == 'url':
+=======
+			try:
+				f = open (i, 'r')
+				for line in f.readlines():
+					line = line.rstrip("\n")
+					arr.append(line)
+				q['component'] = ",".join(arr)
+			except IOError:
+				q['component'] = i
+                    elif a in ('keywords','keywords_type','url','url_type','status_whiteboard',
+                            'status_whiteboard_type','severity','priority'): 
+                        if a in ('url'):
+>>>>>>> edd3774102d4ee056999ab7e7159bc8a1cfee542:bin/bugzilla
                             q['bug_file_loc'] = i
                         elif a == 'url_type':
                             q['bug_file_loc_type'] = i
