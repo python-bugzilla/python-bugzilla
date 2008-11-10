@@ -26,7 +26,7 @@ if '--debug' in sys.argv:
 elif '--verbose' in sys.argv:
     log.setLevel(logging.INFO)
         
-cmdlist = ('info','query','new','modify','login')
+cmdlist = ['info','query','new','modify','login']
 def setup_parser():
     u =   "usage: %prog [global options] COMMAND [options]"
     u +=  "\nCommands: %s" % ', '.join(cmdlist)
@@ -165,7 +165,7 @@ def setup_action_parser(action):
                 help='Close with the given resolution')
         # TODO: --keyword, --flag, --tag, --status, --assignee, --cc, ...
 
-    if action in ('new','query'):
+    if action in ['new','query']:
         # output modifiers
         p.add_option('-f','--full',action='store_const',dest='output',
                 const='full',default='normal',help="output detailed bug info")
@@ -329,15 +329,15 @@ def main():
         q = dict()
         email_count = 1
         chart_id = 0
-        for a in ('product','component','components_file','version','long_desc','bug_id',
+        for a in ['product','component','components_file','version','long_desc','bug_id',
                   'short_desc','cc','assigned_to','reporter','qa_contact','bug_status',
                   'blocked','dependson','keywords','keywords_type','url','url_type','status_whiteboard',
                   'status_whiteboard_type','fixed_in','fixed_in_type','flag','alias','qa_whiteboard',
-                  'devel_whiteboard','boolean_query','severity','priority'):
+                  'devel_whiteboard','boolean_query','severity','priority']:
             if hasattr(opt,a):
                 i = getattr(opt,a)
                 if i:
-                    if a in ('bug_status'): # list args
+                    if a == 'bug_status': # list args
                         # FIXME: statuses can differ between bugzilla instances..
                         if i == 'ALL':
                             # leaving this out should return bugs of any status
@@ -353,14 +353,14 @@ def main():
                             q[a] = 'VERIFIED,RELEASE_PENDING,CLOSED'.split(',')
                         else:
                             q[a] = i.split(',')
-                    elif a in ('cc','assigned_to','reporter','qa_contact'):
+                    elif a in ['cc','assigned_to','reporter','qa_contact']:
                         # Emails
                         # ex.: {'email1':'foo@bar.com','emailcc1':True}
                         q['email%i' % email_count] = i
                         q['email%s%i' % (a,email_count)] = True
                         q['emailtype%i' % email_count] = opt.emailtype
                         email_count += 1
-                    elif a in ('components_file'): 
+                    elif a == 'components_file': 
                         # Components slurped in from file (one component per line)
                         # This can be made more robust
                         arr = []
@@ -369,17 +369,17 @@ def main():
                             line = line.rstrip("\n")
                             arr.append(line)
                         q['component'] = ",".join(arr)
-                    elif a in ('keywords','keywords_type','url','url_type','status_whiteboard',
-                            'status_whiteboard_type','severity','priority'): 
-                        if a in ('url'):
+                    elif a in ['keywords','keywords_type','url','url_type','status_whiteboard',
+                            'status_whiteboard_type','severity','priority']: 
+                        if a == 'url':
                             q['bug_file_loc'] = i
-                        elif a in ('url'):
+                        elif a == 'url_type':
                             q['bug_file_loc_type'] = i
                         else:
                             q['%s' % a] = i
-                    elif a in ('fixed_in','blocked','dependson','flag','qa_whiteboard','devel_whiteboard','alias'): 
+                    elif a in ['fixed_in','blocked','dependson','flag','qa_whiteboard','devel_whiteboard','alias']: 
                         # Boolean Charts
-                        if a in ('flag'):
+                        if a == 'flag':
                         # Flags have strange parameter name
                             q['field%i-0-0' % chart_id] = 'flagtypes.name'
                         else:
@@ -387,7 +387,7 @@ def main():
                         q['value%i-0-0' % chart_id] = i
                         q['type%i-0-0' % chart_id]  = opt.booleantype
                         chart_id += 1
-                    elif a in ('boolean_query'): 
+                    elif a == 'boolean_query': 
                         # Custom Boolean Chart query
                         # Format: BooleanName-Condition-Parameter &/| BooleanName-Condition-Parameter &/| ...
                         # ie, keywords-substring-Partner | keywords-notsubstring-PartnerVerified & keywords-notsubstring-OtherQA 
@@ -460,7 +460,7 @@ def main():
         print "Sorry - '%s' not implemented yet." % action
 
     # If we're doing new/query/modify, output our results
-    if action in ('new','query'):
+    if action in ['new','query']:
         if opt.outputformat:
             format_field_re = re.compile("%{[a-z0-9_]+}")
             def bug_field(matchobj):
