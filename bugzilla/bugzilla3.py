@@ -82,12 +82,23 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         r = self._proxy.Bug.create(data)
         return r['id']
 
+    #---- Methods for interacting with users
+
+    def _createuser(self, email, name=None, password=None):
+        '''Create a new bugzilla user directly.
+
+        :arg email: email address for the new user
+        :kwarg name: full name for the user
+        :kwarg password: a password to use with the account
+        '''
+        userid = self._proxy.User.create(email, name, password)
+        return userid
+
 # Bugzilla 3.2 adds some new goodies on top of Bugzilla3.
-# Well, okay. It adds one new goodie.
 class Bugzilla32(Bugzilla3):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
     methods provided by standard Bugzilla 3.2.x releases.
-    
+
     For further information on the methods defined here, see the API docs:
     http://www.bugzilla.org/docs/3.2/en/html/api/
     '''
@@ -110,3 +121,36 @@ class Bugzilla32(Bugzilla3):
                                             'private':private,
                                             'work_time':worktime})
 
+# Bugzilla 3.4 adds some new goodies on top of Bugzilla32.
+class Bugzilla34(Bugzilla32):
+    version = '0.1'
+    user_agent = bugzilla.base.user_agent + ' Bugzilla34/%s' % version
+
+    def _getusers(self, ids=None, names=None, match=None):
+        '''Return a list of users that match criteria.
+
+        :kwarg ids: list of user ids to return data on
+        :kwarg names: list of user names to return data on
+        :kwarg match: list of patterns.  Returns users whose real name or
+            login name match the pattern.
+        :raises xmlrpclib.Fault: Code 51: if a Bad Login Name was sent to the
+                names array.
+            Code 304: if the user was not authorized to see user they
+                requested.
+            Code 505: user is logged out and can't use the match or ids
+                parameter.
+
+        Available in Bugzilla-3.4+
+        '''
+        params = {}
+        if ids:
+            params['ids'] = ids
+        if names:
+            params['names'] = names
+        if match:
+            params['match'] = match
+        if not params:
+            raise bugzilla.base.NeedParamError('_get() needs one of ids,'
+                    ' names, or match kwarg.')
+
+        return self._proxy.User.get(params)

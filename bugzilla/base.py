@@ -22,6 +22,19 @@ version = '0.4-rc4'
 user_agent = 'Python-urllib2/%s bugzilla.py/%s' % \
         (urllib2.__version__,version)
 
+class BugzillaError(Exception):
+    '''Error raised in the Bugzilla client code.'''
+    pass
+
+class NeedSyncError(BugzillaError):
+    '''Must save data from this class to the bugzilla server before using this.
+    '''
+    pass
+
+class NeedParamError(BugzillaError):
+    '''A necessary parameter was left out.'''
+    pass
+
 def replace_getbug_errors_with_None(rawlist):
     '''r is a raw xmlrpc response. 
     If it represents an error, None is returned.
@@ -232,15 +245,6 @@ class BugzillaBase(object):
     def _getqueryinfo(self):
         '''IMPLEMENT ME: Get queryinfo from Bugzilla.'''
         raise NotImplementedError
-    def _getproducts(self):
-        '''IMPLEMENT ME: Get product info from Bugzilla.'''
-        raise NotImplementedError
-    def _getcomponentsdetails(self,product):
-        '''IMPLEMENT ME: get component details for a product'''
-        raise NotImplementedError
-    def _getcomponents(self,product):
-        '''IMPLEMENT ME: Get component dict for a product'''
-        raise NotImplementedError
 
     def getbugfields(self,force_refresh=False):
         '''Calls getBugFields, which returns a list of fields in each bug
@@ -281,6 +285,12 @@ class BugzillaBase(object):
     querydefaults = property(fget=lambda self: self.getqueryinfo()[1],
                          fdel=lambda self: setattr(self,"_querydefaults",None))
 
+    #---- Methods for retrieving Products
+
+    def _getproducts(self):
+        '''IMPLEMENT ME: Get product info from Bugzilla.'''
+        raise NotImplementedError
+
     def getproducts(self,force_refresh=False):
         '''Get product data: names, descriptions, etc.
         The data varies between Bugzilla versions but the basic format is a 
@@ -308,6 +318,20 @@ class BugzillaBase(object):
             if p['name'] == product:
                 return p['id']
 
+    #---- Methods for retrieving Components
+
+    def _getcomponentsdetails(self,product):
+        '''IMPLEMENT ME: get component details for a product'''
+        raise NotImplementedError
+    def _getcomponents(self,product):
+        '''IMPLEMENT ME: Get component dict for a product'''
+        raise NotImplementedError
+    def _addcomponent(self,data):
+        '''IMPLEMENT ME: Add a component'''
+        raise NotImplementedError
+    def _editcomponent(self,data):
+        '''IMPLEMENT ME: Edit a component'''
+        raise NotImplementedError
     def getcomponents(self,product,force_refresh=False):
         '''Return a dict of components:descriptions for the given product.'''
         if force_refresh or product not in self._components:
@@ -336,6 +360,30 @@ class BugzillaBase(object):
         description, initialowner, initialqacontact, initialcclist'''
         d = self.getcomponentsdetails(product,force_refresh)
         return d[component]
+    def addcomponent(self,data):
+        '''A method to create a component in Bugzilla. Takes a dict, with the
+        following elements:
+
+        product: The product to create the component in
+        component: The name of the component to create
+        initialowner: The bugzilla login (email address) of the initial owner
+        of the component
+        initialqacontact: The bugzilla login of the initial QA contact
+        initialcclist: The initial list of users to be CC'ed on new bugs for
+        the component.
+        desription: A one sentence summary of the component
+
+        product, component, description and initalowner are mandatory.
+        '''
+        self._addcomponent(data)
+    def editcomponent(self,data):
+        '''A method to edit a component in Bugzilla. Takes a dict, with
+            mandatory elements of product. component, and initialowner.
+            All other elements are optional and use the same names as the
+            addcomponent() method.'''
+        # FIXME - initialowner is mandatory for some reason now. Toshio
+        # following up with dkl as to why.
+        self._editcomponent(data)
 
     #---- Methods for reading bugs and bug info
 
@@ -357,39 +405,27 @@ class BugzillaBase(object):
     def _query(self,query):
         '''IMPLEMENT ME: Query bugzilla and return a list of matching bugs.'''
         raise NotImplementedError
-    def _updateperms(self,user,action,group):
-        '''IMPLEMEMT ME: Update Bugzilla user permissions'''
-        raise NotImplementedError
-    def _adduser(self,email,name):
-        '''IMPLEMENT ME: Add a bugzilla user'''
-        raise NotImplementedError
-    def _addcomponent(self,data):
-        '''IMPLEMENT ME: Add a component'''
-        raise NotImplementedError
-    def _editcomponent(self,data):
-        '''IMPLEMENT ME: Edit a component'''
-        raise NotImplementedError
 
     # these return Bug objects 
     def getbug(self,id):
         '''Return a Bug object with the full complement of bug data
         already loaded.'''
         log.debug("getbug(%s)" % str(id))
-        return Bug(bugzilla=self,dict=self._getbug(id))
+        return _Bug(bugzilla=self,dict=self._getbug(id))
     def getbugsimple(self,id):
         '''Return a Bug object given bug id, populated with simple info'''
-        return Bug(bugzilla=self,dict=self._getbugsimple(id))
+        return _Bug(bugzilla=self,dict=self._getbugsimple(id))
     def getbugs(self,idlist):
         '''Return a list of Bug objects with the full complement of bug data
         already loaded. If there's a problem getting the data for a given id,
         the corresponding item in the returned list will be None.'''
-        return [(b and Bug(bugzilla=self,dict=b)) or None for b in self._getbugs(idlist)]
+        return [(b and _Bug(bugzilla=self,dict=b)) or None for b in self._getbugs(idlist)]
     def getbugssimple(self,idlist):
         '''Return a list of Bug objects for the given bug ids, populated with
         simple info. As with getbugs(), if there's a problem getting the data
         for a given bug ID, the corresponding item in the returned list will
         be None.'''
-        return [(b and Bug(bugzilla=self,dict=b)) or None for b in self._getbugssimple(idlist)]
+        return [(b and _Bug(bugzilla=self,dict=b)) or None for b in self._getbugssimple(idlist)]
     def query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
@@ -398,7 +434,7 @@ class BugzillaBase(object):
         implementation.
         '''
         r = self._query(query)
-        return [Bug(bugzilla=self,dict=b) for b in r['bugs']]
+        return [_Bug(bugzilla=self,dict=b) for b in r['bugs']]
 
     def simplequery(self,product,version='',component='',string='',matchtype='allwordssubstr'):
         '''Convenience method - query for bugs filed against the given
@@ -675,48 +711,96 @@ class BugzillaBase(object):
         # server might modify/add/drop stuff. Then we'd have a Bug object that
         # lied about the actual contents of the database. That would be bad.
         bug_id = self._createbug(**data)
-        return Bug(self,bug_id=bug_id)
+        return _Bug(self,bug_id=bug_id)
+
+    #---- Methods for retrieving Users
+
+    def _getusers(self, ids=None, names=None, match=None):
+        '''IMPLEMEMT ME: Get a list of Bugzilla user'''
+        raise NotImplementedError
+    def _createuser(self, email, name=None, password=None):
+        '''IMPLEMEMT ME: Create a Bugzilla user'''
+        raise NotImplementedError
+
+    def _updateperms(self,user,action,group):
+        '''IMPLEMEMT ME: Update Bugzilla user permissions'''
+        raise NotImplementedError
+    def _adduser(self,email,name):
+        '''IMPLEMENT ME: Add a bugzilla user
+
+        Deprecated.  User _createuser() instead
+        '''
+        raise NotImplementedError
+
+    ### These return a User Object ###
+    def getuser(self, username):
+        '''Return a bugzilla User for the given username
+
+        :arg username: The username used in bugzilla.
+        :raises xmlrpclib.Fault: Code 51 if the username does not exist
+        :returns: User record for the username
+        '''
+        rawuser = self._getusers(names=[username])['users'][0]
+        return _User(self, userid=rawuser['id'],
+                real_name=rawuser['real_name'], email=rawuser['email'],
+                name=rawuser['name'], can_login=rawuser['can_login'])
+
+    def getusers(self, userlist):
+        '''Return a list of Users from bugzilla.
+
+        :userlist: List of usernames to lookup
+        :returns: List of User records
+        '''
+        return [_User(self, userid=rawuser['id'],
+            real_name=rawuser['real_name'], email=rawuser['email'],
+            name=rawuser['name'], can_login=rawuser['can_login'])
+            for rawuser in self._getusers(names=userlist)['users']]
+
+    def searchusers(self, pattern):
+        '''Return a bugzilla User for the given list of patterns
+
+        :arg pattern: List of patterns to match against.
+        :returns: List of User records
+        '''
+        return [_User(self, userid=rawuser['id'],
+            real_name=rawuser['real_name'], email=rawuser['email'],
+            name=rawuser['name'], can_login=rawuser['can_login'])
+            for rawuser in self._getusers(match=pattern)['users']]
+
+    def createuser(self, email, name='', password=''):
+        '''Return a bugzilla User for the given username
+
+        :arg email: The email address to use in bugzilla
+        :kwarg name: Real name to associate with the account
+        :kwarg password: Password to set for the bugzilla account
+        :raises xmlrpclib.Fault: Code 501 if the username already exists
+            Code 500 if the email address isn't valid
+            Code 502 if the password is too short
+            Code 503 if the password is too long
+        :return: User record for the username
+        '''
+        userid = self._createuser(email, name, password)
+        return self.getuser(email)
 
     def updateperms(self,user,action,groups):
-        '''A method to update  the permissions (group membership) of a bugzilla
-        user. Takes the following:
+        '''A method to update the permissions (group membership) of a bugzilla
+        user.  Deprecated.  Use User.updateperms(action, group) instead.
 
-        user: The e-mail address of the user to be acted upon
-        action: either add or rem
-        groups: list of groups to be added to (i.e. ['fedora_contrib'])
+        :arg user: The e-mail address of the user to be acted upon
+        :arg action: either add or rem
+        :arg groups: list of groups to be added to (i.e. ['fedora_contrib'])
         '''
         self._updateperms(user,action,groups)
-    def adduser(self,user,name):
-        '''A method to create a user in Bugzilla. Takes the following:
+
+    def adduser(self, user, name):
+        '''Deprecated: Use createuser() instead.
+
+        A method to create a user in Bugzilla. Takes the following:
 
         user: The email address of the user to create
         name: The full name of the user to create
         '''
-        self._adduser(user,name)
-    def addcomponent(self,data):
-        '''A method to create a component in Bugzilla. Takes a dict, with the
-        following elements:
-
-        product: The product to create the component in
-        component: The name of the component to create
-        initialowner: The bugzilla login (email address) of the initial owner
-        of the component
-        initialqacontact: The bugzilla login of the initial QA contact
-        initialcclist: The initial list of users to be CC'ed on new bugs for
-        the component.
-        desription: A one sentence summary of the component
-
-        product, component, description and initalowner are mandatory.
-        '''
-        self._addcomponent(data)
-    def editcomponent(self,data):
-        '''A method to edit a component in Bugzilla. Takes a dict, with
-            mandatory elements of product. component, and initialowner.
-            All other elements are optional and use the same names as the
-            addcomponent() method.'''
-        # FIXME - initialowner is mandatory for some reason now. Toshio
-        # following up with dkl as to why.
-        self._editcomponent(data)
+        self._adduser(user, name)
 
 class CookieResponse:
     '''Fake HTTPResponse object that we can fill with headers we got elsewhere.
@@ -810,7 +894,76 @@ class SafeCookieTransport(xmlrpclib.SafeTransport,CookieTransport):
     scheme = 'https'
     request = CookieTransport.request
 
-class Bug(object):
+class _User(object):
+    '''Container object for a bugzilla User.
+
+    :arg bugzilla: Bugzilla instance that this User belongs to.
+    :arg name: name that references a user
+    :kwarg userid: id in bugzilla for a user
+    :kwarg real_name: User's real name
+    :kwarg email: User's email address
+    :kwarg can_login: If set True, the user can login
+    '''
+    def __init__(self, bugzilla, name, userid, real_name=None, email=None,
+            can_login=True):
+        self.bugzilla = bugzilla
+        self.__name = name
+        self.__userid = userid
+        self.real_name = real_name
+        self.__email = email
+        self.__can_login = can_login
+        # This tells us whether self.name has been changed but not synced to
+        # bugzilla
+        self._name_dirty = False
+
+    ### Read-only attributes ###
+
+    # We make these properties so that the user cannot set them.  They are
+    # unaffected by the update() method so it would be misleading to let them
+    # be changed.
+    @property
+    def userid(self):
+        return self.__userid
+
+    @property
+    def email(self):
+        return self.__email
+
+    @property
+    def can_login(self):
+        return self.__can_login
+
+    ### name is a key in some methods.  Mark it dirty when we change it ###
+    def _name(self):
+        return self.__name
+    def _set_name(self, value):
+        self._name_dirty = True
+        self.__name = value
+    name = property(_name, _set_name)
+
+    def update(self):
+        '''Update Bugzilla with these values.
+
+        :raises xmlrpclib.Fault: Code 304 if you aren't allowed to edit
+            the user
+        '''
+        self._name__dirty = False
+        self.bugzilla._update(ids=self.userid, update={'name': self.name,
+            'real_name': self.real_name, 'password': self.password})
+
+    def updateperms(self, action, groups):
+        '''A method to update the permissions (group membership) of a bugzilla
+        user.
+
+        :arg action: either add or rem
+        :arg groups: list of groups to be added to (i.e. ['fedora_contrib'])
+        '''
+        if self._name_dirty:
+            raise NeedSyncError('name has been changed.  run update() before'
+                    ' updating perms.')
+        self.bugzilla._updateperms(self.name, action, groups)
+
+class _Bug(object):
     '''A container object for a bug report. Requires a Bugzilla instance - 
     every Bug is on a Bugzilla, obviously.
     Optional keyword args:

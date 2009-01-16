@@ -10,7 +10,7 @@
 # the full text of the license.
 
 import bugzilla.base
-from bugzilla3 import Bugzilla32
+from bugzilla3 import Bugzilla34
 import copy, xmlrpclib
 
 class RHBugzilla(bugzilla.base.BugzillaBase):
@@ -57,10 +57,10 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         mc._getbug(1337)
         mc._query({'component':'glibc','product':'Fedora','version':'devel'})
         (bug1, bug1337, queryresult) = mc.run()
-    
+
         Note that you should only use the raw xmlrpc calls (mostly the methods
         starting with an underscore). Normal getbug(), for example, tries to
-        return a Bug object, but with the multicall object it'll end up empty
+        return a _Bug object, but with the multicall object it'll end up empty
         and, therefore, useless.
 
         Further note that run() returns a list of raw xmlrpc results; you'll
@@ -71,7 +71,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         for id in idlist:
             mc._getbug(id)
         rawlist = mc.run()
-        return [Bug(self,dict=b) for b in rawlist]
+        return [_Bug(self,dict=b) for b in rawlist]
         '''
         mc = copy.copy(self)
         mc._proxy = xmlrpclib.MultiCall(self._proxy)
@@ -108,7 +108,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         '''This is a convenience method that does getqueryinfo, getproducts, 
         and (optionally) getcomponents in one big fat multicall. This is a bit 
         faster than calling them all separately. 
-         
+
         If you're doing interactive stuff you should call this, with the 
         appropriate product name, after connecting to Bugzilla. This will 
         cache all the info for you and save you an ugly delay later on.''' 
@@ -214,11 +214,11 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
 
         closeBug($bugid, $new_resolution, $username, $password, $dupeid,
             $new_fixed_in, $comment, $isprivate, $private_in_it, $nomail)
-        
+
         Close a current Bugzilla bug report with a specific resolution. This will eventually be done in Bugzilla/Bug.pm 
         instead and is meant to only be a quick fix. Please use bugzilla.changesStatus to changed to an opened state.
         This method will change the bug report's status to CLOSED.
-        
+
             $bugid 
                 # ID of bug report to add comment to.
             $new_resolution
@@ -353,7 +353,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         r = self._proxy.bugzilla.editComponent(data,self.user,self.password)
         return r
 
-class RHBugzilla3(Bugzilla32, RHBugzilla):
+class RHBugzilla3(Bugzilla34, RHBugzilla):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
     methods provided by Red Hat's Bugzilla 3.2+ instance, which is a superset
     of the Bugzilla 3.2 methods. The additional methods (Bug.search, Bug.update)
@@ -376,7 +376,7 @@ class RHBugzilla3(Bugzilla32, RHBugzilla):
     user_agent = bugzilla.base.user_agent + ' RHBugzilla3/%s' % version
 
     def __init__(self,**kwargs):
-        Bugzilla32.__init__(self,**kwargs)
+        super(RHBugzilla3, self).__init__(**kwargs)
         self.user_agent = self.__class__.user_agent
         self.multicall = kwargs.get('multicall',True)
 
