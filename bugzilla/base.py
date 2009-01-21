@@ -120,7 +120,11 @@ class BugzillaBase(object):
         else:
             # Create an empty cookiefile that's only readable by this user
             old_umask = os.umask(0077)
-            cj.save(self.cookiefile)
+            try:
+                cj.save(self.cookiefile)
+            except Exception, e:
+                log.error("Couldn't initialize cookiefile %s: %s" %
+                        (self.cookiefile, str(e)))
             os.umask(old_umask)
         self._cookiejar = cj
         self._cookiejar.filename = self.cookiefile
@@ -869,7 +873,7 @@ class CookieTransport(xmlrpclib.Transport):
         if hasattr(self.cookiejar,'save'):
             try:
                 self.cookiejar.save(self.cookiejar.filename)
-            except e:
+            except Exception, e:
                 log.error("Couldn't write cookiefile %s: %s" % \
                         (self.cookiejar.filename,str(e)))
 
