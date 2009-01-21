@@ -18,7 +18,7 @@ import os.path, base64
 import logging
 log = logging.getLogger('bugzilla')
 
-version = '0.4-rc4'
+version = '0.4-rc5'
 user_agent = 'Python-urllib2/%s bugzilla.py/%s' % \
         (urllib2.__version__,version)
 
@@ -1156,6 +1156,10 @@ class _Bug(object):
     def deletecc(self,cclist,comment=''):
         '''Removes the given email addresses from the CC list for this bug.'''
         self.bugzilla._updatecc(self.bug_id,cclist,'delete',comment)
+
+# Backwards compatibility
+Bug = _Bug
+
 # TODO: attach(file), getflag(), setflag()
 # TODO: add a sync() method that writes the changed data in the Bug object
 # back to Bugzilla?
