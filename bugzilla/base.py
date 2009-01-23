@@ -14,8 +14,11 @@ try:
        import cookielib
 except ImportError:
        import ClientCookie as cookielib
-import os.path, base64
+import os
+import base64
+import tempfile
 import logging
+
 log = logging.getLogger('bugzilla')
 
 version = '0.4-rc5'
@@ -60,7 +63,7 @@ class BugzillaBase(object):
     'cookiefile' attribute (which defaults to ~/.bugzillacookies). Once you
     get cookies this way, you will be considered logged in until the cookie
     expires.
-    
+
     You may also specify 'user' and 'password' in a bugzillarc file, either
     /etc/bugzillarc or ~/.bugzillarc. The latter will override the former.
     The format works like this:
@@ -75,23 +78,40 @@ class BugzillaBase(object):
     This is an abstract class; it must be implemented by a concrete subclass
     which actually connects the methods provided here to the appropriate
     methods on the bugzilla instance.
+
+    :kwarg url: base url for the bugzilla instance
+    :kwarg user: usename to connect with
+    :kwarg password: password for the connecting user
+    :kwarg cookiefile: Location to save the session cookies so you don't have
+        to keep giving the library your username and password.  This defaults
+        to ~/.bugzillacookies.  If set to None, the library won't save the
+        cookies persistently.
     '''
-    def __init__(self,**kwargs):
+    def __init__(self, url=None, user=None, password=None,
+            cookiefile=os.path.expanduser('~/.bugzillacookies')):
         # Settings the user might want to tweak
-        self.user       = ''
-        self.password   = ''
+        self.user       = user or ''
+        self.password   = password or ''
         self.url        = ''
-        self.cookiefile = os.path.expanduser('~/.bugzillacookies')
+
+        # We just want to make sure the logic when setting the cookiefile
+        # property will initialize the other values
+        if cookiefile:
+            self._cookiefile = None
+        else:
+            self._cookiefile = True
+        self._persist_cookie = True
+        self.cookiefile = cookiefile
+
         self.user_agent = user_agent
         self.logged_in  = False
         # Bugzilla object state info that users shouldn't mess with
         self.init_private_data()
-        if 'url' in kwargs:
-            self.connect(kwargs['url'])
-        if 'user' in kwargs:
-            self.user = kwargs['user']
-        if 'password' in kwargs:
-            self.password = kwargs['password']
+        if url:
+            self.connect(url)
+
+    def __del__(self):
+        del self.cookiefile
 
     def init_private_data(self):
         '''initialize private variables used by this bugzilla instance.'''
@@ -108,26 +128,69 @@ class BugzillaBase(object):
 
     #---- Methods for establishing bugzilla connection and logging in
 
-    def initcookiefile(self,cookiefile=None):
-        '''Read the given (Mozilla-style) cookie file and fill in the
-        cookiejar, allowing us to use saved credentials to access Bugzilla.
-        If no file is given, self.cookiefile will be used.'''
-        if cookiefile: 
-            self.cookiefile = cookiefile
-        cj = cookielib.MozillaCookieJar(self.cookiefile)
-        if os.path.exists(self.cookiefile):
-            cj.load()
-        else:
-            # Create an empty cookiefile that's only readable by this user
-            old_umask = os.umask(0077)
+    def _getcookiefile(self):
+        '''cookiefile is the file that bugzilla session cookies are loaded
+        and saved from.
+        '''
+        return self._cookiefile
+
+    def _setcookiefile(self, cookiefile):
+        if cookiefile == self._cookiefile:
+            # no need to do anything if they're already the same
+            return
+        del self.cookiefile
+        self._cookiefile = cookiefile
+
+        cj = cookielib.MozillaCookieJar(self._cookiefile)
+        if not self._cookiefile:
+            self._persist_cookie = False
+            # Create a temporary cookie file
+            fh, self._cookiefile = tempfile.mkstemp()
+            os.close(fh)
             try:
-                cj.save(self.cookiefile)
+                cj.save(self._cookiefile)
             except Exception, e:
-                log.error("Couldn't initialize cookiefile %s: %s" %
-                        (self.cookiefile, str(e)))
-            os.umask(old_umask)
+                log.warn("Couldn't initialize temporary cookiefile%s: %s" %
+                        (self._cookiefile, str(e)))
+        else:
+            self._persist_cookie = True
+            if os.path.exists(self._cookiefile):
+                cj.load(self._cookiefile)
+            else:
+                # Create an empty cookiefile that's only readable by this user
+                old_umask = os.umask(0077)
+                try:
+                    cj.save(self._cookiefile)
+                except Exception, e:
+                    log.error("Couldn't initialize cookiefile %s: %s" %
+                            (self._cookiefile, str(e)))
+                os.umask(old_umask)
+
         self._cookiejar = cj
-        self._cookiejar.filename = self.cookiefile
+        self._cookiejar.filename = self._cookiefile
+
+    def _delcookiefile(self):
+        if not self._persist_cookie:
+            # If it's a temporary file, remove it
+            os.remove(self.cookiefile)
+        self._cookiefile = None
+
+    cookiefile = property(_getcookiefile, _setcookiefile, _delcookiefile)
+
+    def initcookiefile(self, cookiefile=None):
+        '''Deprecated: Set self.cookiefile instead. It's a property that will
+        take care of these details.
+
+        Read the given (Mozilla-style) cookie file and fill in the
+        cookiejar, allowing us to use saved credentials to access Bugzilla.
+
+        :kwarg cookiefile: Location to save the session cookies so you don't
+            have to keep giving the library your username and password.  This
+            defaults to ~/.bugzillacookies.
+        '''
+        if not cookiefile:
+            cookiefile = os.path.expanduser('~/.bugzillacookies')
+        self.cookiefile = cookiefile
 
     configpath = ['/etc/bugzillarc','~/.bugzillarc']
     def readconfig(self,configpath=None):
@@ -165,7 +228,6 @@ class BugzillaBase(object):
         you'll have to login() yourself before some methods will work.
         '''
         # Set up the transport
-        self.initcookiefile() # sets _cookiejar
         if url.startswith('https'):
             self._transport = SafeCookieTransport()
         else:
