@@ -1,6 +1,3 @@
-For 0.4:
-- Fix up selftest.py (it's a big fat mess)
-
 For 0.5:
 - make Bugzilla methods all take a bug ID list
   - BZ 3 methods all take idlist
@@ -8,6 +5,7 @@ For 0.5:
 - Add .legal_values() method to Bug object
 
 Someday:
+- Fix up selftest.py (it's a big fat mess)
 - better documentation for abstract methods in BugzillaBase
 - more consistent calls for abstract methods. 
   - fix bz.createbug(description=desc,...) vs. bug.close(comment=desc,...)

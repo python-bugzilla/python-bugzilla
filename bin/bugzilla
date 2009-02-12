@@ -15,7 +15,7 @@ import os, sys, glob, re
 import logging
 import getpass
 
-version = '0.4'
+version = '0.5'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
 # Initial simple logging stuff
