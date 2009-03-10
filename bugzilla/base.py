@@ -115,7 +115,6 @@ class BugzillaBase(object):
 
     def init_private_data(self):
         '''initialize private variables used by this bugzilla instance.'''
-        self._cookiejar  = None
         self._proxy      = None
         self._transport  = None
         self._opener     = None
@@ -174,6 +173,7 @@ class BugzillaBase(object):
             # If it's a temporary file, remove it
             os.remove(self.cookiefile)
         self._cookiefile = None
+        self._cookiejar = None
 
     cookiefile = property(_getcookiefile, _setcookiefile, _delcookiefile)
 
