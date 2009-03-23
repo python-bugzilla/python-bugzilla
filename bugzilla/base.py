@@ -641,15 +641,16 @@ class BugzillaBase(object):
 
     def _attachment_uri(self,attachid):
         '''Returns the URI for the given attachment ID.'''
-        att_uri = self._url.replace('xmlrpc.cgi','attachment.cgi')
-        att_uri = att_uri + '?%i' % attachid
+        att_uri = self.url.replace('xmlrpc.cgi','attachment.cgi')
+        att_uri = att_uri + '?id=%i' % attachid
         return att_uri
 
     def openattachment(self,attachid):
         '''Get the contents of the attachment with the given attachment ID.
         Returns a file-like object.'''
         att_uri = self._attachment_uri(attachid)
-        att = urllib2.urlopen(att_uri)
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self._cookiejar))
+        att = opener.open(att_uri)
         # RFC 2183 defines the content-disposition header, if you're curious
         disp = att.headers['content-disposition'].split(';')
         [filename_parm] = [i for i in disp if i.strip().startswith('filename=')]
