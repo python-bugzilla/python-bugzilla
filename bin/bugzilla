@@ -179,7 +179,7 @@ def setup_action_parser(action):
         # FIXME: check value for resolution
         p.add_option('-k','--close',metavar="RESOLUTION",
                 help='Close with the given resolution')
-        p.add_option('-p','--private',action='store_true',default='false',
+        p.add_option('-p','--private',action='store_true',default=False,
                 help='Mark as private')
         p.add_option('-s','--status',
                 help='Change status of bug')
