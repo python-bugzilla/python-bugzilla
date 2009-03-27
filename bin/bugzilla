@@ -517,9 +517,18 @@ def main():
     # If we're doing new/query/modify, output our results
     if action in ['new','query']:
         if opt.outputformat:
-            format_field_re = re.compile("%{[a-z0-9_]+}")
+            format_field_re = re.compile("%{([a-z0-9_]+)(?::([^}]*))?}")
+            special_fields = {
+                'flag': lambda b,f: b.get_flag_status(f),
+                'whiteboard': lambda b,wb: b.getwhiteboard(wb),
+            }
             def bug_field(matchobj):
-                fieldname = matchobj.group()[2:-1]
+                fieldname = matchobj.group(1)
+                rest = matchobj.group(2)
+
+                if special_fields.has_key(fieldname):
+                    return str(special_fields[fieldname](b, rest))
+
                 return str(getattr(b,fieldname))
             for b in buglist:
                 print format_field_re.sub(bug_field,opt.outputformat)
