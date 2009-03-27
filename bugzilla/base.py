@@ -1256,6 +1256,45 @@ class _Bug(object):
         '''Removes the given email addresses from the CC list for this bug.'''
         self.bugzilla._updatecc(self.bug_id,cclist,'delete',comment)
 
+    def get_flag_type(self, name):
+        """Return flag_type information for a specific flag"""
+
+        #XXX: make a "flag index" dictionary instead of walking the
+        #     flag_types list every time?
+
+        for t in self.flag_types:
+            if t['name'] == name:
+                return t
+
+        # not found
+        return None
+
+    def get_flags(self, name):
+        """Return flag value information for a specific flag
+        """
+        ft = self.get_flag_type(name)
+        if not ft:
+            return
+
+        return ft['flags']
+
+    def get_flag_status(self, name):
+        """Return a flag 'status' field
+
+        This method works only for simple flags that have only a 'status' field
+        with no "requestee" info, and no multiple values. For more complex
+        flags, use get_flags() to get extended flag value information.
+        """
+        f = self.get_flags(name)
+        if len(f) < 1:
+            return None
+
+        # This method works only for simple flags that have only one
+        # value set.
+        assert len(f) <= 1
+
+        return f[0]['status']
+
 # Backwards compatibility
 Bug = _Bug
 
