@@ -508,8 +508,9 @@ def main():
                 if b.keywords.find("Security") != -1:
                     for bl in b.blocked:
                         cvebug = bz.getbug(bl)
-                        if cvebug.alias.find("CVE") != -1:
-                            cve += cvebug.alias + " "
+                        for cb in cvebug.alias:
+                            if cb.find("CVE") != -1:
+                                cve += cb + " "
                 print "#%s %8s %22s %s\t[%s] %s %s" % (b.bug_id, b.bug_status,
                     b.assigned_to, b.component, b.target_milestone, flags, cve)
         else:
