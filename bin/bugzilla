@@ -382,6 +382,8 @@ def main():
                         if a == 'flag':
                         # Flags have strange parameter name
                             q['field%i-0-0' % chart_id] = 'flagtypes.name'
+                        elif a == 'devel_whiteboard':
+                            q['field%i-0-0' % chart_id] = 'cf_devel_whiteboard'
                         else:
                             q['field%i-0-0' % chart_id] = a
                         q['value%i-0-0' % chart_id] = i
