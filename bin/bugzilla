@@ -454,12 +454,13 @@ def main():
                 log.error("  failed to load bug %s" % id)
                 continue
             log.debug("modifying bug %s" % bug.bug_id)
-            if opt.comment:
-                log.debug("  add comment: %s" % opt.comment)
-                bug.addcomment(opt.comment)
             if opt.close:
                 log.debug("  close %s" % opt.close)
-                bug.close(opt.close)
+                bug.close(opt.close,comment=opt.comment,isprivate=opt.private)
+            #this has to be last and signifies a stand-alone comment
+            elif opt.comment:
+                log.debug("  add comment: %s" % opt.comment)
+                bug.addcomment(opt.comment, opt.private)
     else:
         print "Sorry - '%s' not implemented yet." % action
 
