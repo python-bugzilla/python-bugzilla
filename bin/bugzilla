@@ -165,7 +165,18 @@ def setup_action_parser(action):
         # FIXME: check value for resolution
         p.add_option('-k','--close',metavar="RESOLUTION",
                 help='Close with the given resolution')
-        # TODO: --keyword, --flag, --tag, --status, --assignee, --cc, ...
+        p.add_option('-p','--private',action='store_true',default='false',
+                help='Mark as private')
+        p.add_option('-s','--status',
+                help='Change status of bug')
+        p.add_option('--assignee',
+                help='Assign bugzilla to assignee')
+        p.add_option('-f','--flag', action='append',
+                help='Update bugzilla flags with requested type, ie fedora-cvs?\
+ (Use a new option for each flag)')
+        p.add_option('--cc', action='append',
+                help='Add an email to the cc list')
+        # TODO: --keyword, --tag, --cc, ...
 
     if action in ['new','query']:
         # output modifiers
@@ -454,9 +465,28 @@ def main():
                 log.error("  failed to load bug %s" % id)
                 continue
             log.debug("modifying bug %s" % bug.bug_id)
-            if opt.close:
+            if opt.status:
+                log.debug("  set status: %s" % opt.status)
+                bug.setstatus(opt.status, opt.comment, private=opt.private)
+            elif opt.close:
                 log.debug("  close %s" % opt.close)
                 bug.close(opt.close,comment=opt.comment,isprivate=opt.private)
+            elif opt.assignee:
+                log.debug("  assignee %s" % opt.assignee)
+                bug.setassignee(assigned_to=opt.assignee,comment=opt.comment)
+            elif opt.flag:
+                log.debug("  flag %s" % opt.flag)
+                flags=dict()
+                for f in opt.flag:
+                    (flagname,status) = (f[:-1],f[-1])
+                    flags[flagname]=status
+                bug.updateflags(flags)
+            elif opt.cc:
+                ccs=[]
+                for c in opt.cc:
+                    log.debug("  cc'ing %s" % opt.cc)
+                    ccs.append(c)
+                bug.addcc(ccs, comment=opt.comment)
             #this has to be last and signifies a stand-alone comment
             elif opt.comment:
                 log.debug("  add comment: %s" % opt.comment)

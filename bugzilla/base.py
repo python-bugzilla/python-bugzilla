@@ -1171,6 +1171,14 @@ class _Bug(object):
         self.bugzilla._closebug(self.bug_id,resolution,dupeid,fixedin,
                                 comment,isprivate,private_in_it,nomail)
         # TODO reload bug data here?
+    def updateflags(self,flags):
+        '''Updates the bugzilla flags.
+        The flags values are a hash of {'flagname': 'value'} pairs.
+        Each product seems to have different flags available, so this can be
+        error-prone unless the error code is understood.
+        '''
+        self.bugzilla._updateflags(self.bug_id,flags)
+        # TODO reload bug data here?
     def _dowhiteboard(self,text,which,action):
         '''Actually does the updateWhiteboard call to perform the given action
         (append,prepend,overwrite) with the given text on the given whiteboard

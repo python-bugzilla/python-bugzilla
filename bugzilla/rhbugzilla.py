@@ -443,6 +443,7 @@ class RHBugzilla3(Bugzilla34, RHBugzilla):
         update={'bug_status':status}
         if comment:
             update['comment'] = comment
+            update['commentprivacy'] = private
         return self._update_bug(id,update)
 
     def _closebug(self,id,resolution,dupeid,fixedin,comment,isprivate,private_in_it,nomail):
