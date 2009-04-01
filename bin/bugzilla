@@ -92,6 +92,8 @@ def setup_action_parser(action):
                 help="list of component names from a file, one component per line (list with 'bugzilla info -c PRODUCT')")
         p.add_option('-l','--long_desc',
                 help="search inside bug comments")
+        p.add_option('-m','--target_milestone',
+                help="search for a target milestone")
         p.add_option('-s','--short_desc',
                 help="search bug summaries")
         p.add_option('-t','--bug_status',default="ALL",
@@ -333,7 +335,7 @@ def main():
                   'short_desc','cc','assigned_to','reporter','qa_contact','bug_status',
                   'blocked','dependson','keywords','keywords_type','url','url_type','status_whiteboard',
                   'status_whiteboard_type','fixed_in','fixed_in_type','flag','alias','qa_whiteboard',
-                  'devel_whiteboard','boolean_query','severity','priority']:
+                  'devel_whiteboard','boolean_query','severity','priority','target_milestone']:
             if hasattr(opt,a):
                 i = getattr(opt,a)
                 if i:
