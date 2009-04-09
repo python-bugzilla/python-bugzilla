@@ -1,4 +1,4 @@
-.TH bugzilla 1  "February 12, 2009" "version 0.5" "User Commands"
+.TH bugzilla 1  "April 09, 2009" "version 0.5" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -64,6 +64,8 @@ component name(s), comma-separated (list with 'bugzilla info -c PRODUCT')
 list of component names from a file, one component per line (list with 'bugzilla info -c PRODUCT')
 .IP "--long_desc=LONG_DESC, -l LONG_DESC"
 search inside bug comments
+.IP "--target_milestone=TARGET_MILESTONE, -m TARGET_MILESTONE"
+search for a target milestone
 .IP "--short_desc=SHORT_DESC, -s SHORT_DESC"
 search bug summaries
 .IP "--bug_status=BUG_STATUS, -t BUG_STATUS"
@@ -112,6 +114,8 @@ Boolean:search for bugs that have certain Devel Whiteboard text present
 Boolean:search for bugs that have the provided alias
 .IP "--fixed_in=FIXED_IN"
 search Status Whiteboard field for specified words
+.IP "--from-url=FROM_URL"
+Use the query given by a query.cgi URL. (Use quotes!)
 .IP "--full, -f"
 output detailed bug info
 .IP "--ids, -i"
@@ -164,6 +168,16 @@ show this help message and exit
 Add a comment
 .IP "--close=RESOLUTION, -k RESOLUTION"
 Close with the given resolution
+.IP "--private, -p"
+Mark as private
+.IP "--status=STATUS, -s STATUS"
+Change status of bug
+.IP "--assignee=ASSIGNEE"
+Assign bugzilla to assignee
+.IP "--flag=FLAG, -f FLAG"
+Update bugzilla flags with requested type, ie fedora-cvs? (Use a new option for each flag)
+.IP "--cc=CC"
+Add an email to the cc list
 .SH \[oq]LOGIN\[cq] OPTIONS
 .IP "--help, -h"
 show this help message and exit
