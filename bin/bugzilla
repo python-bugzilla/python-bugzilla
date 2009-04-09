@@ -346,8 +346,9 @@ def main():
         # Construct the query from the list of queryable options
         q = dict()
         # Parse preconstructed queries.
-        if hasattr(opt,'from_url'):
-            q = bugzilla.util.url_to_query(getattr(opt,'from_url'))
+        u = getattr(opt,'from_url',None)
+        if u:
+            q = bugzilla.util.url_to_query(u)
         # TODO: flags to save queries, list/perform saved queries
         # TODO: use the given scheme/host for the bugzilla URL
         email_count = 1
