@@ -17,7 +17,7 @@ import getpass
 import bugzilla.util
 import locale
 
-version = '0.5'
+version = '0.5.1'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
 # Initial simple logging stuff
