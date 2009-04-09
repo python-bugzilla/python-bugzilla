@@ -14,6 +14,7 @@ import bugzilla, optparse
 import os, sys, glob, re
 import logging
 import getpass
+import bugzilla.util
 import locale
 
 version = '0.5'
@@ -157,6 +158,10 @@ def setup_action_parser(action):
                 help="Boolean:search for bugs that have the provided alias")
         p.add_option('--fixed_in',
                 help="search Status Whiteboard field for specified words")
+
+        # Precomposed queries
+        p.add_option('--from-url',
+                help="Use the query given by a query.cgi URL. (Use quotes!)")
 
     elif action == 'info':
         p.add_option('-p','--products',action='store_true',
@@ -349,6 +354,12 @@ def main():
     elif action == 'query':
         # Construct the query from the list of queryable options
         q = dict()
+        # Parse preconstructed queries.
+        u = getattr(opt,'from_url',None)
+        if u:
+            q = bugzilla.util.url_to_query(u)
+        # TODO: flags to save queries, list/perform saved queries
+        # TODO: use the given scheme/host for the bugzilla URL
         email_count = 1
         chart_id = 0
         for a in ['product','component','components_file','version','long_desc','bug_id',
