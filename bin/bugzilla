@@ -190,6 +190,8 @@ def setup_action_parser(action):
  (Use a new option for each flag)')
         p.add_option('--cc', action='append',
                 help='Add an email to the cc list')
+        p.add_option('-F','--fixed_in',metavar="VERSION",
+                help='"Fixed in version" field')
         # TODO: --keyword, --tag, --cc, ...
 
     if action in ['new','query']:
@@ -511,6 +513,13 @@ def main():
             elif opt.comment:
                 log.debug("  add comment: %s" % opt.comment)
                 bug.addcomment(opt.comment, opt.private)
+
+        # stuff that I do in batch mode:
+        if opt.fixed_in:
+            data = {}
+            if opt.fixed_in:
+                data['fixed_in'] = opt.fixed_in
+            bz._update_bugs(bugid_list, data)
     else:
         print "Sorry - '%s' not implemented yet." % action
 
