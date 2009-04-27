@@ -18,6 +18,7 @@ import os
 import base64
 import tempfile
 import logging
+import locale
 
 log = logging.getLogger('bugzilla')
 
@@ -1079,10 +1080,11 @@ class _Bug(object):
     def __str__(self):
         '''Return a simple string representation of this bug
 
-        Using 'str(bug)' and 'print bug' is not recommended because of potential
-        encoding issues. Please use unicode(bug) where possible.
+        This is available only for compatibility. Using 'str(bug)' and
+        'print bug' is not recommended because of potential encoding issues.
+        Please use unicode(bug) where possible.
         '''
-        return unicode(self)
+        return unicode(self).encode(locale.getpreferredencoding(), 'replace')
 
     def __unicode__(self):
         '''Return a simple unicode string representation of this bug'''
