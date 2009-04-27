@@ -1077,7 +1077,15 @@ class _Bug(object):
         #    setattr(self,f,property(fget=lambda self: self.refresh()))
 
     def __str__(self):
-        '''Return a simple string representation of this bug'''
+        '''Return a simple string representation of this bug
+
+        Using 'str(bug)' and 'print bug' is not recommended because of potential
+        encoding issues. Please use unicode(bug) where possible.
+        '''
+        return unicode(self)
+
+    def __unicode__(self):
+        '''Return a simple unicode string representation of this bug'''
         # XXX Not really sure why we get short_desc sometimes and
         # short_short_desc other times. I feel like I'm working around
         # a bug here, so keep an eye on this.
@@ -1095,7 +1103,7 @@ class _Bug(object):
         if 'assigned_to' not in self.__dict__:
             if 'assigned_to_id' in self.__dict__:
                 self.assigned_to = self.bugzilla._getuserforid(self.assigned_to_id)
-        return "#%-6s %-10s - %s - %s" % (self.bug_id,self.bug_status,
+        return u"#%-6s %-10s - %s - %s" % (self.bug_id,self.bug_status,
                                           self.assigned_to,desc)
     def __repr__(self):
         return '<Bug #%i on %s at %#x>' % (self.bug_id,self.bugzilla.url,
