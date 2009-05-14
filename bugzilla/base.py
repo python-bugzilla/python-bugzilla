@@ -1136,6 +1136,18 @@ class _Bug(object):
                 return self.__dict__[name]
         raise AttributeError, "Bug object has no attribute '%s'" % name
 
+    def __getstate__(self):
+        sd = self.__dict__
+        if self.bugzilla: fields = self.bugzilla.bugfields
+        else: fields = self.bugfields
+        vals = [(k,sd[k]) for k in sd.keys() if k in fields]
+        vals.append( ('bugfields', fields) )
+        return dict(vals)
+
+    def __setstate__(self, dict):
+        self.__dict__.update(dict)
+        self.bugzilla = None
+
     def refresh(self):
         '''Refresh all the data in this Bug.'''
         r = self.bugzilla._getbug(self.bug_id)
