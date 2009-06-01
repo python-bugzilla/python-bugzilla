@@ -402,6 +402,8 @@ def main():
                             line = line.rstrip("\n")
                             arr.append(line)
                         q['component'] = ",".join(arr)
+                    elif a in ['product']:
+                        q[a] = [ i ]
                     elif a in ['keywords','keywords_type','url','url_type','status_whiteboard',
                             'status_whiteboard_type','severity','priority']: 
                         if a == 'url':
