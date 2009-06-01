@@ -148,7 +148,7 @@ def setup_action_parser(action):
                 help="Boolean:search for bugs that block this bug ID")
         p.add_option('--dependson',
                 help="Boolean:search for bugs that depend on this bug ID")
-        p.add_option('--flag',
+        p.add_option('--flag', action='append',
                 help="Boolean:search for bugs that have certain flag states present")
         p.add_option('--qa_whiteboard',
                 help="Boolean:search for bugs that have certain QA Whiteboard text present")
@@ -413,17 +413,26 @@ def main():
                         else:
                             q['%s' % a] = i
                     elif a in ['fixed_in','blocked','dependson','flag','qa_whiteboard','devel_whiteboard','alias']: 
-                        # Boolean Charts
-                        if a == 'flag':
-                        # Flags have strange parameter name
-                            q['field%i-0-0' % chart_id] = 'flagtypes.name'
-                        elif a == 'devel_whiteboard':
-                            q['field%i-0-0' % chart_id] = 'cf_devel_whiteboard'
-                        else:
-                            q['field%i-0-0' % chart_id] = a
-                        q['value%i-0-0' % chart_id] = i
-                        q['type%i-0-0' % chart_id]  = opt.booleantype
-                        chart_id += 1
+                        for b in i:
+                            # Boolean Charts
+                            and_count = 0
+                            or_count = 0
+                            x = b.split(' ')
+                            for par in x :
+                                if par.find('&') != -1:
+                                    and_count += 1
+                                elif par.find('|') != -1:
+                                    or_count += 1
+                                elif a == 'flag':
+                                # Flags have strange parameter name
+                                    q['field%i-%i-%i' % (chart_id,and_count,or_count)] = 'flagtypes.name'
+                                elif a == 'devel_whiteboard':
+                                    q['field%i-%i-%i' % (chart_id,and_count,or_count)] = 'cf_devel_whiteboard'
+                                else:
+                                    q['field%i-%i-%i' % (chart_id,and_count,or_count)] = a
+                                q['value%i-%i-%i' % (chart_id,and_count,or_count)] = par
+                                q['type%i-%i-%i' % (chart_id,and_count,or_count)]  = opt.booleantype
+                            chart_id += 1
                     elif a == 'boolean_query': 
                         # Custom Boolean Chart query
                         # Format: BooleanName-Condition-Parameter &/| BooleanName-Condition-Parameter &/| ...
