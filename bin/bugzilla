@@ -566,7 +566,7 @@ def main():
                         c['author'], email, c['body']))
         elif opt.output == 'normal':
             for b in buglist:
-                print to_encoding(u'#%s %s - %s - %s' %
+                print to_encoding(u'#%s %8s - %s - %s' %
                         (b.bug_id, b.bug_status, b.assigned_to, b.short_desc))
 
         elif opt.output == 'extra':
