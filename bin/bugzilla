@@ -202,6 +202,8 @@ def setup_action_parser(action):
                 const='extra',help="output additional bug information (keywords, Whiteboards, etc.)")
         p.add_option('--oneline', action='store_const', dest='output',
                 const='oneline',help="one line summary of the bug (useful for scripts)")
+        p.add_option('--raw', action='store_const', dest='output',
+                const='raw',help="raw output of the bugzilla contents")
         p.add_option('--outputformat',
                 help="Print output in the form given. You can use RPM-style "+
                 "tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'")
@@ -605,6 +607,13 @@ def main():
                 print to_encoding(u"#%s %8s %22s %s\t[%s] %s %s" %
                         (b.bug_id, b.bug_status, b.assigned_to, b.component,
                             b.target_milestone, flags, cve))
+        elif opt.output == 'raw':
+            fullbuglist = bz.getbugs([b.bug_id for b in buglist])
+            for b in fullbuglist:
+                print "Bugzilla %s: " % b.bug_id
+                for a in dir(b):
+                    print "ATTRIBUTE[%s]: %s" % (a, getattr(b, a))
+                print "\n\n"
         else:
             parser.error("opt.output was set to something weird.")
 
