@@ -462,6 +462,17 @@ def main():
                                 parser.error('Malformed boolean query: %s' % i)
                     else:
                         q[a] = i
+
+        #to optimize speed and reduce network traffic through lookups, we
+        #specifically tell bugzilla the exact data we want.  This allows us
+        #make one call to output the data, rather than have a follow-on
+        #getbug() to grab more info than what the default has.
+        #Testing has shown this to be a _huge_ time saver.  Unfortunately,
+        #this list and the output format have to be in _sync_.  Otherwise,
+        #you lose speed by doing a look-up for each new output element.
+        if opt.output == 'oneline':
+            q['column_list'] = [ 'bug_id', 'bug_status', 'assigned_to', 'component',
+              'target_milestone', 'short_desc', 'flags', 'keywords', 'blockedby' ]
         log.debug("bz.query: %s", q)
         buglist = bz.query(q)
 
@@ -589,17 +600,14 @@ def main():
                             b.devel_whiteboard)
             print "\nBugs listed: ",len(buglist)
         elif opt.output == 'oneline':
-            fullbuglist = bz.getbugs([b.bug_id for b in buglist])
-            for b in fullbuglist:
+            for b in buglist:
                 flags=''
                 cve=''
-                #grab all the flags that are set
-                for i in b.flag_types:
-                    for s in i['flags']:
-                        if s['status']: flags += i['name'] + str(s['status']) + " "
+		flags += "".join([str(i) for i in b.flags.split(',')])
                 #grab CVEs by searching the keywords and grabbing that bugzilla
                 if b.keywords.find("Security") != -1:
-                    for bl in b.blocked:
+                    blockedby="%s" % b.blockedby
+                    for bl in blockedby.split(','):
                         cvebug = bz.getbug(bl)
                         for cb in cvebug.alias:
                             if cb.find("CVE") != -1:
