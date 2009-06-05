@@ -291,13 +291,15 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
         data = {'id':id, 'action':action, 'cc':','.join(cclist),
                 'comment':comment, 'nomail':nomail}
         return self._proxy.bugzilla.updateCC(data)
-    def _updatewhiteboard(self,id,text,which,action,comment):
+    def _updatewhiteboard(self,id,text,which,action,comment,private):
         '''Update the whiteboard given by 'which' for the given bug.
         performs the given action (which may be 'append',' prepend', or 
         'overwrite') using the given text.'''
         data = {'type':which,'text':text,'action':action}
         if comment is not None:
             data['comment'] = comment
+            if private:
+                data['commentprivacy'] = True
         return self._proxy.bugzilla.updateWhiteboard(id,data)
     # TODO: update this when the XMLRPC interface grows requestee support
     def _updateflags(self,id,flags):
@@ -509,7 +511,7 @@ class RHBugzilla3(Bugzilla34, RHBugzilla):
         else:
             raise ValueError, "action must be 'add','delete', or 'overwrite'"
 
-    def _updatewhiteboard(self,id,text,which,action,comment):
+    def _updatewhiteboard(self,id,text,which,action,comment,private):
         '''Update the whiteboard given by 'which' for the given bug.
         performs the given action (which may be 'append',' prepend', or 
         'overwrite') using the given text.
@@ -534,4 +536,6 @@ class RHBugzilla3(Bugzilla34, RHBugzilla):
                 update[which] = wb+' '+text
         if comment is not None:
             update['comment'] = comment
+            if private:
+                update['commentprivacy'] = True
         self._update_bug(id,update)

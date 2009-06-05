@@ -572,7 +572,7 @@ class BugzillaBase(object):
         (fetch list, remove each element, add new elements). Avoid if possible.
         '''
         raise NotImplementedError
-    def _updatewhiteboard(self,id,text,which,action,comment):
+    def _updatewhiteboard(self,id,text,which,action,comment,private):
         '''IMPLEMENT ME: Update the whiteboard given by 'which' for the given
         bug. performs the given action (which may be 'append',' prepend', or 
         'overwrite') using the given text.'''
@@ -1207,11 +1207,11 @@ class _Bug(object):
         '''
         self.bugzilla._updateflags(self.bug_id,flags)
         # TODO reload bug data here?
-    def _dowhiteboard(self,text,which,action,comment):
+    def _dowhiteboard(self,text,which,action,comment,private):
         '''Actually does the updateWhiteboard call to perform the given action
         (append,prepend,overwrite) with the given text on the given whiteboard
         for the given bug.'''
-        self.bugzilla._updatewhiteboard(self.bug_id,text,which,action,comment)
+        self.bugzilla._updatewhiteboard(self.bug_id,text,which,action,comment,private)
         # TODO reload bug data here?
 
     def getwhiteboard(self,which='status'):
@@ -1219,18 +1219,18 @@ class _Bug(object):
         Known whiteboard names: 'status','internal','devel','qa'.
         Defaults to the 'status' whiteboard.'''
         return getattr(self,"%s_whiteboard" % which)
-    def appendwhiteboard(self,text,which='status',comment=None):
+    def appendwhiteboard(self,text,which='status',comment=None,private=False):
         '''Append the given text (with a space before it) to the given 
         whiteboard. Defaults to using status_whiteboard.'''
-        self._dowhiteboard(text,which,'append',comment)
-    def prependwhiteboard(self,text,which='status',comment=None):
+        self._dowhiteboard(text,which,'append',comment,private)
+    def prependwhiteboard(self,text,which='status',comment=None,private=False):
         '''Prepend the given text (with a space following it) to the given
         whiteboard. Defaults to using status_whiteboard.'''
-        self._dowhiteboard(text,which,'prepend',comment)
-    def setwhiteboard(self,text,which='status',comment=None):
+        self._dowhiteboard(text,which,'prepend',comment,private)
+    def setwhiteboard(self,text,which='status',comment=None,private=False):
         '''Overwrites the contents of the given whiteboard with the given text.
         Defaults to using status_whiteboard.'''
-        self._dowhiteboard(text,which,'overwrite',comment)
+        self._dowhiteboard(text,which,'overwrite',comment,private)
     def addtag(self,tag,which='status'):
         '''Adds the given tag to the given bug.'''
         whiteboard = self.getwhiteboard(which)
