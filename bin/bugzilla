@@ -142,7 +142,7 @@ def setup_action_parser(action):
         # Boolean Charts
         p.add_option('-B','--booleantype',
                 help="specify searching option for booleans, ie. substring,notsubstring,exact,... [Default: substring]",default="substring")
-        p.add_option('--boolean_query',
+        p.add_option('--boolean_query', action="append",
                 help="Boolean:Create your own query. Format: BooleanName-Condition-Parameter &/| ... . ie, keywords-substring-Partner & keywords-notsubstring-OtherQA")
         p.add_option('--blocked',
                 help="Boolean:search for bugs that block this bug ID")
@@ -441,25 +441,26 @@ def main():
                         # Custom Boolean Chart query
                         # Format: BooleanName-Condition-Parameter &/| BooleanName-Condition-Parameter &/| ...
                         # ie, keywords-substring-Partner | keywords-notsubstring-PartnerVerified & keywords-notsubstring-OtherQA 
-                        chart_id = 0
-                        and_count = 0
-                        or_count = 0
-                        # Manually specified boolean query
-                        x = i.split(' ')
-                        for par in x :
-                            if par.find('&') != -1:
-                                and_count += 1
-                            elif par.find('|') != -1:
-                                or_count += 1
-                            elif par.find('!') != -1:
-                                 q['negate%i' % chart_id] = 1
-                            elif par.find('-') != -1:
-                                args = par.split('-')
-                                q['field%i-%i-%i' % (chart_id,and_count,or_count)] = args[0]
-                                q['type%i-%i-%i' % (chart_id,and_count,or_count)]  = args[1]
-                                q['value%i-%i-%i' % (chart_id,and_count,or_count)] = args[2]
-                            else:
-                                parser.error('Malformed boolean query: %s' % i)
+                        for b in i:
+                            and_count = 0
+                            or_count = 0
+                            # Manually specified boolean query
+                            x = b.split(' ')
+                            for par in x :
+                                if par.find('&') != -1:
+                                    and_count += 1
+                                elif par.find('|') != -1:
+                                    or_count += 1
+                                elif par.find('!') != -1:
+                                    q['negate%i' % chart_id] = 1
+                                elif par.find('-') != -1:
+                                    args = par.split('-')
+                                    q['field%i-%i-%i' % (chart_id,and_count,or_count)] = args[0]
+                                    q['type%i-%i-%i' % (chart_id,and_count,or_count)]  = args[1]
+                                    q['value%i-%i-%i' % (chart_id,and_count,or_count)] = args[2]
+                                else:
+                                    parser.error('Malformed boolean query: %s' % i)
+                            chart_id += 1
                     else:
                         q[a] = i
 
