@@ -457,7 +457,8 @@ def main():
                                     args = par.split('-')
                                     q['field%i-%i-%i' % (chart_id,and_count,or_count)] = args[0]
                                     q['type%i-%i-%i' % (chart_id,and_count,or_count)]  = args[1]
-                                    q['value%i-%i-%i' % (chart_id,and_count,or_count)] = args[2]
+                                    if len(args) == 3:
+                                        q['value%i-%i-%i' % (chart_id,and_count,or_count)] = args[2]
                                 else:
                                     parser.error('Malformed boolean query: %s' % i)
                             chart_id += 1
