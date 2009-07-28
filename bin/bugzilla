@@ -573,7 +573,7 @@ def main():
                 #grab all the flags that are set
                 for i in b.flag_types:
                     for s in i['flags']:
-                        if s['status']: flags += i['name'] + ":" + str(s['status']) + " "
+                        if s['status']: flags += i['name'] + str(s['status']) + " "
                 #grab CVEs by searching the keywords and grabbing that bugzilla
                 if b.keywords.find("Security") != -1:
                     for bl in b.blocked:
