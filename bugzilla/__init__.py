@@ -11,13 +11,14 @@
 
 from bugzilla3 import Bugzilla3, Bugzilla32
 from rhbugzilla import RHBugzilla, RHBugzilla3
+from nvlbugzilla import NovellBugzilla
 from base import version
 import xmlrpclib
 import logging
 log = logging.getLogger("bugzilla")
 
 # advertised class list
-classlist = ['Bugzilla3', 'Bugzilla32', 'RHBugzilla3']
+classlist = ['Bugzilla3', 'Bugzilla32', 'RHBugzilla3', 'NovellBugzilla']
 
 def getBugzillaClassForURL(url):
     log.debug("Choosing subclass for %s" % url)
