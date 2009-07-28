@@ -140,7 +140,11 @@ class BugzillaBase(object):
         del self.cookiefile
         self._cookiefile = cookiefile
 
-        cj = cookielib.MozillaCookieJar(self._cookiefile)
+        try:
+            cj = cookielib.LWPCookieJar(self._cookiefile)
+        except LoadError, le:
+            cj = cookielib.MozillaCookieJar(self._cookiefile)
+
         if not self._cookiefile:
             self._persist_cookie = False
             # Create a temporary cookie file
