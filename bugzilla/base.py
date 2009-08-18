@@ -134,6 +134,22 @@ class BugzillaBase(object):
         '''
         return self._cookiefile
 
+    def _loadcookies(self, cj):
+        """Load cookies from self._cookiefile
+
+        It first tries to use the existing cookiejar object. If it fails, it
+        falls back to MozillaCookieJar.
+
+        Returns the CookieJar object used to load the file.
+        """
+        try:
+            cj.load(self._cookiefile)
+        except cookielib.LoadError, le:
+            cj = cookielib.MozillaCookieJar(self._cookiefile)
+            cj.load(self._cookiefile)
+
+        return cj
+
     def _setcookiefile(self, cookiefile):
         if cookiefile == self._cookiefile:
             # no need to do anything if they're already the same
@@ -141,10 +157,8 @@ class BugzillaBase(object):
         del self.cookiefile
         self._cookiefile = cookiefile
 
-        try:
-            cj = cookielib.LWPCookieJar(self._cookiefile)
-        except LoadError, le:
-            cj = cookielib.MozillaCookieJar(self._cookiefile)
+        # default. May be overwritten by _loadcookies()
+        cj = cookielib.LWPCookieJar(self._cookiefile)
 
         if not self._cookiefile:
             self._persist_cookie = False
@@ -159,7 +173,7 @@ class BugzillaBase(object):
         else:
             self._persist_cookie = True
             if os.path.exists(self._cookiefile):
-                cj.load(self._cookiefile)
+                cj = self._loadcookies(cj)
             else:
                 # Create an empty cookiefile that's only readable by this user
                 old_umask = os.umask(0077)
