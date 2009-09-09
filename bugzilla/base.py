@@ -1286,7 +1286,7 @@ class _Bug(object):
         """
         ft = self.get_flag_type(name)
         if not ft:
-            return
+            return None
 
         return ft['flags']
 
@@ -1298,7 +1298,7 @@ class _Bug(object):
         flags, use get_flags() to get extended flag value information.
         """
         f = self.get_flags(name)
-        if len(f) < 1:
+        if not f:
             return None
 
         # This method works only for simple flags that have only one
