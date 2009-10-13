@@ -18,7 +18,7 @@ import bugzilla.util
 import locale
 import pprint
 
-version = '0.5'
+version = '0.5.1'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
 # Initial simple logging stuff
@@ -454,7 +454,13 @@ def main():
         required=['product','component','version','short_desc','comment',
              'rep_platform','bug_severity','op_sys','bug_file_loc','priority']
         optional=['cc']
-        for a in required + optional:
+        for a in optional:
+            i = getattr(opt,a)
+            if a == 'cc':
+                data[a] = i.split(',')
+            elif i:
+                data[a] = i
+        for a in required:
             i = getattr(opt,a)
             if i:
                 data[a] = i
