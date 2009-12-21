@@ -38,6 +38,10 @@ class NeedParamError(BugzillaError):
     '''A necessary parameter was left out.'''
     pass
 
+class LoadError(BugzillaError):
+    '''Error loading credentials'''
+    pass
+
 def replace_getbug_errors_with_None(rawlist):
     '''r is a raw xmlrpc response. 
     If it represents an error, None is returned.
@@ -812,9 +816,15 @@ class BugzillaBase(object):
         :returns: User record for the username
         '''
         rawuser = self._getusers(names=[username])['users'][0]
-        return _User(self, userid=rawuser['id'],
-                real_name=rawuser['real_name'], email=rawuser['email'],
-                name=rawuser['name'], can_login=rawuser['can_login'])
+        # Required fields
+        userid = rawuser['id']
+        name = rawuser['name']
+        # Optional fields
+        real_name = rawuser.get('real_name', '')
+        email = rawuser.get('email', name)
+        can_login = rawuser.get('can_login', False)
+        return _User(self, userid=userid, real_name=real_name, email=email,
+                name=name, can_login=can_login)
 
     def getusers(self, userlist):
         '''Return a list of Users from bugzilla.
@@ -822,9 +832,9 @@ class BugzillaBase(object):
         :userlist: List of usernames to lookup
         :returns: List of User records
         '''
-        return [_User(self, userid=rawuser['id'],
-            real_name=rawuser['real_name'], email=rawuser['email'],
-            name=rawuser['name'], can_login=rawuser['can_login'])
+        return [_User(self, userid=rawuser['id'], name=rawuser['name'],
+            real_name=rawuser.get('real_name', ''), email=rawuser.get('email', rawuser['name']),
+            can_login=rawuser.get('can_login', False))
             for rawuser in self._getusers(names=userlist)['users']]
 
     def searchusers(self, pattern):
@@ -833,9 +843,9 @@ class BugzillaBase(object):
         :arg pattern: List of patterns to match against.
         :returns: List of User records
         '''
-        return [_User(self, userid=rawuser['id'],
-            real_name=rawuser['real_name'], email=rawuser['email'],
-            name=rawuser['name'], can_login=rawuser['can_login'])
+        return [_User(self, userid=rawuser['id'], name=rawuser['name'],
+            real_name=rawuser.get('real_name', ''), email=rawuser.get('email', rawuser['name']),
+            can_login=rawuser.get('can_login', False))
             for rawuser in self._getusers(match=pattern)['users']]
 
     def createuser(self, email, name='', password=''):
