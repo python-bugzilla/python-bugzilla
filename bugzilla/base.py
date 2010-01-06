@@ -21,7 +21,7 @@ import logging
 
 log = logging.getLogger('bugzilla')
 
-version = '0.5'
+version = '0.5.1'
 user_agent = 'Python-urllib2/%s bugzilla.py/%s' % \
         (urllib2.__version__,version)
 
@@ -36,6 +36,10 @@ class NeedSyncError(BugzillaError):
 
 class NeedParamError(BugzillaError):
     '''A necessary parameter was left out.'''
+    pass
+
+class LoadError(BugzillaError):
+    '''Error loading credentials'''
     pass
 
 def replace_getbug_errors_with_None(rawlist):
@@ -140,7 +144,11 @@ class BugzillaBase(object):
         del self.cookiefile
         self._cookiefile = cookiefile
 
-        cj = cookielib.MozillaCookieJar(self._cookiefile)
+        try:
+            cj = cookielib.LWPCookieJar(self._cookiefile)
+        except LoadError, le:
+            cj = cookielib.MozillaCookieJar(self._cookiefile)
+
         if not self._cookiefile:
             self._persist_cookie = False
             # Create a temporary cookie file
@@ -808,9 +816,15 @@ class BugzillaBase(object):
         :returns: User record for the username
         '''
         rawuser = self._getusers(names=[username])['users'][0]
-        return _User(self, userid=rawuser['id'],
-                real_name=rawuser['real_name'], email=rawuser['email'],
-                name=rawuser['name'], can_login=rawuser['can_login'])
+        # Required fields
+        userid = rawuser['id']
+        name = rawuser['name']
+        # Optional fields
+        real_name = rawuser.get('real_name', '')
+        email = rawuser.get('email', name)
+        can_login = rawuser.get('can_login', False)
+        return _User(self, userid=userid, real_name=real_name, email=email,
+                name=name, can_login=can_login)
 
     def getusers(self, userlist):
         '''Return a list of Users from bugzilla.
@@ -818,9 +832,9 @@ class BugzillaBase(object):
         :userlist: List of usernames to lookup
         :returns: List of User records
         '''
-        return [_User(self, userid=rawuser['id'],
-            real_name=rawuser['real_name'], email=rawuser['email'],
-            name=rawuser['name'], can_login=rawuser['can_login'])
+        return [_User(self, userid=rawuser['id'], name=rawuser['name'],
+            real_name=rawuser.get('real_name', ''), email=rawuser.get('email', rawuser['name']),
+            can_login=rawuser.get('can_login', False))
             for rawuser in self._getusers(names=userlist)['users']]
 
     def searchusers(self, pattern):
@@ -829,9 +843,9 @@ class BugzillaBase(object):
         :arg pattern: List of patterns to match against.
         :returns: List of User records
         '''
-        return [_User(self, userid=rawuser['id'],
-            real_name=rawuser['real_name'], email=rawuser['email'],
-            name=rawuser['name'], can_login=rawuser['can_login'])
+        return [_User(self, userid=rawuser['id'], name=rawuser['name'],
+            real_name=rawuser.get('real_name', ''), email=rawuser.get('email', rawuser['name']),
+            can_login=rawuser.get('can_login', False))
             for rawuser in self._getusers(match=pattern)['users']]
 
     def createuser(self, email, name='', password=''):

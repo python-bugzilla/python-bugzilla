@@ -16,8 +16,9 @@ import logging
 import getpass
 import bugzilla.util
 import locale
+import pprint
 
-version = '0.5'
+version = '0.5.1'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
 # Initial simple logging stuff
@@ -336,11 +337,11 @@ def main():
     if action == 'info':
         if opt.products:
             for k in sorted(bz.products):
-                print k
+                pprint.pprint(k)
 
         if opt.components:
             for c in sorted(bz.getcomponents(opt.components)):
-                print c
+                pprint.pprint(c)
 
         if opt.component_owners:
             component_details = bz.getcomponentsdetails(opt.component_owners)
