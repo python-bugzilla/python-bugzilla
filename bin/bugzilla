@@ -17,6 +17,7 @@ import getpass
 import bugzilla.util
 import locale
 import pprint
+import socket
 
 version = '0.5.1'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
@@ -603,3 +604,6 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print "\ninterrupted."
         sys.exit(1)
+    except socket.error, e:
+        print "\nConnection lost/failed: %s" % str(e)
+        sys.exit(2)
