@@ -191,6 +191,8 @@ def setup_action_parser(action):
  (Use a new option for each flag)')
         p.add_option('--cc', action='append',
                 help='Add an email to the cc list')
+        p.add_option('-F','--fixed_in',metavar="VERSION",
+                help='"Fixed in version" field')
         # TODO: --keyword, --tag, --cc, ...
 
     if action in ['new','query']:
@@ -548,15 +550,31 @@ def main():
             elif opt.comment:
                 log.debug("  add comment: %s" % opt.comment)
                 bug.addcomment(opt.comment, opt.private)
+
+        # stuff that I do in batch mode:
+        if opt.fixed_in:
+            data = {}
+            if opt.fixed_in:
+                data['fixed_in'] = opt.fixed_in
+            bz._update_bugs(bugid_list, data)
     else:
         print "Sorry - '%s' not implemented yet." % action
 
     # If we're doing new/query/modify, output our results
     if action in ['new','query']:
         if opt.outputformat:
-            format_field_re = re.compile("%{[a-z0-9_]+}")
+            format_field_re = re.compile("%{([a-z0-9_]+)(?::([^}]*))?}")
+            special_fields = {
+                'flag': lambda b,f: b.get_flag_status(f),
+                'whiteboard': lambda b,wb: b.getwhiteboard(wb),
+            }
             def bug_field(matchobj):
-                fieldname = matchobj.group()[2:-1]
+                fieldname = matchobj.group(1)
+                rest = matchobj.group(2)
+
+                if special_fields.has_key(fieldname):
+                    return str(special_fields[fieldname](b, rest))
+
                 return str(getattr(b,fieldname))
             for b in buglist:
                 print format_field_re.sub(bug_field,opt.outputformat)
