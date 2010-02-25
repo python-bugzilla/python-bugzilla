@@ -1,6 +1,6 @@
 # base.py - the base classes etc. for a Python interface to bugzilla
 #
-# Copyright (C) 2007,2008 Red Hat Inc.
+# Copyright (C) 2007, 2008, 2009, 2010 Red Hat Inc.
 # Author: Will Woods <wwoods@redhat.com>
 # 
 # This program is free software; you can redistribute it and/or modify it
@@ -22,7 +22,7 @@ import locale
 
 log = logging.getLogger('bugzilla')
 
-version = '0.5.1'
+version = '0.6.0'
 user_agent = 'Python-urllib2/%s bugzilla.py/%s' % \
         (urllib2.__version__,version)
 

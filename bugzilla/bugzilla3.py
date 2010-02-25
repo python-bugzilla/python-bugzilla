@@ -1,6 +1,6 @@
 # bugzilla3.py - a Python interface to Bugzilla 3.x using xmlrpclib.
 #
-# Copyright (C) 2008 Red Hat Inc.
+# Copyright (C) 2008, 2009 Red Hat Inc.
 # Author: Will Woods <wwoods@redhat.com>
 # 
 # This program is free software; you can redistribute it and/or modify it
