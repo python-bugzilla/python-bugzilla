@@ -1,4 +1,4 @@
-.TH bugzilla 1  "April 09, 2009" "version 0.5.1" "User Commands"
+.TH bugzilla 1  "February 25, 2010" "version 0.5.1" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -124,6 +124,8 @@ output only bug IDs
 output additional bug information (keywords, Whiteboards, etc.)
 .IP "--oneline"
 one line summary of the bug (useful for scripts)
+.IP "--raw"
+raw output of the bugzilla contents
 .IP "--outputformat=OUTPUTFORMAT"
 Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'
 .SH \[oq]NEW\[cq] OPTIONS
@@ -159,6 +161,8 @@ output only bug IDs
 output additional bug information (keywords, Whiteboards, etc.)
 .IP "--oneline"
 one line summary of the bug (useful for scripts)
+.IP "--raw"
+raw output of the bugzilla contents
 .IP "--outputformat=OUTPUTFORMAT"
 Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'
 .SH \[oq]MODIFY\[cq] OPTIONS
@@ -178,6 +182,8 @@ Assign bugzilla to assignee
 Update bugzilla flags with requested type, ie fedora-cvs? (Use a new option for each flag)
 .IP "--cc=CC"
 Add an email to the cc list
+.IP "--fixed_in=VERSION, -F VERSION"
+"Fixed in version" field
 .SH \[oq]LOGIN\[cq] OPTIONS
 .IP "--help, -h"
 show this help message and exit
