@@ -18,6 +18,7 @@ import os
 import base64
 import tempfile
 import logging
+import locale
 
 log = logging.getLogger('bugzilla')
 
@@ -137,6 +138,22 @@ class BugzillaBase(object):
         '''
         return self._cookiefile
 
+    def _loadcookies(self, cj):
+        """Load cookies from self._cookiefile
+
+        It first tries to use the existing cookiejar object. If it fails, it
+        falls back to MozillaCookieJar.
+
+        Returns the CookieJar object used to load the file.
+        """
+        try:
+            cj.load(self._cookiefile)
+        except cookielib.LoadError, le:
+            cj = cookielib.MozillaCookieJar(self._cookiefile)
+            cj.load(self._cookiefile)
+
+        return cj
+
     def _setcookiefile(self, cookiefile):
         if cookiefile == self._cookiefile:
             # no need to do anything if they're already the same
@@ -144,10 +161,8 @@ class BugzillaBase(object):
         del self.cookiefile
         self._cookiefile = cookiefile
 
-        try:
-            cj = cookielib.LWPCookieJar(self._cookiefile)
-        except LoadError, le:
-            cj = cookielib.MozillaCookieJar(self._cookiefile)
+        # default. May be overwritten by _loadcookies()
+        cj = cookielib.LWPCookieJar(self._cookiefile)
 
         if not self._cookiefile:
             self._persist_cookie = False
@@ -162,7 +177,7 @@ class BugzillaBase(object):
         else:
             self._persist_cookie = True
             if os.path.exists(self._cookiefile):
-                cj.load(self._cookiefile)
+                cj = self._loadcookies(cj)
             else:
                 # Create an empty cookiefile that's only readable by this user
                 old_umask = os.umask(0077)
@@ -561,7 +576,7 @@ class BugzillaBase(object):
         (fetch list, remove each element, add new elements). Avoid if possible.
         '''
         raise NotImplementedError
-    def _updatewhiteboard(self,id,text,which,action):
+    def _updatewhiteboard(self,id,text,which,action,comment,private):
         '''IMPLEMENT ME: Update the whiteboard given by 'which' for the given
         bug. performs the given action (which may be 'append',' prepend', or 
         'overwrite') using the given text.'''
@@ -1087,7 +1102,16 @@ class _Bug(object):
         #    setattr(self,f,property(fget=lambda self: self.refresh()))
 
     def __str__(self):
-        '''Return a simple string representation of this bug'''
+        '''Return a simple string representation of this bug
+
+        This is available only for compatibility. Using 'str(bug)' and
+        'print bug' is not recommended because of potential encoding issues.
+        Please use unicode(bug) where possible.
+        '''
+        return unicode(self).encode(locale.getpreferredencoding(), 'replace')
+
+    def __unicode__(self):
+        '''Return a simple unicode string representation of this bug'''
         # XXX Not really sure why we get short_desc sometimes and
         # short_short_desc other times. I feel like I'm working around
         # a bug here, so keep an eye on this.
@@ -1105,7 +1129,7 @@ class _Bug(object):
         if 'assigned_to' not in self.__dict__:
             if 'assigned_to_id' in self.__dict__:
                 self.assigned_to = self.bugzilla._getuserforid(self.assigned_to_id)
-        return "#%-6s %-10s - %s - %s" % (self.bug_id,self.bug_status,
+        return u"#%-6s %-10s - %s - %s" % (self.bug_id,self.bug_status,
                                           self.assigned_to,desc)
     def __repr__(self):
         return '<Bug #%i on %s at %#x>' % (self.bug_id,self.bugzilla.url,
@@ -1121,6 +1145,18 @@ class _Bug(object):
             if name in self.__dict__:
                 return self.__dict__[name]
         raise AttributeError, "Bug object has no attribute '%s'" % name
+
+    def __getstate__(self):
+        sd = self.__dict__
+        if self.bugzilla: fields = self.bugzilla.bugfields
+        else: fields = self.bugfields
+        vals = [(k,sd[k]) for k in sd.keys() if k in fields]
+        vals.append( ('bugfields', fields) )
+        return dict(vals)
+
+    def __setstate__(self, dict):
+        self.__dict__.update(dict)
+        self.bugzilla = None
 
     def refresh(self):
         '''Refresh all the data in this Bug.'''
@@ -1193,11 +1229,11 @@ class _Bug(object):
         '''
         self.bugzilla._updateflags(self.bug_id,flags)
         # TODO reload bug data here?
-    def _dowhiteboard(self,text,which,action):
+    def _dowhiteboard(self,text,which,action,comment,private):
         '''Actually does the updateWhiteboard call to perform the given action
         (append,prepend,overwrite) with the given text on the given whiteboard
         for the given bug.'''
-        self.bugzilla._updatewhiteboard(self.bug_id,text,which,action)
+        self.bugzilla._updatewhiteboard(self.bug_id,text,which,action,comment,private)
         # TODO reload bug data here?
 
     def getwhiteboard(self,which='status'):
@@ -1205,18 +1241,18 @@ class _Bug(object):
         Known whiteboard names: 'status','internal','devel','qa'.
         Defaults to the 'status' whiteboard.'''
         return getattr(self,"%s_whiteboard" % which)
-    def appendwhiteboard(self,text,which='status'):
+    def appendwhiteboard(self,text,which='status',comment=None,private=False):
         '''Append the given text (with a space before it) to the given 
         whiteboard. Defaults to using status_whiteboard.'''
-        self._dowhiteboard(text,which,'append')
-    def prependwhiteboard(self,text,which='status'):
+        self._dowhiteboard(text,which,'append',comment,private)
+    def prependwhiteboard(self,text,which='status',comment=None,private=False):
         '''Prepend the given text (with a space following it) to the given
         whiteboard. Defaults to using status_whiteboard.'''
-        self._dowhiteboard(text,which,'prepend')
-    def setwhiteboard(self,text,which='status'):
+        self._dowhiteboard(text,which,'prepend',comment,private)
+    def setwhiteboard(self,text,which='status',comment=None,private=False):
         '''Overwrites the contents of the given whiteboard with the given text.
         Defaults to using status_whiteboard.'''
-        self._dowhiteboard(text,which,'overwrite')
+        self._dowhiteboard(text,which,'overwrite',comment,private)
     def addtag(self,tag,which='status'):
         '''Adds the given tag to the given bug.'''
         whiteboard = self.getwhiteboard(which)
@@ -1241,6 +1277,45 @@ class _Bug(object):
     def deletecc(self,cclist,comment=''):
         '''Removes the given email addresses from the CC list for this bug.'''
         self.bugzilla._updatecc(self.bug_id,cclist,'delete',comment)
+
+    def get_flag_type(self, name):
+        """Return flag_type information for a specific flag"""
+
+        #XXX: make a "flag index" dictionary instead of walking the
+        #     flag_types list every time?
+
+        for t in self.flag_types:
+            if t['name'] == name:
+                return t
+
+        # not found
+        return None
+
+    def get_flags(self, name):
+        """Return flag value information for a specific flag
+        """
+        ft = self.get_flag_type(name)
+        if not ft:
+            return None
+
+        return ft['flags']
+
+    def get_flag_status(self, name):
+        """Return a flag 'status' field
+
+        This method works only for simple flags that have only a 'status' field
+        with no "requestee" info, and no multiple values. For more complex
+        flags, use get_flags() to get extended flag value information.
+        """
+        f = self.get_flags(name)
+        if not f:
+            return None
+
+        # This method works only for simple flags that have only one
+        # value set.
+        assert len(f) <= 1
+
+        return f[0]['status']
 
 # Backwards compatibility
 Bug = _Bug

@@ -144,13 +144,13 @@ def setup_action_parser(action):
         # Boolean Charts
         p.add_option('-B','--booleantype',
                 help="specify searching option for booleans, ie. substring,notsubstring,exact,... [Default: substring]",default="substring")
-        p.add_option('--boolean_query',
+        p.add_option('--boolean_query', action="append",
                 help="Boolean:Create your own query. Format: BooleanName-Condition-Parameter &/| ... . ie, keywords-substring-Partner & keywords-notsubstring-OtherQA")
         p.add_option('--blocked',
                 help="Boolean:search for bugs that block this bug ID")
         p.add_option('--dependson',
                 help="Boolean:search for bugs that depend on this bug ID")
-        p.add_option('--flag',
+        p.add_option('--flag', action='append',
                 help="Boolean:search for bugs that have certain flag states present")
         p.add_option('--qa_whiteboard',
                 help="Boolean:search for bugs that have certain QA Whiteboard text present")
@@ -181,7 +181,7 @@ def setup_action_parser(action):
         # FIXME: check value for resolution
         p.add_option('-k','--close',metavar="RESOLUTION",
                 help='Close with the given resolution')
-        p.add_option('-p','--private',action='store_true',default='false',
+        p.add_option('-p','--private',action='store_true',default=False,
                 help='Mark as private')
         p.add_option('-s','--status',
                 help='Change status of bug')
@@ -192,6 +192,8 @@ def setup_action_parser(action):
  (Use a new option for each flag)')
         p.add_option('--cc', action='append',
                 help='Add an email to the cc list')
+        p.add_option('-F','--fixed_in',metavar="VERSION",
+                help='"Fixed in version" field')
         # TODO: --keyword, --tag, --cc, ...
 
     if action in ['new','query']:
@@ -204,6 +206,8 @@ def setup_action_parser(action):
                 const='extra',help="output additional bug information (keywords, Whiteboards, etc.)")
         p.add_option('--oneline', action='store_const', dest='output',
                 const='oneline',help="one line summary of the bug (useful for scripts)")
+        p.add_option('--raw', action='store_const', dest='output',
+                const='raw',help="raw output of the bugzilla contents")
         p.add_option('--outputformat',
                 help="Print output in the form given. You can use RPM-style "+
                 "tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'")
@@ -404,6 +408,8 @@ def main():
                             line = line.rstrip("\n")
                             arr.append(line)
                         q['component'] = ",".join(arr)
+                    elif a in ['product']:
+                        q[a] = [ i ]
                     elif a in ['keywords','keywords_type','url','url_type','status_whiteboard',
                             'status_whiteboard_type','severity','priority']: 
                         if a == 'url':
@@ -413,40 +419,66 @@ def main():
                         else:
                             q['%s' % a] = i
                     elif a in ['fixed_in','blocked','dependson','flag','qa_whiteboard','devel_whiteboard','alias']: 
-                        # Boolean Charts
-                        if a == 'flag':
-                        # Flags have strange parameter name
-                            q['field%i-0-0' % chart_id] = 'flagtypes.name'
-                        elif a == 'devel_whiteboard':
-                            q['field%i-0-0' % chart_id] = 'cf_devel_whiteboard'
-                        else:
-                            q['field%i-0-0' % chart_id] = a
-                        q['value%i-0-0' % chart_id] = i
-                        q['type%i-0-0' % chart_id]  = opt.booleantype
-                        chart_id += 1
+                        for b in i:
+                            # Boolean Charts
+                            and_count = 0
+                            or_count = 0
+                            x = b.split(' ')
+                            for par in x :
+                                if par.find('&') != -1:
+                                    and_count += 1
+                                elif par.find('|') != -1:
+                                    or_count += 1
+                                elif par.find('!') != -1:
+                                     q['negate%i' % chart_id] = 1
+                                elif a == 'flag':
+                                # Flags have strange parameter name
+                                    q['field%i-%i-%i' % (chart_id,and_count,or_count)] = 'flagtypes.name'
+                                elif a == 'devel_whiteboard':
+                                    q['field%i-%i-%i' % (chart_id,and_count,or_count)] = 'cf_devel_whiteboard'
+                                else:
+                                    q['field%i-%i-%i' % (chart_id,and_count,or_count)] = a
+                                q['value%i-%i-%i' % (chart_id,and_count,or_count)] = par
+                                q['type%i-%i-%i' % (chart_id,and_count,or_count)]  = opt.booleantype
+                            chart_id += 1
                     elif a == 'boolean_query': 
                         # Custom Boolean Chart query
                         # Format: BooleanName-Condition-Parameter &/| BooleanName-Condition-Parameter &/| ...
                         # ie, keywords-substring-Partner | keywords-notsubstring-PartnerVerified & keywords-notsubstring-OtherQA 
-                        chart_id = 0
-                        and_count = 0
-                        or_count = 0
-                        # Manually specified boolean query
-                        x = i.split(' ')
-                        for par in x :
-                            if par.find('&') != -1:
-                                and_count += 1
-                            elif par.find('|') != -1:
-                                or_count += 1
-                            elif par.find('-') != -1:
-                                args = par.split('-')
-                                q['field%i-%i-%i' % (chart_id,and_count,or_count)] = args[0]
-                                q['type%i-%i-%i' % (chart_id,and_count,or_count)]  = args[1]
-                                q['value%i-%i-%i' % (chart_id,and_count,or_count)] = args[2]
-                            else:
-                                parser.error('Malformed boolean query: %s' % i)
+                        for b in i:
+                            and_count = 0
+                            or_count = 0
+                            # Manually specified boolean query
+                            x = b.split(' ')
+                            for par in x :
+                                if par.find('&') != -1:
+                                    and_count += 1
+                                elif par.find('|') != -1:
+                                    or_count += 1
+                                elif par.find('!') != -1:
+                                    q['negate%i' % chart_id] = 1
+                                elif par.find('-') != -1:
+                                    args = par.split('-')
+                                    q['field%i-%i-%i' % (chart_id,and_count,or_count)] = args[0]
+                                    q['type%i-%i-%i' % (chart_id,and_count,or_count)]  = args[1]
+                                    if len(args) == 3:
+                                        q['value%i-%i-%i' % (chart_id,and_count,or_count)] = args[2]
+                                else:
+                                    parser.error('Malformed boolean query: %s' % i)
+                            chart_id += 1
                     else:
                         q[a] = i
+
+        #to optimize speed and reduce network traffic through lookups, we
+        #specifically tell bugzilla the exact data we want.  This allows us
+        #make one call to output the data, rather than have a follow-on
+        #getbug() to grab more info than what the default has.
+        #Testing has shown this to be a _huge_ time saver.  Unfortunately,
+        #this list and the output format have to be in _sync_.  Otherwise,
+        #you lose speed by doing a look-up for each new output element.
+        if opt.output == 'oneline':
+            q['column_list'] = [ 'bug_id', 'bug_status', 'assigned_to', 'component',
+              'target_milestone', 'short_desc', 'flags', 'keywords', 'blockedby' ]
         log.debug("bz.query: %s", q)
         buglist = bz.query(q)
 
@@ -519,15 +551,31 @@ def main():
             elif opt.comment:
                 log.debug("  add comment: %s" % opt.comment)
                 bug.addcomment(opt.comment, opt.private)
+
+        # stuff that I do in batch mode:
+        if opt.fixed_in:
+            data = {}
+            if opt.fixed_in:
+                data['fixed_in'] = opt.fixed_in
+            bz._update_bugs(bugid_list, data)
     else:
         print "Sorry - '%s' not implemented yet." % action
 
     # If we're doing new/query/modify, output our results
     if action in ['new','query']:
         if opt.outputformat:
-            format_field_re = re.compile("%{[a-z0-9_]+}")
+            format_field_re = re.compile("%{([a-z0-9_]+)(?::([^}]*))?}")
+            special_fields = {
+                'flag': lambda b,f: b.get_flag_status(f),
+                'whiteboard': lambda b,wb: b.getwhiteboard(wb),
+            }
             def bug_field(matchobj):
-                fieldname = matchobj.group()[2:-1]
+                fieldname = matchobj.group(1)
+                rest = matchobj.group(2)
+
+                if special_fields.has_key(fieldname):
+                    return str(special_fields[fieldname](b, rest))
+
                 return str(getattr(b,fieldname))
             for b in buglist:
                 print format_field_re.sub(bug_field,opt.outputformat)
@@ -553,7 +601,7 @@ def main():
                         c['author'], email, c['body']))
         elif opt.output == 'normal':
             for b in buglist:
-                print to_encoding(u'#%s %s - %s - %s' %
+                print to_encoding(u'#%s %8s - %s - %s' %
                         (b.bug_id, b.bug_status, b.assigned_to, b.short_desc))
 
         elif opt.output == 'extra':
@@ -574,17 +622,14 @@ def main():
                             b.devel_whiteboard)
             print "\nBugs listed: ",len(buglist)
         elif opt.output == 'oneline':
-            fullbuglist = bz.getbugs([b.bug_id for b in buglist])
-            for b in fullbuglist:
+            for b in buglist:
                 flags=''
                 cve=''
-                #grab all the flags that are set
-                for i in b.flag_types:
-                    for s in i['flags']:
-                        if s['status']: flags += i['name'] + str(s['status']) + " "
+		flags += "".join([str(i) for i in b.flags.split(',')])
                 #grab CVEs by searching the keywords and grabbing that bugzilla
                 if b.keywords.find("Security") != -1:
-                    for bl in b.blocked:
+                    blockedby="%s" % b.blockedby
+                    for bl in blockedby.split(','):
                         cvebug = bz.getbug(bl)
                         for cb in cvebug.alias:
                             if cb.find("CVE") != -1:
@@ -592,6 +637,13 @@ def main():
                 print to_encoding(u"#%s %8s %22s %s\t[%s] %s %s" %
                         (b.bug_id, b.bug_status, b.assigned_to, b.component,
                             b.target_milestone, flags, cve))
+        elif opt.output == 'raw':
+            fullbuglist = bz.getbugs([b.bug_id for b in buglist])
+            for b in fullbuglist:
+                print "Bugzilla %s: " % b.bug_id
+                for a in dir(b):
+                    print "ATTRIBUTE[%s]: %s" % (a, getattr(b, a))
+                print "\n\n"
         else:
             parser.error("opt.output was set to something weird.")
 
