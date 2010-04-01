@@ -18,6 +18,7 @@ import bugzilla.util
 import locale
 import pprint
 import socket
+import xmlrpclib
 
 version = '0.6.0'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
@@ -263,7 +264,12 @@ by Bugzilla.
 bugzilla query --bug_id 62037
 .SH EXIT STATUS
 .BR bugzilla
-returns 1 if login fails or it is interrupted, and 0 otherwise.
+normally returns 0 if the requested command was successful. Otherwise, exit
+status is 1 if
+.BR bugzilla
+is interrupted by the user (or a login attempt fails), 2 if a
+socket error occurs (e.g. TCP connection timeout), and 3 if the server returns
+an XML-RPC fault.
 .SH NOTES
 Not everything that's exposed in the Web UI is exposed by XML-RPC, and not
 everything that's exposed by XML-RPC is used by
@@ -659,3 +665,6 @@ if __name__ == '__main__':
     except socket.error, e:
         print "\nConnection lost/failed: %s" % str(e)
         sys.exit(2)
+    except xmlrpclib.Fault, e:
+        print "\nServer error: %s" % str(e)
+        sys.exit(3)
