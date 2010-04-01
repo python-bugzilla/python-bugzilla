@@ -472,7 +472,7 @@ class RHBugzilla3(Bugzilla34, RHBugzilla):
         data: 'assigned_to','reporter','qa_contact','comment'
         returns: [$id, $mailresults]'''
         # drop empty items
-        update = dict([(k,v) for k,v in data.iteritems() if v != ''])
+        update = dict([(k,v) for k,v in data.iteritems() if (v and v != '')])
         return self._update_bug(id,update)
 
     def _updatedeps(self,id,blocked,dependson,action):
