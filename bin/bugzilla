@@ -290,6 +290,8 @@ def main():
         action = args.pop(0)
     else:
         parser.error("command must be one of: %s" % ','.join(cmdlist))
+    if not args and action not in ('login'):
+        parser.error("%s requires additional arguments" % action)
     # Parse action-specific args
     action_parser = setup_action_parser(action)
     (opt, args) = action_parser.parse_args(args)
