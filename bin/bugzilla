@@ -290,8 +290,6 @@ def main():
         action = args.pop(0)
     else:
         parser.error("command must be one of: %s" % ','.join(cmdlist))
-    if not args and action not in ('login'):
-        parser.error("%s requires additional arguments" % action)
     # Parse action-specific args
     action_parser = setup_action_parser(action)
     (opt, args) = action_parser.parse_args(args)
@@ -346,6 +344,9 @@ def main():
     # And now we actually execute the given command
     buglist = list() # save the results of query/new/modify here
     if action == 'info':
+        if not (opt.products or opt.components or opt.component_owners or opt.versions):
+            parser.error("'info' command requires additional arguments")
+
         if opt.products:
             for k in sorted(bz.products):
                 pprint.pprint(k)
@@ -488,6 +489,8 @@ def main():
             q['column_list'] = [ 'bug_id', 'bug_status', 'assigned_to', 'component',
               'target_milestone', 'short_desc', 'flags', 'keywords', 'blockedby' ]
         log.debug("bz.query: %s", q)
+        if not q:
+            parser.error("'query' command requires additional arguments")
         buglist = bz.query(q)
 
     elif action == 'new':
@@ -497,23 +500,28 @@ def main():
         optional=['cc']
         for a in optional:
             i = getattr(opt,a)
-            if a == 'cc':
-                data[a] = i.split(',')
-            elif i:
-                data[a] = i
+            if i:
+                if a == 'cc':
+                    data[a] = i.split(',')
+                else:
+                    data[a] = i
         for a in required:
             i = getattr(opt,a)
             if i:
                 data[a] = i
-        for k in required:
-            if k not in data:
-                parser.error('Missing required argument: %s' % k)
+        missing = [k for k in required if k not in data]
+        if missing:
+            parser.error("'new' command requires additional arguments: %s" % ",".join(missing))
         log.debug("bz.createbug(%s)", data)
         b = bz.createbug(**data)
         b.refresh()
         buglist = [b]
         
     elif action == 'modify':
+        if not (opt.status or opt.close or opt.assignee or opt.flag or opt.cc
+                or opt.comment or opt.fixed_in):
+            parser.error("'modify' command requires additional arguments")
+
         bugid_list = []
         for a in args:
             if ',' in a:
@@ -528,6 +536,8 @@ def main():
         # Iterate over a list of Bug objects
         # FIXME: this should totally use some multicall magic
         buglist = bz.getbugssimple(bugid_list)
+        if not buglist:
+            parser.error('No bugs were found. Check your bug IDs.')
         for id,bug in zip(bugid_list,buglist):
             if not bug: 
                 log.error("  failed to load bug %s" % id)
