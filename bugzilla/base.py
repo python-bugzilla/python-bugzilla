@@ -1160,6 +1160,9 @@ class _Bug(object):
 
     def refresh(self):
         '''Refresh all the data in this Bug.'''
+        if self.bugzilla.bugfields:
+            for k in self.bugzilla.bugfields:
+                self.__dict__.setdefault(k)
         r = self.bugzilla._getbug(self.bug_id)
         self.__dict__.update(r)
 
