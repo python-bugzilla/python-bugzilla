@@ -402,6 +402,11 @@ class RHBugzilla3(Bugzilla34, RHBugzilla):
             r = [i['internals'] for i in raw_results['bugs']]
         return r
 
+    def _getbugfields(self):
+        '''Get a list of valid fields for bugs.'''
+        result = self._proxy.Bug.get_fields()
+        return result['bug_fields']
+
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
