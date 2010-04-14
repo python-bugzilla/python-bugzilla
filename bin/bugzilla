@@ -597,9 +597,13 @@ def main():
                 rest = matchobj.group(2)
 
                 if special_fields.has_key(fieldname):
-                    return str(special_fields[fieldname](b, rest))
-
-                return str(getattr(b,fieldname))
+                    val = special_fields[fieldname](b, rest)
+                else:
+                    val = getattr(b,fieldname)
+                try:
+                    return str(val)
+                except UnicodeEncodeError:
+                    return to_encoding(val)
             for b in buglist:
                 print format_field_re.sub(bug_field,opt.outputformat)
         elif opt.output == 'ids':
