@@ -154,3 +154,15 @@ class Bugzilla34(Bugzilla32):
                     ' names, or match kwarg.')
 
         return self._proxy.User.get(params)
+
+# Bugzilla 3.6 was released April 13, 2010
+# XXX TODO probably more new methods from Bugzilla 3.6 we could use
+class Bugzilla36(Bugzilla34):
+    version = '0.1'
+    user_agent = bugzilla.base.user_agent + ' Bugzilla36/%s' % version
+
+    # Hooray, a proper _getbugfields implementation
+    def _getbugfields(self):
+        '''Get the list of valid fields for Bug objects'''
+        r = self._proxy.Bug.fields({'include_fields':['name']})
+        return [f['name'] for f in r['fields']]
