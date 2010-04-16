@@ -20,7 +20,7 @@ import pprint
 import socket
 import xmlrpclib
 
-version = '0.6.0'
+version = '0.6.1'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
 # Initial simple logging stuff

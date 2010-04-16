@@ -1,4 +1,4 @@
-For 0.6:
+For 0.7:
 - make Bugzilla methods all take a bug ID list
   - BZ 3 methods all take idlist
   - RHBZ can use multicall to emulate that

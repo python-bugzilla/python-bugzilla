@@ -22,7 +22,7 @@ import locale
 
 log = logging.getLogger('bugzilla')
 
-version = '0.6.0'
+version = '0.6.1'
 user_agent = 'Python-urllib2/%s bugzilla.py/%s' % \
         (urllib2.__version__,version)
 
