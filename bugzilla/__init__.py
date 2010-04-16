@@ -9,7 +9,7 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-from bugzilla3 import Bugzilla3, Bugzilla32
+from bugzilla3 import Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36
 from rhbugzilla import RHBugzilla, RHBugzilla3
 from nvlbugzilla import NovellBugzilla
 from base import version
@@ -18,7 +18,8 @@ import logging
 log = logging.getLogger("bugzilla")
 
 # advertised class list
-classlist = ['Bugzilla3', 'Bugzilla32', 'RHBugzilla3', 'NovellBugzilla']
+classlist = ['Bugzilla3', 'Bugzilla32', 'Bugzilla34', 'Bugzilla36',
+             'RHBugzilla3', 'NovellBugzilla']
 
 def getBugzillaClassForURL(url):
     log.debug("Choosing subclass for %s" % url)
@@ -53,10 +54,14 @@ def getBugzillaClassForURL(url):
         else:
             c = RHBugzilla
     elif bzversion.startswith('3.'):
-        if bzversion.startswith('3.0'):
-            c = Bugzilla3
-        else: # 3.1 or higher
+        if bzversion.startswith('3.6'):
+            c = Bugzilla36
+        elif bzversion.startswith('3.4'):
+            c = Bugzilla34
+        elif bzversion.startswith('3.2'):
             c = Bugzilla32
+        else:
+            c = Bugzilla3
 
     return c
 
