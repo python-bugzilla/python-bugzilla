@@ -359,9 +359,9 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
 
 class RHBugzilla3(Bugzilla34, RHBugzilla):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
-    methods provided by Red Hat's Bugzilla 3.2+ instance, which is a superset
-    of the Bugzilla 3.2 methods. The additional methods (Bug.search, Bug.update)
-    should make their way into a later upstream Bugzilla release (probably 4.0).
+    methods provided by Red Hat's Bugzilla 3.4+ instance, which is a superset
+    of the Bugzilla 3.4 methods. The additional methods (e.g. Bug.update)
+    should make their way into a later upstream Bugzilla release.
 
     Note that RHBZ3 *also* supports most of the old RHBZ methods, under the
     'bugzilla' namespace, so we use those when BZ3 methods aren't available.
@@ -376,7 +376,7 @@ class RHBugzilla3(Bugzilla34, RHBugzilla):
     Fault rather than returning any data.
     '''
 
-    version = '0.1'
+    version = '0.2'
     user_agent = bugzilla.base.user_agent + ' RHBugzilla3/%s' % version
 
     def __init__(self,**kwargs):
@@ -402,10 +402,7 @@ class RHBugzilla3(Bugzilla34, RHBugzilla):
             r = [i['internals'] for i in raw_results['bugs']]
         return r
 
-    def _getbugfields(self):
-        '''Get a list of valid fields for bugs.'''
-        result = self._proxy.Bug.get_fields()
-        return result['bug_fields']
+    _getbugfields = RHBugzilla._getbugfields
 
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
