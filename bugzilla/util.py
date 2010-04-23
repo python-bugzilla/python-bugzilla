@@ -9,5 +9,12 @@ def url_to_query(url):
     q = dict()
     (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(url)
     if os.path.basename(path) in ('buglist.cgi','query.cgi'):
-        q = dict(urlparse.parse_qsl(query))
+        for (k,v) in urlparse.parse_qsl(query):
+            if k not in q:
+                q[k] = v
+            elif isinstance(q[k], list):
+                q[k].append(v)
+            else:
+                oldv = q[k]
+                q[k] = [oldv, v]
     return q
