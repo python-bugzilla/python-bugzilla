@@ -448,8 +448,8 @@ def main():
                                 elif a == 'flag':
                                 # Flags have strange parameter name
                                     q['field%i-%i-%i' % (chart_id,and_count,or_count)] = 'flagtypes.name'
-                                elif a == 'devel_whiteboard':
-                                    q['field%i-%i-%i' % (chart_id,and_count,or_count)] = 'cf_devel_whiteboard'
+                                elif a.endswith('_whiteboard'):
+                                    q['field%i-%i-%i' % (chart_id,and_count,or_count)] = 'cf_' + a
                                 else:
                                     q['field%i-%i-%i' % (chart_id,and_count,or_count)] = a
                                 q['value%i-%i-%i' % (chart_id,and_count,or_count)] = par
