@@ -188,6 +188,8 @@ def setup_action_parser(action):
                 help='Change status of bug')
         p.add_option('--assignee',
                 help='Assign bugzilla to assignee')
+        p.add_option('--qa_contact',
+                help='Change QA contact')
         p.add_option('-f','--flag', action='append',
                 help='Update bugzilla flags with requested type, ie fedora-cvs?\
  (Use a new option for each flag)')
@@ -557,6 +559,9 @@ def main():
             elif opt.assignee:
                 log.debug("  assignee %s" % opt.assignee)
                 bug.setassignee(assigned_to=opt.assignee,comment=opt.comment)
+            elif opt.qa_contact:
+                log.debug("  qa_contact %s" % opt.qa_contact)
+                bug.setassignee(qa_contact=opt.qa_contact,comment=opt.comment)
             elif opt.flag:
                 log.debug("  flag %s" % opt.flag)
                 flags=dict()
