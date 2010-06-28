@@ -61,9 +61,11 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
     #---- Methods for reading bugs and bug info
 
     def _getbugs(self,idlist):
-        '''Return a list of dicts of full bug info for each given bug id'''
+        '''Return a list of dicts of full bug info for each given bug id.
+        bug ids that couldn't be found will return None instead of a dict.'''
         r = self._proxy.Bug.get_bugs({'ids':idlist, 'permissive': 1})
-        return [i['internals'] for i in r['bugs']]
+        bugdict = dict([(b['id'], b['internals']) for b in r['bugs']])
+        return [bugdict.get(i) for i in idlist]
     def _getbug(self,id):
         '''Return a dict of full bug info for the given bug id'''
         return self._getbugs([id])[0]
