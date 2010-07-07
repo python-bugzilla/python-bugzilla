@@ -365,13 +365,13 @@ def main():
         if opt.component_owners:
             component_details = bz.getcomponentsdetails(opt.component_owners)
             for c in sorted(component_details):
-                print "%s: %s" % (c, component_details[c]['initialowner'])
+                print to_encoding(u"%s: %s" % (c, component_details[c]['initialowner']))
 
         if opt.versions:
             for p in bz.querydata['product']:
                 if p['name'] == opt.versions:
                     for v in p['versions']:
-                        print v
+                        print to_encoding(v)
 
     elif action == 'query':
         # Construct the query from the list of queryable options
@@ -674,7 +674,7 @@ def main():
             for b in fullbuglist:
                 print "Bugzilla %s: " % b.bug_id
                 for a in dir(b):
-                    print "ATTRIBUTE[%s]: %s" % (a, getattr(b, a))
+                    print to_encoding(u"ATTRIBUTE[%s]: %s" % (a, getattr(b, a)))
                 print "\n\n"
         else:
             parser.error("opt.output was set to something weird.")
