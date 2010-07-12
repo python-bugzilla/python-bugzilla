@@ -543,6 +543,7 @@ def main():
         # Iterate over a list of Bug objects
         # FIXME: this should totally use some multicall magic
         buglist = bz.getbugssimple(bugid_list)
+        log.debug("bz.getbugssimple(%s) -> %s" % (bugid_list, buglist))
         if not buglist:
             parser.error('No bugs were found. Check your bug IDs.')
         for id,bug in zip(bugid_list,buglist):
