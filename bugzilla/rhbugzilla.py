@@ -10,7 +10,7 @@
 # the full text of the license.
 
 import bugzilla.base
-from bugzilla3 import Bugzilla34
+from bugzilla.bugzilla3 import Bugzilla3, Bugzilla34
 import copy, xmlrpclib
 
 class RHBugzilla(bugzilla.base.BugzillaBase):
