@@ -63,7 +63,7 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
     def _getbugs(self,idlist):
         '''Return a list of dicts of full bug info for each given bug id.
         bug ids that couldn't be found will return None instead of a dict.'''
-        idlist = map(lambda i: (i.isdigit() and int(i)) or i, idlist)
+        idlist = map(lambda i: int(i), idlist)
         r = self._proxy.Bug.get_bugs({'ids':idlist, 'permissive': 1})
         bugdict = dict([(b['id'], b['internals']) for b in r['bugs']])
         return [bugdict.get(i) for i in idlist]
