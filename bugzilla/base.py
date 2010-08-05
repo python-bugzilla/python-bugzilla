@@ -936,9 +936,9 @@ class CookieTransport(xmlrpclib.Transport):
         else:
             log.debug("send_cookies(): cookiejar empty. Nothing to send.")
 
-    # This is the same request() method from xmlrpclib.Transport,
+    # This is the same request() method from python 2.6's xmlrpclib.Transport,
     # with a couple additions noted below
-    def request(self, host, handler, request_body, verbose=0):
+    def request_with_cookies(self, host, handler, request_body, verbose=0):
         h = self.make_connection(host)
         if verbose:
             h.set_debuglevel(1)
@@ -985,10 +985,74 @@ class CookieTransport(xmlrpclib.Transport):
 
         return self._parse_response(h.getfile(), sock)
 
+    # This is just python 2.7's xmlrpclib.Transport.single_request, with
+    # send additions noted below to send cookies along with the request
+    def single_request_with_cookies(self, host, handler, request_body, verbose=0):
+        h = self.make_connection(host)
+        if verbose:
+            h.set_debuglevel(1)
+
+        # ADDED: construct the URL and Request object for proper cookie handling
+        request_url = "%s://%s%s" % (self.scheme,host,handler)
+        log.debug("request_url is %s" % request_url)
+        cookie_request  = urllib2.Request(request_url)
+
+        try:
+            self.send_request(h,handler,request_body)
+            self.send_host(h,host)
+            self.send_cookies(h,cookie_request) # ADDED. creates cookiejar if None.
+            self.send_user_agent(h)
+            self.send_content(h,request_body)
+
+            response = h.getresponse(buffering=True)
+
+            # ADDED: parse headers and get cookies here
+            cookie_response = CookieResponse(response.msg)
+            # Okay, extract the cookies from the headers
+            self.cookiejar.extract_cookies(cookie_response,cookie_request)
+            log.debug("cookiejar now contains: %s" % self.cookiejar._cookies)
+            # And write back any changes
+            if hasattr(self.cookiejar,'save'):
+                try:
+                    self.cookiejar.save(self.cookiejar.filename)
+                except Exception, e:
+                    log.error("Couldn't write cookiefile %s: %s" % \
+                            (self.cookiejar.filename,str(e)))
+
+            if response.status == 200:
+                self.verbose = verbose
+                return self.parse_response(response)
+        except xmlrpclib.Fault:
+            raise
+        except Exception:
+            # All unexpected errors leave connection in
+            # a strange state, so we clear it.
+            self.close()
+            raise
+
+        #discard any response data and raise exception
+        if (response.getheader("content-length", 0)):
+            response.read()
+        raise xmlrpclib.ProtocolError(
+            host + handler,
+            response.status, response.reason,
+            response.msg,
+            )
+
+    # Override the appropriate request method
+    if hasattr(xmlrpclib.Transport, 'single_request'):
+        single_request = single_request_with_cookies # python 2.7+
+    else:
+        request = request_with_cookies # python 2.6 and earlier
+
 class SafeCookieTransport(xmlrpclib.SafeTransport,CookieTransport):
     '''SafeTransport subclass that supports cookies.'''
     scheme = 'https'
-    request = CookieTransport.request
+    # Override the appropriate request method
+    if hasattr(xmlrpclib.Transport, 'single_request'):
+        single_request = CookieTransport.single_request_with_cookies
+    else:
+        request = CookieTransport.request_with_cookies
 
 class _User(object):
     '''Container object for a bugzilla User.
