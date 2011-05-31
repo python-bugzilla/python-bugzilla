@@ -105,7 +105,6 @@ class BugzillaBase(object):
             self._cookiefile = None
         else:
             self._cookiefile = True
-        self._persist_cookie = True
         self.cookiefile = cookiefile
 
         self.user_agent = user_agent
@@ -114,9 +113,6 @@ class BugzillaBase(object):
         self.init_private_data()
         if url:
             self.connect(url)
-
-    def __del__(self):
-        del self.cookiefile
 
     def init_private_data(self):
         '''initialize private variables used by this bugzilla instance.'''
@@ -165,17 +161,17 @@ class BugzillaBase(object):
         cj = cookielib.LWPCookieJar(self._cookiefile)
 
         if not self._cookiefile:
-            self._persist_cookie = False
             # Create a temporary cookie file
-            fh, self._cookiefile = tempfile.mkstemp()
-            os.close(fh)
+            tmpfile = tempfile.NamedTemporaryFile(prefix="python-bugzilla.")
+            self._cookiefile = tmpfile.name
+            # NOTE: tmpfile only exists as long as we have a reference to it!
+            self._cookiefobj = tmpfile
             try:
                 cj.save(self._cookiefile)
             except Exception, e:
                 log.warn("Couldn't initialize temporary cookiefile%s: %s" %
                         (self._cookiefile, str(e)))
         else:
-            self._persist_cookie = True
             if os.path.exists(self._cookiefile):
                 cj = self._loadcookies(cj)
             else:
@@ -192,10 +188,8 @@ class BugzillaBase(object):
         self._cookiejar.filename = self._cookiefile
 
     def _delcookiefile(self):
-        if not self._persist_cookie:
-            # If it's a temporary file, remove it
-            os.remove(self.cookiefile)
         self._cookiefile = None
+        self._cookiefobj = None # makes NamedTemporaryFile delete itself
         self._cookiejar = None
 
     cookiefile = property(_getcookiefile, _setcookiefile, _delcookiefile)
