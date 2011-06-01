@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2009 Novell Inc.
 # Author: Michal Vyskocil <mvyskocil@suse.cz>
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 2 of the License, or (at your
@@ -37,7 +37,7 @@ class NovellBugzilla(Bugzilla32):
     It can also read a credentials from ~/.oscrc if exists, so it should not
     be duplicated in /etc/bugzillarc, or ~/.bugzillarc.
     '''
-    
+
     version = '0.1'
     user_agent = bugzilla.base.user_agent + ' NovellBugzilla/%s' % version
 
@@ -71,7 +71,7 @@ class NovellBugzilla(Bugzilla32):
 
     def _is_bugzilla_cookie(self):
         return len([c for c in self._iter_domain_cookies() if self.__class__.bnc_cookie_re.match(c.name)]) != 0
-    
+
     def _is_ichain_cookie(self):
         return len([c for c in self._iter_domain_cookies() if self.__class__.ichain_cookie_re.match(c.name)]) != 0
 
@@ -125,7 +125,7 @@ If you want cache the cookies and speedup the repeated connections, remove it or
         return super(NovellBugzilla, self)._login(user, password)
 
     def connect(self, url):
-        # NovellBugzilla should connect only to bnc, 
+        # NovellBugzilla should connect only to bnc,
         return super(NovellBugzilla, self).connect(self.__class__.bugzilla_url)
 
     def _logout(self):

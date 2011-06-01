@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2007,2008 Red Hat Inc.
 # Author: Will Woods <wwoods@redhat.com>
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 2 of the License, or (at your
@@ -47,7 +47,7 @@ def getBugzillaClassForURL(url):
     log.debug("bzversion='%s'" % str(bzversion))
 
     # XXX note preference order: RHBugzilla* wins if available
-    # RH BZ 3.2 will have rhbz == True and bzversion == 3.1.x or 3.2.x. 
+    # RH BZ 3.2 will have rhbz == True and bzversion == 3.1.x or 3.2.x.
     if rhbz:
         if bzversion.startswith('3.'):
             c = RHBugzilla3

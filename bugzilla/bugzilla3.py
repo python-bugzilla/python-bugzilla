@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2008, 2009 Red Hat Inc.
 # Author: Will Woods <wwoods@redhat.com>
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 2 of the License, or (at your
@@ -30,7 +30,7 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         '''Backend login method for Bugzilla3'''
         return self._proxy.User.logout()
 
-    #---- Methods and properties with basic bugzilla info 
+    #---- Methods and properties with basic bugzilla info
 
     def _getuserforid(self,userid):
         '''Get the username for the given userid'''
@@ -112,7 +112,7 @@ class Bugzilla32(Bugzilla3):
 
     def _addcomment(self,id,comment,private=False,
                    timestamp='',worktime='',bz_gid=''):
-        '''Add a comment to the bug with the given ID. Other optional 
+        '''Add a comment to the bug with the given ID. Other optional
         arguments are as follows:
             private:   if True, mark this comment as private.
             timestamp: Ignored by BZ32.
@@ -187,3 +187,5 @@ class Bugzilla36(Bugzilla34):
         '''Get the list of valid fields for Bug objects'''
         r = self._proxy.Bug.fields({'include_fields':['name']})
         return [f['name'] for f in r['fields']]
+        # NOTE: the RHBZ version lists 'comments' and 'groups', and strips
+        # the 'cf_' from the beginning of custom fields.

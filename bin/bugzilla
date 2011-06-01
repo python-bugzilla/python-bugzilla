@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2007, 2008, 2009, 2010 Red Hat Inc.
 # Author: Will Woods <wwoods@redhat.com>
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 2 of the License, or (at your
@@ -30,7 +30,7 @@ if '--debug' in sys.argv:
     log.setLevel(logging.DEBUG)
 elif '--verbose' in sys.argv:
     log.setLevel(logging.INFO)
-        
+
 cmdlist = ['info','query','new','modify','login']
 
 def to_encoding(ustring):
@@ -347,7 +347,7 @@ def main():
         else:
             # FIXME check to see if .bugzillarc is in use
             log.info('No authentication info provided.')
-    
+
     # And now we actually execute the given command
     buglist = list() # save the results of query/new/modify here
     if action == 'info':
@@ -418,7 +418,7 @@ def main():
                         q['email%s%i' % (a,email_count)] = True
                         q['emailtype%i' % email_count] = opt.emailtype
                         email_count += 1
-                    elif a == 'components_file': 
+                    elif a == 'components_file':
                         # Components slurped in from file (one component per line)
                         # This can be made more robust
                         arr = []
@@ -430,14 +430,14 @@ def main():
                     elif a in ['product']:
                         q[a] = [ i ]
                     elif a in ['keywords','keywords_type','url','url_type','status_whiteboard',
-                            'status_whiteboard_type','severity','priority']: 
+                            'status_whiteboard_type','severity','priority']:
                         if a == 'url':
                             q['bug_file_loc'] = i
                         elif a == 'url_type':
                             q['bug_file_loc_type'] = i
                         else:
                             q['%s' % a] = i
-                    elif a in ['fixed_in','blocked','dependson','flag','qa_whiteboard','devel_whiteboard','alias']: 
+                    elif a in ['fixed_in','blocked','dependson','flag','qa_whiteboard','devel_whiteboard','alias']:
                         for b in i:
                             # Boolean Charts
                             and_count = 0
@@ -460,10 +460,10 @@ def main():
                                 q['value%i-%i-%i' % (chart_id,and_count,or_count)] = par
                                 q['type%i-%i-%i' % (chart_id,and_count,or_count)]  = opt.booleantype
                             chart_id += 1
-                    elif a == 'boolean_query': 
+                    elif a == 'boolean_query':
                         # Custom Boolean Chart query
                         # Format: BooleanName-Condition-Parameter &/| BooleanName-Condition-Parameter &/| ...
-                        # ie, keywords-substring-Partner | keywords-notsubstring-PartnerVerified & keywords-notsubstring-OtherQA 
+                        # ie, keywords-substring-Partner | keywords-notsubstring-PartnerVerified & keywords-notsubstring-OtherQA
                         for b in i:
                             and_count = 0
                             or_count = 0
@@ -526,7 +526,7 @@ def main():
         b = bz.createbug(**data)
         b.refresh()
         buglist = [b]
-        
+
     elif action == 'modify':
         if not (opt.status or opt.close or opt.assignee or opt.flag or opt.cc
                 or opt.comment or opt.fixed_in):
@@ -550,7 +550,7 @@ def main():
         if not buglist:
             parser.error('No bugs were found. Check your bug IDs.')
         for id,bug in zip(bugid_list,buglist):
-            if not bug: 
+            if not bug:
                 log.error("  failed to load bug %s" % id)
                 continue
             log.debug("modifying bug %s" % bug.bug_id)
