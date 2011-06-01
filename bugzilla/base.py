@@ -19,6 +19,8 @@ import base64
 import tempfile
 import logging
 import locale
+import email.utils
+from email.header import decode_header
 
 log = logging.getLogger('bugzilla')
 
@@ -57,6 +59,13 @@ def replace_getbug_errors_with_None(rawlist):
         else:
             result.append(None)
     return result
+
+def decode_rfc2231_value(val):
+    # BUG WORKAROUND: decode_header doesn't work unless there's whitespace
+    # around the encoded string (see http://bugs.python.org/issue1079)
+    val = email.utils.ecre.sub(' \g<0> ', val) # Workaround: add whitespace
+    val = val.strip('"') # remove quotes
+    return ''.join(f[0].decode(f[1] or 'us-ascii') for f in decode_header(val))
 
 class BugzillaBase(object):
     '''An object which represents the data and methods exported by a Bugzilla
@@ -670,11 +679,10 @@ class BugzillaBase(object):
         att = opener.open(att_uri)
         # RFC 2183 defines the content-disposition header, if you're curious
         disp = att.headers['content-disposition'].split(';')
-        [filename_parm] = [i for i in disp if i.strip().startswith('filename=')]
-        (dummy,filename) = filename_parm.split('=')
-        # RFC 2045/822 defines the grammar for the filename value, but
-        # I think we just need to remove the quoting. I hope.
-        att.name = filename.strip('"')
+        disptype = disp.pop(0)
+        parms = dict([p.strip().split("=",1) for p in disp])
+        # Parameter values can be quoted/encoded as per RFC 2231
+        att.name = decode_rfc2231_value(parms['filename'])
         # Hooray, now we have a file-like object with .read() and .name
         return att
 
