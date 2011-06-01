@@ -14,6 +14,8 @@ from bugzilla import Bugzilla
 import os, glob, sys
 import xmlrpclib
 
+# TODO: Rewrite with unittest! This is pretty bogus!
+
 bugzillas = {
         'Red Hat':{
             'url':'https://bugzilla.redhat.com/xmlrpc.cgi',
@@ -34,10 +36,17 @@ bugzillas = {
                      'version':'1.0'}
             },
         }
-                     
-# TODO: add data for these instances
+
+# TODO: add other instances? e.g.:
 # 'https://landfill.bugzilla.org/bugzilla-3.2-branch/xmlrpc.cgi' - BZ3.2
-# 'https://partner-bugzilla.redhat.com/xmlrpc.cgi' - BZ3.2/RH hybrid
+
+def encoded_filename_test():
+    '''A test for the fix for bug #663674'''
+    attachid = 502352
+    attachname = 'Karel Kl\xc3\xad\xc4\x8d memorial test file.txt' # in utf8
+    bz = Bugzilla(url=bugzillas['Red Hat']['url'])
+    att = bz.openattachment(attachid)
+    assert att.name.encode("utf8") == attachname
 
 def selftest(data,user='',password=''):
     print "Using bugzilla at " + data['url']
@@ -112,4 +121,5 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             print "Exiting on keyboard interrupt."
             sys.exit(1)
+    encoded_filename_test()
     print "Awesome. We're done."
