@@ -358,9 +358,12 @@ def main():
             for k in sorted(bz.products):
                 pprint.pprint(k)
 
-        if opt.components:
-            for c in sorted(bz.getcomponents(opt.components)):
-                pprint.pprint(c)
+        try:
+            if opt.components:
+                for c in sorted(bz.getcomponents(opt.components)):
+                    pprint.pprint(c)
+        except ValueError:
+            parser.error("No such product: %s" % opt.components)
 
         if opt.component_owners:
             component_details = bz.getcomponentsdetails(opt.component_owners)

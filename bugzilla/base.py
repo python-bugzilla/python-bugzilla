@@ -404,11 +404,13 @@ class BugzillaBase(object):
         for p in self.products:
             if p['id'] == productid:
                 return p['name']
+        raise ValueError, 'No product with id #%i' % productid
     def _product_name_to_id(self,product):
         '''Convert a product name (str) to a product ID (int).'''
         for p in self.products:
             if p['name'] == product:
                 return p['id']
+        raise ValueError, 'No product named "%s"' % product
 
     #---- Methods for retrieving Components
 
