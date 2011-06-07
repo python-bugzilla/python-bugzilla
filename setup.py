@@ -1,5 +1,4 @@
 from distutils.core import setup
-from glob import glob
 import bugzilla.base
 
 setup(name='python-bugzilla',
