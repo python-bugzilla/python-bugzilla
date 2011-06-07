@@ -670,7 +670,7 @@ class BugzillaBase(object):
     def _attachment_uri(self,attachid):
         '''Returns the URI for the given attachment ID.'''
         att_uri = self.url.replace('xmlrpc.cgi','attachment.cgi')
-        att_uri = att_uri + '?id=%i' % attachid
+        att_uri = att_uri + '?id=%s' % attachid
         return att_uri
 
     def openattachment(self,attachid):

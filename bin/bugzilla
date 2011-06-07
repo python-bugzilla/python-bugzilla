@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # bugzilla - a commandline frontend for the python bugzilla module
 #
-# Copyright (C) 2007, 2008, 2009, 2010 Red Hat Inc.
+# Copyright (C) 2007, 2008, 2009, 2010, 2011 Red Hat Inc.
 # Author: Will Woods <wwoods@redhat.com>
 #
 # This program is free software; you can redistribute it and/or modify it
@@ -19,6 +19,8 @@ import locale
 import pprint
 import socket
 import xmlrpclib
+import magic
+from tempfile import NamedTemporaryFile
 
 version = '0.6.1'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
@@ -31,7 +33,7 @@ if '--debug' in sys.argv:
 elif '--verbose' in sys.argv:
     log.setLevel(logging.INFO)
 
-cmdlist = ['info','query','new','modify','login']
+cmdlist = ['info','query','new','modify','attach','login']
 
 def to_encoding(ustring):
     if isinstance(ustring, basestring):
@@ -90,6 +92,7 @@ def setup_action_parser(action):
                 help="OPTIONAL: URL for further bug info")
         p.add_option('--cc',
                 help="OPTIONAL: add emails to initial CC list")
+        # no API to attach files during bug creation, so no --attach :/
 
     elif action == 'query':
         # General bug metadata
@@ -198,6 +201,17 @@ def setup_action_parser(action):
         p.add_option('-F','--fixed_in',metavar="VERSION",
                 help='"Fixed in version" field')
         # TODO: --keyword, --tag, --cc, ...
+    elif action == 'attach':
+        p.add_option('-f','--file',metavar="FILENAME",
+                help='File to attach, or filename for data provided on stdin')
+        p.add_option('-d','--description', metavar="DESCRIPTION",dest='desc',
+                help="A short description of the file being attached")
+        p.add_option('-t','--type', metavar="MIMETYPE",
+                help="Mime-type for the file being attached")
+        p.add_option('-g','--get', metavar="ATTACHID", action="append",
+                default=[], help="Download the attachment with the given ID")
+        p.add_option("--getall","--get-all", metavar="BUGID", action="append",
+                default=[], help="Download all attachments on the given bug")
 
     if action in ['new','query']:
         # output modifiers
@@ -246,6 +260,8 @@ by Bugzilla.
 .I \\fR * query - search for bugs matching given criteria
 .br
 .I \\fR * modify - modify existing bugs
+.br
+.I \\fR * attach - attach files to existing bugs, or get attachments
 .br
 .I \\fR * info - get info about the given bugzilla instance
 ''' % (datestr,version)
@@ -526,6 +542,45 @@ def main():
         b = bz.createbug(**data)
         b.refresh()
         buglist = [b]
+
+    elif action == 'attach':
+        if opt.get or opt.getall:
+            for bug in bz.getbugs(opt.getall):
+                opt.get += [a['attach_id'] for a in bug.attachments]
+            for attid in set(opt.get):
+                att = bz.openattachment(attid)
+                outfile = bugzilla.util.open_without_clobber(att.name, "wb")
+                data = att.read(4096)
+                while data:
+                    outfile.write(data)
+                    data = att.read(4096)
+                print "Wrote %s" % outfile.name
+            return
+        if not opt.file and opt.desc:
+            parser.error("attaching a file requires --file and --desc")
+        if not opt.type:
+            mimemagic = magic.open(magic.MAGIC_MIME_TYPE)
+            mimemagic.load()
+        if sys.stdin.isatty(): # stdin is a tty -> normal CLI
+            if not opt.type:
+                opt.type = mimemagic.file(opt.file)
+            fileobj = open(opt.file)
+        else: # piped input on stdin
+            # write it to a tempfile - and get the filetype if we need it
+            fileobj = NamedTemporaryFile(prefix="bugzilla-attach.")
+            data = sys.stdin.read(4096)
+            if not opt.type:
+                opt.type = mimemagic.buffer(data)
+            while data:
+                fileobj.write(data)
+                data = sys.stdin.read(4096)
+            fileobj.seek(0)
+        for bugid in args:
+            attid = bz.attachfile(bugid, fileobj, opt.desc,
+                                  filename=opt.file,
+                                  contenttype=opt.type,
+                                  ispatch=(opt.type == "text/x-patch"))
+            print "Created attachment %i on bug %s" % (attid, bugid)
 
     elif action == 'modify':
         if not (opt.status or opt.close or opt.assignee or opt.flag or opt.cc
