@@ -1,4 +1,4 @@
-.TH bugzilla 1  "April 16, 2010" "version 0.6.1" "User Commands"
+.TH bugzilla 1  "June 07, 2011" "version 0.6.2" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -20,6 +20,8 @@ by Bugzilla.
 .br
 .I \fR * modify - modify existing bugs
 .br
+.I \fR * attach - attach files to existing bugs, or get attachments
+.br
 .I \fR * info - get info about the given bugzilla instance
 .SH GLOBAL OPTIONS
 .IP "--help, -h"
@@ -38,20 +40,42 @@ cookie file to use for bugzilla authentication
 give more info about what's going on
 .IP "--debug"
 output bunches of debugging info
-.SH \[oq]INFO\[cq] OPTIONS
-.IP "--help, -h"
-show this help message and exit
-.IP "--products, -p"
-Get a list of products
-.IP "--components=PRODUCT, -c PRODUCT"
-List the components in the given product
-.IP "--component_owners=PRODUCT, -o PRODUCT"
-List components (and their owners)
-.IP "--versions=PRODUCT, -v PRODUCT"
-List the versions for the given product
+.SH \[oq]NEW\[cq] OPTIONS
+.IP "--product=PRODUCT, -p PRODUCT"
+REQUIRED: product name (list with 'bugzilla info -p')
+.IP "--version=VERSION, -v VERSION"
+REQUIRED: product version
+.IP "--component=COMPONENT, -c COMPONENT"
+REQUIRED: component name (list with 'bugzilla info -c PRODUCT')
+.IP "--comment=COMMENT, -l COMMENT"
+REQUIRED: initial bug comment
+.IP "--short_desc=SHORT_DESC, --summary=SHORT_DESC, -s SHORT_DESC"
+REQUIRED: bug summary
+.IP "--os=OP_SYS, -o OP_SYS"
+OPTIONAL: operating system (default: Linux)
+.IP "--arch=REP_PLATFORM, -a REP_PLATFORM"
+OPTIONAL: arch this bug occurs on (default: All)
+.IP "--severity=BUG_SEVERITY"
+OPTIONAL: bug severity (default: medium)
+.IP "--priority=PRIORITY"
+OPTIONAL: bug priority (default: medium)
+.IP "--url=BUG_FILE_LOC, -u BUG_FILE_LOC"
+OPTIONAL: URL for further bug info
+.IP "--cc=CC"
+OPTIONAL: add emails to initial CC list
+.IP "--full, -f"
+output detailed bug info
+.IP "--ids, -i"
+output only bug IDs
+.IP "--extra, -e"
+output additional bug information (keywords, Whiteboards, etc.)
+.IP "--oneline"
+one line summary of the bug (useful for scripts)
+.IP "--raw"
+raw output of the bugzilla contents
+.IP "--outputformat=OUTPUTFORMAT"
+Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'
 .SH \[oq]QUERY\[cq] OPTIONS
-.IP "--help, -h"
-show this help message and exit
 .IP "--bug_id=BUG_ID, -b BUG_ID"
 specify individual bugs by IDs, separated with commas
 .IP "--product=PRODUCT, -p PRODUCT"
@@ -128,46 +152,7 @@ one line summary of the bug (useful for scripts)
 raw output of the bugzilla contents
 .IP "--outputformat=OUTPUTFORMAT"
 Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'
-.SH \[oq]NEW\[cq] OPTIONS
-.IP "--help, -h"
-show this help message and exit
-.IP "--product=PRODUCT, -p PRODUCT"
-REQUIRED: product name (list with 'bugzilla info -p')
-.IP "--version=VERSION, -v VERSION"
-REQUIRED: product version
-.IP "--component=COMPONENT, -c COMPONENT"
-REQUIRED: component name (list with 'bugzilla info -c PRODUCT')
-.IP "--comment=COMMENT, -l COMMENT"
-REQUIRED: initial bug comment
-.IP "--summary=SHORT_DESC, -s SHORT_DESC"
-REQUIRED: bug summary
-.IP "--os=OP_SYS, -o OP_SYS"
-OPTIONAL: operating system (default: Linux)
-.IP "--arch=REP_PLATFORM, -a REP_PLATFORM"
-OPTIONAL: arch this bug occurs on (default: All)
-.IP "--severity=BUG_SEVERITY"
-OPTIONAL: bug severity (default: medium)
-.IP "--priority=PRIORITY"
-OPTIONAL: bug priority (default: medium)
-.IP "--url=BUG_FILE_LOC, -u BUG_FILE_LOC"
-OPTIONAL: URL for further bug info
-.IP "--cc=CC"
-OPTIONAL: add emails to initial CC list
-.IP "--full, -f"
-output detailed bug info
-.IP "--ids, -i"
-output only bug IDs
-.IP "--extra, -e"
-output additional bug information (keywords, Whiteboards, etc.)
-.IP "--oneline"
-one line summary of the bug (useful for scripts)
-.IP "--raw"
-raw output of the bugzilla contents
-.IP "--outputformat=OUTPUTFORMAT"
-Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'
 .SH \[oq]MODIFY\[cq] OPTIONS
-.IP "--help, -h"
-show this help message and exit
 .IP "--comment=COMMENT, -l COMMENT"
 Add a comment
 .IP "--close=RESOLUTION, -k RESOLUTION"
@@ -178,22 +163,57 @@ Mark as private
 Change status of bug
 .IP "--assignee=ASSIGNEE"
 Assign bugzilla to assignee
+.IP "--qa_contact=QA_CONTACT"
+Change QA contact
 .IP "--flag=FLAG, -f FLAG"
 Update bugzilla flags with requested type, ie fedora-cvs? (Use a new option for each flag)
 .IP "--cc=CC"
 Add an email to the cc list
 .IP "--fixed_in=VERSION, -F VERSION"
 "Fixed in version" field
-.SH \[oq]LOGIN\[cq] OPTIONS
-.IP "--help, -h"
-show this help message and exit
+.SH \[oq]ATTACH\[cq] OPTIONS
+.IP "--file=FILENAME, -f FILENAME"
+File to attach, or filename for data provided on stdin
+.IP "--description=DESCRIPTION, -d DESCRIPTION"
+A short description of the file being attached
+.IP "--type=MIMETYPE, -t MIMETYPE"
+Mime-type for the file being attached
+.IP "--get=ATTACHID, -g ATTACHID"
+Download the attachment with the given ID
+.IP "--getall=BUGID, --get-all=BUGID"
+Download all attachments on the given bug
+.SH \[oq]INFO\[cq] OPTIONS
+.IP "--products, -p"
+Get a list of products
+.IP "--components=PRODUCT, -c PRODUCT"
+List the components in the given product
+.IP "--component_owners=PRODUCT, -o PRODUCT"
+List components (and their owners)
+.IP "--versions=PRODUCT, -v PRODUCT"
+List the versions for the given product
 .SH EXAMPLES
-.TP
+.PP
+.RS 0
 bugzilla query --bug_id 62037
+
+bugzilla query --version 15 --component python-bugzilla
+
+bugzilla login
+
+bugzilla create -p Fedora -v rawhide -c python-bugzilla \\
+         --summary "python-bugzilla causes headaches" \\
+         --comment "python-bugzilla made my brain hurt when I used it."
+
+bugzilla attach --file ~/Pictures/cam1.jpg --desc "me, in pain" $BUGID
+
+bugzilla attach --getall $BUGID
+
+bugzilla modify --close NOTABUG --comment "Actually, you're hungover." $BUGID
+
 .SH EXIT STATUS
 .BR bugzilla
-normally returns 0 if the requested command was successful. Otherwise, exit
-status is 1 if
+normally returns 0 if the requested command was successful.
+Otherwise, exit status is 1 if
 .BR bugzilla
 is interrupted by the user (or a login attempt fails), 2 if a
 socket error occurs (e.g. TCP connection timeout), and 3 if the server returns
