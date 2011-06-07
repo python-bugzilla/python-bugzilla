@@ -212,6 +212,8 @@ def setup_action_parser(action):
                 default=[], help="Download the attachment with the given ID")
         p.add_option("--getall","--get-all", metavar="BUGID", action="append",
                 default=[], help="Download all attachments on the given bug")
+    elif action == 'login':
+        p.set_usage('%prog login [username [password]]')
 
     if action in ['new','query']:
         # output modifiers
@@ -332,6 +334,12 @@ def main():
 
     # Handle 'login' action
     if action == 'login':
+        if len(args) == 2:
+            (global_opt.user, global_opt.password) = args
+        elif len(args) == 1:
+            (global_opt.user,) = args
+        elif len(args) > 2:
+            parser.error("Too many arguments for login")
         if not global_opt.user:
             sys.stdout.write('Username: ')
             user = sys.stdin.readline()
@@ -339,8 +347,7 @@ def main():
         if not global_opt.password:
             global_opt.password = getpass.getpass()
         sys.stdout.write('Logging in... ')
-        # XXX NOTE: This will return success if you have a valid login cookie,
-        # even if you give a bad username and password. WEIRD.
+        sys.stdout.flush()
         if bz.login(global_opt.user,global_opt.password):
             print 'Authorization cookie received.'
             sys.exit(0)
