@@ -33,7 +33,7 @@ if '--debug' in sys.argv:
 elif '--verbose' in sys.argv:
     log.setLevel(logging.INFO)
 
-cmdlist = ['info','query','new','modify','attach','login']
+cmdlist = ['login','new','query','modify','attach','info']
 
 def to_encoding(ustring):
     if isinstance(ustring, basestring):
@@ -43,10 +43,11 @@ def to_encoding(ustring):
     return u''
 
 def setup_parser():
-    u =   "usage: %prog [global options] COMMAND [options]"
+    u =   "%prog [global options] COMMAND [command-options]"
     u +=  "\nCommands: %s" % ', '.join(cmdlist)
     p = optparse.OptionParser(usage=u)
     p.disable_interspersed_args()
+    p.epilog = 'Try "bugzilla COMMAND --help" for command-specific help.'
     # General bugzilla connection options
     p.add_option('--bugzilla',default=default_bz,
             help="bugzilla XMLRPC URI. default: %s" % default_bz)
@@ -66,10 +67,11 @@ def setup_parser():
     return p
 
 def setup_action_parser(action):
-    p = optparse.OptionParser(usage="usage: %%prog %s [options]" % action)
+    p = optparse.OptionParser(usage="%%prog %s [options]" % action)
     # TODO: product and version could default to current system
     # info (read from /etc/redhat-release?)
     if action == 'new':
+        p.set_description("Create a new bug report.")
         p.add_option('-p','--product',
                 help="REQUIRED: product name (list with 'bugzilla info -p')")
         p.add_option('-v','--version',
@@ -95,6 +97,7 @@ def setup_action_parser(action):
         # no API to attach files during bug creation, so no --attach :/
 
     elif action == 'query':
+        p.set_description("List bug reports that match the given criteria.")
         # General bug metadata
         p.add_option('-b','--bug_id',
                 help="specify individual bugs by IDs, separated with commas")
@@ -170,6 +173,7 @@ def setup_action_parser(action):
                 help="Use the query given by a query.cgi URL. (Use quotes!)")
 
     elif action == 'info':
+        p.set_description("Get information about the bugzilla server.")
         p.add_option('-p','--products',action='store_true',
                 help='Get a list of products')
         p.add_option('-c','--components',metavar="PRODUCT",
@@ -179,7 +183,8 @@ def setup_action_parser(action):
         p.add_option('-v','--versions',metavar="PRODUCT",
                 help='List the versions for the given product')
     elif action == 'modify':
-        p.set_usage("usage: %prog modify [options] BUGID BUGID ...")
+        p.set_usage("%prog modify [options] BUGID [BUGID...]")
+        p.set_description("Modify one or more bugs.")
         p.add_option('-l','--comment',
                 help='Add a comment')
         # FIXME: check value for resolution
@@ -202,6 +207,11 @@ def setup_action_parser(action):
                 help='"Fixed in version" field')
         # TODO: --keyword, --tag, --cc, ...
     elif action == 'attach':
+        p.set_usage('''
+  %prog attach --file=FILE --desc=DESC [--type=TYPE] BUGID [BUGID...]
+  %prog attach --get=ATTACHID --getall=BUGID [...]
+  %prog attach --type=TYPE BUGID [BUGID...]''')
+        p.set_description("Attach files or download attachments.")
         p.add_option('-f','--file',metavar="FILENAME",
                 help='File to attach, or filename for data provided on stdin')
         p.add_option('-d','--description', metavar="DESCRIPTION",dest='desc',
@@ -214,6 +224,7 @@ def setup_action_parser(action):
                 default=[], help="Download all attachments on the given bug")
     elif action == 'login':
         p.set_usage('%prog login [username [password]]')
+        p.set_description("Log into bugzilla and save a login cookie.")
 
     if action in ['new','query']:
         # output modifiers
@@ -274,18 +285,35 @@ by Bugzilla.
     manpage += opt_section.replace("OPTIONS","GLOBAL OPTIONS")
     for action in cmdlist:
         action_parser = setup_action_parser(action)
+        action_parser.remove_option("--help")
         action_parser.formatter = manformatter
         opt_section = action_parser.format_option_help()
         manpage += opt_section.replace("OPTIONS",
                                        '\[oq]%s\[cq] OPTIONS' % action.upper())
     manpage += \
 '''.SH EXAMPLES
-.TP
+.PP
+.RS 0
 bugzilla query --bug_id 62037
+
+bugzilla query --version 15 --component python-bugzilla
+
+bugzilla login
+
+bugzilla create -p Fedora -v rawhide -c python-bugzilla \\\\
+         --summary "python-bugzilla causes headaches" \\\\
+         --comment "python-bugzilla made my brain hurt when I used it."
+
+bugzilla attach --file ~/Pictures/cam1.jpg --desc "me, in pain" $BUGID
+
+bugzilla attach --getall $BUGID
+
+bugzilla modify --close NOTABUG --comment "Actually, you're hungover." $BUGID
+
 .SH EXIT STATUS
 .BR bugzilla
-normally returns 0 if the requested command was successful. Otherwise, exit
-status is 1 if
+normally returns 0 if the requested command was successful.
+Otherwise, exit status is 1 if
 .BR bugzilla
 is interrupted by the user (or a login attempt fails), 2 if a
 socket error occurs (e.g. TCP connection timeout), and 3 if the server returns
