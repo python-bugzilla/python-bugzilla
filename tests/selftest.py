@@ -10,30 +10,35 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
+import sys
+sys.path.insert(0, "..") # top dir
 from bugzilla import Bugzilla
-import os, glob, sys
+import os, glob
 import xmlrpclib
 
 # TODO: Rewrite with unittest! This is pretty bogus!
 
+column_list = ['bug_id', 'bug_status', 'assigned_to', 'short_desc']
 bugzillas = {
-        'Red Hat':{
+        'Red Hat Bugzilla':{
             'url':'https://bugzilla.redhat.com/xmlrpc.cgi',
             'public_bug':427301,
             'private_bug':250666,
             'bugidlist':(1,2,3,1337),
             'query':{'product':'Fedora',
-                     'component':'kernel',
-                     'version':'rawhide'}
+                     'component':'python-bugzilla',
+                     'version':'rawhide',
+                     'column_list':column_list}
             },
-        'Bugzilla 3.0':{
-            'url':'https://landfill.bugzilla.org/bugzilla-3.0-branch/xmlrpc.cgi',
+        'Bugzilla 3.4':{
+            'url':'https://landfill.bugzilla.org/bugzilla-3.4-branch/xmlrpc.cgi',
             'public_bug':4433,
             'private_bug':6620, # FIXME - does this instance have groups?
             'bugidlist':(1,2,3,4433),
-            'query':{'product':'WorldControl',
-                     'component':'WeatherControl',
-                     'version':'1.0'}
+            'query':{'product':'FoodReplicator',
+                     'component':'SpiceDispenser',
+                     'version':'1.0',
+                     'status':'NEW'}
             },
         }
 
@@ -44,7 +49,7 @@ def encoded_filename_test():
     '''A test for the fix for bug #663674'''
     attachid = 502352
     attachname = 'Karel Kl\xc3\xad\xc4\x8d memorial test file.txt' # in utf8
-    bz = Bugzilla(url=bugzillas['Red Hat']['url'])
+    bz = Bugzilla(url='https://bugzilla.redhat.com/xmlrpc.cgi')
     att = bz.openattachment(attachid)
     assert att.name.encode("utf8") == attachname
 
@@ -86,6 +91,8 @@ def selftest(data,user='',password=''):
             print "Failed: Not authorized."
         else:
             print "Failed: Unknown XMLRPC error: %s"  % e
+    except Exception, e:
+        print "Failed: %s" % e
     print
 
     print "Reading multiple bugs, one-at-a-time: %s" % str(data['bugidlist'])
@@ -102,6 +109,7 @@ def selftest(data,user='',password=''):
     try:
         bugs = bz.query(data['query'])
         print "%s bugs found." % len(bugs)
+        bugs = bz.getbugs([bug.bug_id for bug in bugs]) # refresh bug data
         for bug in bugs:
             print "Bug %s" % bug
     except NotImplementedError:
@@ -116,6 +124,7 @@ if __name__ == '__main__':
 
     print "Woo, welcome to the bugzilla.py self-test."
     for name,data in bugzillas.items():
+        print "Testing %s" % name
         try:
             selftest(data,user,password)
         except KeyboardInterrupt:
