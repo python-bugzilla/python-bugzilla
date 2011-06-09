@@ -19,7 +19,6 @@ import locale
 import pprint
 import socket
 import xmlrpclib
-import magic
 from tempfile import NamedTemporaryFile
 
 version = '0.6.2'
@@ -594,6 +593,10 @@ def main():
         if not opt.file and opt.desc:
             parser.error("attaching a file requires --file and --desc")
         if not opt.type:
+            try:
+                import magic
+            except ImportError:
+                parser.error("specify --type or install python-magic")
             mimemagic = magic.open(magic.MAGIC_MIME_TYPE)
             mimemagic.load()
         if sys.stdin.isatty(): # stdin is a tty -> normal CLI
