@@ -41,6 +41,8 @@ def to_encoding(ustring):
         return ustring
     return u''
 
+format_field_re = re.compile("%{([a-z0-9_]+)(?::([^}]*))?}")
+
 def setup_parser():
     u =   "%prog [global options] COMMAND [command-options]"
     u +=  "\nCommands: %s" % ', '.join(cmdlist)
@@ -551,6 +553,14 @@ def main():
         if opt.output == 'oneline':
             q['column_list'] = [ 'bug_id', 'bug_status', 'assigned_to', 'component',
               'target_milestone', 'short_desc', 'flags', 'keywords', 'blockedby' ]
+        if opt.outputformat:
+            aliases = dict(bz.field_aliases)
+            for fieldname, sub in format_field_re.findall(opt.outputformat):
+                fields.append(fieldname)
+                if fieldname in aliases:
+                    fields.append(aliases.get(fieldname))
+            q['column_list'] = fields
+
         log.debug("bz.query: %s", q)
         if not q:
             parser.error("'query' command requires additional arguments")
@@ -692,14 +702,12 @@ def main():
     # If we're doing new/query/modify, output our results
     if action in ['new','query']:
         if opt.outputformat:
-            format_field_re = re.compile("%{([a-z0-9_]+)(?::([^}]*))?}")
             special_fields = {
                 'flag': lambda b,f: b.get_flag_status(f),
                 'whiteboard': lambda b,wb: b.getwhiteboard(wb),
             }
             def bug_field(matchobj):
-                fieldname = matchobj.group(1)
-                rest = matchobj.group(2)
+                (fieldname, rest) = matchobj.groups()
 
                 if special_fields.has_key(fieldname):
                     val = special_fields[fieldname](b, rest)
