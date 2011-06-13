@@ -555,11 +555,12 @@ def main():
               'target_milestone', 'short_desc', 'flags', 'keywords', 'blockedby' ]
         if opt.outputformat:
             aliases = dict(bz.field_aliases)
+            req_fields = []
             for fieldname, sub in format_field_re.findall(opt.outputformat):
-                fields.append(fieldname)
+                req_fields.append(fieldname)
                 if fieldname in aliases:
-                    fields.append(aliases.get(fieldname))
-            q['column_list'] = fields
+                    req_fields.append(aliases.get(fieldname))
+            q['column_list'] = req_fields
 
         log.debug("bz.query: %s", q)
         if not q:
