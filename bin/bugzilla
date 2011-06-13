@@ -11,7 +11,7 @@
 # the full text of the license.
 
 import bugzilla, optparse
-import os, sys, glob, re
+import os, sys, re
 import logging
 import getpass
 import bugzilla.util
