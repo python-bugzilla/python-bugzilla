@@ -702,6 +702,8 @@ def main():
                     val = special_fields[fieldname](b, rest)
                 else:
                     val = getattr(b,fieldname)
+                if type(val) is list:
+                    val = ','.join(val)
                 try:
                     return str(val)
                 except UnicodeEncodeError:
@@ -763,6 +765,9 @@ def main():
                         for cb in cvebug.alias:
                             if cb.find("CVE") != -1:
                                 cve += cb + " "
+                # bugzilla.redhat.com has component as a list
+                if type(b.component) == list:
+                    b.component = ','.join(b.component)
                 print to_encoding(u"#%s %8s %22s %s\t[%s] %s %s" %
                         (b.bug_id, b.bug_status, b.assigned_to, b.component,
                             b.target_milestone, flags, cve))
