@@ -459,6 +459,9 @@ def main():
                         elif i == 'EOL':
                             # Alias for EndOfLife bug statuses
                             q[a] = 'VERIFIED,RELEASE_PENDING,CLOSED'.split(',')
+                        elif i == 'OPEN':
+                            # non-Closed statuses
+                            q[a] = 'NEW,ASSIGNED,MODIFIED,ON_DEV,ON_QA,VERIFIED,RELEASE_PENDING,POST'.split(',')
                         else:
                             q[a] = i.split(',')
                     elif a in ['cc','assigned_to','reporter','qa_contact']:
