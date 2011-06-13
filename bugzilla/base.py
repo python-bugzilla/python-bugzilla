@@ -1206,9 +1206,14 @@ class _Bug(object):
     def __getattr__(self,name):
         if 'bug_id' in self.__dict__:
             if self.bugzilla.bugfields and name not in self.bugzilla.bugfields:
-                # We have a list of fields, and you ain't on it. Bail out.
+                # We have a list of fields, and you ain't on it.
+                # Check the aliases
+                for a in self.bugzilla.field_aliases:
+                    if a[0] == name: return getattr(self, a[1])
+                    if a[1] == name: return getattr(self, a[0])
+                # Not in the aliases. Bail out.
                 raise AttributeError, "field %s not in bugzilla.bugfields" % name
-            #print "Bug %i missing %s - loading" % (self.bug_id,name)
+            log.debug("Bug %i missing %s - doing refresh()", self.bug_id, name)
             self.refresh()
             if name in self.__dict__:
                 return self.__dict__[name]
