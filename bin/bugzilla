@@ -118,7 +118,7 @@ def setup_action_parser(action):
                 help="search bug summaries")
         p.add_option('-t','--bug_status',default="ALL",
                 help="comma-separated list of bug statuses to accept [Default:all] [Available:NEW,ASSIGNED,NEEDINFO,ON_DEV,MODIFIED,POST,ON_QA,FAILS_QA,PASSES_QA,REOPENED,VERIFIED,RELEASE_PENDING,CLOSED]")
-        p.add_option('-x','--severity',
+        p.add_option('-x','--bug_severity','--severity',
                 help="search severities, comma-separated")
         p.add_option('-z','--priority',
                 help="search priorities, comma-separated")
@@ -443,7 +443,7 @@ def main():
                   'short_desc','cc','assigned_to','reporter','qa_contact','bug_status',
                   'blocked','dependson','keywords','keywords_type','url','url_type','status_whiteboard',
                   'status_whiteboard_type','fixed_in','fixed_in_type','flag','alias','qa_whiteboard',
-                  'devel_whiteboard','boolean_query','severity','priority','target_milestone']:
+                  'devel_whiteboard','boolean_query','bug_severity','priority','target_milestone']:
             if hasattr(opt,a):
                 i = getattr(opt,a)
                 if i:
@@ -485,7 +485,7 @@ def main():
                     elif a in ['product']:
                         q[a] = [ i ]
                     elif a in ['keywords','keywords_type','url','url_type','status_whiteboard',
-                            'status_whiteboard_type','severity','priority']:
+                            'status_whiteboard_type','bug_severity','priority']:
                         if a == 'url':
                             q['bug_file_loc'] = i
                         elif a == 'url_type':
