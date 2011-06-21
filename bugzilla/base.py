@@ -760,6 +760,7 @@ class BugzillaBase(object):
           assigned_to: Bugzilla username to assign this bug to.
           qa_contact: Bugzilla username of QA contact for this bug.
           cc: List of Bugzilla usernames to CC on this bug.
+          keywords: List of keywords for the new bug
           status: Status to place the new bug in. Defaults to NEW.
 
         Important custom fields (used by RH Bugzilla and maybe others):
