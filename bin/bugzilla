@@ -532,7 +532,7 @@ def main():
                                 elif par.find('!') != -1:
                                     q['negate%i' % chart_id] = 1
                                 elif par.find('-') != -1:
-                                    args = par.split('-')
+                                    args = par.split('-',2)
                                     q['field%i-%i-%i' % (chart_id,and_count,or_count)] = args[0]
                                     q['type%i-%i-%i' % (chart_id,and_count,or_count)]  = args[1]
                                     if len(args) == 3:
