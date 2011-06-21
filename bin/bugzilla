@@ -93,8 +93,12 @@ def setup_action_parser(action):
                 help="OPTIONAL: bug priority (default: medium)")
         p.add_option('-u','--url',dest='bug_file_loc',default='http://',
                 help="OPTIONAL: URL for further bug info")
-        p.add_option('--cc',
+        p.add_option('--cc',metavar='CC[,CC,...]',
                 help="OPTIONAL: add emails to initial CC list")
+        p.add_option('--blocked',metavar='BUGID[,BUGID,...]',
+                help="OPTIONAL: add bug_ids blocked by this bug")
+        p.add_option('--dependson',metavar='BUGID[,BUGID,...]',
+                help="OPTIONAL: add bug_ids that this bug depends on")
         # no API to attach files during bug creation, so no --attach :/
 
     elif action == 'query':
@@ -571,14 +575,10 @@ def main():
         data = dict()
         required=['product','component','version','short_desc','comment',
              'rep_platform','bug_severity','op_sys','bug_file_loc','priority']
-        optional=['cc']
+        optional=['cc', 'blocked', 'dependson']
         for a in optional:
             i = getattr(opt,a)
-            if i:
-                if a == 'cc':
-                    data[a] = i.split(',')
-                else:
-                    data[a] = i
+            data[a] = i.split(',')
         for a in required:
             i = getattr(opt,a)
             if i:
