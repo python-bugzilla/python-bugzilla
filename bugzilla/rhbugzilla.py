@@ -22,7 +22,7 @@ class RHBugzilla(bugzilla.base.BugzillaBase):
     be safe for multicall use.
 
     Documentation for most of these methods can be found here:
-    https://bugzilla.redhat.com/docs/en/html/api/extensions/compat_xmlrpc/code/webservice.html
+    https://bugzilla.redhat.com/docs/en/html/api/extensions/RedHat/lib/WebService/CompatBugzilla.html
     '''
 
     version = '0.3'
