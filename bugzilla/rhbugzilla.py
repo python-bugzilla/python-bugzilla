@@ -1,6 +1,6 @@
 # rhbugzilla.py - a Python interface to Red Hat Bugzilla using xmlrpclib.
 #
-# Copyright (C) 2008, 2009 Red Hat Inc.
+# Copyright (C) 2008-2012 Red Hat Inc.
 # Author: Will Woods <wwoods@redhat.com>
 #
 # This program is free software; you can redistribute it and/or modify it
@@ -11,6 +11,7 @@
 
 import bugzilla.base
 from bugzilla.bugzilla3 import Bugzilla3, Bugzilla34
+from bugzilla.bugzilla4 import Bugzilla4
 import copy, xmlrpclib
 
 class RHBugzilla(bugzilla.base.BugzillaBase):
@@ -493,6 +494,230 @@ class RHBugzilla3(Bugzilla34, RHBugzilla):
 
         if action in ('add','delete'):
             update['%s_cc' % action] = cclist
+            self._update_bug(id,update)
+        elif action == 'overwrite':
+            r = self._getbug(id)
+            if 'cc' not in r:
+                raise AttributeError, "Can't find cc list in bug %s" % str(id)
+            self._updatecc(id,r['cc'],'delete')
+            self._updatecc(id,cclist,'add')
+        # XXX we don't check inputs on other backend methods, maybe this
+        # is more appropriate in the public method(s)
+        else:
+            raise ValueError, "action must be 'add','delete', or 'overwrite'"
+
+    def _updatewhiteboard(self,id,text,which,action,comment,private):
+        '''Update the whiteboard given by 'which' for the given bug.
+        performs the given action (which may be 'append',' prepend', or
+        'overwrite') using the given text.
+
+        RHBZ3 Bug.update() only supports overwriting, so append/prepend
+        may cause two server roundtrips - one to fetch, and one to update.
+        '''
+        if not which.endswith('_whiteboard'):
+            which = which + '_whiteboard'
+        update = {}
+        if action == 'overwrite':
+            update[which] = text
+        else:
+            r = self._getbug(id)
+            if which not in r:
+                raise ValueError, "No such whiteboard %s in bug %s" % \
+                                   (which,str(id))
+            wb = r[which]
+            if action == 'prepend':
+                update[which] = text+' '+wb
+            elif action == 'append':
+                update[which] = wb+' '+text
+        if comment is not None:
+            update['comment'] = comment
+            if private:
+                update['commentprivacy'] = True
+        self._update_bug(id,update)
+
+class RHBugzilla4(Bugzilla4, RHBugzilla):
+    '''Concrete implementation of the Bugzilla protocol. This one uses the
+    methods provided by Red Hat's Bugzilla 4.2+ instance, which is a superset
+    of the Bugzilla 4.2 methods. The additional methods (e.g. Bug.update)
+    should make their way into a later upstream Bugzilla release.
+
+    Note that RHBZ4 *also* supports most of the old RHBZ methods, under the
+    'bugzilla' namespace, so we use those when BZ4 methods aren't available.
+
+    This class was written using bugzilla.redhat.com's API docs:
+    https://bugzilla.redhat.com/docs/en/html/api/
+
+    By default, _getbugs will multicall getBug(id) multiple times, rather than
+    doing a single Bug.get(idlist) call. You can disable this behavior by
+    setting the 'multicall' property to False. This will make it somewhat
+    faster, but any missing/unreadable bugs will cause the entire call to
+    Fault rather than returning any data.
+    '''
+
+    version = '0.1'
+    user_agent = bugzilla.base.user_agent + ' RHBugzilla4/%s' % version
+
+    def __init__(self,**kwargs):
+        super(RHBugzilla4, self).__init__(**kwargs)
+        self.user_agent = self.__class__.user_agent
+        self.multicall = kwargs.get('multicall',True)
+
+    # XXX it'd be nice if this wasn't just a copy of RHBugzilla's _getbugs
+    def _getbugs(self,idlist):
+        r = []
+        if self.multicall:
+            if len(idlist) == 1:
+                return [self._proxy.bugzilla.getBug(idlist[0])]
+            mc = self._multicall()
+            for id in idlist:
+                mc._proxy.bugzilla.getBug(id)
+            raw_results = mc.run()
+            del mc
+            # check results for xmlrpc errors, and replace them with None
+            r = bugzilla.base.replace_getbug_errors_with_None(raw_results)
+        else:
+            raw_results = self._proxy.Bug.get({'ids':idlist})
+            r = [i for i in raw_results['bugs']]
+        return r
+
+    # This can be removed once RHBZ supports BZ4+'s Bug.fields() method
+    _getbugfields = RHBugzilla._getbugfields
+    # Use the upstream versions of these methods rather than the RHBZ ones
+    _query = Bugzilla4._query
+    # This can be activated once Bug.get() returns all the data that
+    # RHBZ's getBug() does.
+    #_getbugs = Bugzilla3._getbugs # Also _getbug, _getbugsimple, etc.
+
+    #---- Methods for updating bugs.
+
+    def _add_bug_comment(self,ids,comment,is_private):
+        '''Add a new comment to a specified bug ID(s). Returns the comment
+        ID(s) array.
+        '''
+
+        ret = list()
+        for id in ids:
+            r = self._proxy.Bug.add_comment({'id': id, 'comment': comment,
+                                             'is_private': is_private})
+            if 'id' in r:
+                ret.append(r['id'])
+
+        return ret
+
+    def _update_bugs(self,ids,updates):
+        '''Update the given fields with the given data in one or more bugs.
+        ids should be a list of integers or strings, representing bug ids or
+        aliases.
+        updates is a dict containing pairs like so: {'fieldname':'newvalue'}
+        '''
+        tmp = dict()
+        for key, value in updates.items():
+            if key != 'comment' and key != 'commentprivacy':
+                if key != 'fixed_in':
+                    tmp[key] = value
+                else:
+                    tmp['cf_' + key] = value
+
+	tmp['ids'] = ids
+	ret = self._proxy.Bug.update(tmp)
+
+        # Comments must be handled separately using add_comment() API, trying
+        # to update using update() API causes error 117 (Invalid Comment ID)
+        # For more information please refer to:
+        #   http://www.bugzilla.org/docs/4.(0|2)/en/html/api/Bugzilla/WebService/Bug.html
+        if 'comment' in updates:
+            comment = dict()
+            body = updates['comment']
+            if 'commentprivacy' in updates:
+                is_private = updates['commentprivacy']
+            else:
+                is_private = False
+
+            self._add_bug_comment(ids, body, is_private)
+
+        return ret
+
+    def _close_bug(id, updates):
+        updates['id'] = id
+
+        return self._proxy.Bug.closeBug(updates)
+
+    def _update_bug(self,id,updates):
+        '''Update a single bug, specified by integer ID or (string) bug alias.
+        Really just a convenience method for _update_bugs(ids=[id],updates)'''
+        return self._update_bugs(ids=[id],updates=updates)
+
+    # Eventually - when RHBugzilla is well and truly obsolete - we'll delete
+    # all of these methods and refactor the Base Bugzilla object so all the bug
+    # modification calls go through _update_bug.
+    # Until then, all of these methods are basically just wrappers around it.
+
+    # TODO: allow multiple bug IDs
+
+    def _setstatus(self,id,status,comment='',private=False,private_in_it=False,nomail=False):
+        '''Set the status of the bug with the given ID.'''
+        update={'status':status}
+        if comment:
+            update['comment'] = comment
+            update['commentprivacy'] = private
+        return self._update_bug(id,update)
+
+    def _closebug(self,id,resolution,dupeid,fixedin,comment,isprivate,private_in_it,nomail):
+        '''Close the given bug. This is the raw call, and no data checking is
+        done here. That's up to the closebug method.
+        Note that the private_in_it and nomail args are ignored.'''
+        update={'bug_status':'CLOSED','resolution':resolution}
+        if dupeid:
+            update['resolution'] = 'DUPLICATE'
+            update['dupe_id'] = dupeid
+        if fixedin:
+            update['fixed_in'] = fixedin
+        if comment:
+            update['comment'] = comment
+            if isprivate:
+                update['comment_is_private'] = True
+        return self._close_bug(id, update)
+        #return self._update_bug(id,update)
+
+    def _setassignee(self,id,**data):
+        '''Raw xmlrpc call to set one of the assignee fields on a bug.
+        changeAssignment($id, $data, $username, $password)
+        data: 'assigned_to','reporter','qa_contact','comment'
+        returns: [$id, $mailresults]'''
+        # drop empty items
+        update = dict([(k,v) for k,v in data.iteritems() if (v and v != '')])
+        return self._update_bug(id,update)
+
+    def _updatedeps(self,id,blocked,dependson,action):
+        '''Update the deps (blocked/dependson) for the given bug.
+        blocked, dependson: list of bug ids/aliases
+        action: 'add' or 'delete'
+        '''
+        if action not in ('add','delete'):
+            raise ValueError, "action must be 'add' or 'delete'"
+        update={'%s_blocked' % action: blocked,
+                '%s_dependson' % action: dependson}
+        self._update_bug(id,update)
+
+    def _updatecc(self,id,cclist,action,comment='',nomail=False):
+        '''Updates the CC list using the action and account list specified.
+        cclist must be a list (not a tuple!) of addresses.
+        action may be 'add', 'delete', or 'overwrite'.
+        comment specifies an optional comment to add to the bug.
+        if mail is True, email will be generated for this change.
+        '''
+        update = {}
+        if comment:
+            update['comment'] = comment
+
+        if action in ('add','delete'):
+            # Action 'delete' has been changed to 'remove' in Bugzilla 4.0+
+            if action == 'delete':
+                action = 'remove'
+
+            update = dict()
+            update['cc'] = dict()
+            update['cc'][action] = cclist
             self._update_bug(id,update)
         elif action == 'overwrite':
             r = self._getbug(id)
