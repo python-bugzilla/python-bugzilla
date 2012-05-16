@@ -812,3 +812,10 @@ if __name__ == '__main__':
     except xmlrpclib.Fault, e:
         print "\nServer error: %s" % str(e)
         sys.exit(3)
+    except xmlrpclib.ProtocolError, e:
+        print "\nInvalid server response: %d %s" % (e.errcode, e.errmsg)
+        redir = e.headers.getheader("location",0)
+        if redir:
+            print "Server was attempting a redirect."
+            print 'Try "bugzilla --bugzilla %s ..."' % redir
+        sys.exit(4)
