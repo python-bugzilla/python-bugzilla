@@ -253,6 +253,12 @@ class BugzillaBase(object):
         If 'user' and 'password' are both set, we'll run login(). Otherwise
         you'll have to login() yourself before some methods will work.
         '''
+        if not '://' in url:
+            log.debug('No scheme given for url, assuming https')
+            url = 'https://' + url
+        if url.count('/') < 3:
+            log.debug('No path given for url, assuming /xmlrpc.cgi')
+            url = url + '/xmlrpc.cgi'
         # Set up the transport
         if url.startswith('https'):
             self._transport = SafeCookieTransport()
