@@ -21,7 +21,7 @@ import socket
 import xmlrpclib
 from tempfile import NamedTemporaryFile
 
-version = '0.6.2'
+version = '0.6.3'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
 # Initial simple logging stuff
@@ -353,13 +353,9 @@ def main():
     if global_opt.bztype == 'auto':
         log.info('Autodetecting Bugzilla type')
         # Cheat a little, for the sake of speed
-        # 2012-05-14 minovotn - adding slash was necessary for testing of
-        # partner-bugzilla to make it run the autodetection, partner-bugzilla
-        # seems to be RH Bugzilla test server, should be changed to RHBugzilla4
-        # once RHBZ upgrades to 4.2 (i.e. on May 21 2200 UTC).
-        if '/bugzilla.redhat.com' in global_opt.bugzilla:
-            log.info('Using RHBugzilla3 for URL containing bugzilla.redhat.com')
-            bzclass = bugzilla.RHBugzilla3
+        if 'bugzilla.redhat.com' in global_opt.bugzilla:
+            log.info('Using RHBugzilla4 for URL containing bugzilla.redhat.com')
+            bzclass = bugzilla.RHBugzilla4
         else:
             bzclass = bugzilla.Bugzilla
     elif global_opt.bztype in bugzilla.classlist:
