@@ -150,7 +150,21 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
         For more info, see:
         http://www.bugzilla.org/docs/4.0/en/html/api/Bugzilla/WebService/Bug.html
         '''
-        return self._proxy.Bug.search(query)
+
+        query['include_fields'] = query['column_list']
+        query['include_fields'].append('id')
+        del query['column_list']
+        ret = self._proxy.Bug.search(query)
+
+        # Unfortunately we need a hack to preserve backwards compabibility with older BZs
+        for bug in ret['bugs']:
+            tmpstr = []
+            for tmp in bug['flags']:
+                tmpstr.append("%s%s" % (tmp['name'], tmp['status']))
+
+            bug['flags'] = ",".join(tmpstr)
+
+        return ret
 
     # Hooray, a proper _getbugfields implementation
     def _getbugfields(self):
