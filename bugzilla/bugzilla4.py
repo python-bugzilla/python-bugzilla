@@ -151,9 +151,12 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
         http://www.bugzilla.org/docs/4.0/en/html/api/Bugzilla/WebService/Bug.html
         '''
 
-        query['include_fields'] = query['column_list']
+        query['include_fields'] = list()
+        if hasattr(query, 'column_list'):
+            query['include_fields'] = query['column_list']
+            del query['column_list']
+
         query['include_fields'].append('id')
-        del query['column_list']
         ret = self._proxy.Bug.search(query)
 
         # Unfortunately we need a hack to preserve backwards compabibility with older BZs
