@@ -580,8 +580,6 @@ class RHBugzilla4(Bugzilla4, RHBugzilla):
             r = [i for i in raw_results['bugs']]
         return r
 
-    # This can be removed once RHBZ supports BZ4+'s Bug.fields() method
-    _getbugfields = RHBugzilla._getbugfields
     # Use the upstream versions of these methods rather than the RHBZ ones
     _query = Bugzilla4._query
     # This can be activated once Bug.get() returns all the data that
@@ -618,8 +616,8 @@ class RHBugzilla4(Bugzilla4, RHBugzilla):
                 else:
                     tmp['cf_' + key] = value
 
-	tmp['ids'] = ids
-	ret = self._proxy.Bug.update(tmp)
+        tmp['ids'] = ids
+        ret = self._proxy.Bug.update(tmp)
 
         # Comments must be handled separately using add_comment() API, trying
         # to update using update() API causes error 117 (Invalid Comment ID)
