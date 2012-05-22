@@ -159,10 +159,11 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
         # Unfortunately we need a hack to preserve backwards compabibility with older BZs
         for bug in ret['bugs']:
             tmpstr = []
-            for tmp in bug['flags']:
-                tmpstr.append("%s%s" % (tmp['name'], tmp['status']))
+            if hasattr(bug, 'flags'):
+                for tmp in bug['flags']:
+                    tmpstr.append("%s%s" % (tmp['name'], tmp['status']))
 
-            bug['flags'] = ",".join(tmpstr)
+                bug['flags'] = ",".join(tmpstr)
 
         return ret
 
