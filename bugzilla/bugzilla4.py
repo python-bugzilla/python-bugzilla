@@ -190,6 +190,11 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
                     bug['blockedby'] = ''
             if 'id' in bug:
                 bug['bug_id'] = bug['id']
+            if 'keywords' in bug:
+                if len(bug['keywords']) > 0:
+                    bug['keywords'] = ','.join(bug['keywords'])
+                else:
+                    bug['keywords'] = ''
 
         return ret
 
