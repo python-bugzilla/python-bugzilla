@@ -166,6 +166,10 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
             query['include_fields'].remove('blockedby')
             query['include_fields'].append('blocks')
 
+        if 'bug_status' in query['include_fields']:
+            query['include_fields'].remove('bug_status')
+            query['include_fields'].append('status')
+
         if 'bug_id' in query['include_fields']:
             query['include_fields'].remove('bug_id')
             query['include_fields'].append('id')
@@ -227,6 +231,14 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
         tmp = [f['name'] for f in r['fields']]
         tmp.append('blockedby')
         tmp.append('components')
+
+        # XXX - bugzilla lists for us "bug_status" which is wrong. making sure
+        #       we have the correct list
+        if 'bug_status' in tmp:
+            tmp.remove('bug_status')
+        if 'status' not in tmp:
+            tmp.append('status')
+
         return tmp
         # NOTE: the RHBZ version lists 'comments' and 'groups', and strips
         # the 'cf_' from the beginning of custom fields.
