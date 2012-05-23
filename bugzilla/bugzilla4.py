@@ -156,24 +156,35 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
             query['include_fields'] = query['column_list']
             del query['column_list']
 
+        if 'blockedby' in query['include_fields']:
+            query['include_fields'].remove('blockedby')
+            query['include_fields'].append('blocks')
+
         query['include_fields'].append('id')
+
         ret = self._proxy.Bug.search(query)
 
         # Unfortunately we need a hack to preserve backwards compabibility with older BZs
         for bug in ret['bugs']:
             tmpstr = []
-            if hasattr(bug, 'flags'):
+            if 'flags' in bug:
                 for tmp in bug['flags']:
                     tmpstr.append("%s%s" % (tmp['name'], tmp['status']))
 
                 bug['flags'] = ",".join(tmpstr)
+            if 'blocks' in bug:
+                if len(bug['blocks']) > 0:
+                    bug['blockedby'] = ','.join(map(str, bug['blocks']))
+                else:
+                    bug['blockedby'] = ''
 
         return ret
 
-    # Hooray, a proper _getbugfields implementation
     def _getbugfields(self):
         '''Get the list of valid fields for Bug objects'''
         r = self._proxy.Bug.fields({'include_fields':['name']})
-        return [f['name'] for f in r['fields']]
+        tmp = [f['name'] for f in r['fields']]
+        tmp.append('blockedby')
+        return tmp
         # NOTE: the RHBZ version lists 'comments' and 'groups', and strips
         # the 'cf_' from the beginning of custom fields.
