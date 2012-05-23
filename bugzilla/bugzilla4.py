@@ -205,6 +205,19 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
                     bug['alias'] = ','.join(bug['alias'])
                 else:
                     bug['alias'] = ''
+            if 'groups' in bug:
+                # groups went to the opposite direction: it got simpler
+                # instead of having name, ison, description, it's now just
+                # an array of strings of the groups the bug belongs to
+                # we're emulating the old behaviour here
+                tmp = list()
+                for g in bug['groups']:
+                    t = {}
+                    t['name'] = g
+                    t['description'] = g
+                    t['ison'] = 1
+                    tmp.append(t)
+                bug['groups'] = tmp
 
         return ret
 
