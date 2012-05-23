@@ -150,6 +150,12 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
         For more info, see:
         http://www.bugzilla.org/docs/4.0/en/html/api/Bugzilla/WebService/Bug.html
         '''
+        if 'bug_id' in query:
+            if type(query['bug_id']) is not list:
+                query['id'] = query['bug_id'].split(',')
+            else:
+                query['id'] = query['bug_id']
+            del query['bug_id']
 
         query['include_fields'] = list()
         if 'column_list' in query:
@@ -160,7 +166,9 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
             query['include_fields'].remove('blockedby')
             query['include_fields'].append('blocks')
 
-        query['include_fields'].append('id')
+        if 'bug_id' in query['include_fields']:
+            query['include_fields'].remove('bug_id')
+            query['include_fields'].append('id')
 
         ret = self._proxy.Bug.search(query)
 
@@ -177,6 +185,8 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
                     bug['blockedby'] = ','.join(map(str, bug['blocks']))
                 else:
                     bug['blockedby'] = ''
+            if 'id' in bug:
+                bug['bug_id'] = bug['id']
 
         return ret
 
