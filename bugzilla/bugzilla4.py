@@ -169,6 +169,9 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
         if 'bug_id' in query['include_fields']:
             query['include_fields'].remove('bug_id')
             query['include_fields'].append('id')
+        elif 'id' not in query['include_fields']:
+            # we always need the id
+            query['include_fields'].append('id')
 
         ret = self._proxy.Bug.search(query)
 
