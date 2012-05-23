@@ -195,12 +195,16 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
                     bug['keywords'] = ','.join(bug['keywords'])
                 else:
                     bug['keywords'] = ''
-
             if 'component' in bug:
                 # we have to emulate the old behavior and add 'components' as
                 # list instead
                 bug['components'] = bug['component']
                 bug['component'] = bug['component'][0]
+            if 'alias' in bug:
+                if len(bug['alias']) > 0:
+                    bug['alias'] = ','.join(bug['alias'])
+                else:
+                    bug['alias'] = ''
 
         return ret
 
