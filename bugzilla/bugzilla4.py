@@ -196,6 +196,12 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
                 else:
                     bug['keywords'] = ''
 
+            if 'component' in bug:
+                # we have to emulate the old behavior and add 'components' as
+                # list instead
+                bug['components'] = bug['component']
+                bug['component'] = bug['component'][0]
+
         return ret
 
     def _getbugfields(self):
@@ -203,6 +209,7 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
         r = self._proxy.Bug.fields({'include_fields':['name']})
         tmp = [f['name'] for f in r['fields']]
         tmp.append('blockedby')
+        tmp.append('components')
         return tmp
         # NOTE: the RHBZ version lists 'comments' and 'groups', and strips
         # the 'cf_' from the beginning of custom fields.
