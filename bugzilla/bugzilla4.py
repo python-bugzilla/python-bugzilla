@@ -152,7 +152,7 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
         '''
 
         query['include_fields'] = list()
-        if hasattr(query, 'column_list'):
+        if 'column_list' in query:
             query['include_fields'] = query['column_list']
             del query['column_list']
 
