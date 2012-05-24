@@ -156,6 +156,10 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
             query['include_fields'].remove('bug_status')
             query['include_fields'].append('status')
 
+        if 'short_desc' in query['include_fields']:
+            query['include_fields'].remove('short_desc')
+            query['include_fields'].append('summary')
+
         if 'bug_id' in query['include_fields']:
             query['include_fields'].remove('bug_id')
             query['include_fields'].append('id')
@@ -208,6 +212,8 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
                 t['ison'] = 1
                 tmp.append(t)
             bug['groups'] = tmp
+        if 'summary' in bug:
+            bug['short_desc'] = bug['summary']
 
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
