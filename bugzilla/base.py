@@ -548,6 +548,16 @@ class BugzillaBase(object):
         q = {'product':product,'version':version,'component':component,
              'long_desc':string,'long_desc_type':matchtype}
         return self.query(q)
+    def pre_translation(self, query):
+        '''In order to keep the API the same, Bugzilla4 needs to process the
+        query and the result. This also applies to the refresh() function
+        '''
+        pass
+    def post_translation(self, query, bug):
+        '''In order to keep the API the same, Bugzilla4 needs to process the
+        query and the result. This also applies to the refresh() function
+        '''
+        pass
 
     #---- Methods for modifying existing bugs.
 
@@ -1244,6 +1254,15 @@ class _Bug(object):
             for k in self.bugzilla.bugfields:
                 self.__dict__.setdefault(k)
         r = self.bugzilla._getbug(self.bug_id)
+
+        # faking a query
+        q = {}
+        q['id'] = str(self.bug_id)
+        q['column_list'] = self.bugzilla.bugfields
+
+        # running post translation
+        self.bugzilla.post_translation(q, r)
+
         self.__dict__.update(r)
 
     def reload(self):
@@ -1360,7 +1379,6 @@ class _Bug(object):
     def deletecc(self,cclist,comment=''):
         '''Removes the given email addresses from the CC list for this bug.'''
         self.bugzilla._updatecc(self.bug_id,cclist,'delete',comment)
-
     def get_flag_type(self, name):
         """Return flag_type information for a specific flag"""
 
