@@ -170,17 +170,19 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
             for tmp in bug['flags']:
                 tmpstr.append("%s%s" % (tmp['name'], tmp['status']))
 
-            bug['flags'] = ",".join(tmpstr)
+            bug['flags'] = ", ".join(tmpstr)
         if 'blocks' in bug:
             if len(bug['blocks']) > 0:
-                bug['blockedby'] = ','.join(map(str, bug['blocks']))
+                bug['blockedby'] = ', '.join(map(str, bug['blocks']))
+                bug['blocked'] = ', '.join(map(str, bug['blocks']))
             else:
                 bug['blockedby'] = ''
+                bug['blocked'] = ''
         if 'id' in bug:
             bug['bug_id'] = bug['id']
         if 'keywords' in bug:
             if len(bug['keywords']) > 0:
-                bug['keywords'] = ','.join(bug['keywords'])
+                bug['keywords'] = ', '.join(bug['keywords'])
             else:
                 bug['keywords'] = ''
         if 'component' in bug:
@@ -190,7 +192,7 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
             bug['component'] = bug['component'][0]
         if 'alias' in bug:
             if len(bug['alias']) > 0:
-                bug['alias'] = ','.join(bug['alias'])
+                bug['alias'] = ', '.join(bug['alias'])
             else:
                 bug['alias'] = ''
         if 'groups' in bug:
