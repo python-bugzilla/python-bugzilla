@@ -160,6 +160,10 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
             query['include_fields'].remove('short_desc')
             query['include_fields'].append('summary')
 
+        if 'status_whiteboard' in query['include_fields']:
+            query['include_fields'].remove('status_whiteboard')
+            query['include_fields'].append('whiteboard')
+
         if 'bug_id' in query['include_fields']:
             query['include_fields'].remove('bug_id')
             query['include_fields'].append('id')
@@ -214,6 +218,8 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
             bug['groups'] = tmp
         if 'summary' in bug:
             bug['short_desc'] = bug['summary']
+        if 'whiteboard' in bug:
+            bug['status_whiteboard'] = bug['whiteboard']
 
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
