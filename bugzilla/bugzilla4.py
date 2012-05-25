@@ -220,6 +220,8 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
             bug['short_desc'] = bug['summary']
         if 'whiteboard' in bug:
             bug['status_whiteboard'] = bug['whiteboard']
+        if 'status' in bug:
+            bug['bug_status'] = bug['status']
 
     def _query(self,query):
         '''Query bugzilla and return a list of matching bugs.
