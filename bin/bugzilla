@@ -119,7 +119,7 @@ def setup_action_parser(action):
                 help="product version")
         p.add_option('-c','--component',
                 help="component name(s), comma-separated (list with 'bugzilla info -c PRODUCT')")
-        p.add_option('--components_file',
+        p.add_option('--components_file', default=None,
                 help="list of component names from a file, one component per line (list with 'bugzilla info -c PRODUCT')")
         p.add_option('-l','--long_desc',
                 help="search inside bug comments")
@@ -345,9 +345,146 @@ Bugs? In a sub-1.0 release? Preposterous.
 Will Woods <wwoods@redhat.com>'''
     print manpage
 
-# Make this global, since I can't convince nested functions to use
-# a function variable globally?
-_chart_id = 0
+
+def build_query(product=None,
+                component=None,
+                version=None,
+                long_desc=None,
+                bug_id=None,
+                short_desc=None,
+                cc=None,
+                assigned_to=None,
+                reporter=None,
+                qa_contact=None,
+                status=None,
+                blocked=None,
+                dependson=None,
+                keywords=None,
+                keywords_type=None,
+                url=None,
+                url_type=None,
+                status_whiteboard=None,
+                status_whiteboard_type=None,
+                fixed_in=None,
+                fixed_in_type=None,
+                flag=None,
+                alias=None,
+                qa_whiteboard=None,
+                devel_whiteboard=None,
+                boolean_query=None,
+                bug_severity=None,
+                priority=None,
+                target_milestone=None,
+                emailtype="substring",
+                booleantype="substring"):
+
+    def listify(val):
+        if val is None:
+            return val
+        if type(val) is list:
+            return val
+        return [val]
+
+    def add_boolean(value, key, bool_id):
+        if value is None:
+            return bool_id
+
+        query["query_format"] = "advanced"
+        for boolval in value:
+            and_count = 0
+            or_count = 0
+
+            def make_bool_str(prefix):
+                return "%s%i-%i-%i" % (prefix, bool_id, and_count, or_count)
+
+            for par in boolval.split(' '):
+                field = None
+                fval = par
+                typ = booleantype
+
+                if par.find('&') != -1:
+                    and_count += 1
+                elif par.find('|') != -1:
+                    or_count += 1
+                elif par.find('!') != -1:
+                     query['negate%i' % bool_id] = 1
+                elif not key:
+                    if par.find('-') == -1:
+                        raise RuntimeError('Malformed boolean query: %s' %
+                                           value)
+
+                    args = par.split('-', 2)
+                    field = args[0]
+                    typ = args[1]
+                    fval = None
+                    if len(args) == 3:
+                        fval = args[2]
+                else:
+                    field = key
+
+                query[make_bool_str("field")] = field
+                if fval:
+                    query[make_bool_str("value")] = fval
+                query[make_bool_str("type")] = typ
+
+            bool_id += 1
+        return bool_id
+
+    if listify(component):
+        component = ",".join(listify(component))
+
+    query = {
+        "product" : listify(product),
+        "component" : component,
+        "version" : version,
+        "long_desc" : long_desc,
+        "bug_id" : bug_id,
+        "short_desc" : short_desc,
+        "bug_status" : status,
+        "keywords" : keywords,
+        "keywords_type" : keywords_type,
+        "bug_file_loc" : url,
+        "bug_file_loc_type" : url_type,
+        "status_whiteboard" : status_whiteboard,
+        "status_whiteboard_type" : status_whiteboard_type,
+        "fixed_in_type" : fixed_in_type,
+        "bug_severity" : bug_severity,
+        "priority" : priority,
+        "target_milestone" : target_milestone
+    }
+
+    def add_email(value, key, count):
+        if value is None:
+            return count
+
+        query["query_format"] = "advanced"
+        query['email%i' % count] = value
+        query['email%s%i' % (key, count)] = True
+        query['emailtype%i' % count] = emailtype
+        return count + 1
+
+    email_count = 1
+    email_count = add_email(cc, "cc", email_count)
+    email_count = add_email(assigned_to, "assigned_to", email_count)
+    email_count = add_email(reporter, "reporter", email_count)
+    email_count = add_email(qa_contact, "qa_contact", email_count)
+
+    chart_id = 0
+    chart_id = add_boolean(fixed_in, "fixed_in", chart_id)
+    chart_id = add_boolean(blocked, "blocked", chart_id)
+    chart_id = add_boolean(dependson, "dependson", chart_id)
+    chart_id = add_boolean(flag, "flagtypes.name", chart_id)
+    chart_id = add_boolean(qa_whiteboard, "cf_qa_whiteboard", chart_id)
+    chart_id = add_boolean(devel_whiteboard, "cf_devel_whiteboard", chart_id)
+    chart_id = add_boolean(alias, "alias", chart_id)
+    chart_id = add_boolean(boolean_query, None, chart_id)
+
+    # Strip out None elements in the dict
+    for key in query.keys():
+        if query[key] is None:
+            del(query[key])
+    return query
+
 def do_query(bz, opt, parser):
     # Construct the query from the list of queryable options
     q = dict()
@@ -355,135 +492,78 @@ def do_query(bz, opt, parser):
     u = getattr(opt, 'from_url', None)
     if u:
         q = bugzilla.util.url_to_query(u)
+
     # TODO: flags to save queries, list/perform saved queries
     # TODO: use the given scheme/host for the bugzilla URL
-    email_count = 1
 
-    global _chart_id
-    _chart_id = 0
+    if opt.components_file:
+        # Components slurped in from file (one component per line)
+        # This can be made more robust
+        clist = []
+        f = open (opt.components_file, 'r')
+        for line in f.readlines():
+            line = line.rstrip("\n")
+            clist.append(line)
+        opt.component = clist
 
-    def build_boolean(boolval, setval):
-        and_count = 0
-        or_count = 0
-        global _chart_id
-
-        def make_bool_str(prefix):
-            return "%s%i-%i-%i" % (prefix, _chart_id, and_count, or_count)
-
-        for par in boolval.split(' '):
-            if par.find('&') != -1:
-                and_count += 1
-            elif par.find('|') != -1:
-                or_count += 1
-            elif par.find('!') != -1:
-                 q['negate%i' % _chart_id] = 1
-            elif not setval:
-                if par.find('-') == -1:
-                    parser.error('Malformed boolean query: %s' % setval)
-
-                args = par.split('-', 2)
-                q[make_bool_str("field")] = args[0]
-                q[make_bool_str("type")] = args[1]
-                if len(args) == 3:
-                    q[make_bool_str("value")] = args[2]
-                continue
-            else:
-                q[make_bool_str("field")] = setval
-            q[make_bool_str("value")] = par
-            q[make_bool_str("type")] = opt.booleantype
-        _chart_id += 1
-
-    for arg in ['product', 'component', 'components_file', 'version',
-                'long_desc', 'bug_id', 'short_desc', 'cc', 'assigned_to',
-                'reporter', 'qa_contact', 'bug_status', 'blocked',
-                'dependson', 'keywords', 'keywords_type', 'url', 'url_type',
-                'status_whiteboard', 'status_whiteboard_type', 'fixed_in',
-                'fixed_in_type', 'flag', 'alias', 'qa_whiteboard',
-                'devel_whiteboard', 'boolean_query', 'bug_severity',
-                'priority', 'target_milestone']:
-        if not hasattr(opt, arg):
-            continue
-
-        val = getattr(opt, arg)
-        if not val:
-            continue
-
-        if arg == 'bug_status': # list args
-            # FIXME: statuses can differ between bugzilla instances..
-            if val == 'ALL':
-                # leaving this out should return bugs of any status
-                pass
-            elif val == 'DEV':
-                # Alias for all development bug statuses
-                q[arg] = ['NEW', 'ASSIGNED', 'NEEDINFO', 'ON_DEV',
-                          'MODIFIED', 'POST', 'REOPENED']
-            elif val == 'QE':
-                # Alias for all QE relevant bug statuses
-                q[arg] = ['ASSIGNED', 'ON_QA', 'FAILS_QA', 'PASSES_QA']
-            elif val == 'EOL':
-                # Alias for EndOfLife bug statuses
-                q[arg] = ['VERIFIED', 'RELEASE_PENDING', 'CLOSED']
-            elif val == 'OPEN':
-                # non-Closed statuses
-                q[arg] = ['NEW', 'ASSIGNED', 'MODIFIED', 'ON_DEV', 'ON_QA',
-                          'VERIFIED', 'RELEASE_PENDING', 'POST']
-            else:
-                q[arg] = val.split(',')
-
-        elif arg in ['cc','assigned_to','reporter','qa_contact']:
-            # Emails
-            # ex.: {'email1':'foo@bar.com','emailcc1':True}
-            q['query_format'] = 'advanced'
-            q['email%i' % email_count] = val
-            q['email%s%i' % (arg, email_count)] = True
-            q['emailtype%i' % email_count] = opt.emailtype
-            email_count += 1
-
-        elif arg == 'components_file':
-            # Components slurped in from file (one component per line)
-            # This can be made more robust
-            clist = []
-            f = open (val, 'r')
-            for line in f.readlines():
-                line = line.rstrip("\n")
-                clist.append(line)
-            q['component'] = ",".join(clist)
-
-        elif arg in ['product']:
-            q[arg] = [ val ]
-        elif arg in ['keywords', 'keywords_type', 'url', 'url_type',
-                   'status_whiteboard', 'status_whiteboard_type',
-                   'bug_severity', 'priority']:
-            if arg == 'url':
-                q['bug_file_loc'] = val
-            elif arg == 'url_type':
-                q['bug_file_loc_type'] = val
-            else:
-                q['%s' % arg] = val
-
-        elif arg in ['fixed_in', 'blocked', 'dependson', 'flag',
-                   'qa_whiteboard', 'devel_whiteboard', 'alias']:
-            q['query_format'] = 'advanced'
-            for boolval in val:
-                setval = arg
-                if arg == "flag":
-                    setval = "flagtypes.name"
-                elif arg.endswith("_whiteboard"):
-                    setval = "cf_" + arg
-
-                build_boolean(boolval, setval)
-
-        elif arg == 'boolean_query':
-            # Custom Boolean Chart query
-            # Format: BooleanName-Condition-Parameter &/| BooleanName-Condition-Parameter &/| ...
-            # ie, keywords-substring-Partner | keywords-notsubstring-PartnerVerified & keywords-notsubstring-OtherQA
-            q['query_format'] = 'advanced'
-            for boolval in val:
-                build_boolean(boolval, None)
-
+    if opt.bug_status:
+        # FIXME: statuses can differ between bugzilla instances..
+        val = getattr(opt, "bug_status")
+        if val == 'ALL':
+            # leaving this out should return bugs of any status
+            stat = None
+        elif val == 'DEV':
+            # Alias for all development bug statuses
+            stat = ['NEW', 'ASSIGNED', 'NEEDINFO', 'ON_DEV',
+                      'MODIFIED', 'POST', 'REOPENED']
+        elif val == 'QE':
+            # Alias for all QE relevant bug statuses
+            stat = ['ASSIGNED', 'ON_QA', 'FAILS_QA', 'PASSES_QA']
+        elif val == 'EOL':
+            # Alias for EndOfLife bug statuses
+            stat = ['VERIFIED', 'RELEASE_PENDING', 'CLOSED']
+        elif val == 'OPEN':
+            # non-Closed statuses
+            stat = ['NEW', 'ASSIGNED', 'MODIFIED', 'ON_DEV', 'ON_QA',
+                      'VERIFIED', 'RELEASE_PENDING', 'POST']
         else:
-            q[arg] = val
+            stat = val.split(',')
+        opt.bug_status = stat
 
+    built_query = build_query(
+        product=getattr(opt, "product", None),
+        component=getattr(opt, "component", None),
+        version=getattr(opt, "version", None),
+        reporter=getattr(opt, "reporter", None),
+        bug_id=getattr(opt, "bug_id", None),
+        short_desc=getattr(opt, "short_desc", None),
+        cc=getattr(opt, "cc", None),
+        assigned_to=getattr(opt, "assigned_to", None),
+        qa_contact=getattr(opt, "qa_contact", None),
+        status=getattr(opt, "bug_status", None),
+        blocked=getattr(opt, "blocked", None),
+        dependson=getattr(opt, "dependson", None),
+        keywords=getattr(opt, "keywords", None),
+        keywords_type=getattr(opt, "keywords_type", None),
+        url=getattr(opt, "url", None),
+        url_type=getattr(opt, "url_type", None),
+        status_whiteboard=getattr(opt, "status_whiteboard", None),
+        status_whiteboard_type=getattr(opt, "status_whiteboard_type", None),
+        fixed_in=getattr(opt, "fixed_in", None),
+        fixed_in_type=getattr(opt, "fixed_in_type", None),
+        flag=getattr(opt, "flag", None),
+        alias=getattr(opt, "alias", None),
+        qa_whiteboard=getattr(opt, "qa_whiteboard", None),
+        devel_whiteboard=getattr(opt, "devel_whiteboard", None),
+        boolean_query=getattr(opt, "boolean_query", None),
+        bug_severity=getattr(opt, "bug_severity", None),
+        priority=getattr(opt, "priority", None),
+        target_milestone=getattr(opt, "target_milestone", None),
+        emailtype=opt.emailtype,
+        booleantype=opt.booleantype)
+
+    built_query.update(q)
+    q = built_query
 
     # To optimize speed and reduce network traffic through lookups, we
     # specifically tell bugzilla the exact data we want.  This allows us
