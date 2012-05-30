@@ -143,6 +143,10 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
                 query['id'] = query['bug_id']
             del query['bug_id']
 
+        if 'component' in query:
+            if type(query['component']) is not list:
+                query['component'] = query['component'].split(',')
+
         if 'include_fields' not in query:
             query['include_fields'] = list()
             if 'column_list' in query:
