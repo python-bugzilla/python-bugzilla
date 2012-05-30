@@ -473,6 +473,7 @@ def main():
                     elif a in ['cc','assigned_to','reporter','qa_contact']:
                         # Emails
                         # ex.: {'email1':'foo@bar.com','emailcc1':True}
+                        q['query_format'] = 'advanced'
                         q['email%i' % email_count] = i
                         q['email%s%i' % (a,email_count)] = True
                         q['emailtype%i' % email_count] = opt.emailtype
@@ -497,6 +498,7 @@ def main():
                         else:
                             q['%s' % a] = i
                     elif a in ['fixed_in','blocked','dependson','flag','qa_whiteboard','devel_whiteboard','alias']:
+                        q['query_format'] = 'advanced'
                         for b in i:
                             # Boolean Charts
                             and_count = 0
@@ -523,6 +525,7 @@ def main():
                         # Custom Boolean Chart query
                         # Format: BooleanName-Condition-Parameter &/| BooleanName-Condition-Parameter &/| ...
                         # ie, keywords-substring-Partner | keywords-notsubstring-PartnerVerified & keywords-notsubstring-OtherQA
+                        q['query_format'] = 'advanced'
                         for b in i:
                             and_count = 0
                             or_count = 0
@@ -555,8 +558,10 @@ def main():
         #this list and the output format have to be in _sync_.  Otherwise,
         #you lose speed by doing a look-up for each new output element.
         if opt.output == 'oneline':
-            q['column_list'] = [ 'bug_id', 'bug_status', 'assigned_to', 'component',
+            q['include_fields'] = [ 'bug_id', 'bug_status', 'assigned_to', 'component',
               'target_milestone', 'short_desc', 'flags', 'keywords', 'blockedby' ]
+        elif opt.output == 'normal':
+            q['include_fields'] = ['bug_id', 'bug_status', 'assigned_to', 'short_desc']
         if opt.outputformat:
             aliases = dict(bz.field_aliases)
             req_fields = []
@@ -564,7 +569,7 @@ def main():
                 req_fields.append(fieldname)
                 if fieldname in aliases:
                     req_fields.append(aliases.get(fieldname))
-            q['column_list'] = req_fields
+            q['include_fields'] = req_fields
 
         log.debug("bz.query: %s", q)
         if not q:
