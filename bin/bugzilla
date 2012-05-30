@@ -571,6 +571,7 @@ def main():
             aliases = dict(bz.field_aliases)
             req_fields = []
             for fieldname, sub in format_field_re.findall(opt.outputformat):
+                ignore = sub
                 req_fields.append(fieldname)
                 if fieldname in aliases:
                     req_fields.append(aliases.get(fieldname))
@@ -668,9 +669,9 @@ def main():
         log.debug("bz.getbugssimple(%s) -> %s" % (bugid_list, buglist))
         if not buglist:
             parser.error('No bugs were found. Check your bug IDs.')
-        for id,bug in zip(bugid_list,buglist):
+        for bugid,bug in zip(bugid_list,buglist):
             if not bug:
-                log.error("  failed to load bug %s" % id)
+                log.error("  failed to load bug %s" % bugid)
                 continue
             log.debug("modifying bug %s" % bug.bug_id)
             if opt.status:

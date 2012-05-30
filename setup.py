@@ -53,6 +53,34 @@ class TestCommand(Command):
             coverage.report(show_missing=False)
         sys.exit(err)
 
+class PylintCommand(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        os.system("pylint "
+                  "--reports=n "
+                  "--output-format=colorized "
+                  "--dummy-variables-rgx=\"dummy|ignore*|.*ignore\" "
+                  # Lines in modules, function size, ...
+                  "--disable Design "
+                  # Line length, spacing, ...
+                  "--disable Format "
+                  # Duplicate code
+                  "--disable Similarities "
+                  # Use of * or **
+                  "--disable W0142 "
+                  # Name doesn't match some style regex
+                  "--disable C0103 "
+                  # FIXME comments
+                  "--disable W0511 "
+                  # C0111: No docstring
+                  "--disable C0111 "
+                  "bin/bugzilla")
 
 setup(name='python-bugzilla',
       version=str(bugzilla.base.version),
@@ -66,5 +94,6 @@ setup(name='python-bugzilla',
 
       cmdclass={
         "test" : TestCommand,
+        "pylint" : PylintCommand,
       }
 )
