@@ -143,10 +143,11 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
                 query['id'] = query['bug_id']
             del query['bug_id']
 
-        query['include_fields'] = list()
-        if 'column_list' in query:
-            query['include_fields'] = query['column_list']
-            del query['column_list']
+        if 'include_fields' not in query:
+            query['include_fields'] = list()
+            if 'column_list' in query:
+                query['include_fields'] = query['column_list']
+                del query['column_list']
 
         if 'blockedby' in query['include_fields']:
             query['include_fields'].remove('blockedby')
