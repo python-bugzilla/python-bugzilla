@@ -473,6 +473,7 @@ def main():
                     elif a in ['cc','assigned_to','reporter','qa_contact']:
                         # Emails
                         # ex.: {'email1':'foo@bar.com','emailcc1':True}
+                        q['query_format'] = 'advanced'
                         q['email%i' % email_count] = i
                         q['email%s%i' % (a,email_count)] = True
                         q['emailtype%i' % email_count] = opt.emailtype
@@ -497,6 +498,7 @@ def main():
                         else:
                             q['%s' % a] = i
                     elif a in ['fixed_in','blocked','dependson','flag','qa_whiteboard','devel_whiteboard','alias']:
+                        q['query_format'] = 'advanced'
                         for b in i:
                             # Boolean Charts
                             and_count = 0
@@ -523,6 +525,7 @@ def main():
                         # Custom Boolean Chart query
                         # Format: BooleanName-Condition-Parameter &/| BooleanName-Condition-Parameter &/| ...
                         # ie, keywords-substring-Partner | keywords-notsubstring-PartnerVerified & keywords-notsubstring-OtherQA
+                        q['query_format'] = 'advanced'
                         for b in i:
                             and_count = 0
                             or_count = 0
