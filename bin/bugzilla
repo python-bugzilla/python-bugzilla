@@ -558,7 +558,7 @@ def main():
         #this list and the output format have to be in _sync_.  Otherwise,
         #you lose speed by doing a look-up for each new output element.
         if opt.output == 'oneline':
-            q['column_list'] = [ 'bug_id', 'bug_status', 'assigned_to', 'component',
+            q['include_fields'] = [ 'bug_id', 'bug_status', 'assigned_to', 'component',
               'target_milestone', 'short_desc', 'flags', 'keywords', 'blockedby' ]
         if opt.outputformat:
             aliases = dict(bz.field_aliases)
@@ -567,7 +567,7 @@ def main():
                 req_fields.append(fieldname)
                 if fieldname in aliases:
                     req_fields.append(aliases.get(fieldname))
-            q['column_list'] = req_fields
+            q['include_fields'] = req_fields
 
         log.debug("bz.query: %s", q)
         if not q:
