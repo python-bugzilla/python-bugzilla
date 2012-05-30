@@ -560,6 +560,8 @@ def main():
         if opt.output == 'oneline':
             q['include_fields'] = [ 'bug_id', 'bug_status', 'assigned_to', 'component',
               'target_milestone', 'short_desc', 'flags', 'keywords', 'blockedby' ]
+        elif opt.output == 'normal':
+            q['include_fields'] = ['bug_id', 'bug_status', 'assigned_to', 'short_desc']
         if opt.outputformat:
             aliases = dict(bz.field_aliases)
             req_fields = []
