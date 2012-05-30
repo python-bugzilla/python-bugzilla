@@ -55,15 +55,20 @@ def getBugzillaClassForURL(url):
         elif bzversion.startswith('4.'):
             c = RHBugzilla4
         else:
-            c = RHBugzilla
-    elif bzversion.startswith('3.'):
-        if bzversion.startswith('3.6'):
+            log.debug("No explicit match for RH version %s, us latest we "
+                      "know", bzversion)
+            c = RHBugzilla4
+    else:
+        if bzversion.startswith("4."):
+            c = Bugzilla4
+        elif bzversion.startswith('3.6'):
             c = Bugzilla36
         elif bzversion.startswith('3.4'):
             c = Bugzilla34
         elif bzversion.startswith('3.2'):
             c = Bugzilla32
         else:
+            log.debug("No explicit match for %s, fall through", bzversion)
             c = Bugzilla3
 
     return c
