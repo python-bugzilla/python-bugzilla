@@ -403,7 +403,7 @@ class RHBugzilla3(Bugzilla34, RHBugzilla):
             r = [i['internals'] for i in raw_results['bugs']]
         return r
 
-    # This can be removed once RHBZ supports BZ3.6's Bug.fields() method
+    # This can be removed once upstream Bug.fields() doesn't take 50-60s(!)
     _getbugfields = RHBugzilla._getbugfields
     # Use the upstream versions of these methods rather than the RHBZ ones
     _query = Bugzilla34._query
@@ -580,6 +580,8 @@ class RHBugzilla4(Bugzilla4, RHBugzilla):
             r = [i for i in raw_results['bugs']]
         return r
 
+    # This can be removed once upstream Bug.fields() doesn't take 50-60s(!)
+    _getbugfields = RHBugzilla._getbugfields
     # Use the upstream versions of these methods rather than the RHBZ ones
     _query = Bugzilla4._query
     # This can be activated once Bug.get() returns all the data that
