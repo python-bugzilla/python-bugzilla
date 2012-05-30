@@ -34,6 +34,8 @@ elif '--verbose' in sys.argv:
 
 cmdlist = ['login','new','query','modify','attach','info']
 
+_is_unittest = bool(os.getenv("__BUGZILLA_UNITTEST"))
+
 def to_encoding(ustring):
     if isinstance(ustring, basestring):
         if isinstance(ustring, unicode):
@@ -363,7 +365,10 @@ def main():
         bzclass = getattr(bugzilla,global_opt.bztype)
     else:
         parser.error("bztype must be one of: %s" % str(bugzilla.classlist))
-    bz=bzclass(url=global_opt.bugzilla)
+
+    bz = None
+    if not _is_unittest:
+        bz=bzclass(url=global_opt.bugzilla)
 
     # Handle 'login' action
     if action == 'login':
@@ -394,7 +399,7 @@ def main():
             global_opt.password = getpass.getpass()
         log.info('Using username/password for authentication')
         bz.login(global_opt.user,global_opt.password)
-    else:
+    elif not _is_unittest:
         if global_opt.cookiefile:
             bz.cookiefile = global_opt.cookiefile
         cookiefile = bz.cookiefile
@@ -574,6 +579,8 @@ def main():
         log.debug("bz.query: %s", q)
         if not q:
             parser.error("'query' command requires additional arguments")
+        if _is_unittest:
+            return q
         buglist = bz.query(q)
 
     elif action == 'new':

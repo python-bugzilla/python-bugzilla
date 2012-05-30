@@ -19,6 +19,8 @@ class TestCommand(Command):
         pass
 
     def run(self):
+        os.environ["__BUGZILLA_UNITTEST"] = "1"
+
         testfiles = []
         for t in glob.glob(os.path.join(os.getcwd(), 'tests', '*.py')):
             if t.endswith("__init__.py"):
