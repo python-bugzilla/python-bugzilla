@@ -45,6 +45,11 @@ def to_encoding(ustring):
 
 format_field_re = re.compile("%{([a-z0-9_]+)(?::([^}]*))?}")
 
+
+##################
+# Option parsing #
+##################
+
 def setup_parser():
     u =   "%prog [global options] COMMAND [command-options]"
     u +=  "\nCommands: %s" % ', '.join(cmdlist)
@@ -250,6 +255,11 @@ def setup_action_parser(action):
                 "tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'")
     return p
 
+
+####################
+# Command routines #
+####################
+
 def generate_man_page():
     try:
         from logilab.common.optik_ext import ManHelpFormatter
@@ -334,6 +344,184 @@ Bugs? In a sub-1.0 release? Preposterous.
 .SH AUTHOR
 Will Woods <wwoods@redhat.com>'''
     print manpage
+
+# Make this global, since I can't convince nested functions to use
+# a function variable globally?
+_chart_id = 0
+def do_query(bz, opt, parser):
+    # Construct the query from the list of queryable options
+    q = dict()
+    # Parse preconstructed queries.
+    u = getattr(opt, 'from_url', None)
+    if u:
+        q = bugzilla.util.url_to_query(u)
+    # TODO: flags to save queries, list/perform saved queries
+    # TODO: use the given scheme/host for the bugzilla URL
+    email_count = 1
+
+    global _chart_id
+    _chart_id = 0
+
+    def build_boolean(boolval, setval):
+        and_count = 0
+        or_count = 0
+        global _chart_id
+
+        def make_bool_str(prefix):
+            return "%s%i-%i-%i" % (prefix, _chart_id, and_count, or_count)
+
+        for par in boolval.split(' '):
+            if par.find('&') != -1:
+                and_count += 1
+            elif par.find('|') != -1:
+                or_count += 1
+            elif par.find('!') != -1:
+                 q['negate%i' % _chart_id] = 1
+            elif not setval:
+                if par.find('-') == -1:
+                    parser.error('Malformed boolean query: %s' % setval)
+
+                args = par.split('-', 2)
+                q[make_bool_str("field")] = args[0]
+                q[make_bool_str("type")] = args[1]
+                if len(args) == 3:
+                    q[make_bool_str("value")] = args[2]
+                continue
+            else:
+                q[make_bool_str("field")] = setval
+            q[make_bool_str("value")] = par
+            q[make_bool_str("type")] = opt.booleantype
+        _chart_id += 1
+
+    for arg in ['product', 'component', 'components_file', 'version',
+                'long_desc', 'bug_id', 'short_desc', 'cc', 'assigned_to',
+                'reporter', 'qa_contact', 'bug_status', 'blocked',
+                'dependson', 'keywords', 'keywords_type', 'url', 'url_type',
+                'status_whiteboard', 'status_whiteboard_type', 'fixed_in',
+                'fixed_in_type', 'flag', 'alias', 'qa_whiteboard',
+                'devel_whiteboard', 'boolean_query', 'bug_severity',
+                'priority', 'target_milestone']:
+        if not hasattr(opt, arg):
+            continue
+
+        val = getattr(opt, arg)
+        if not val:
+            continue
+
+        if arg == 'bug_status': # list args
+            # FIXME: statuses can differ between bugzilla instances..
+            if val == 'ALL':
+                # leaving this out should return bugs of any status
+                pass
+            elif val == 'DEV':
+                # Alias for all development bug statuses
+                q[arg] = ['NEW', 'ASSIGNED', 'NEEDINFO', 'ON_DEV',
+                          'MODIFIED', 'POST', 'REOPENED']
+            elif val == 'QE':
+                # Alias for all QE relevant bug statuses
+                q[arg] = ['ASSIGNED', 'ON_QA', 'FAILS_QA', 'PASSES_QA']
+            elif val == 'EOL':
+                # Alias for EndOfLife bug statuses
+                q[arg] = ['VERIFIED', 'RELEASE_PENDING', 'CLOSED']
+            elif val == 'OPEN':
+                # non-Closed statuses
+                q[arg] = ['NEW', 'ASSIGNED', 'MODIFIED', 'ON_DEV', 'ON_QA',
+                          'VERIFIED', 'RELEASE_PENDING', 'POST']
+            else:
+                q[arg] = val.split(',')
+
+        elif arg in ['cc','assigned_to','reporter','qa_contact']:
+            # Emails
+            # ex.: {'email1':'foo@bar.com','emailcc1':True}
+            q['query_format'] = 'advanced'
+            q['email%i' % email_count] = val
+            q['email%s%i' % (arg, email_count)] = True
+            q['emailtype%i' % email_count] = opt.emailtype
+            email_count += 1
+
+        elif arg == 'components_file':
+            # Components slurped in from file (one component per line)
+            # This can be made more robust
+            clist = []
+            f = open (val, 'r')
+            for line in f.readlines():
+                line = line.rstrip("\n")
+                clist.append(line)
+            q['component'] = ",".join(clist)
+
+        elif arg in ['product']:
+            q[arg] = [ val ]
+        elif arg in ['keywords', 'keywords_type', 'url', 'url_type',
+                   'status_whiteboard', 'status_whiteboard_type',
+                   'bug_severity', 'priority']:
+            if arg == 'url':
+                q['bug_file_loc'] = val
+            elif arg == 'url_type':
+                q['bug_file_loc_type'] = val
+            else:
+                q['%s' % arg] = val
+
+        elif arg in ['fixed_in', 'blocked', 'dependson', 'flag',
+                   'qa_whiteboard', 'devel_whiteboard', 'alias']:
+            q['query_format'] = 'advanced'
+            for boolval in val:
+                setval = arg
+                if arg == "flag":
+                    setval = "flagtypes.name"
+                elif arg.endswith("_whiteboard"):
+                    setval = "cf_" + arg
+
+                build_boolean(boolval, setval)
+
+        elif arg == 'boolean_query':
+            # Custom Boolean Chart query
+            # Format: BooleanName-Condition-Parameter &/| BooleanName-Condition-Parameter &/| ...
+            # ie, keywords-substring-Partner | keywords-notsubstring-PartnerVerified & keywords-notsubstring-OtherQA
+            q['query_format'] = 'advanced'
+            for boolval in val:
+                build_boolean(boolval, None)
+
+        else:
+            q[arg] = val
+
+
+    # To optimize speed and reduce network traffic through lookups, we
+    # specifically tell bugzilla the exact data we want.  This allows us
+    # make one call to output the data, rather than have a follow-on
+    # getbug() to grab more info than what the default has.
+    # Testing has shown this to be a _huge_ time saver.  Unfortunately,
+    # this list and the output format have to be in _sync_.  Otherwise,
+    # you lose speed by doing a look-up for each new output element.
+    if opt.output == 'oneline':
+        q['include_fields'] = [ 'bug_id', 'bug_status', 'assigned_to',
+            'component', 'target_milestone', 'short_desc', 'flags',
+            'keywords', 'blockedby' ]
+
+    elif opt.output == 'normal':
+        q['include_fields'] = ['bug_id', 'bug_status', 'assigned_to',
+            'short_desc']
+
+    if opt.outputformat:
+        aliases = dict(bz.field_aliases)
+        req_fields = []
+        for fieldname, sub in format_field_re.findall(opt.outputformat):
+            ignore = sub
+            req_fields.append(fieldname)
+            if fieldname in aliases:
+                req_fields.append(aliases.get(fieldname))
+        q['include_fields'] = req_fields
+
+    log.debug("bz.query: %s", q)
+    if not q:
+        parser.error("'query' command requires additional arguments")
+    if _is_unittest:
+        return q
+    return bz.query(q)
+
+
+#################
+# Main function #
+#################
 
 def main():
     # Set up parser for global args
@@ -438,151 +626,9 @@ def main():
                         print to_encoding(v)
 
     elif action == 'query':
-        # Construct the query from the list of queryable options
-        q = dict()
-        # Parse preconstructed queries.
-        u = getattr(opt,'from_url',None)
-        if u:
-            q = bugzilla.util.url_to_query(u)
-        # TODO: flags to save queries, list/perform saved queries
-        # TODO: use the given scheme/host for the bugzilla URL
-        email_count = 1
-        chart_id = 0
-        for a in ['product','component','components_file','version','long_desc','bug_id',
-                  'short_desc','cc','assigned_to','reporter','qa_contact','bug_status',
-                  'blocked','dependson','keywords','keywords_type','url','url_type','status_whiteboard',
-                  'status_whiteboard_type','fixed_in','fixed_in_type','flag','alias','qa_whiteboard',
-                  'devel_whiteboard','boolean_query','bug_severity','priority','target_milestone']:
-            if hasattr(opt,a):
-                i = getattr(opt,a)
-                if i:
-                    if a == 'bug_status': # list args
-                        # FIXME: statuses can differ between bugzilla instances..
-                        if i == 'ALL':
-                            # leaving this out should return bugs of any status
-                            pass
-                        elif i == 'DEV':
-                            # Alias for all development bug statuses
-                            q[a] = 'NEW,ASSIGNED,NEEDINFO,ON_DEV,MODIFIED,POST,REOPENED'.split(',')
-                        elif i == 'QE':
-                            # Alias for all QE relevant bug statuses
-                            q[a] = 'ASSIGNED,ON_QA,FAILS_QA,PASSES_QA'.split(',')
-                        elif i == 'EOL':
-                            # Alias for EndOfLife bug statuses
-                            q[a] = 'VERIFIED,RELEASE_PENDING,CLOSED'.split(',')
-                        elif i == 'OPEN':
-                            # non-Closed statuses
-                            q[a] = 'NEW,ASSIGNED,MODIFIED,ON_DEV,ON_QA,VERIFIED,RELEASE_PENDING,POST'.split(',')
-                        else:
-                            q[a] = i.split(',')
-                    elif a in ['cc','assigned_to','reporter','qa_contact']:
-                        # Emails
-                        # ex.: {'email1':'foo@bar.com','emailcc1':True}
-                        q['query_format'] = 'advanced'
-                        q['email%i' % email_count] = i
-                        q['email%s%i' % (a,email_count)] = True
-                        q['emailtype%i' % email_count] = opt.emailtype
-                        email_count += 1
-                    elif a == 'components_file':
-                        # Components slurped in from file (one component per line)
-                        # This can be made more robust
-                        arr = []
-                        f = open (i, 'r')
-                        for line in f.readlines():
-                            line = line.rstrip("\n")
-                            arr.append(line)
-                        q['component'] = ",".join(arr)
-                    elif a in ['product']:
-                        q[a] = [ i ]
-                    elif a in ['keywords','keywords_type','url','url_type','status_whiteboard',
-                            'status_whiteboard_type','bug_severity','priority']:
-                        if a == 'url':
-                            q['bug_file_loc'] = i
-                        elif a == 'url_type':
-                            q['bug_file_loc_type'] = i
-                        else:
-                            q['%s' % a] = i
-                    elif a in ['fixed_in','blocked','dependson','flag','qa_whiteboard','devel_whiteboard','alias']:
-                        q['query_format'] = 'advanced'
-                        for b in i:
-                            # Boolean Charts
-                            and_count = 0
-                            or_count = 0
-                            x = b.split(' ')
-                            for par in x :
-                                if par.find('&') != -1:
-                                    and_count += 1
-                                elif par.find('|') != -1:
-                                    or_count += 1
-                                elif par.find('!') != -1:
-                                     q['negate%i' % chart_id] = 1
-                                elif a == 'flag':
-                                # Flags have strange parameter name
-                                    q['field%i-%i-%i' % (chart_id,and_count,or_count)] = 'flagtypes.name'
-                                elif a.endswith('_whiteboard'):
-                                    q['field%i-%i-%i' % (chart_id,and_count,or_count)] = 'cf_' + a
-                                else:
-                                    q['field%i-%i-%i' % (chart_id,and_count,or_count)] = a
-                                q['value%i-%i-%i' % (chart_id,and_count,or_count)] = par
-                                q['type%i-%i-%i' % (chart_id,and_count,or_count)]  = opt.booleantype
-                            chart_id += 1
-                    elif a == 'boolean_query':
-                        # Custom Boolean Chart query
-                        # Format: BooleanName-Condition-Parameter &/| BooleanName-Condition-Parameter &/| ...
-                        # ie, keywords-substring-Partner | keywords-notsubstring-PartnerVerified & keywords-notsubstring-OtherQA
-                        q['query_format'] = 'advanced'
-                        for b in i:
-                            and_count = 0
-                            or_count = 0
-                            # Manually specified boolean query
-                            x = b.split(' ')
-                            for par in x :
-                                if par.find('&') != -1:
-                                    and_count += 1
-                                elif par.find('|') != -1:
-                                    or_count += 1
-                                elif par.find('!') != -1:
-                                    q['negate%i' % chart_id] = 1
-                                elif par.find('-') != -1:
-                                    args = par.split('-',2)
-                                    q['field%i-%i-%i' % (chart_id,and_count,or_count)] = args[0]
-                                    q['type%i-%i-%i' % (chart_id,and_count,or_count)]  = args[1]
-                                    if len(args) == 3:
-                                        q['value%i-%i-%i' % (chart_id,and_count,or_count)] = args[2]
-                                else:
-                                    parser.error('Malformed boolean query: %s' % i)
-                            chart_id += 1
-                    else:
-                        q[a] = i
-
-        #to optimize speed and reduce network traffic through lookups, we
-        #specifically tell bugzilla the exact data we want.  This allows us
-        #make one call to output the data, rather than have a follow-on
-        #getbug() to grab more info than what the default has.
-        #Testing has shown this to be a _huge_ time saver.  Unfortunately,
-        #this list and the output format have to be in _sync_.  Otherwise,
-        #you lose speed by doing a look-up for each new output element.
-        if opt.output == 'oneline':
-            q['include_fields'] = [ 'bug_id', 'bug_status', 'assigned_to', 'component',
-              'target_milestone', 'short_desc', 'flags', 'keywords', 'blockedby' ]
-        elif opt.output == 'normal':
-            q['include_fields'] = ['bug_id', 'bug_status', 'assigned_to', 'short_desc']
-        if opt.outputformat:
-            aliases = dict(bz.field_aliases)
-            req_fields = []
-            for fieldname, sub in format_field_re.findall(opt.outputformat):
-                ignore = sub
-                req_fields.append(fieldname)
-                if fieldname in aliases:
-                    req_fields.append(aliases.get(fieldname))
-            q['include_fields'] = req_fields
-
-        log.debug("bz.query: %s", q)
-        if not q:
-            parser.error("'query' command requires additional arguments")
+        buglist = do_query(bz, opt, parser)
         if _is_unittest:
-            return q
-        buglist = bz.query(q)
+            return buglist
 
     elif action == 'new':
         data = dict()

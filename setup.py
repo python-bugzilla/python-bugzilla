@@ -80,6 +80,8 @@ class PylintCommand(Command):
                   "--disable W0511 "
                   # C0111: No docstring
                   "--disable C0111 "
+                  # W0603: Using the global statement
+                  "--disable W0603 "
                   "bin/bugzilla")
 
 setup(name='python-bugzilla',
