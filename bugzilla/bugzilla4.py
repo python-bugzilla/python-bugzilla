@@ -10,8 +10,9 @@
 # the full text of the license.
 
 import bugzilla.base
+from bugzilla.bugzilla3 import Bugzilla36
 
-class Bugzilla4(bugzilla.base.BugzillaBase):
+class Bugzilla4(Bugzilla36):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
     methods provided by standard Bugzilla 4.0.x releases.'''
 
@@ -23,41 +24,15 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
                           'op_sys','platform')
 
     def __init__(self,**kwargs):
-        bugzilla.base.BugzillaBase.__init__(self,**kwargs)
+        Bugzilla36.__init__(self, **kwargs)
         self.user_agent = self.__class__.user_agent
-
-    def _login(self,user,password):
-        '''Backend login method for Bugzilla4'''
-        return self._proxy.User.login({'login':user,'password':password})
-
-    def _logout(self):
-        '''Backend login method for Bugzilla4'''
-        return self._proxy.User.logout()
-
-    #---- Methods and properties with basic bugzilla info
-
-    def _getuserforid(self,userid):
-        '''Get the username for the given userid'''
-        # STUB FIXME
-        return str(userid)
-
-    def _getproducts(self):
-        '''This throws away a bunch of data that RH's getProdInfo
-        didn't return. Ah, abstraction.'''
-        product_ids = self._proxy.Product.get_accessible_products()
-        r = self._proxy.Product.get_products(product_ids)
-        return r['products']
-    def _getcomponents(self,product):
-        if type(product) == str:
-            product = self._product_name_to_id(product)
-        r = self._proxy.Bug.legal_values({'product_id':product,'field':'component'})
-        return r['values']
 
     #---- Methods for reading bugs and bug info
 
     def _getbugs(self,idlist):
         '''Return a list of dicts of full bug info for each given bug id.
         bug ids that couldn't be found will return None instead of a dict.'''
+        # XXX This is only slightly different from Bugzilla36, combine them?
         idlist = map(lambda i: int(i), idlist)
         r = self._proxy.Bug.get_bugs({'ids':idlist, 'permissive': 1})
         bugdict = dict([(b['id'], b) for b in r['bugs']])
@@ -69,70 +44,6 @@ class Bugzilla4(bugzilla.base.BugzillaBase):
    # TODO: Bugzilla4 should support getbugsimple, needs to be implemented
     _getbugsimple = _getbug
     _getbugssimple = _getbugs
-
-    #---- createbug - call to create a new bug
-
-    def _createbug(self,**data):
-        '''Raw xmlrpc call for createBug() Doesn't bother guessing defaults
-        or checking argument validity. Use with care.
-        Returns bug_id'''
-        r = self._proxy.Bug.create(data)
-        return r['id']
-
-    #---- Methods for interacting with users
-
-    def _createuser(self, email, name=None, password=None):
-        '''Create a new bugzilla user directly.
-
-        :arg email: email address for the new user
-        :kwarg name: full name for the user
-        :kwarg password: a password to use with the account
-        '''
-        userid = self._proxy.User.create(email, name, password)
-        return userid
-
-    def _addcomment(self,id,comment,private=False,
-                   timestamp='',worktime='',bz_gid=''):
-        '''Add a comment to the bug with the given ID. Other optional
-        arguments are as follows:
-            private:   if True, mark this comment as private.
-            timestamp: Ignored by BZ32.
-            worktime:  amount of time spent on this comment, in hours
-            bz_gid:    Ignored by BZ32.
-        '''
-        return self._proxy.Bug.add_comment({'id':id,
-                                            'comment':comment,
-                                            'private':private,
-                                            'work_time':worktime})
-
-    def _getusers(self, ids=None, names=None, match=None):
-        '''Return a list of users that match criteria.
-
-        :kwarg ids: list of user ids to return data on
-        :kwarg names: list of user names to return data on
-        :kwarg match: list of patterns.  Returns users whose real name or
-            login name match the pattern.
-        :raises xmlrpclib.Fault: Code 51: if a Bad Login Name was sent to the
-                names array.
-            Code 304: if the user was not authorized to see user they
-                requested.
-            Code 505: user is logged out and can't use the match or ids
-                parameter.
-
-        Available in Bugzilla-3.4+
-        '''
-        params = {}
-        if ids:
-            params['ids'] = ids
-        if names:
-            params['names'] = names
-        if match:
-            params['match'] = match
-        if not params:
-            raise bugzilla.base.NeedParamError('_get() needs one of ids,'
-                    ' names, or match kwarg.')
-
-        return self._proxy.User.get(params)
 
     def pre_translation(self, query):
         '''Translates the query for possible aliases'''
