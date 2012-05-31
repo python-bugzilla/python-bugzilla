@@ -24,7 +24,7 @@ def difffile(expect, filename):
     if ret:
         raise AssertionError("Output was different:\n%s" % ret)
 
-def clicomm(argv):
+def clicomm(argv, bzinstance):
     """
     Run bin/bugzilla.main() directly with passed argv
     """
@@ -47,7 +47,7 @@ def clicomm(argv):
             print " ".join(argv)
             print
 
-            mainout = bugzillascript.main()
+            mainout = bugzillascript.main(bzinstance)
         except SystemExit, sys_e:
             ret = sys_e.code
 

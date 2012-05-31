@@ -502,9 +502,13 @@ class BugzillaBase(object):
         '''IMPLEMENT ME: Return a list of short bug dicts, one for each of the
         given bug ids'''
         raise NotImplementedError
-    def _query(self,query):
+    def build_query(self, *args, **kwargs):
+        raise NotImplementedError("This version of bugzilla does not "
+                                  "support bug querying.")
+    def _query(self, query):
         '''IMPLEMENT ME: Query bugzilla and return a list of matching bugs.'''
-        raise NotImplementedError
+        raise NotImplementedError("This version of bugzilla does not "
+                                  "support bug querying.")
 
     # these return Bug objects
     def getbug(self,id):

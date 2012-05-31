@@ -1,62 +1,70 @@
 import os
 import unittest
 
+from bugzilla.bugzilla3 import Bugzilla36
+
 from tests import clicomm
+
+bz34 = Bugzilla34(cookiefile=None)
 
 class QueryTest(unittest.TestCase):
     maxDiff = None
 
+    def clicomm(self, argstr):
+        comm = "bugzilla --debug query " + argstr
+        return clicomm(comm, bz34)
+
     def testBasicQuery(self):
-        q = clicomm("bugzilla --debug query --product foo --component bar")
+        q = self.clicomm("--product foo --component bar")
         self.assertDictEqual(q, {'product': ['foo'], 'component': 'bar',
             'include_fields': ['bug_id', 'bug_status', 'assigned_to',
             'short_desc']})
 
     def testOnline(self):
-        q = clicomm("bugzilla --debug query --product foo --oneline")
+        q = self.clicomm("--product foo --oneline")
         self.assertDictEqual(q, {'product': ['foo'], 'include_fields':
             ['bug_id', 'bug_status', 'assigned_to', 'component',
              'target_milestone', 'short_desc', 'flags', 'keywords',
              'blockedby']})
 
     def testBugStatusALL(self):
-        q = clicomm("bugzilla --debug query --product foo --bug_status ALL")
+        q = self.clicomm("--product foo --bug_status ALL")
         self.assertDictEqual(q, {'product': ['foo'], 'include_fields':
             ['bug_id', 'bug_status', 'assigned_to', 'short_desc'],
             'include_fields': ['bug_id', 'bug_status', 'assigned_to',
             'short_desc']})
     def testBugStatusDEV(self):
-        q = clicomm("bugzilla --debug query --bug_status DEV")
+        q = self.clicomm("--bug_status DEV")
         self.assertDictEqual(q, {'bug_status': ['NEW', 'ASSIGNED', 'NEEDINFO',
             'ON_DEV', 'MODIFIED', 'POST', 'REOPENED'], 'include_fields':
             ['bug_id', 'bug_status', 'assigned_to', 'short_desc'],
             'include_fields': ['bug_id', 'bug_status', 'assigned_to',
             'short_desc']})
     def testBugStatusQE(self):
-        q = clicomm("bugzilla --debug query --bug_status QE")
+        q = self.clicomm("--bug_status QE")
         self.assertDictEqual(q, {'bug_status': ['ASSIGNED', 'ON_QA',
             'FAILS_QA', 'PASSES_QA'], 'include_fields': ['bug_id',
             'bug_status', 'assigned_to', 'short_desc'], 'include_fields':
             ['bug_id', 'bug_status', 'assigned_to', 'short_desc']})
     def testBugStatusEOL(self):
-        q = clicomm("bugzilla --debug query --bug_status EOL")
+        q = self.clicomm("--bug_status EOL")
         self.assertDictEqual(q, {'bug_status': ['VERIFIED', 'RELEASE_PENDING',
             'CLOSED'], 'include_fields': ['bug_id', 'bug_status',
             'assigned_to', 'short_desc'], 'include_fields': ['bug_id',
             'bug_status', 'assigned_to', 'short_desc']})
     def testBugStatusOPEN(self):
-        q = clicomm("bugzilla --debug query --bug_status OPEN")
+        q = self.clicomm("--bug_status OPEN")
         self.assertDictEqual(q, {'bug_status': ['NEW', 'ASSIGNED', 'MODIFIED',
             'ON_DEV', 'ON_QA', 'VERIFIED', 'RELEASE_PENDING', 'POST'],
             'include_fields': ['bug_id', 'bug_status', 'assigned_to',
             'short_desc']})
     def testBugStatusRegular(self):
-        q = clicomm("bugzilla --debug query --bug_status POST")
+        q = self.clicomm("--bug_status POST")
         self.assertDictEqual(q, {'bug_status': ['POST'], 'include_fields':
             ['bug_id', 'bug_status', 'assigned_to', 'short_desc']})
 
     def testEmailOptions(self):
-        q = clicomm("bugzilla --debug query --cc foo@example.com "
+        q = self.clicomm("--cc foo@example.com "
                     "--assigned_to foo@example.com")
         self.assertDictEqual(q, {'email1': 'foo@example.com',
             'emailassigned_to2': True, 'emailtype2': 'substring', 'emailtype1':
@@ -65,13 +73,13 @@ class QueryTest(unittest.TestCase):
             'short_desc'], 'query_format' : 'advanced'})
 
     def testComponentsFile(self):
-        q = clicomm("bugzilla --debug query --components_file " +
+        q = self.clicomm("--components_file " +
                     os.getcwd() + "/tests/data/components_file.txt")
         self.assertDictEqual(q, {'component': 'foo,bar,baz', 'include_fields':
             ['bug_id', 'bug_status', 'assigned_to', 'short_desc']})
 
     def testKeywords(self):
-        q = clicomm("bugzilla --debug query --keywords Triaged "
+        q = self.clicomm("--keywords Triaged "
                     "--url http://example.com --url_type foo")
         self.assertDictEqual(q, {'keywords': 'Triaged', 'bug_file_loc':
             'http://example.com', 'bug_file_loc_type': 'foo',
@@ -79,7 +87,7 @@ class QueryTest(unittest.TestCase):
             'short_desc']})
 
     def testBooleans(self):
-        q = clicomm("bugzilla --debug query --blocked 123456 "
+        q = self.clicomm("--blocked 123456 "
                     "--devel_whiteboard 'foobar | baz' "
                     "--qa_whiteboard '! baz' "
                     "--flag 'needinfo & devel_ack'")
@@ -96,8 +104,7 @@ class QueryTest(unittest.TestCase):
             'assigned_to', 'short_desc'], 'query_format': 'advanced'})
 
     def testBooleanChart(self):
-        q = clicomm("bugzilla --debug query "
-                    "--boolean_query 'keywords-substring-Partner & "
+        q = self.clicomm("--boolean_query 'keywords-substring-Partner & "
                     "keywords-notsubstring-OtherQA' "
                     "--boolean_query 'foo-bar-baz | foo-bar-wee' "
                     "--boolean_query '! foo-bar-yargh'")
