@@ -14,24 +14,33 @@ from bugzilla.bugzilla3 import Bugzilla3, Bugzilla34
 from bugzilla.bugzilla4 import Bugzilla4
 import copy, xmlrpclib
 
+
 class RHBugzilla(Bugzilla4):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
-    methods provided by Red Hat's Bugzilla 2.18 variant.
+    methods provided by Red Hat's Bugzilla 4.2+ instance, which is a superset
+    of the Bugzilla 4.2 methods. The additional methods (e.g. Bug.update)
+    should make their way into a later upstream Bugzilla release.
 
-    RHBugzilla supports XMLRPC MultiCall. The methods which start with a
-    single underscore are thin wrappers around XMLRPC methods and should thus
-    be safe for multicall use.
+    Note that RHBZ4 *also* supports most of the old RHBZ methods, under the
+    'bugzilla' namespace, so we use those when BZ4 methods aren't available.
 
-    Documentation for most of these methods can be found here:
-    https://bugzilla.redhat.com/docs/en/html/api/extensions/RedHat/lib/WebService/CompatBugzilla.html
+    This class was written using bugzilla.redhat.com's API docs:
+    https://bugzilla.redhat.com/docs/en/html/api/
+
+    By default, _getbugs will multicall getBug(id) multiple times, rather than
+    doing a single Bug.get(idlist) call. You can disable this behavior by
+    setting the 'multicall' property to False. This will make it somewhat
+    faster, but any missing/unreadable bugs will cause the entire call to
+    Fault rather than returning any data.
     '''
 
-    version = '0.3'
-    user_agent = bugzilla.base.user_agent + ' RHBugzilla/%s' % version
+    version = '0.1'
+    user_agent = bugzilla.base.user_agent + ' RHBugzilla4/%s' % version
 
-    def __init__(self,**kwargs):
-        Bugzilla4.__init__(self,**kwargs)
+    def __init__(self, **kwargs):
+        Bugzilla4.__init__(self, **kwargs)
         self.user_agent = self.__class__.user_agent
+        self.multicall = kwargs.get('multicall',True)
 
     #---- Methods and properties with basic bugzilla info
 
@@ -70,6 +79,8 @@ class RHBugzilla(Bugzilla4):
         return mc
 
     # Connect the backend methods to the XMLRPC methods
+
+    # This can be removed once upstream Bug.fields() doesn't take 50-60s(!)
     def _getbugfields(self):
         return self._proxy.bugzilla.getBugFields()
     def _getqueryinfo(self):
@@ -157,34 +168,6 @@ class RHBugzilla(Bugzilla4):
         r = self._proxy.bugzilla.editComponent(data,self.user,self.password)
         return r
 
-class RHBugzilla4(RHBugzilla):
-    '''Concrete implementation of the Bugzilla protocol. This one uses the
-    methods provided by Red Hat's Bugzilla 4.2+ instance, which is a superset
-    of the Bugzilla 4.2 methods. The additional methods (e.g. Bug.update)
-    should make their way into a later upstream Bugzilla release.
-
-    Note that RHBZ4 *also* supports most of the old RHBZ methods, under the
-    'bugzilla' namespace, so we use those when BZ4 methods aren't available.
-
-    This class was written using bugzilla.redhat.com's API docs:
-    https://bugzilla.redhat.com/docs/en/html/api/
-
-    By default, _getbugs will multicall getBug(id) multiple times, rather than
-    doing a single Bug.get(idlist) call. You can disable this behavior by
-    setting the 'multicall' property to False. This will make it somewhat
-    faster, but any missing/unreadable bugs will cause the entire call to
-    Fault rather than returning any data.
-    '''
-
-    version = '0.1'
-    user_agent = bugzilla.base.user_agent + ' RHBugzilla4/%s' % version
-
-    def __init__(self,**kwargs):
-        super(RHBugzilla4, self).__init__(**kwargs)
-        self.user_agent = self.__class__.user_agent
-        self.multicall = kwargs.get('multicall',True)
-
-    # XXX it'd be nice if this wasn't just a copy of RHBugzilla's _getbugs
     def _getbugs(self,idlist):
         r = []
         if self.multicall:
@@ -202,10 +185,6 @@ class RHBugzilla4(RHBugzilla):
             r = [i for i in raw_results['bugs']]
         return r
 
-    # This can be removed once upstream Bug.fields() doesn't take 50-60s(!)
-    _getbugfields = RHBugzilla._getbugfields
-    # Use the upstream versions of these methods rather than the RHBZ ones
-    _query = Bugzilla4._query
     # This can be activated once Bug.get() returns all the data that
     # RHBZ's getBug() does.
     #_getbugs = Bugzilla3._getbugs # Also _getbug, _getbugsimple, etc.
@@ -381,4 +360,6 @@ class RHBugzilla4(RHBugzilla):
                 update['commentprivacy'] = True
         self._update_bug(id,update)
 
-RHBugzilla3 = RHBugzilla4
+
+RHBugzilla3 = RHBugzilla
+RHBugzilla4 = RHBugzilla

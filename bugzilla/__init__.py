@@ -47,17 +47,9 @@ def getBugzillaClassForURL(url):
         pass
     log.debug("bzversion='%s'" % str(bzversion))
 
-    # XXX note preference order: RHBugzilla* wins if available
-    # RH BZ 3.2 will have rhbz == True and bzversion == 3.1.x or 3.2.x.
+    # note preference order: RHBugzilla* wins if available
     if rhbz:
-        if bzversion.startswith('3.'):
-            c = RHBugzilla3
-        elif bzversion.startswith('4.'):
-            c = RHBugzilla4
-        else:
-            log.debug("No explicit match for RH version %s, us latest we "
-                      "know", bzversion)
-            c = RHBugzilla4
+        c = RHBugzilla
     else:
         if bzversion.startswith("4."):
             c = Bugzilla4
