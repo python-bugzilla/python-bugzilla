@@ -74,7 +74,7 @@ class BZ34Test(unittest.TestCase):
     # Test data. This is what subclasses need to fill in
     bz = bz34
 
-    _basic_query_out = {'product': ['foo'], 'component': 'bar',
+    _basic_query_out = {'product': ['foo'], 'component': ['bar'],
         'include_fields': ['bug_id', 'bug_status', 'assigned_to',
         'short_desc']}
     _online_out = {'product': ['foo'], 'include_fields': ['bug_id',
@@ -108,8 +108,9 @@ class BZ34Test(unittest.TestCase):
         'substring', 'email2': 'foo@example.com', 'emailcc1': True,
         'include_fields': ['bug_id', 'bug_status', 'assigned_to',
         'short_desc'], 'query_format' : 'advanced'}
-    _components_file_out = {'component': 'foo,bar,baz', 'include_fields':
-        ['bug_id', 'bug_status', 'assigned_to', 'short_desc']}
+    _components_file_out = {'component': ["foo", "bar", "baz"],
+        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
+        'short_desc']}
     _keywords_out = {'keywords': 'Triaged', 'bug_file_loc':
         'http://example.com', 'bug_file_loc_type': 'foo',
         'include_fields': ['bug_id', 'bug_status', 'assigned_to',
@@ -137,12 +138,6 @@ class BZ34Test(unittest.TestCase):
 
 class BZ4Test(BZ34Test):
     bz = bz4
-    _basic_query_out = {'product': ['foo'], 'component': ['bar'],
-        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
-        'short_desc']}
-    _components_file_out = {'component': ["foo", "bar", "baz"],
-        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
-        'short_desc']}
 
 class RHBZTest(BZ4Test):
     bz = rhbz4

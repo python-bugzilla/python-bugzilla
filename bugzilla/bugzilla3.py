@@ -266,12 +266,9 @@ class Bugzilla34(Bugzilla32):
                 bool_id += 1
             return bool_id
 
-        if listify(component):
-            component = ",".join(listify(component))
-
         query = {
             "product" : listify(product),
-            "component" : component,
+            "component" : listify(component),
             "version" : version,
             "long_desc" : long_desc,
             "bug_id" : bug_id,
