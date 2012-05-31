@@ -182,3 +182,8 @@ class Bugzilla4(Bugzilla36):
         return tmp
         # NOTE: the RHBZ version lists 'comments' and 'groups', and strips
         # the 'cf_' from the beginning of custom fields.
+
+    def build_query(self, *args, **kwargs):
+        query = Bugzilla36.build_query(self, *args, **kwargs)
+        self.pre_translation(query)
+        return query

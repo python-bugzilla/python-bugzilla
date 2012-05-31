@@ -2,10 +2,14 @@ import os
 import unittest
 
 from bugzilla.bugzilla3 import Bugzilla34
+from bugzilla.bugzilla4 import Bugzilla4
+from bugzilla.rhbugzilla import RHBugzilla4
 
 from tests import clicomm
 
 bz34 = Bugzilla34(cookiefile=None)
+bz4 = Bugzilla4(cookiefile=None)
+rhbz4 = RHBugzilla4(cookiefile=None)
 
 class BZ34Test(unittest.TestCase):
     """
@@ -129,3 +133,16 @@ class BZ34Test(unittest.TestCase):
         'type0-1-0': 'notsubstring', 'value0-1-0': 'OtherQA',
         'include_fields': ['bug_id', 'bug_status', 'assigned_to',
         'short_desc'], 'query_format': 'advanced'}
+
+
+class BZ4Test(BZ34Test):
+    bz = bz4
+    _basic_query_out = {'product': ['foo'], 'component': ['bar'],
+        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
+        'short_desc']}
+    _components_file_out = {'component': ["foo", "bar", "baz"],
+        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
+        'short_desc']}
+
+class RHBZTest(BZ4Test):
+    bz = rhbz4
