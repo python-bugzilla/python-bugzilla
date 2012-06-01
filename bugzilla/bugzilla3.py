@@ -237,7 +237,7 @@ class Bugzilla34(Bugzilla32):
             "component" : listify(component),
             "version" : version,
             "long_desc" : long_desc,
-            "bug_id" : bug_id,
+            "id" : bug_id,
             "short_desc" : short_desc,
             "bug_status" : status,
             "keywords" : keywords,

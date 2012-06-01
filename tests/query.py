@@ -28,7 +28,7 @@ class BZ34Test(unittest.TestCase):
             self.assertDictEqual(q, out)
 
     def testBasicQuery(self):
-        self.clicomm("--product foo --component bar",
+        self.clicomm("--product foo --component bar --bug_id 1234,2480",
                      self._basic_query_out)
     def testOnline(self):
         self.clicomm("--product foo --oneline", self._online_out)
@@ -81,6 +81,7 @@ class BZ34Test(unittest.TestCase):
     bz = bz34
 
     _basic_query_out = {'product': ['foo'], 'component': ['bar'],
+        'id': ["1234", "2480"],
         'include_fields': ['bug_id', 'bug_status', 'assigned_to',
         'short_desc']}
     _online_out = {'product': ['foo'], 'include_fields': ['bug_id',

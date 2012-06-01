@@ -111,7 +111,7 @@ def setup_action_parser(action):
     elif action == 'query':
         p.set_description("List bug reports that match the given criteria.")
         # General bug metadata
-        p.add_option('-b','--bug_id',
+        p.add_option('-b','--bug_id', default=None,
                 help="specify individual bugs by IDs, separated with commas")
         p.add_option('-p','--product',
                 help="product name, comma-separated (list with 'bugzilla info -p')")
@@ -389,6 +389,9 @@ def do_query(bz, opt, parser):
         else:
             stat = val.split(',')
         opt.bug_status = stat
+
+    if opt.bug_id:
+        opt.bug_id = opt.bug_id.split(",")
 
     built_query = bz.build_query(
         product=getattr(opt, "product", None),
