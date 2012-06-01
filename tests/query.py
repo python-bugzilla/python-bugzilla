@@ -5,7 +5,7 @@ from bugzilla.bugzilla3 import Bugzilla34
 from bugzilla.bugzilla4 import Bugzilla4
 from bugzilla.rhbugzilla import RHBugzilla4
 
-from tests import clicomm
+import tests
 
 bz34 = Bugzilla34(cookiefile=None)
 bz4 = Bugzilla4(cookiefile=None)
@@ -20,8 +20,12 @@ class BZ34Test(unittest.TestCase):
 
     def clicomm(self, argstr, out):
         comm = "bugzilla --debug query " + argstr
-        q = clicomm(comm, self.bz)
-        self.assertDictEqual(q, out)
+
+        if out is None:
+            self.assertRaises(RuntimeError, tests.clicomm, comm, self.bz)
+        else:
+            q = tests.clicomm(comm, self.bz)
+            self.assertDictEqual(q, out)
 
     def testBasicQuery(self):
         self.clicomm("--product foo --component bar",
@@ -116,6 +120,23 @@ class BZ34Test(unittest.TestCase):
         'http://example.com', 'bug_file_loc_type': 'foo',
         'include_fields': ['bug_id', 'bug_status', 'assigned_to',
         'short_desc']}
+    _booleans_out = None
+    _booleans_chart_out = None
+
+class BZ4Test(BZ34Test):
+    bz = bz4
+
+class RHBZTest(BZ4Test):
+    bz = rhbz4
+
+    _email_out = {'email1': 'foo1@example.com', 'email2': "foo2@example.com",
+        'email3': 'foo3@example.com', 'email4': 'foo7@example.com',
+        'emailtype1': 'substring', 'emailtype2': 'substring',
+        'emailtype3': 'substring', 'emailtype4': 'substring',
+        'emailcc1': True, 'emailassigned_to2': True,
+        'emailreporter3': True, 'emailqa_contact4': True,
+        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
+        'short_desc'], 'query_format' : 'advanced'}
     _booleans_out = {'value2-0-0': 'baz', 'value0-0-0': '123456',
         'type3-0-1': 'substring', 'value1-1-0': 'devel_ack', 'type0-0-0':
         'substring', 'type2-0-0': 'substring', 'field3-0-1':
@@ -135,19 +156,3 @@ class BZ34Test(unittest.TestCase):
         'type0-1-0': 'notsubstring', 'value0-1-0': 'OtherQA',
         'include_fields': ['bug_id', 'bug_status', 'assigned_to',
         'short_desc'], 'query_format': 'advanced'}
-
-
-class BZ4Test(BZ34Test):
-    bz = bz4
-
-class RHBZTest(BZ4Test):
-    bz = rhbz4
-
-    _email_out = {'email1': 'foo1@example.com', 'email2': "foo2@example.com",
-        'email3': 'foo3@example.com', 'email4': 'foo7@example.com',
-        'emailtype1': 'substring', 'emailtype2': 'substring',
-        'emailtype3': 'substring', 'emailtype4': 'substring',
-        'emailcc1': True, 'emailassigned_to2': True,
-        'emailreporter3': True, 'emailqa_contact4': True,
-        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
-        'short_desc'], 'query_format' : 'advanced'}

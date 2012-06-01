@@ -491,8 +491,59 @@ class RHBugzilla(Bugzilla4):
             query["query_format"] = "advanced"
             query['email%i' % count] = value
             query['email%s%i' % (key, count)] = True
-            query['emailtype%i' % count] = kwargs.get("emailtype", None)
+            query['emailtype%i' % count] = kwargs.get("emailtype", "substring")
             return count + 1
+
+        def add_boolean(kwkey, key, bool_id):
+            if not kwkey in kwargs:
+                return bool_id
+
+            value = kwargs.get(kwkey)
+            del(kwargs[kwkey])
+            if value is None:
+                return bool_id
+
+            query["query_format"] = "advanced"
+            for boolval in value:
+                and_count = 0
+                or_count = 0
+
+                def make_bool_str(prefix):
+                    return "%s%i-%i-%i" % (prefix, bool_id,
+                                           and_count, or_count)
+
+                for par in boolval.split(' '):
+                    field = None
+                    fval = par
+                    typ = kwargs.get("booleantype", "substring")
+
+                    if par.find('&') != -1:
+                        and_count += 1
+                    elif par.find('|') != -1:
+                        or_count += 1
+                    elif par.find('!') != -1:
+                         query['negate%i' % bool_id] = 1
+                    elif not key:
+                        if par.find('-') == -1:
+                            raise RuntimeError('Malformed boolean query: %s' %
+                                               value)
+
+                        args = par.split('-', 2)
+                        field = args[0]
+                        typ = args[1]
+                        fval = None
+                        if len(args) == 3:
+                            fval = args[2]
+                    else:
+                        field = key
+
+                    query[make_bool_str("field")] = field
+                    if fval:
+                        query[make_bool_str("value")] = fval
+                    query[make_bool_str("type")] = typ
+
+                bool_id += 1
+            return bool_id
 
         # Use fancy email specification for RH bugzilla. It isn't
         # strictly required, but is more powerful, and it is what
@@ -503,6 +554,17 @@ class RHBugzilla(Bugzilla4):
         email_count = add_email("assigned_to", email_count)
         email_count = add_email("reporter", email_count)
         email_count = add_email("qa_contact", email_count)
+
+        chart_id = 0
+        chart_id = add_boolean("fixed_in", "fixed_in", chart_id)
+        chart_id = add_boolean("blocked", "blocked", chart_id)
+        chart_id = add_boolean("dependson", "dependson", chart_id)
+        chart_id = add_boolean("flag", "flagtypes.name", chart_id)
+        chart_id = add_boolean("qa_whiteboard", "cf_qa_whiteboard", chart_id)
+        chart_id = add_boolean("devel_whiteboard", "cf_devel_whiteboard",
+                               chart_id)
+        chart_id = add_boolean("alias", "alias", chart_id)
+        chart_id = add_boolean("boolean_query", None, chart_id)
 
         newquery = Bugzilla4.build_query(self, **kwargs)
         query.update(newquery)

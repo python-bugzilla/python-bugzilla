@@ -206,8 +206,8 @@ class Bugzilla34(Bugzilla32):
                     bug_severity=None,
                     priority=None,
                     target_milestone=None,
-                    emailtype="substring",
-                    booleantype="substring"):
+                    emailtype=None,
+                    booleantype=None):
         """
         Build a query string from passed arguments. Will handle
         query parameter differences between various bugzilla versions.
@@ -220,51 +220,17 @@ class Bugzilla34(Bugzilla32):
                 return val
             return [val]
 
-        def add_boolean(value, key, bool_id):
-            if value is None:
-                return bool_id
-
-            query["query_format"] = "advanced"
-            for boolval in value:
-                and_count = 0
-                or_count = 0
-
-                def make_bool_str(prefix):
-                    return "%s%i-%i-%i" % (prefix, bool_id,
-                                           and_count, or_count)
-
-                for par in boolval.split(' '):
-                    field = None
-                    fval = par
-                    typ = booleantype
-
-                    if par.find('&') != -1:
-                        and_count += 1
-                    elif par.find('|') != -1:
-                        or_count += 1
-                    elif par.find('!') != -1:
-                         query['negate%i' % bool_id] = 1
-                    elif not key:
-                        if par.find('-') == -1:
-                            raise RuntimeError('Malformed boolean query: %s' %
-                                               value)
-
-                        args = par.split('-', 2)
-                        field = args[0]
-                        typ = args[1]
-                        fval = None
-                        if len(args) == 3:
-                            fval = args[2]
-                    else:
-                        field = key
-
-                    query[make_bool_str("field")] = field
-                    if fval:
-                        query[make_bool_str("value")] = fval
-                    query[make_bool_str("type")] = typ
-
-                bool_id += 1
-            return bool_id
+        for key, val in [('fixed_in', fixed_in),
+                         ('blocked', blocked),
+                         ('dependson', dependson),
+                         ('flag', flag),
+                         ('qa_whiteboard', qa_whiteboard),
+                         ('devel_whiteboard', devel_whiteboard),
+                         ('alias', alias),
+                         ('boolean_query', boolean_query)]:
+            if not val is None:
+                raise RuntimeError("'%s' search not supported by this "
+                                   "bugzilla" % key)
 
         query = {
             "product" : listify(product),
@@ -289,18 +255,6 @@ class Bugzilla34(Bugzilla32):
             "qa_contact": qa_contact,
             "reporter": reporter,
         }
-
-
-        chart_id = 0
-        chart_id = add_boolean(fixed_in, "fixed_in", chart_id)
-        chart_id = add_boolean(blocked, "blocked", chart_id)
-        chart_id = add_boolean(dependson, "dependson", chart_id)
-        chart_id = add_boolean(flag, "flagtypes.name", chart_id)
-        chart_id = add_boolean(qa_whiteboard, "cf_qa_whiteboard", chart_id)
-        chart_id = add_boolean(devel_whiteboard, "cf_devel_whiteboard",
-                               chart_id)
-        chart_id = add_boolean(alias, "alias", chart_id)
-        chart_id = add_boolean(boolean_query, None, chart_id)
 
         # Strip out None elements in the dict
         for key in query.keys():
