@@ -43,8 +43,10 @@ class BZ34Test(unittest.TestCase):
         self.clicomm("--bug_status POST", self._status_post_out)
 
     def testEmailOptions(self):
-        self.clicomm("--cc foo@example.com "
-                    "--assigned_to foo@example.com", self._email_out)
+        self.clicomm("--cc foo1@example.com "
+                    "--assigned_to foo2@example.com "
+                    "--reporter foo3@example.com "
+                    "--qa_contact foo7@example.com", self._email_out)
 
     def testComponentsFile(self):
         self.clicomm("--components_file " +
@@ -103,7 +105,8 @@ class BZ34Test(unittest.TestCase):
         'short_desc']}
     _status_post_out = {'bug_status': ['POST'], 'include_fields':
         ['bug_id', 'bug_status', 'assigned_to', 'short_desc']}
-    _email_out = {'assigned_to': 'foo@example.com', 'cc': "foo@example.com",
+    _email_out = {'assigned_to': 'foo2@example.com', 'cc': "foo1@example.com",
+        'reporter': "foo3@example.com", "qa_contact": "foo7@example.com",
         'include_fields': ['bug_id', 'bug_status', 'assigned_to',
         'short_desc']}
     _components_file_out = {'component': ["foo", "bar", "baz"],
@@ -140,8 +143,11 @@ class BZ4Test(BZ34Test):
 class RHBZTest(BZ4Test):
     bz = rhbz4
 
-    _email_out = {'email1': 'foo@example.com',
-        'emailassigned_to2': True, 'emailtype2': 'substring', 'emailtype1':
-        'substring', 'email2': 'foo@example.com', 'emailcc1': True,
+    _email_out = {'email1': 'foo1@example.com', 'email2': "foo2@example.com",
+        'email3': 'foo3@example.com', 'email4': 'foo7@example.com',
+        'emailtype1': 'substring', 'emailtype2': 'substring',
+        'emailtype3': 'substring', 'emailtype4': 'substring',
+        'emailcc1': True, 'emailassigned_to2': True,
+        'emailreporter3': True, 'emailqa_contact4': True,
         'include_fields': ['bug_id', 'bug_status', 'assigned_to',
         'short_desc'], 'query_format' : 'advanced'}
