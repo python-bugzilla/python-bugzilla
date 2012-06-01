@@ -103,11 +103,9 @@ class BZ34Test(unittest.TestCase):
         'short_desc']}
     _status_post_out = {'bug_status': ['POST'], 'include_fields':
         ['bug_id', 'bug_status', 'assigned_to', 'short_desc']}
-    _email_out = {'email1': 'foo@example.com',
-        'emailassigned_to2': True, 'emailtype2': 'substring', 'emailtype1':
-        'substring', 'email2': 'foo@example.com', 'emailcc1': True,
+    _email_out = {'assigned_to': 'foo@example.com', 'cc': "foo@example.com",
         'include_fields': ['bug_id', 'bug_status', 'assigned_to',
-        'short_desc'], 'query_format' : 'advanced'}
+        'short_desc']}
     _components_file_out = {'component': ["foo", "bar", "baz"],
         'include_fields': ['bug_id', 'bug_status', 'assigned_to',
         'short_desc']}
@@ -141,3 +139,9 @@ class BZ4Test(BZ34Test):
 
 class RHBZTest(BZ4Test):
     bz = rhbz4
+
+    _email_out = {'email1': 'foo@example.com',
+        'emailassigned_to2': True, 'emailtype2': 'substring', 'emailtype1':
+        'substring', 'email2': 'foo@example.com', 'emailcc1': True,
+        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
+        'short_desc'], 'query_format' : 'advanced'}

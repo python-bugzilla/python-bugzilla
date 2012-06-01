@@ -476,8 +476,36 @@ class RHBugzilla(Bugzilla4):
         if 'status' in bug:
             bug['bug_status'] = bug['status']
 
-    def build_query(self, *args, **kwargs):
-        query = Bugzilla4.build_query(self, *args, **kwargs)
+    def build_query(self, **kwargs):
+        query = {}
+
+        def add_email(key, count):
+            if not key in kwargs:
+                return count
+
+            value = kwargs.get(key)
+            del(kwargs[key])
+            if value is None:
+                return count
+
+            query["query_format"] = "advanced"
+            query['email%i' % count] = value
+            query['email%s%i' % (key, count)] = True
+            query['emailtype%i' % count] = kwargs.get("emailtype", None)
+            return count + 1
+
+        # Use fancy email specification for RH bugzilla. It isn't
+        # strictly required, but is more powerful, and it is what
+        # bin/bugzilla historically generated. This requires
+        # query_format='advanced' which is an RHBZ only XMLRPC extension
+        email_count = 1
+        email_count = add_email("cc", email_count)
+        email_count = add_email("assigned_to", email_count)
+        email_count = add_email("reporter", email_count)
+        email_count = add_email("qa_contact", email_count)
+
+        newquery = Bugzilla4.build_query(self, **kwargs)
+        query.update(newquery)
         self.pre_translation(query)
         return query
 

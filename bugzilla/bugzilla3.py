@@ -283,24 +283,13 @@ class Bugzilla34(Bugzilla32):
             "fixed_in_type" : fixed_in_type,
             "bug_severity" : bug_severity,
             "priority" : priority,
-            "target_milestone" : target_milestone
+            "target_milestone" : target_milestone,
+            "assigned_to": assigned_to,
+            "cc": cc,
+            "qa_contact": qa_contact,
+            "reporter": reporter,
         }
 
-        def add_email(value, key, count):
-            if value is None:
-                return count
-
-            query["query_format"] = "advanced"
-            query['email%i' % count] = value
-            query['email%s%i' % (key, count)] = True
-            query['emailtype%i' % count] = emailtype
-            return count + 1
-
-        email_count = 1
-        email_count = add_email(cc, "cc", email_count)
-        email_count = add_email(assigned_to, "assigned_to", email_count)
-        email_count = add_email(reporter, "reporter", email_count)
-        email_count = add_email(qa_contact, "qa_contact", email_count)
 
         chart_id = 0
         chart_id = add_boolean(fixed_in, "fixed_in", chart_id)
