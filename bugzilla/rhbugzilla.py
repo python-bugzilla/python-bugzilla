@@ -581,5 +581,8 @@ class RHBugzilla(Bugzilla4):
 
         return ret
 
-RHBugzilla3 = RHBugzilla
-RHBugzilla4 = RHBugzilla
+# Just for API back compat
+class RHBugzilla3(RHBugzilla):
+    pass
+class RHBugzilla4(RHBugzilla):
+    pass
