@@ -394,6 +394,22 @@ def do_query(bz, opt, parser):
         opt.bug_id = opt.bug_id.split(",")
 
     include_fields = None
+    # To optimize speed and reduce network traffic through lookups, we
+    # specifically tell bugzilla the exact data we want.  This allows us
+    # make one call to output the data, rather than have a follow-on
+    # getbug() to grab more info than what the default has.
+    # Testing has shown this to be a _huge_ time saver.  Unfortunately,
+    # this list and the output format have to be in _sync_.  Otherwise,
+    # you lose speed by doing a look-up for each new output element.
+    if opt.output == 'oneline':
+        include_fields = [ 'bug_id', 'bug_status', 'assigned_to',
+            'component', 'target_milestone', 'short_desc', 'flags',
+            'keywords', 'blockedby' ]
+
+    elif opt.output == 'normal':
+        include_fields = ['bug_id', 'bug_status', 'assigned_to',
+            'short_desc']
+
     if opt.outputformat:
         include_fields = []
         for fieldname, ignore in format_field_re.findall(opt.outputformat):
@@ -434,24 +450,6 @@ def do_query(bz, opt, parser):
 
     built_query.update(q)
     q = built_query
-
-    # To optimize speed and reduce network traffic through lookups, we
-    # specifically tell bugzilla the exact data we want.  This allows us
-    # make one call to output the data, rather than have a follow-on
-    # getbug() to grab more info than what the default has.
-    # Testing has shown this to be a _huge_ time saver.  Unfortunately,
-    # this list and the output format have to be in _sync_.  Otherwise,
-    # you lose speed by doing a look-up for each new output element.
-    if include_fields:
-        pass
-    elif opt.output == 'oneline':
-        q['include_fields'] = [ 'bug_id', 'bug_status', 'assigned_to',
-            'component', 'target_milestone', 'short_desc', 'flags',
-            'keywords', 'blockedby' ]
-
-    elif opt.output == 'normal':
-        q['include_fields'] = ['bug_id', 'bug_status', 'assigned_to',
-            'short_desc']
 
     log.debug("bz.query: %s", q)
     if not q:

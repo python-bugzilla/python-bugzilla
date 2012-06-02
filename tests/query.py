@@ -30,8 +30,8 @@ class BZ34Test(unittest.TestCase):
     def testBasicQuery(self):
         self.clicomm("--product foo --component bar --bug_id 1234,2480",
                      self._basic_query_out)
-    def testOnline(self):
-        self.clicomm("--product foo --oneline", self._online_out)
+    def testOneline(self):
+        self.clicomm("--product foo --oneline", self._oneline_out)
 
     def testOutputFormat(self):
         self.clicomm("--product foo --outputformat "
@@ -87,56 +87,72 @@ class BZ34Test(unittest.TestCase):
     bz = bz34
 
     _basic_query_out = {'product': ['foo'], 'component': ['bar'],
-        'id': ["1234", "2480"],
-        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
-        'short_desc']}
-    _online_out = {'product': ['foo'], 'include_fields': ['bug_id',
-        'bug_status', 'assigned_to', 'component', 'target_milestone',
-        'short_desc', 'flags', 'keywords', 'blockedby']}
+        'id': ["1234", "2480"]}
+    _oneline_out = {'product': ['foo']}
     _output_format_out = {'product': ['foo']}
-    _status_all_out = {'product': ['foo'], 'include_fields':
-        ['bug_id', 'bug_status', 'assigned_to', 'short_desc'],
-        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
-        'short_desc']}
+    _status_all_out = {'product': ['foo']}
     _status_dev_out = {'bug_status': ['NEW', 'ASSIGNED', 'NEEDINFO',
-        'ON_DEV', 'MODIFIED', 'POST', 'REOPENED'], 'include_fields':
-        ['bug_id', 'bug_status', 'assigned_to', 'short_desc'],
-        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
-        'short_desc']}
+        'ON_DEV', 'MODIFIED', 'POST', 'REOPENED']}
     _status_qe_out = {'bug_status': ['ASSIGNED', 'ON_QA',
-        'FAILS_QA', 'PASSES_QA'], 'include_fields': ['bug_id',
-        'bug_status', 'assigned_to', 'short_desc'], 'include_fields':
-        ['bug_id', 'bug_status', 'assigned_to', 'short_desc']}
+        'FAILS_QA', 'PASSES_QA']}
     _status_eol_out = {'bug_status': ['VERIFIED', 'RELEASE_PENDING',
-        'CLOSED'], 'include_fields': ['bug_id', 'bug_status',
-        'assigned_to', 'short_desc'], 'include_fields': ['bug_id',
-        'bug_status', 'assigned_to', 'short_desc']}
+        'CLOSED']}
     _status_open_out = {'bug_status': ['NEW', 'ASSIGNED', 'MODIFIED',
-        'ON_DEV', 'ON_QA', 'VERIFIED', 'RELEASE_PENDING', 'POST'],
-        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
-        'short_desc']}
-    _status_post_out = {'bug_status': ['POST'], 'include_fields':
-        ['bug_id', 'bug_status', 'assigned_to', 'short_desc']}
+        'ON_DEV', 'ON_QA', 'VERIFIED', 'RELEASE_PENDING', 'POST']}
+    _status_post_out = {'bug_status': ['POST']}
     _email_out = {'assigned_to': 'foo2@example.com', 'cc': "foo1@example.com",
-        'reporter': "foo3@example.com", "qa_contact": "foo7@example.com",
-        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
-        'short_desc']}
-    _components_file_out = {'component': ["foo", "bar", "baz"],
-        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
-        'short_desc']}
+        'reporter': "foo3@example.com", "qa_contact": "foo7@example.com"}
+    _components_file_out = {'component': ["foo", "bar", "baz"]}
     _keywords_out = {'keywords': 'Triaged', 'bug_file_loc':
-        'http://example.com', 'bug_file_loc_type': 'foo',
-        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
-        'short_desc']}
+        'http://example.com', 'bug_file_loc_type': 'foo'}
     _booleans_out = None
     _booleans_chart_out = None
+
 
 class BZ4Test(BZ34Test):
     bz = bz4
 
+    _default_includes = ['assigned_to', 'summary', 'status', 'id']
+
+    _basic_query_out = BZ34Test._basic_query_out.copy()
+    _basic_query_out["include_fields"] = _default_includes
+
+    _oneline_out = BZ34Test._oneline_out.copy()
+    _oneline_out["include_fields"] = ['assigned_to', 'component',
+        'target_milestone', 'flags', 'keywords', 'summary', 'status', 'id',
+        'blocks']
+
     _output_format_out = BZ34Test._output_format_out.copy()
     _output_format_out["include_fields"] = ['product', 'summary',
         'platform', 'status', 'id', 'blocks', 'whiteboard']
+
+    _status_all_out = BZ34Test._status_all_out.copy()
+    _status_all_out["include_fields"] = _default_includes
+
+    _status_dev_out = BZ34Test._status_dev_out.copy()
+    _status_dev_out["include_fields"] = _default_includes
+
+    _status_qe_out = BZ34Test._status_qe_out.copy()
+    _status_qe_out["include_fields"] = _default_includes
+
+    _status_eol_out = BZ34Test._status_eol_out.copy()
+    _status_eol_out["include_fields"] = _default_includes
+
+    _status_open_out = BZ34Test._status_open_out.copy()
+    _status_open_out["include_fields"] = _default_includes
+
+    _status_post_out = BZ34Test._status_post_out.copy()
+    _status_post_out["include_fields"] = _default_includes
+
+    _email_out = BZ34Test._email_out.copy()
+    _email_out["include_fields"] = _default_includes
+
+    _components_file_out = BZ34Test._components_file_out.copy()
+    _components_file_out["include_fields"] = _default_includes
+
+    _keywords_out = BZ34Test._keywords_out.copy()
+    _keywords_out["include_fields"] = _default_includes
+
 
 
 class RHBZTest(BZ4Test):
@@ -151,8 +167,8 @@ class RHBZTest(BZ4Test):
         'emailtype3': 'substring', 'emailtype4': 'substring',
         'emailcc1': True, 'emailassigned_to2': True,
         'emailreporter3': True, 'emailqa_contact4': True,
-        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
-        'short_desc'], 'query_format' : 'advanced'}
+        'include_fields': ['assigned_to', 'summary', 'status', 'id'],
+        'query_format' : 'advanced'}
     _booleans_out = {'value2-0-0': 'baz', 'value0-0-0': '123456',
         'type3-0-1': 'substring', 'value1-1-0': 'devel_ack', 'type0-0-0':
         'substring', 'type2-0-0': 'substring', 'field3-0-1':
@@ -162,13 +178,13 @@ class RHBZTest(BZ4Test):
         'substring', 'type1-0-0': 'substring', 'field1-1-0':
         'flagtypes.name', 'negate2': 1, 'field2-0-0':
         'cf_qa_whiteboard', 'type3-0-0': 'substring', 'field0-0-0':
-        'blocked', 'include_fields': ['bug_id', 'bug_status',
-        'assigned_to', 'short_desc'], 'query_format': 'advanced'}
+        'blocked', 'include_fields': ['assigned_to', 'summary', 'status',
+        'id'], 'query_format': 'advanced'}
     _booleans_chart_out = {'value1-0-1': 'wee', 'value2-0-0': 'yargh',
         'field2-0-0': 'foo', 'value0-0-0': 'Partner', 'type0-0-0':
         'substring', 'type2-0-0': 'bar', 'field1-0-1': 'foo', 'field1-0-0':
         'foo', 'value1-0-0': 'baz', 'field0-1-0': 'keywords', 'field0-0-0':
         'keywords', 'type1-0-0': 'bar', 'type1-0-1': 'bar', 'negate2': 1,
         'type0-1-0': 'notsubstring', 'value0-1-0': 'OtherQA',
-        'include_fields': ['bug_id', 'bug_status', 'assigned_to',
-        'short_desc'], 'query_format': 'advanced'}
+        'include_fields': ['assigned_to', 'summary', 'status', 'id'],
+        'query_format': 'advanced'}
