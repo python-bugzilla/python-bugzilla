@@ -395,12 +395,9 @@ def do_query(bz, opt, parser):
 
     include_fields = None
     if opt.outputformat:
-        aliases = dict(bz.field_aliases)
         include_fields = []
         for fieldname, ignore in format_field_re.findall(opt.outputformat):
             include_fields.append(fieldname)
-            if fieldname in aliases:
-                include_fields.append(aliases.get(fieldname))
 
     built_query = bz.build_query(
         product=getattr(opt, "product", None),

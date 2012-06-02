@@ -715,15 +715,19 @@ class BugzillaBase(object):
     createbug_required = ('product','component','version','short_desc','comment',
                           'rep_platform','bug_severity','op_sys','bug_file_loc')
 
-    # List of field aliases. If a createbug() call lacks a required field, but
-    # a corresponding alias field is present, we'll automatically switch the
-    # field name. This lets us avoid having to change the call to match the
-    # bugzilla instance quite so much.
-    field_aliases = (('summary','short_desc'),
-                     ('description','comment'),
-                     ('platform','rep_platform'),
-                     ('severity','bug_severity'),
-                     ('status','bug_status'))
+    # List of field aliases. Maps old style RHBZ parameter names to actual
+    # upstream values. Used for createbug() and query include_fields at
+    # least.
+    #
+    # Format is (currentname, oldname)
+    field_aliases = (('summary', 'short_desc'),
+                     ('description', 'comment'),
+                     ('platform', 'rep_platform'),
+                     ('severity', 'bug_severity'),
+                     ('status', 'bug_status'),
+                     ('id', 'bug_id'),
+                     ('blocks', 'blockedby'),
+                     ('whiteboard', 'status_whiteboard'),)
 
     def _createbug(self,**data):
         '''IMPLEMENT ME: Raw xmlrpc call for createBug()

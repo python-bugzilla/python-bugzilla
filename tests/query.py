@@ -25,7 +25,7 @@ class BZ34Test(unittest.TestCase):
             self.assertRaises(RuntimeError, tests.clicomm, comm, self.bz)
         else:
             q = tests.clicomm(comm, self.bz)
-            self.assertDictEqual(q, out)
+            self.assertDictEqual(out, q)
 
     def testBasicQuery(self):
         self.clicomm("--product foo --component bar --bug_id 1234,2480",
@@ -135,17 +135,16 @@ class BZ4Test(BZ34Test):
     bz = bz4
 
     _output_format_out = BZ34Test._output_format_out.copy()
-    _output_format_out["include_fields"] = ['bug_id', 'blockedby',
-        'bug_status', 'short_desc', 'status_whiteboard', 'product',
-        'rep_platform']
+    _output_format_out["include_fields"] = ['product', 'summary',
+        'platform', 'status', 'id', 'blocks', 'whiteboard']
 
 
 class RHBZTest(BZ4Test):
     bz = rhbz4
 
     _output_format_out = BZ34Test._output_format_out.copy()
-    _output_format_out["include_fields"] = ['product', 'rep_platform',
-        'blocks', 'status', 'summary', 'whiteboard', 'id']
+    _output_format_out["include_fields"] = ['product', 'summary',
+        'platform', 'status', 'id', 'blocks', 'whiteboard']
     _email_out = {'email1': 'foo1@example.com', 'email2': "foo2@example.com",
         'email3': 'foo3@example.com', 'email4': 'foo7@example.com',
         'emailtype1': 'substring', 'emailtype2': 'substring',

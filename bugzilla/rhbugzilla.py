@@ -395,34 +395,21 @@ class RHBugzilla(Bugzilla4):
             if type(query['component']) is not list:
                 query['component'] = query['component'].split(',')
 
+        if 'include_fields' not in query and 'column_list' not in query:
+            return
+
         if 'include_fields' not in query:
             query['include_fields'] = list()
             if 'column_list' in query:
                 query['include_fields'] = query['column_list']
                 del query['column_list']
 
-        if 'blockedby' in query['include_fields']:
-            query['include_fields'].remove('blockedby')
-            query['include_fields'].append('blocks')
-
-        if 'bug_status' in query['include_fields']:
-            query['include_fields'].remove('bug_status')
-            query['include_fields'].append('status')
-
-        if 'short_desc' in query['include_fields']:
-            query['include_fields'].remove('short_desc')
-            query['include_fields'].append('summary')
-
-        if 'status_whiteboard' in query['include_fields']:
-            query['include_fields'].remove('status_whiteboard')
-            query['include_fields'].append('whiteboard')
-
-        if 'bug_id' in query['include_fields']:
-            query['include_fields'].remove('bug_id')
-            query['include_fields'].append('id')
-        elif 'id' not in query['include_fields']:
-            # we always need the id
-            query['include_fields'].append('id')
+        include_fields = query['include_fields']
+        for newname, oldname in self.field_aliases:
+            if oldname in include_fields:
+                include_fields.remove(oldname)
+                if newname not in include_fields:
+                    include_fields.append(newname)
 
     def post_translation(self, query, bug):
         '''Translates the query result'''
