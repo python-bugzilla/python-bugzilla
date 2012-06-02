@@ -27,6 +27,8 @@ class Bugzilla4(Bugzilla36):
         Bugzilla36.__init__(self, **kwargs)
         self.user_agent = self.__class__.user_agent
 
+    field_aliases = (Bugzilla36.field_aliases +
+                     (("creator", "reporter"),))
     #---- Methods for reading bugs and bug info
 
     def _getbugs(self,idlist):

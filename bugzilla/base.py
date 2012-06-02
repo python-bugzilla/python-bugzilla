@@ -730,7 +730,7 @@ class BugzillaBase(object):
                      ('status', 'bug_status'),
                      ('id', 'bug_id'),
                      ('blocks', 'blockedby'),
-                     ('whiteboard', 'status_whiteboard'),)
+                     ('whiteboard', 'status_whiteboard'))
 
     def _createbug(self,**data):
         '''IMPLEMENT ME: Raw xmlrpc call for createBug()
