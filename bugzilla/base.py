@@ -348,7 +348,7 @@ class BugzillaBase(object):
         '''Calls getBugFields, which returns a list of fields in each bug
         for this bugzilla instance. This can be used to set the list of attrs
         on the Bug object.'''
-        if force_refresh or not self._bugfields:
+        if force_refresh or self._bugfields is None:
             try:
                 self._bugfields = self._getbugfields()
             except xmlrpclib.Fault, f:

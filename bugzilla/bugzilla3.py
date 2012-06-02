@@ -40,9 +40,22 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
     # Connect the backend methods to the XMLRPC methods
     def _getbugfields(self):
         '''Get a list of valid fields for bugs.'''
-        # XXX BZ3 doesn't currently provide anything like the getbugfields()
+        # BZ3 doesn't currently provide anything like the getbugfields()
         # method, so we fake it by looking at bug #1. Yuck.
-        keylist = self._getbug(1).keys()
+        # And at least gnome.bugzilla.org fails to lookup bug #1, so
+        # try a few
+        err = None
+        for bugid in [1, 100000]:
+            try:
+                keylist = self._getbug(bugid).keys()
+                err = None
+                break
+            except Exception, err:
+                pass
+
+        if err:
+            raise err
+
         if 'assigned_to' not in keylist:
             keylist.append('assigned_to')
         return keylist
@@ -271,10 +284,8 @@ class Bugzilla36(Bugzilla34):
     version = '0.1'
     user_agent = bugzilla.base.user_agent + ' Bugzilla36/%s' % version
 
-    # Hooray, a proper _getbugfields implementation
     def _getbugfields(self):
         '''Get the list of valid fields for Bug objects'''
         r = self._proxy.Bug.fields({'include_fields':['name']})
         return [f['name'] for f in r['fields']]
-        # NOTE: the RHBZ version lists 'comments' and 'groups', and strips
-        # the 'cf_' from the beginning of custom fields.
+
