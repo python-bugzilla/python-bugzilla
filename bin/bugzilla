@@ -393,6 +393,15 @@ def do_query(bz, opt, parser):
     if opt.bug_id:
         opt.bug_id = opt.bug_id.split(",")
 
+    include_fields = None
+    if opt.outputformat:
+        aliases = dict(bz.field_aliases)
+        include_fields = []
+        for fieldname, ignore in format_field_re.findall(opt.outputformat):
+            include_fields.append(fieldname)
+            if fieldname in aliases:
+                include_fields.append(aliases.get(fieldname))
+
     built_query = bz.build_query(
         product=getattr(opt, "product", None),
         component=getattr(opt, "component", None),
@@ -423,7 +432,8 @@ def do_query(bz, opt, parser):
         priority=getattr(opt, "priority", None),
         target_milestone=getattr(opt, "target_milestone", None),
         emailtype=opt.emailtype,
-        booleantype=opt.booleantype)
+        booleantype=opt.booleantype,
+        include_fields=include_fields)
 
     built_query.update(q)
     q = built_query
@@ -435,7 +445,9 @@ def do_query(bz, opt, parser):
     # Testing has shown this to be a _huge_ time saver.  Unfortunately,
     # this list and the output format have to be in _sync_.  Otherwise,
     # you lose speed by doing a look-up for each new output element.
-    if opt.output == 'oneline':
+    if include_fields:
+        pass
+    elif opt.output == 'oneline':
         q['include_fields'] = [ 'bug_id', 'bug_status', 'assigned_to',
             'component', 'target_milestone', 'short_desc', 'flags',
             'keywords', 'blockedby' ]
@@ -443,16 +455,6 @@ def do_query(bz, opt, parser):
     elif opt.output == 'normal':
         q['include_fields'] = ['bug_id', 'bug_status', 'assigned_to',
             'short_desc']
-
-    if opt.outputformat:
-        aliases = dict(bz.field_aliases)
-        req_fields = []
-        for fieldname, sub in format_field_re.findall(opt.outputformat):
-            ignore = sub
-            req_fields.append(fieldname)
-            if fieldname in aliases:
-                req_fields.append(aliases.get(fieldname))
-        q['include_fields'] = req_fields
 
     log.debug("bz.query: %s", q)
     if not q:

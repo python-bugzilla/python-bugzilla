@@ -207,11 +207,13 @@ class Bugzilla34(Bugzilla32):
                     priority=None,
                     target_milestone=None,
                     emailtype=None,
-                    booleantype=None):
+                    booleantype=None,
+                    include_fields=None):
         """
         Build a query string from passed arguments. Will handle
         query parameter differences between various bugzilla versions.
         """
+        ignore = include_fields
 
         def listify(val):
             if val is None:

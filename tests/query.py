@@ -33,6 +33,12 @@ class BZ34Test(unittest.TestCase):
     def testOnline(self):
         self.clicomm("--product foo --oneline", self._online_out)
 
+    def testOutputFormat(self):
+        self.clicomm("--product foo --outputformat "
+                     "%{bug_id}:%{blockedby}:%{bug_status}:%{short_desc}:"
+                     "%{status_whiteboard}:%{product}:%{rep_platform}",
+                     self._output_format_out)
+
     def testBugStatusALL(self):
         self.clicomm("--product foo --bug_status ALL", self._status_all_out)
     def testBugStatusDEV(self):
@@ -87,6 +93,7 @@ class BZ34Test(unittest.TestCase):
     _online_out = {'product': ['foo'], 'include_fields': ['bug_id',
         'bug_status', 'assigned_to', 'component', 'target_milestone',
         'short_desc', 'flags', 'keywords', 'blockedby']}
+    _output_format_out = {'product': ['foo']}
     _status_all_out = {'product': ['foo'], 'include_fields':
         ['bug_id', 'bug_status', 'assigned_to', 'short_desc'],
         'include_fields': ['bug_id', 'bug_status', 'assigned_to',
@@ -127,9 +134,18 @@ class BZ34Test(unittest.TestCase):
 class BZ4Test(BZ34Test):
     bz = bz4
 
+    _output_format_out = BZ34Test._output_format_out.copy()
+    _output_format_out["include_fields"] = ['bug_id', 'blockedby',
+        'bug_status', 'short_desc', 'status_whiteboard', 'product',
+        'rep_platform']
+
+
 class RHBZTest(BZ4Test):
     bz = rhbz4
 
+    _output_format_out = BZ34Test._output_format_out.copy()
+    _output_format_out["include_fields"] = ['product', 'rep_platform',
+        'blocks', 'status', 'summary', 'whiteboard', 'id']
     _email_out = {'email1': 'foo1@example.com', 'email2': "foo2@example.com",
         'email3': 'foo3@example.com', 'email4': 'foo7@example.com',
         'emailtype1': 'substring', 'emailtype2': 'substring',

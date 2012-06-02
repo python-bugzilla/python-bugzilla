@@ -44,3 +44,12 @@ class Bugzilla4(Bugzilla36):
    # TODO: Bugzilla4 should support getbugsimple, needs to be implemented
     _getbugsimple = _getbug
     _getbugssimple = _getbugs
+
+    def build_query(self, **kwargs):
+        query = Bugzilla36.build_query(self, **kwargs)
+
+        # 'include_fields' only available for Bugzilla4+
+        include_fields = kwargs.get('include_fields', None)
+        if not include_fields is None:
+            query["include_fields"] = include_fields
+        return query
