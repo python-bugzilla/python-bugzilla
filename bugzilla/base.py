@@ -540,7 +540,9 @@ class BugzillaBase(object):
         Also see the _query() method for details about the underlying
         implementation.
         '''
+        log.debug("Calling query with: %s", query)
         r = self._query(query)
+        log.debug("Query returned %s bugs", len(r['bugs']))
         return [_Bug(bugzilla=self,dict=b) for b in r['bugs']]
 
     def simplequery(self,product,version='',component='',string='',matchtype='allwordssubstr'):

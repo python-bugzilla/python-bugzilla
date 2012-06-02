@@ -451,7 +451,6 @@ def do_query(bz, opt, parser):
     built_query.update(q)
     q = built_query
 
-    log.debug("bz.query: %s", q)
     if not q:
         parser.error("'query' command requires additional arguments")
     if _is_unittest:

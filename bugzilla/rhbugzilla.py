@@ -566,7 +566,11 @@ class RHBugzilla(Bugzilla4):
         For more info, see:
         http://www.bugzilla.org/docs/4.0/en/html/api/Bugzilla/WebService/Bug.html
         '''
+        old = query.copy()
         self.pre_translation(query)
+
+        if old != query:
+            log.debug("RHBugzilla altered query to: %s", query)
 
         ret = self._proxy.Bug.search(query)
 
