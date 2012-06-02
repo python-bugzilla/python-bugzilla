@@ -349,6 +349,7 @@ class BugzillaBase(object):
         for this bugzilla instance. This can be used to set the list of attrs
         on the Bug object.'''
         if force_refresh or self._bugfields is None:
+            log.debug("Refreshing bugfields")
             try:
                 self._bugfields = self._getbugfields()
             except xmlrpclib.Fault, f:
@@ -358,6 +359,8 @@ class BugzillaBase(object):
                 else:
                     # something bad actually happened on the server. blow up.
                     raise f
+            self._bugfields.sort()
+            log.debug("bugfields = %s", self._bugfields)
 
         return self._bugfields
     bugfields = property(fget=lambda self: self.getbugfields(),
