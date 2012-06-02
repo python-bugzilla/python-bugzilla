@@ -1231,25 +1231,31 @@ class _Bug(object):
         return '<Bug #%i on %s at %#x>' % (self.bug_id,self.bugzilla.url,
                                            id(self))
 
-    def __getattr__(self,name):
+    def __getattr__(self, name):
         if not ('bug_id' in self.__dict__ or 'id' in self.__dict__):
             # This is fatal, since we have no ID to pass to refresh()
             # Can happen if a messed up include_fields is passed to query
             raise AttributeError("No bug ID cached for bug object")
 
-        if self.bugzilla.bugfields and name not in self.bugzilla.bugfields:
-            # We have a list of fields, and you ain't on it.
-            # Check the aliases
-            for a in self.bugzilla.field_aliases:
-                if a[0] == name: return getattr(self, a[1])
-                if a[1] == name: return getattr(self, a[0])
-            # Not in the aliases. Bail out.
-            raise AttributeError, "field %s not in bugzilla.bugfields" % name
-        log.debug("Bug %i missing %s - doing refresh()", self.bug_id, name)
-        self.refresh()
-        if name in self.__dict__:
-            return self.__dict__[name]
-        raise AttributeError, "Bug object has no attribute '%s'" % name
+        refreshed = False
+        while True:
+            if name in self.__dict__:
+                return self.__dict__[name]
+
+            # Check field aliases
+            for newname, oldname in self.bugzilla.field_aliases:
+                if name == newname and oldname in self.__dict__:
+                    return self.__dict__[oldname]
+                if name == oldname and newname in self.__dict__:
+                    return self.__dict__[newname]
+
+            log.debug("Bug %i missing %s - doing refresh()", self.bug_id, name)
+            if refreshed:
+                break
+            self.refresh()
+            refreshed = True
+
+        raise AttributeError("Bug object has no attribute '%s'" % name)
 
     def __getstate__(self):
         sd = self.__dict__

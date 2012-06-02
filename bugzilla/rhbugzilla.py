@@ -426,8 +426,6 @@ class RHBugzilla(Bugzilla4):
             else:
                 bug['blockedby'] = ''
                 bug['blocked'] = ''
-        if 'id' in bug:
-            bug['bug_id'] = bug['id']
         if 'keywords' in bug:
             if len(bug['keywords']) > 0:
                 bug['keywords'] = ', '.join(bug['keywords'])
@@ -456,12 +454,6 @@ class RHBugzilla(Bugzilla4):
                 t['ison'] = 1
                 tmp.append(t)
             bug['groups'] = tmp
-        if 'summary' in bug:
-            bug['short_desc'] = bug['summary']
-        if 'whiteboard' in bug:
-            bug['status_whiteboard'] = bug['whiteboard']
-        if 'status' in bug:
-            bug['bug_status'] = bug['status']
 
     def build_query(self, **kwargs):
         query = {}
