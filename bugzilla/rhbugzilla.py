@@ -9,11 +9,15 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
+import copy
+import logging
+import xmlrpclib
+
 import bugzilla.base
 from bugzilla.bugzilla3 import Bugzilla3, Bugzilla34
 from bugzilla.bugzilla4 import Bugzilla4
-import copy, xmlrpclib
 
+log = logging.getLogger('bugzilla')
 
 class RHBugzilla(Bugzilla4):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
