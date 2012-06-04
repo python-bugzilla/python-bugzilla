@@ -84,9 +84,6 @@ class RHBugzilla(Bugzilla4):
 
     # Connect the backend methods to the XMLRPC methods
 
-    # This can be removed once upstream Bug.fields() doesn't take 50-60s(!)
-    def _getbugfields(self):
-        return self._proxy.bugzilla.getBugFields()
     def _getqueryinfo(self):
         return self._proxy.bugzilla.getQueryInfo()
     def _getcomponentsdetails(self,product):
@@ -366,21 +363,23 @@ class RHBugzilla(Bugzilla4):
 
     def _getbugfields(self):
         '''Get the list of valid fields for Bug objects'''
-        r = self._proxy.Bug.fields({'include_fields':['name']})
-        tmp = [f['name'] for f in r['fields']]
-        tmp.append('blockedby')
-        tmp.append('components')
+        # This should be changed once upstream Bug.fields()
+        # doesn't take 50-60s(!)
+        r = self._proxy.bugzilla.getBugFields()
+        r.append('blockedby')
+        r.append('components')
+
+        # NOTE: the RHBZ version lists 'comments' and 'groups', and strips
+        # the 'cf_' from the beginning of custom fields.
 
         # XXX - bugzilla lists for us "bug_status" which is wrong. making sure
         #       we have the correct list
-        if 'bug_status' in tmp:
-            tmp.remove('bug_status')
-        if 'status' not in tmp:
-            tmp.append('status')
+        if 'bug_status' in r:
+            r.remove('bug_status')
+        if 'status' not in r:
+            r.append('status')
 
-        return tmp
-        # NOTE: the RHBZ version lists 'comments' and 'groups', and strips
-        # the 'cf_' from the beginning of custom fields.
+        return r
 
     #################
     # Query methods #
