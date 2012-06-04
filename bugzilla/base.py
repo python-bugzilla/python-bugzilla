@@ -1276,8 +1276,21 @@ class _Bug(object):
         if self.bugzilla.bugfields:
             for k in self.bugzilla.bugfields:
                 self.__dict__.setdefault(k)
-        r = self.bugzilla._getbug(self.bug_id)
 
+            # Sync alias values. Otherwise we might have just set
+            # 'bug_id' = None, when the __dict__ already had a valid 'id'
+            for newname, oldname in self.bugzilla.field_aliases:
+                def setval(v1, v2):
+                    if v1 is None:
+                        return v2
+                    return v1
+
+                new = self.__dict__.get(newname)
+                old = self.__dict__.get(oldname)
+                self.__dict__[newname] = setval(new, old)
+                self.__dict__[oldname] = setval(old, new)
+
+        r = self.bugzilla._getbug(self.bug_id)
         # faking a query
         q = {}
         q['id'] = str(self.bug_id)
