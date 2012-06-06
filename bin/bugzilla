@@ -368,7 +368,8 @@ def do_query(bz, opt, parser):
 
     if opt.bug_status:
         # FIXME: statuses can differ between bugzilla instances..
-        val = getattr(opt, "bug_status")
+        val = opt.bug_status
+        stat = val
         if val == 'ALL':
             # leaving this out should return bugs of any status
             stat = None
@@ -386,12 +387,19 @@ def do_query(bz, opt, parser):
             # non-Closed statuses
             stat = ['NEW', 'ASSIGNED', 'MODIFIED', 'ON_DEV', 'ON_QA',
                       'VERIFIED', 'RELEASE_PENDING', 'POST']
-        else:
-            stat = val.split(',')
         opt.bug_status = stat
 
-    if opt.bug_id:
-        opt.bug_id = opt.bug_id.split(",")
+    # Convert all comma separated list parameters to actual lists,
+    # which is what bugzilla wants
+    # According to bugzilla docs, any parameter can be a list, but
+    # let's only do this for options we explicitly mention can be
+    # comma separated.
+    for optname in ["bug_severity", "bug_id", "bug_status", "component",
+                    "priority", "product"]:
+        val = getattr(opt, optname, None)
+        if type(val) is not str:
+            continue
+        setattr(opt, optname, val.split(","))
 
     include_fields = None
     # To optimize speed and reduce network traffic through lookups, we

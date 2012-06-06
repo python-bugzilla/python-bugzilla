@@ -28,7 +28,7 @@ class BZ34Test(unittest.TestCase):
             self.assertDictEqual(out, q)
 
     def testBasicQuery(self):
-        self.clicomm("--product foo --component bar --bug_id 1234,2480",
+        self.clicomm("--product foo --component foo,bar --bug_id 1234,2480",
                      self._basic_query_out)
     def testOneline(self):
         self.clicomm("--product foo --oneline", self._oneline_out)
@@ -86,7 +86,7 @@ class BZ34Test(unittest.TestCase):
     # Test data. This is what subclasses need to fill in
     bz = bz34
 
-    _basic_query_out = {'product': ['foo'], 'component': ['bar'],
+    _basic_query_out = {'product': ['foo'], 'component': ['foo', 'bar'],
         'id': ["1234", "2480"]}
     _oneline_out = {'product': ['foo']}
     _output_format_out = {'product': ['foo']}
