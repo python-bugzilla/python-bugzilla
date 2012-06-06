@@ -21,7 +21,7 @@ import socket
 import xmlrpclib
 from tempfile import NamedTemporaryFile
 
-version = '0.6.3'
+version = '0.7.0'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
 # Initial simple logging stuff

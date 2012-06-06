@@ -24,7 +24,7 @@ from email.header import decode_header
 
 log = logging.getLogger('bugzilla')
 
-version = '0.6.3'
+version = '0.7.0'
 user_agent = 'Python-urllib2/%s bugzilla.py/%s' % \
         (urllib2.__version__,version)
 

@@ -1,4 +1,4 @@
-.TH bugzilla 1  "June 07, 2011" "version 0.6.2" "User Commands"
+.TH bugzilla 1  "June 06, 2012" "version 0.7.0" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -61,8 +61,12 @@ OPTIONAL: bug severity (default: medium)
 OPTIONAL: bug priority (default: medium)
 .IP "--url=BUG_FILE_LOC, -u BUG_FILE_LOC"
 OPTIONAL: URL for further bug info
-.IP "--cc=CC"
+.IP "--cc=CC[,CC,...]"
 OPTIONAL: add emails to initial CC list
+.IP "--blocked=BUGID[,BUGID,...]"
+OPTIONAL: add bug_ids blocked by this bug
+.IP "--dependson=BUGID[,BUGID,...]"
+OPTIONAL: add bug_ids that this bug depends on
 .IP "--full, -f"
 output detailed bug info
 .IP "--ids, -i"
@@ -94,7 +98,7 @@ search for a target milestone
 search bug summaries
 .IP "--bug_status=BUG_STATUS, -t BUG_STATUS"
 comma-separated list of bug statuses to accept [Default:all] [Available:NEW,ASSIGNED,NEEDINFO,ON_DEV,MODIFIED,POST,ON_QA,FAILS_QA,PASSES_QA,REOPENED,VERIFIED,RELEASE_PENDING,CLOSED]
-.IP "--severity=SEVERITY, -x SEVERITY"
+.IP "--bug_severity=BUG_SEVERITY, --severity=BUG_SEVERITY, -x BUG_SEVERITY"
 search severities, comma-separated
 .IP "--priority=PRIORITY, -z PRIORITY"
 search priorities, comma-separated
