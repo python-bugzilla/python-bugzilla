@@ -42,9 +42,12 @@ class RHBugzilla(Bugzilla4):
     user_agent = bugzilla.base.user_agent + ' RHBugzilla4/%s' % version
 
     def __init__(self, **kwargs):
+        self.multicall = True
+        if "multicall" in kwargs:
+            self.multicall = kwargs.pop("multicall")
+
         Bugzilla4.__init__(self, **kwargs)
         self.user_agent = self.__class__.user_agent
-        self.multicall = kwargs.get('multicall',True)
 
     #---- Methods and properties with basic bugzilla info
 
