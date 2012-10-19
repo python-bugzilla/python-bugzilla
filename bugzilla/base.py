@@ -1173,7 +1173,7 @@ class _Bug(object):
         self.bugzilla = bugzilla
         self.autorefresh = True
         if 'dict' in kwargs and kwargs['dict']:
-            log.debug("Bug(%s)" % kwargs['dict'].keys())
+            log.debug("Bug(%s)" % sorted(kwargs['dict'].keys()))
             self.__dict__.update(kwargs['dict'])
         if 'bug_id' in kwargs:
             log.debug("Bug(%i)" % kwargs['bug_id'])
