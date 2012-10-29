@@ -304,10 +304,15 @@ class RHBugzilla(Bugzilla42):
         blocked, dependson: list of bug ids/aliases
         action: 'add' or 'delete'
         '''
-        if action not in ('add','delete'):
-            raise ValueError, "action must be 'add' or 'delete'"
-        update={'%s_blocked' % action: blocked,
-                '%s_dependson' % action: dependson}
+        if action not in ('add','delete', 'set'):
+            raise ValueError, "action must be 'add', 'set', or 'delete'"
+
+        # change the action to be remove if it is delete
+        if action == 'delete':
+            action = 'remove'
+
+        update={'blocks' : {action : blocked},
+                'depends_on' : {action: dependson}}
         self._update_bug(id,update)
 
     def _updatecc(self,id,cclist,action,comment='',nomail=False):
