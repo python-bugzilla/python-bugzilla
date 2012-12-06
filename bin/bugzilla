@@ -202,6 +202,8 @@ def setup_action_parser(action):
         # FIXME: check value for resolution
         p.add_option('-k','--close',metavar="RESOLUTION",
                 help='Close with the given resolution')
+        p.add_option('-d','--dupeid',metavar="ORIGINAL",
+                help='ID of original bug (implies -k DUPLICATE)')
         p.add_option('-p','--private',action='store_true',default=False,
                 help='Mark as private')
         p.add_option('-s','--status',
@@ -642,6 +644,9 @@ def main(bzinstance=None):
             print "Created attachment %i on bug %s" % (attid, bugid)
 
     elif action == 'modify':
+        if opt.dupeid is not None:
+            opt.close = "DUPLICATE"
+
         if not (opt.status or opt.close or opt.assignee or opt.flag or opt.cc
                 or opt.comment or opt.fixed_in):
             parser.error("'modify' command requires additional arguments")
@@ -673,7 +678,7 @@ def main(bzinstance=None):
                 bug.setstatus(opt.status, opt.comment, private=opt.private)
             elif opt.close:
                 log.debug("  close %s" % opt.close)
-                bug.close(opt.close,comment=opt.comment,isprivate=opt.private)
+                bug.close(opt.close,comment=opt.comment,isprivate=opt.private,dupeid=opt.dupeid)
             elif opt.assignee:
                 log.debug("  assignee %s" % opt.assignee)
                 bug.setassignee(assigned_to=opt.assignee,comment=opt.comment)

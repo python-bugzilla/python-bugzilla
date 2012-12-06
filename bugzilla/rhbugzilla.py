@@ -269,7 +269,7 @@ class RHBugzilla(Bugzilla4):
         update={'bug_status':'CLOSED','resolution':resolution}
         if dupeid:
             update['resolution'] = 'DUPLICATE'
-            update['dupe_id'] = dupeid
+            update['dupe_of'] = dupeid
         if fixedin:
             update['fixed_in'] = fixedin
         if comment:
