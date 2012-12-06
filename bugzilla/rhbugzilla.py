@@ -242,11 +242,6 @@ class RHBugzilla(Bugzilla4):
 
         return ret
 
-    def _close_bug(id, updates):
-        updates['id'] = id
-
-        return self._proxy.Bug.closeBug(updates)
-
     def _update_bug(self,id,updates):
         '''Update a single bug, specified by integer ID or (string) bug alias.
         Really just a convenience method for _update_bugs(ids=[id],updates)'''
@@ -281,8 +276,7 @@ class RHBugzilla(Bugzilla4):
             update['comment'] = comment
             if isprivate:
                 update['comment_is_private'] = True
-        return self._close_bug(id, update)
-        #return self._update_bug(id,update)
+        return self._update_bug(id, update)
 
     def _setassignee(self,id,**data):
         '''Raw xmlrpc call to set one of the assignee fields on a bug.
