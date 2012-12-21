@@ -22,6 +22,8 @@ class Bugzilla4(Bugzilla36):
 
     createbug_required = ('product','component','summary','version',
                           'op_sys','platform')
+    bz_ver_major = 4
+    bz_ver_minor = 0
 
     def __init__(self,**kwargs):
         Bugzilla36.__init__(self, **kwargs)
@@ -69,6 +71,6 @@ class Bugzilla4(Bugzilla36):
         return query
 
 class Bugzilla42(Bugzilla4):
-    pass
+    bz_ver_minor = 2
 class Bugzilla44(Bugzilla42):
-    pass
+    bz_ver_minor = 4

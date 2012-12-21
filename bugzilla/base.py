@@ -101,6 +101,10 @@ class BugzillaBase(object):
         to ~/.bugzillacookies.  If set to None, the library won't save the
         cookies persistently.
     '''
+
+    bz_ver_major = 0
+    bz_ver_minor = 0
+
     def __init__(self, url=None, user=None, password=None,
             cookiefile=os.path.expanduser('~/.bugzillacookies')):
         # Settings the user might want to tweak

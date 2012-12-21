@@ -17,6 +17,8 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
 
     version = '0.1'
     user_agent = bugzilla.base.user_agent + ' Bugzilla3/%s' % version
+    bz_ver_major = 3
+    bz_ver_minor = 0
 
     def __init__(self,**kwargs):
         bugzilla.base.BugzillaBase.__init__(self,**kwargs)
@@ -122,6 +124,7 @@ class Bugzilla32(Bugzilla3):
     version = '0.1'
     user_agent = bugzilla.base.user_agent + ' Bugzilla32/%s' % version
     createbug_required = ('product','component','summary','version')
+    bz_ver_minor = 2
 
     def _addcomment(self,id,comment,private=False,
                    timestamp='',worktime='',bz_gid=''):
@@ -141,6 +144,7 @@ class Bugzilla32(Bugzilla3):
 class Bugzilla34(Bugzilla32):
     version = '0.2'
     user_agent = bugzilla.base.user_agent + ' Bugzilla34/%s' % version
+    bz_ver_minor = 4
 
     def _getusers(self, ids=None, names=None, match=None):
         '''Return a list of users that match criteria.
@@ -283,6 +287,7 @@ class Bugzilla34(Bugzilla32):
 class Bugzilla36(Bugzilla34):
     version = '0.1'
     user_agent = bugzilla.base.user_agent + ' Bugzilla36/%s' % version
+    bz_ver_minor = 6
 
     def _getbugfields(self):
         '''Get the list of valid fields for Bug objects'''
