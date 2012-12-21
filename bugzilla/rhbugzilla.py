@@ -14,12 +14,11 @@ import logging
 import xmlrpclib
 
 import bugzilla.base
-from bugzilla.bugzilla3 import Bugzilla3, Bugzilla34
-from bugzilla.bugzilla4 import Bugzilla4
+from bugzilla.bugzilla4 import Bugzilla42
 
 log = logging.getLogger('bugzilla')
 
-class RHBugzilla(Bugzilla4):
+class RHBugzilla(Bugzilla42):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
     methods provided by Red Hat's Bugzilla 4.2+ instance, which is a superset
     of the Bugzilla 4.2 methods. The additional methods (e.g. Bug.update)
@@ -46,7 +45,7 @@ class RHBugzilla(Bugzilla4):
         if "multicall" in kwargs:
             self.multicall = kwargs.pop("multicall")
 
-        Bugzilla4.__init__(self, **kwargs)
+        Bugzilla42.__init__(self, **kwargs)
         self.user_agent = self.__class__.user_agent
 
     #---- Methods and properties with basic bugzilla info
@@ -545,7 +544,7 @@ class RHBugzilla(Bugzilla4):
         chart_id = add_boolean("alias", "alias", chart_id)
         chart_id = add_boolean("boolean_query", None, chart_id)
 
-        newquery = Bugzilla4.build_query(self, **kwargs)
+        newquery = Bugzilla42.build_query(self, **kwargs)
         query.update(newquery)
         self.pre_translation(query)
         return query

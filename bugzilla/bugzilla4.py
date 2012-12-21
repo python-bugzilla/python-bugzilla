@@ -67,3 +67,8 @@ class Bugzilla4(Bugzilla36):
                 include_fields.append('id')
 
         return query
+
+class Bugzilla42(Bugzilla4):
+    pass
+class Bugzilla44(Bugzilla42):
+    pass
