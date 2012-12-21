@@ -554,13 +554,13 @@ def main(bzinstance=None):
             parser.error("'info' command requires additional arguments")
 
         if opt.products:
-            for k in sorted(bz.products):
-                pprint.pprint(k)
+            for name in sorted([p["name"] for p in bz.products]):
+                print name
 
         try:
             if opt.components:
-                for c in sorted(bz.getcomponents(opt.components)):
-                    pprint.pprint(c)
+                for name in sorted(bz.getcomponents(opt.components)):
+                    print name
         except ValueError:
             parser.error("No such product: %s" % opt.components)
 
