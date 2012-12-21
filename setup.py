@@ -11,10 +11,15 @@ from distutils.core import setup, Command
 import bugzilla.base
 
 class TestCommand(Command):
-    user_options = []
+    user_options = [
+        ("readonly-functional", None,
+         "Run readonly functional tests against actual bugzilla instances. "
+         "This will be very slow")
+    ]
 
     def initialize_options(self):
-        pass
+        self.readonly_functional = False
+
     def finalize_options(self):
         pass
 
@@ -25,7 +30,12 @@ class TestCommand(Command):
         for t in glob.glob(os.path.join(os.getcwd(), 'tests', '*.py')):
             if t.endswith("__init__.py"):
                 continue
+
             base = os.path.basename(t)
+            if (base == "readonly_functional.py" and not
+                self.readonly_functional):
+                continue
+
             testfiles.append('.'.join(['tests', os.path.splitext(base)[0]]))
 
         import coverage
