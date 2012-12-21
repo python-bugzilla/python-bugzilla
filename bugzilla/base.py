@@ -139,6 +139,16 @@ class BugzillaBase(object):
         self._components = dict()
         self._components_details = dict()
 
+    def _check_version(self, major, minor):
+        """
+        Check if the detected bugzilla version is >= passed major/minor pair.
+        """
+        if major > self.bz_ver_major:
+            return True
+        if (major == self.bz_ver_major and minor >= self.bz_ver_minor):
+            return True
+        return False
+
     #---- Methods for establishing bugzilla connection and logging in
 
     def _getcookiefile(self):
@@ -392,11 +402,52 @@ class BugzillaBase(object):
 
     #---- Methods for retrieving Products
 
-    def _getproducts(self):
-        '''IMPLEMENT ME: Get product info from Bugzilla.'''
-        raise NotImplementedError
+    def _getproductinfo(self, ids=None, names=None,
+                        include_fields=None, exclude_fields=None):
+        '''
+        Get all info for the requested products.
 
-    def getproducts(self,force_refresh=False):
+        @ids: List of product IDs to lookup
+        @names: List of product names to lookup (since bz 4.2,
+            though we emulate it for older versions)
+        @include_fields: Only include these fields in the output (since bz 4.2)
+        @exclude_fields: Do not include these fields in the output (since
+            bz 4.2)
+        '''
+        if ids is None and names is None:
+            raise RuntimeError("Products must be specified")
+
+        kwargs = {}
+        if not self._check_version(4, 2):
+            if names:
+                ids = [self._product_id_to_name(name) for name in names]
+                names = None
+            include_fields = None
+            exclude_fields = None
+
+        if ids:
+            kwargs["ids"] = ids
+        if names:
+            kwargs["names"] = names
+        if include_fields:
+            kwargs["include_fields"] = include_fields
+        if exclude_fields:
+            kwargs["exclude_fields"] = exclude_fields
+
+        # The bugzilla4 name is Product.get(), but Bugzilla3 only had
+        # Product.get_product, and bz4 kept an alias.
+        ret = self._proxy.Product.get_products(kwargs)
+        return ret
+
+    def _getproducts(self, **kwargs):
+        product_ids = self._proxy.Product.get_accessible_products()
+        r = self._getproductinfo(product_ids['ids'], **kwargs)
+
+        # We only return 'products' part of the info, since that's what
+        # we historically did with the original RH getProdInfo()
+        return r['products']
+
+    def getproducts(self, force_refresh=False, **kwargs):
         '''Get product data: names, descriptions, etc.
         The data varies between Bugzilla versions but the basic format is a
         list of dicts, where the dicts will have at least the following keys:
@@ -405,7 +456,7 @@ class BugzillaBase(object):
         Any method that requires a 'product' can be given either the
         id or the name.'''
         if force_refresh or not self._products:
-            self._products = self._getproducts()
+            self._products = self._getproducts(**kwargs)
         return self._products
     # Bugzilla.products is a property - we cache the product list on the first
     # call and return it for each subsequent call.

@@ -61,16 +61,12 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         if 'assigned_to' not in keylist:
             keylist.append('assigned_to')
         return keylist
-    def _getproducts(self):
-        '''This throws away a bunch of data that RH's getProdInfo
-        didn't return. Ah, abstraction.'''
-        product_ids = self._proxy.Product.get_accessible_products()
-        r = self._proxy.Product.get_products(product_ids)
-        return r['products']
+
     def _getcomponents(self,product):
         if type(product) == str:
             product = self._product_name_to_id(product)
-        r = self._proxy.Bug.legal_values({'product_id':product,'field':'component'})
+        r = self._proxy.Bug.legal_values({'product_id':product,
+                                          'field':'component'})
         return r['values']
 
     #---- Methods for reading bugs and bug info

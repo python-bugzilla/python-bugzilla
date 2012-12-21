@@ -554,7 +554,8 @@ def main(bzinstance=None):
             parser.error("'info' command requires additional arguments")
 
         if opt.products:
-            for name in sorted([p["name"] for p in bz.products]):
+            products = bz.getproducts(include_fields=["name"])
+            for name in sorted([p["name"] for p in products]):
                 print name
 
         try:

@@ -65,8 +65,7 @@ class RHTest(BaseTest):
     url = "https://bugzilla.redhat.com/xmlrpc.cgi"
     bzclass = bugzilla.RHBugzilla
 
-    # XXX: This is slow as sin right now
-    #test1 = lambda s: BaseTest._testInfoProducts(s, 50,
-    #                                             "Virtualization Tools")
+    test1 = lambda s: BaseTest._testInfoProducts(s, 125,
+                                                 "Virtualization Tools")
     #test2 = lambda s: BaseTest._testInfoComps(s, "Virtualization Tools",
     #                                          10, "virt-manager")
