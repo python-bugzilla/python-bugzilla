@@ -31,6 +31,12 @@ class TestCommand(Command):
         import coverage
         cov = coverage.coverage(omit="/*/tests/*")
 
+        if hasattr(unittest, "installHandler"):
+            try:
+                unittest.installHandler()
+            except:
+                print "installHandler hack failed"
+
         tests = unittest.TestLoader().loadTestsFromNames(testfiles)
         t = unittest.TextTestRunner(verbosity=1)
 
