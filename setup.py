@@ -28,29 +28,23 @@ class TestCommand(Command):
             base = os.path.basename(t)
             testfiles.append('.'.join(['tests', os.path.splitext(base)[0]]))
 
-        try:
-            # Use system 'coverage' if available
-            import coverage
-            use_coverage = True
-        except:
-            use_coverage = False
+        import coverage
+        cov = coverage.coverage(omit="/*/tests/*")
 
         tests = unittest.TestLoader().loadTestsFromNames(testfiles)
         t = unittest.TextTestRunner(verbosity=1)
 
-        if use_coverage:
-            coverage.erase()
-            coverage.start()
+        cov.erase()
+        cov.start()
 
         result = t.run(tests)
 
-        if use_coverage:
-            coverage.stop()
+        cov.stop()
 
         err = int(bool(len(result.failures) > 0 or
                        len(result.errors) > 0))
-        if not err and use_coverage:
-            coverage.report(show_missing=False)
+        if not err:
+            cov.report(show_missing=False)
         sys.exit(err)
 
 class PylintCommand(Command):
