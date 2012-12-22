@@ -1038,7 +1038,6 @@ class CookieResponse:
     cookies from the set of headers we have.'''
     def __init__(self,headers):
         self.headers = headers
-        #log.debug("CookieResponse() headers = %s" % headers)
     def info(self):
         return self.headers
 
@@ -1050,25 +1049,18 @@ class CookieTransport(xmlrpclib.Transport):
     # Cribbed from xmlrpclib.Transport.send_user_agent
     def send_cookies(self, connection, cookie_request):
         if self.cookiejar is None:
-            log.debug("send_cookies(): creating in-memory cookiejar")
             self.cookiejar = cookielib.CookieJar()
         elif self.cookiejar:
-            log.debug("send_cookies(): using existing cookiejar")
             # Let the cookiejar figure out what cookies are appropriate
-            log.debug("cookie_request headers currently: %s" % cookie_request.header_items())
             self.cookiejar.add_cookie_header(cookie_request)
-            log.debug("cookie_request headers now: %s" % cookie_request.header_items())
             # Pull the cookie headers out of the request object...
             cookielist=list()
             for h,v in cookie_request.header_items():
                 if h.startswith('Cookie'):
-                    log.debug("sending cookie: %s=%s" % (h,v))
                     cookielist.append([h,v])
             # ...and put them over the connection
             for h,v in cookielist:
                 connection.putheader(h,v)
-        else:
-            log.debug("send_cookies(): cookiejar empty. Nothing to send.")
 
     # This is the same request() method from python 2.6's xmlrpclib.Transport,
     # with a couple additions noted below
@@ -1079,7 +1071,6 @@ class CookieTransport(xmlrpclib.Transport):
 
         # ADDED: construct the URL and Request object for proper cookie handling
         request_url = "%s://%s%s" % (self.scheme,host,handler)
-        log.debug("request_url is %s" % request_url)
         cookie_request  = urllib2.Request(request_url)
 
         self.send_request(h,handler,request_body)
@@ -1094,7 +1085,6 @@ class CookieTransport(xmlrpclib.Transport):
         cookie_response = CookieResponse(headers)
         # Okay, extract the cookies from the headers
         self.cookiejar.extract_cookies(cookie_response,cookie_request)
-        log.debug("cookiejar now contains: %s" % self.cookiejar._cookies)
         # And write back any changes
         if hasattr(self.cookiejar,'save'):
             try:
@@ -1128,7 +1118,6 @@ class CookieTransport(xmlrpclib.Transport):
 
         # ADDED: construct the URL and Request object for proper cookie handling
         request_url = "%s://%s%s" % (self.scheme,host,handler)
-        log.debug("request_url is %s" % request_url)
         cookie_request  = urllib2.Request(request_url)
 
         try:
@@ -1144,7 +1133,6 @@ class CookieTransport(xmlrpclib.Transport):
             cookie_response = CookieResponse(response.msg)
             # Okay, extract the cookies from the headers
             self.cookiejar.extract_cookies(cookie_response,cookie_request)
-            log.debug("cookiejar now contains: %s" % self.cookiejar._cookies)
             # And write back any changes
             if hasattr(self.cookiejar,'save'):
                 try:
