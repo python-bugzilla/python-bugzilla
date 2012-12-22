@@ -856,15 +856,19 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
+        log.debug("", exc_info=True)
         print "\ninterrupted."
         sys.exit(1)
     except socket.error, e:
+        log.debug("", exc_info=True)
         print "\nConnection lost/failed: %s" % str(e)
         sys.exit(2)
     except xmlrpclib.Fault, e:
+        log.debug("", exc_info=True)
         print "\nServer error: %s" % str(e)
         sys.exit(3)
     except xmlrpclib.ProtocolError, e:
+        log.debug("", exc_info=True)
         print "\nInvalid server response: %d %s" % (e.errcode, e.errmsg)
         redir = e.headers.getheader("location",0)
         if redir:
