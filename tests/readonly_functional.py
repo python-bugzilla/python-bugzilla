@@ -21,22 +21,19 @@ import tests
 class BaseTest(unittest.TestCase):
     url = None
     bzclass = None
-    bz = None
 
     def clicomm(self, argstr, expectexc=False):
         comm = "bugzilla " + argstr
 
-        bz = self._get_bz()
+        bz = self.bzclass(url=self.url, cookiefile=None)
         if expectexc:
             self.assertRaises(RuntimeError, tests.clicomm, comm, bz)
         else:
             return tests.clicomm(comm, bz, returncliout=True)
 
-    def _get_bz(self):
-        if self.bz is None:
-            self.bz = Bugzilla(url=self.url, cookiefile=None)
-            self.assertTrue(isinstance(self.bz, self.bzclass))
-        return self.bz
+    def _testBZClass(self):
+        bz = Bugzilla(url=self.url, cookiefile=None)
+        self.assertTrue(isinstance(bz, self.bzclass))
 
     # Since we are running these tests against bugzilla instances in
     # the wild, we can't depend on certain data like product lists
@@ -71,6 +68,7 @@ class BZ32(BaseTest):
     url = "https://bugzilla.kernel.org/xmlrpc.cgi"
     bzclass = bugzilla.Bugzilla32
 
+    test0 = BaseTest._testBZClass
     test1 = lambda s: BaseTest._testInfoProducts(s, 10, "Virtualization")
     test2 = lambda s: BaseTest._testInfoComps(s, "Virtualization", 3, "kvm")
     test3 = lambda s: BaseTest._testInfoVers(s, "Virtualization", 0, None)
@@ -81,6 +79,7 @@ class RHTest(BaseTest):
     url = "https://bugzilla.redhat.com/xmlrpc.cgi"
     bzclass = bugzilla.RHBugzilla
 
+    test0 = BaseTest._testBZClass
     test1 = lambda s: BaseTest._testInfoProducts(s, 125,
                                                  "Virtualization Tools")
     test2 = lambda s: BaseTest._testInfoComps(s, "Virtualization Tools",
