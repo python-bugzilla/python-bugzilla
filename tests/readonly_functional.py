@@ -83,10 +83,24 @@ class BaseTest(unittest.TestCase):
 
 
     def _testQueryFull(self, bugid, mincount, expectstr):
-        out = self.clicomm("query --full --bug_status %s --bug_id %s" %
-                           (self.closestatus, bugid))
+        out = self.clicomm("query --full --bug_id %s" % bugid)
+        self.assertTrue(len(out.splitlines()) >= mincount)
+        self.assertTrue(expectstr in out)
 
-        self.assertTrue(len(out) >= mincount)
+    def _testQueryRaw(self, bugid, mincount, expectstr):
+        out = self.clicomm("query --raw --bug_id %s" % bugid)
+        self.assertTrue(len(out.splitlines()) >= mincount)
+        self.assertTrue(expectstr in out)
+
+    def _testQueryOneline(self, bugid, expectstr):
+        out = self.clicomm("query --oneline --bug_id %s" % bugid)
+        self.assertTrue(len(out.splitlines()) == 3)
+        self.assertTrue(out.splitlines()[2].startswith("#%s" % bugid))
+        self.assertTrue(expectstr in out)
+
+    def _testQueryExtra(self, bugid, expectstr):
+        out = self.clicomm("query --extra --bug_id %s" % bugid)
+        self.assertTrue(("#%s" % bugid) in out)
         self.assertTrue(expectstr in out)
 
 
@@ -94,7 +108,6 @@ class BZ32(BaseTest):
     url = "https://bugzilla.kernel.org/xmlrpc.cgi"
     bzclass = bugzilla.Bugzilla32
 
-    """
     test0 = BaseTest._testBZClass
     test1 = lambda s: BaseTest._testInfoProducts(s, 10, "Virtualization")
     test2 = lambda s: BaseTest._testInfoComps(s, "Virtualization", 3, "kvm")
@@ -104,7 +117,6 @@ class BZ32(BaseTest):
     # Querying was only supported as of bugzilla 3.4
     test5 = lambda s: BaseTest._testQuery(s, "--product Virtualization",
                                           0, "FAIL")
-    """
 
 
 class BZ34(BaseTest):
@@ -116,8 +128,10 @@ class BZ34(BaseTest):
     test1 = lambda s: BaseTest._testQuery(s,
                 "--product dogtail --component sniff",
                 9, "321654")
-
     # BZ < 4 doesn't report values for --full
+    test2 = lambda s: BaseTest._testQueryRaw(s, "321654", 70,
+                                             "ATTRIBUTE[version]: CVS HEAD")
+    test3 = lambda s: BaseTest._testQueryOneline(s, "321654", "Sniff")
 
 
 class BZ42(BaseTest):
@@ -128,8 +142,12 @@ class BZ42(BaseTest):
     test0 = BaseTest._testBZClass
 
     test1 = lambda s: BaseTest._testQuery(s, "--product avahi", 10, "3450")
-    # XXX: Doesn't work, fails accessing bz.longdescs. Can prob be fixed
-    #test2 = lambda s: BaseTest._testQueryFull(s, "3450", 10, "foo")
+    test2 = lambda s: BaseTest._testQueryFull(s, "3450", 10, "Blocked: \n")
+    test2 = lambda s: BaseTest._testQueryRaw(s, "3450", 70,
+                                    "ATTRIBUTE[creator]: daniel@fooishbar.org")
+    test3 = lambda s: BaseTest._testQueryOneline(s, "3450",
+                                    "daniel@fooishbar.org libavahi")
+    test4 = lambda s: BaseTest._testQueryExtra(s, "3450", "Error")
 
 
 class RHTest(BaseTest):
@@ -149,3 +167,9 @@ class RHTest(BaseTest):
                 "--product Fedora --component python-bugzilla --version 14",
                 6, "621030")
     test6 = lambda s: BaseTest._testQueryFull(s, "663674", 70, "F14 is EOL.")
+    test7 = lambda s: BaseTest._testQueryRaw(s, "663674", 70,
+                "ATTRIBUTE[status_whiteboard]: whiteboard test")
+    test8 = lambda s: BaseTest._testQueryOneline(s, "307471",
+                "[---] needinfo?")
+    test9 = lambda s: BaseTest._testQueryExtra(s, "307471",
+            " +Status Whiteboard:  bzcl34nup")

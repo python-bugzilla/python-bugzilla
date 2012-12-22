@@ -789,10 +789,17 @@ def main(bzinstance=None):
             for b in fullbuglist:
                 print to_encoding(u'#%s %s - %s - %s' %
                         (b.bug_id, b.bug_status, b.assigned_to, b.short_desc))
-                if b.cc: print "CC: %s" % " ".join(b.cc)
-                if b.blocked: print "Blocked: %s" % " ".join([str(i) for i in b.blocked])
-                if b.dependson: print "Depends: %s" % " ".join([str(i) for i in b.dependson])
-                for c in b.longdescs:
+
+                if hasattr(b, "cc"):
+                    print "CC: %s" % " ".join(b.cc)
+                if hasattr(b, "blocked"):
+                    print "Blocked: %s" % " ".join([str(i)
+                                                    for i in b.blocked or []])
+                if hasattr(b, "dependson"):
+                    print ("Depends: %s" %
+                           " ".join([str(i) for i in b.dependson or []]))
+
+                for c in getattr(b, "longdescs", []):
                     if 'email' in c:
                         email = c['email']
                     elif 'safe_email' in c:
@@ -801,6 +808,7 @@ def main(bzinstance=None):
                         email = 'Unknown'
                     print to_encoding(u"* %s - %s (%s):\n%s\n" % (c['time'],
                         c['author'], email, c['body']))
+
         elif opt.output == 'normal':
             for b in buglist:
                 print to_encoding(u'#%s %8s - %s - %s' %
@@ -823,24 +831,33 @@ def main(bzinstance=None):
                     print to_encoding(u" +Devel Whiteboard: %s" %
                             b.devel_whiteboard)
             print "\nBugs listed: ",len(buglist)
+
         elif opt.output == 'oneline':
             for b in buglist:
-                flags = "".join([str(i) for i in b.flags.split(',')])
-                cve=''
-                #grab CVEs by searching the keywords and grabbing that bugzilla
-                if b.keywords.find("Security") != -1:
-                    blockedby="%s" % b.blockedby
-                    for bl in blockedby.split(','):
+                cve = ""
+                flags = ""
+                if hasattr(b, "flags"):
+                    flags = "".join([str(i) for i in b.flags.split(',')])
+
+                keywords = getattr(b, "keywords", "")
+                if type(keywords) is list:
+                    keywords = " ".join(keywords)
+
+                # grab CVE from keywords and blockers
+                if keywords.find("Security") != -1 and b.blockedby:
+                    for bl in str(b.blockedby).split(','):
                         cvebug = bz.getbug(bl)
                         for cb in cvebug.alias:
                             if cb.find("CVE") != -1:
                                 cve += cb + " "
+
                 # bugzilla.redhat.com has component as a list
                 if type(b.component) == list:
                     b.component = ','.join(b.component)
                 print to_encoding(u"#%s %8s %22s %s\t[%s] %s %s" %
                         (b.bug_id, b.bug_status, b.assigned_to, b.component,
                             b.target_milestone, flags, cve))
+
         elif opt.output == 'raw':
             fullbuglist = bz.getbugs([b.bug_id for b in buglist])
             for b in fullbuglist:
