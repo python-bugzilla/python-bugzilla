@@ -26,16 +26,17 @@ class BaseTest(unittest.TestCase):
     def clicomm(self, argstr, expectexc=False):
         comm = "bugzilla " + argstr
 
+        bz = self._get_bz()
         if expectexc:
-            self.assertRaises(RuntimeError, tests.clicomm, comm, self.bz)
-        return tests.clicomm(comm, self._get_bz(), returncliout=True)
+            self.assertRaises(RuntimeError, tests.clicomm, comm, bz)
+        else:
+            return tests.clicomm(comm, bz, returncliout=True)
 
     def _get_bz(self):
         if self.bz is None:
             self.bz = Bugzilla(url=self.url, cookiefile=None)
             self.assertTrue(isinstance(self.bz, self.bzclass))
         return self.bz
-
 
     # Since we are running these tests against bugzilla instances in
     # the wild, we can't depend on certain data like product lists
@@ -57,6 +58,13 @@ class BaseTest(unittest.TestCase):
         if expectstr:
             self.assertTrue(expectstr in out)
 
+    def _testInfoCompOwners(self, comp, expectstr):
+        expectexc = (expectstr == "FAIL")
+        out = self.clicomm("info --component_owners \"%s\"" %
+                           comp, expectexc=expectexc)
+        if expectexc:
+            return
+        self.assertTrue(expectstr in out.splitlines())
 
 
 class BZ32(BaseTest):
@@ -66,6 +74,7 @@ class BZ32(BaseTest):
     test1 = lambda s: BaseTest._testInfoProducts(s, 10, "Virtualization")
     test2 = lambda s: BaseTest._testInfoComps(s, "Virtualization", 3, "kvm")
     test3 = lambda s: BaseTest._testInfoVers(s, "Virtualization", 0, None)
+    test4 = lambda s: BaseTest._testInfoCompOwners(s, "Virtualization", "FAIL")
 
 
 class RHTest(BaseTest):
@@ -77,3 +86,5 @@ class RHTest(BaseTest):
     test2 = lambda s: BaseTest._testInfoComps(s, "Virtualization Tools",
                                               10, "virt-manager")
     test3 = lambda s: BaseTest._testInfoVers(s, "Fedora", 19, "rawhide")
+    test4 = lambda s: BaseTest._testInfoCompOwners(s, "Virtualization Tools",
+                                        "libvirt: Libvirt Maintainers")

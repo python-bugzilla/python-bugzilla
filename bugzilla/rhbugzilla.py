@@ -88,10 +88,6 @@ class RHBugzilla(Bugzilla42):
 
     def _getqueryinfo(self):
         return self._proxy.bugzilla.getQueryInfo()
-    def _getcomponentsdetails(self,product):
-        if type(product) == int:
-            product = self._product_id_to_name(product)
-        return self._proxy.bugzilla.getProdCompDetails(product)
     def _get_info(self,product=None):
         '''This is a convenience method that does getqueryinfo, getproducts,
         and (optionally) getcomponents in one big fat multicall. This is a bit

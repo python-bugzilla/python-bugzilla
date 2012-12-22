@@ -143,11 +143,19 @@ class BugzillaBase(object):
         """
         Check if the detected bugzilla version is >= passed major/minor pair.
         """
-        if major > self.bz_ver_major:
+        if major < self.bz_ver_major:
             return True
-        if (major == self.bz_ver_major and minor >= self.bz_ver_minor):
+        if (major == self.bz_ver_major and minor <= self.bz_ver_minor):
             return True
         return False
+
+    def _listify(self, val):
+        if val is None:
+            return val
+        if type(val) is list:
+            return val
+        return [val]
+
 
     #---- Methods for establishing bugzilla connection and logging in
 
@@ -420,15 +428,15 @@ class BugzillaBase(object):
         kwargs = {}
         if not self._check_version(4, 2):
             if names:
-                ids = [self._product_id_to_name(name) for name in names]
+                ids = [self._product_name_to_id(name) for name in names]
                 names = None
             include_fields = None
             exclude_fields = None
 
         if ids:
-            kwargs["ids"] = ids
+            kwargs["ids"] = self._listify(ids)
         if names:
-            kwargs["names"] = names
+            kwargs["names"] = self._listify(names)
         if include_fields:
             kwargs["include_fields"] = include_fields
         if exclude_fields:
@@ -437,15 +445,27 @@ class BugzillaBase(object):
         # The bugzilla4 name is Product.get(), but Bugzilla3 only had
         # Product.get_product, and bz4 kept an alias.
         ret = self._proxy.Product.get_products(kwargs)
-        return ret
+        return ret['products']
+
+    def refresh_products(self, **kwargs):
+        """
+        Refresh a product's cached info
+        Takes same arguments as _getproductinfo
+        """
+        for product in self._getproductinfo(**kwargs):
+            for current in self.products[:]:
+                if (current.get("id", -1) != product.get("id", -2) and
+                    current.get("name", -1) != product.get("name", -2)):
+                    continue
+
+                self.products.remove(current)
+                self.products.append(product)
+                break
 
     def _getproducts(self, **kwargs):
         product_ids = self._proxy.Product.get_accessible_products()
         r = self._getproductinfo(product_ids['ids'], **kwargs)
-
-        # We only return 'products' part of the info, since that's what
-        # we historically did with the original RH getProdInfo()
-        return r['products']
+        return r
 
     def getproducts(self, force_refresh=False, **kwargs):
         '''Get product data: names, descriptions, etc.
@@ -478,9 +498,34 @@ class BugzillaBase(object):
 
     #---- Methods for retrieving Components
 
-    def _getcomponentsdetails(self,product):
-        '''IMPLEMENT ME: get component details for a product'''
-        raise NotImplementedError
+    def _getcomponentsdetails(self, product):
+        # Originally this was a RH extension getProdCompDetails
+        # Upstream support has been available since 4.2
+        if not self._check_version(4, 2):
+            raise RuntimeError("This bugzilla version does not support "
+                               "fetching component details.")
+
+        comps = None
+        for p in self.products:
+            if p["name"] != product:
+                continue
+            comps = p["components"]
+
+        if not comps:
+            raise ValueError("Unknown product '%s'" % product)
+
+        # Convert to old style dictionary to maintain back compat
+        ret = []
+        for comp in comps:
+            row = {}
+            row["component"] = comp["name"]
+            row["initialqacontact"] = comp["default_qa_contact"]
+            row["initialowner"] = comp["default_assigned_to"]
+            row["description"] = comp["description"]
+            ret.append(row)
+        return ret
+
+
     def _getcomponents(self,product):
         '''IMPLEMENT ME: Get component dict for a product'''
         raise NotImplementedError
@@ -501,7 +546,7 @@ class BugzillaBase(object):
         '''Returns a dict of dicts, containing detailed component information
         for the given product. The keys of the dict are component names. For
         each component, the value is a dict with the following keys:
-        description, initialowner, initialqacontact, initialcclist'''
+        description, initialowner, initialqacontact'''
         # XXX inconsistent: we don't do this list->dict mapping with querydata
         if force_refresh or product not in self._components_details:
             clist = self._getcomponentsdetails(product)

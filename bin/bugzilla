@@ -572,6 +572,12 @@ def main(bzinstance=None):
             parser.error("No such product: %s" % opt.components)
 
         if opt.component_owners:
+            # Looking up this info for rhbz 'Fedora' product is sloooow
+            # since there are so many components. So delay getting this
+            # info until as late as possible
+            bz.refresh_products(names=[opt.component_owners],
+                                include_fields=include_fields + ["components"])
+
             component_details = bz.getcomponentsdetails(opt.component_owners)
             for c in sorted(component_details):
                 print to_encoding(u"%s: %s" %

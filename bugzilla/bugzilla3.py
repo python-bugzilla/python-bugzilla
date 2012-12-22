@@ -228,13 +228,6 @@ class Bugzilla34(Bugzilla32):
         """
         ignore = include_fields
 
-        def listify(val):
-            if val is None:
-                return val
-            if type(val) is list:
-                return val
-            return [val]
-
         for key, val in [('fixed_in', fixed_in),
                          ('blocked', blocked),
                          ('dependson', dependson),
@@ -248,8 +241,8 @@ class Bugzilla34(Bugzilla32):
                                    "bugzilla" % key)
 
         query = {
-            "product" : listify(product),
-            "component" : listify(component),
+            "product" : self._listify(product),
+            "component" : self._listify(component),
             "version" : version,
             "long_desc" : long_desc,
             "id" : bug_id,
