@@ -30,7 +30,7 @@ class BZ34Test(unittest.TestCase):
     maxDiff = None
 
     def clicomm(self, argstr, out):
-        comm = "bugzilla query " + argstr
+        comm = "bugzilla query --test-return-query " + argstr
 
         if out is None:
             self.assertRaises(RuntimeError, tests.clicomm, comm, self.bz)

@@ -184,6 +184,10 @@ def setup_action_parser(action):
         p.add_option('--from-url',
                 help="Use the query given by a query.cgi URL. (Use quotes!)")
 
+        # Used by unit tests, not for end user consumption
+        p.add_option('--test-return-query', action="store_true",
+                     help=optparse.SUPPRESS_HELP)
+
     elif action == 'info':
         p.set_description("Get information about the bugzilla server.")
         p.add_option('-p','--products',action='store_true',
@@ -465,7 +469,7 @@ def do_query(bz, opt, parser):
 
     if not q:
         parser.error("'query' command requires additional arguments")
-    if _is_unittest:
+    if opt.test_return_query:
         return q
     return bz.query(q)
 
@@ -615,7 +619,7 @@ def main(bzinstance=None):
 
     elif action == 'query':
         buglist = do_query(bz, opt, parser)
-        if _is_unittest:
+        if opt.test_return_query:
             return buglist
 
     elif action == 'new':
