@@ -468,6 +468,47 @@ def do_query(bz, opt, parser):
     return bz.query(q)
 
 
+def _do_info(bz, opt):
+    """
+    Handle the 'info' subcommand
+    """
+    # All these commands call getproducts internally, so do it up front
+    # with minimal include_fields for speed
+    include_fields = ["name", "id"]
+    if opt.versions:
+        include_fields.append("versions")
+    products = bz.getproducts(include_fields=include_fields)
+
+    if opt.products:
+        for name in sorted([p["name"] for p in products]):
+            print name
+
+    if opt.components:
+        for name in sorted(bz.getcomponents(opt.components)):
+            print name
+
+    if opt.component_owners:
+        # Looking up this info for rhbz 'Fedora' product is sloooow
+        # since there are so many components. So delay getting this
+        # info until as late as possible
+        bz.refresh_products(names=[opt.component_owners],
+                            include_fields=include_fields + ["components"])
+
+        component_details = bz.getcomponentsdetails(opt.component_owners)
+        for c in sorted(component_details):
+            print to_encoding(u"%s: %s" %
+                              (c, component_details[c]['initialowner']))
+
+    if opt.versions:
+        for p in products:
+            if p['name'] != opt.versions:
+                continue
+            if "versions" in p:
+                for v in p['versions']:
+                    print to_encoding(v["name"])
+            break
+
+
 #################
 # Main function #
 #################
@@ -547,51 +588,18 @@ def main(bzinstance=None):
             # FIXME check to see if .bugzillarc is in use
             log.info('No authentication info provided.')
 
-    # And now we actually execute the given command
-    buglist = list() # save the results of query/new/modify here
+
+    # Run the actual commands
+
+    buglist = []
     if action == 'info':
-        if not (opt.products or opt.components or opt.component_owners or opt.versions):
+        if not (opt.products or
+                opt.components or
+                opt.component_owners or
+                opt.versions):
             parser.error("'info' command requires additional arguments")
 
-        # All these commands call getproducts internally, so do it up front
-        # with minimal include_fields for speed
-        include_fields = ["name", "id"]
-        if opt.versions:
-            include_fields.append("versions")
-        products = bz.getproducts(include_fields=include_fields)
-
-        if opt.products:
-            for name in sorted([p["name"] for p in products]):
-                print name
-
-        try:
-            if opt.components:
-                for name in sorted(bz.getcomponents(opt.components)):
-                    print name
-        except ValueError:
-            parser.error("No such product: %s" % opt.components)
-
-        if opt.component_owners:
-            # Looking up this info for rhbz 'Fedora' product is sloooow
-            # since there are so many components. So delay getting this
-            # info until as late as possible
-            bz.refresh_products(names=[opt.component_owners],
-                                include_fields=include_fields + ["components"])
-
-            component_details = bz.getcomponentsdetails(opt.component_owners)
-            for c in sorted(component_details):
-                print to_encoding(u"%s: %s" %
-                                  (c, component_details[c]['initialowner']))
-
-        if opt.versions:
-            for p in products:
-                if p['name'] != opt.versions:
-                    continue
-                if "versions" in p:
-                    for v in p['versions']:
-                        print to_encoding(v["name"])
-                break
-
+        _do_info(bz, opt)
 
     elif action == 'query':
         buglist = do_query(bz, opt, parser)
