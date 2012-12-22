@@ -553,8 +553,14 @@ def main(bzinstance=None):
         if not (opt.products or opt.components or opt.component_owners or opt.versions):
             parser.error("'info' command requires additional arguments")
 
+        # All these commands call getproducts internally, so do it up front
+        # with minimal include_fields for speed
+        include_fields = ["name", "id"]
+        if opt.versions:
+            include_fields.append("versions")
+        products = bz.getproducts(include_fields=include_fields)
+
         if opt.products:
-            products = bz.getproducts(include_fields=["name"])
             for name in sorted([p["name"] for p in products]):
                 print name
 
@@ -568,13 +574,18 @@ def main(bzinstance=None):
         if opt.component_owners:
             component_details = bz.getcomponentsdetails(opt.component_owners)
             for c in sorted(component_details):
-                print to_encoding(u"%s: %s" % (c, component_details[c]['initialowner']))
+                print to_encoding(u"%s: %s" %
+                                  (c, component_details[c]['initialowner']))
 
         if opt.versions:
-            for p in bz.querydata['product']:
-                if p['name'] == opt.versions:
+            for p in products:
+                if p['name'] != opt.versions:
+                    continue
+                if "versions" in p:
                     for v in p['versions']:
-                        print to_encoding(v)
+                        print to_encoding(v["name"])
+                break
+
 
     elif action == 'query':
         buglist = do_query(bz, opt, parser)

@@ -51,6 +51,12 @@ class BaseTest(unittest.TestCase):
         self.assertTrue(len(out) >= mincount)
         self.assertTrue(expectstr in out)
 
+    def _testInfoVers(self, comp, mincount, expectstr):
+        out = self.clicomm("info --versions \"%s\"" % comp).splitlines()
+        self.assertTrue(len(out) >= mincount)
+        if expectstr:
+            self.assertTrue(expectstr in out)
+
 
 
 class BZ32(BaseTest):
@@ -59,6 +65,7 @@ class BZ32(BaseTest):
 
     test1 = lambda s: BaseTest._testInfoProducts(s, 10, "Virtualization")
     test2 = lambda s: BaseTest._testInfoComps(s, "Virtualization", 3, "kvm")
+    test3 = lambda s: BaseTest._testInfoVers(s, "Virtualization", 0, None)
 
 
 class RHTest(BaseTest):
@@ -67,5 +74,6 @@ class RHTest(BaseTest):
 
     test1 = lambda s: BaseTest._testInfoProducts(s, 125,
                                                  "Virtualization Tools")
-    #test2 = lambda s: BaseTest._testInfoComps(s, "Virtualization Tools",
-    #                                          10, "virt-manager")
+    test2 = lambda s: BaseTest._testInfoComps(s, "Virtualization Tools",
+                                              10, "virt-manager")
+    test3 = lambda s: BaseTest._testInfoVers(s, "Fedora", 19, "rawhide")
