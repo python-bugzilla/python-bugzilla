@@ -6,8 +6,6 @@ import shlex
 import sys
 import StringIO
 
-from tests.scriptimports import bugzillascript
-
 def diff(orig, new):
     """
     Return a unified diff string between the passed strings
@@ -28,6 +26,8 @@ def clicomm(argv, bzinstance, returncliout=False):
     """
     Run bin/bugzilla.main() directly with passed argv
     """
+    from tests.scriptimports import bugzillascript
+
     argv = shlex.split(argv)
 
     oldstdout = sys.stdout

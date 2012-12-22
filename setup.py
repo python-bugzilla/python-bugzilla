@@ -26,6 +26,19 @@ class TestCommand(Command):
     def run(self):
         os.environ["__BUGZILLA_UNITTEST"] = "1"
 
+        import coverage
+        cov = coverage.coverage(omit=["/*/tests/*", "/usr/*"])
+
+        cov.erase()
+        cov.start()
+
+        # Reload the library so we get accurate coverage data
+        for name in dir(bugzilla):
+            attr = getattr(bugzilla, name)
+            if type(attr) is type(bugzilla):
+                reload(attr)
+        reload(bugzilla)
+
         testfiles = []
         for t in glob.glob(os.path.join(os.getcwd(), 'tests', '*.py')):
             if t.endswith("__init__.py"):
@@ -38,8 +51,6 @@ class TestCommand(Command):
 
             testfiles.append('.'.join(['tests', os.path.splitext(base)[0]]))
 
-        import coverage
-        cov = coverage.coverage(omit=["/*/tests/*", "/usr/*"])
 
         if hasattr(unittest, "installHandler"):
             try:
@@ -49,9 +60,6 @@ class TestCommand(Command):
 
         tests = unittest.TestLoader().loadTestsFromNames(testfiles)
         t = unittest.TextTestRunner(verbosity=1)
-
-        cov.erase()
-        cov.start()
 
         result = t.run(tests)
 
