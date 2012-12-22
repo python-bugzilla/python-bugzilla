@@ -39,7 +39,7 @@ class TestCommand(Command):
             testfiles.append('.'.join(['tests', os.path.splitext(base)[0]]))
 
         import coverage
-        cov = coverage.coverage(omit="/*/tests/*")
+        cov = coverage.coverage(omit=["/*/tests/*", "/usr/*"])
 
         if hasattr(unittest, "installHandler"):
             try:
@@ -56,6 +56,7 @@ class TestCommand(Command):
         result = t.run(tests)
 
         cov.stop()
+        cov.save()
 
         err = int(bool(len(result.failures) > 0 or
                        len(result.errors) > 0))

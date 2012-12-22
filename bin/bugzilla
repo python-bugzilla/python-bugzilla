@@ -24,17 +24,13 @@ from tempfile import NamedTemporaryFile
 version = '0.7.0'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
-# Initial simple logging stuff
+_is_unittest = bool(os.getenv("__BUGZILLA_UNITTEST"))
+cmdlist = ['login','new','query','modify','attach','info']
+format_field_re = re.compile("%{([a-z0-9_]+)(?::([^}]*))?}")
+
 logging.basicConfig()
 log = logging.getLogger("bugzilla")
-if '--debug' in sys.argv:
-    log.setLevel(logging.DEBUG)
-elif '--verbose' in sys.argv:
-    log.setLevel(logging.INFO)
 
-cmdlist = ['login','new','query','modify','attach','info']
-
-_is_unittest = bool(os.getenv("__BUGZILLA_UNITTEST"))
 
 def to_encoding(ustring):
     if isinstance(ustring, basestring):
@@ -42,8 +38,6 @@ def to_encoding(ustring):
             return ustring.encode(locale.getpreferredencoding(), 'replace')
         return ustring
     return u''
-
-format_field_re = re.compile("%{([a-z0-9_]+)(?::([^}]*))?}")
 
 
 ##################
@@ -53,9 +47,10 @@ format_field_re = re.compile("%{([a-z0-9_]+)(?::([^}]*))?}")
 def setup_parser():
     u =   "%prog [global options] COMMAND [command-options]"
     u +=  "\nCommands: %s" % ', '.join(cmdlist)
-    p = optparse.OptionParser(usage=u)
+    p = optparse.OptionParser(usage=u, version=version)
     p.disable_interspersed_args()
     p.epilog = 'Try "bugzilla COMMAND --help" for command-specific help.'
+
     # General bugzilla connection options
     p.add_option('--bugzilla',default=default_bz,
             help="bugzilla XMLRPC URI. default: %s" % default_bz)
@@ -72,6 +67,11 @@ def setup_parser():
             help="give more info about what's going on")
     p.add_option('--debug',action='store_true',
             help="output bunches of debugging info")
+
+    # Generate the man page, dump to stdout. Not for end users
+    p.add_option('--generate-man', action='store_true',
+            help=optparse.SUPPRESS_HELP)
+
     return p
 
 def setup_action_parser(action):
@@ -263,11 +263,9 @@ def setup_action_parser(action):
 ####################
 
 def generate_man_page():
-    try:
-        from logilab.common.optik_ext import ManHelpFormatter
-        import datetime
-    except ImportError:
-        return
+    from logilab.common.optik_ext import ManHelpFormatter
+    import datetime
+
     today = datetime.date.today()
     datestr = today.strftime("%B %d, %Y")
     manpage = \
@@ -297,9 +295,11 @@ by Bugzilla.
 .br
 .I \\fR * info - get info about the given bugzilla instance
 ''' % (datestr,version)
+
     manformatter = ManHelpFormatter()
     parser = setup_parser()
     parser.formatter = manformatter
+
     opt_section = parser.format_option_help()
     manpage += opt_section.replace("OPTIONS","GLOBAL OPTIONS")
     for action in cmdlist:
@@ -345,7 +345,9 @@ everything that's exposed by XML-RPC is used by
 Bugs? In a sub-1.0 release? Preposterous.
 .SH AUTHOR
 Will Woods <wwoods@redhat.com>'''
+
     print manpage
+
 
 def do_query(bz, opt, parser):
     # Construct the query from the list of queryable options
@@ -514,15 +516,25 @@ def _do_info(bz, opt):
 #################
 
 def main(bzinstance=None):
-    # Set up parser for global args
     parser = setup_parser()
-    # Parse the commandline, woo
-    (global_opt,args) = parser.parse_args()
-    # Get our action from these args
-    if len(args) and args[0] in cmdlist:
-        action = args.pop(0)
+    (global_opt, args) = parser.parse_args()
+
+    if global_opt.generate_man:
+        generate_man_page()
+        return 0
+
+    if global_opt.debug:
+        log.setLevel(logging.DEBUG)
+    elif global_opt.verbose:
+        log.setLevel(logging.INFO)
     else:
+        log.setLevel(logging.WARN)
+
+    # Get our action
+    if not len(args) or args[0] not in cmdlist:
         parser.error("command must be one of: %s" % ','.join(cmdlist))
+    action = args.pop(0)
+
     # Parse action-specific args
     action_parser = setup_action_parser(action)
     (opt, args) = action_parser.parse_args(args)
@@ -831,12 +843,10 @@ def main(bzinstance=None):
         else:
             parser.error("opt.output was set to something weird.")
 
+
 if __name__ == '__main__':
     try:
-        if '--generate-man' in sys.argv:
-            generate_man_page()
-        else:
-            main()
+        main()
     except KeyboardInterrupt:
         print "\ninterrupted."
         sys.exit(1)
