@@ -103,6 +103,10 @@ class BaseTest(unittest.TestCase):
         self.assertTrue(("#%s" % bugid) in out)
         self.assertTrue(expectstr in out)
 
+    def _testQueryFormat(self, args, expectstr):
+        out = self.clicomm("query %s" % args)
+        self.assertTrue(expectstr in out)
+
 
 class BZ32(BaseTest):
     url = "https://bugzilla.kernel.org/xmlrpc.cgi"
@@ -148,7 +152,10 @@ class BZ42(BaseTest):
     test3 = lambda s: BaseTest._testQueryOneline(s, "3450",
                                     "daniel@fooishbar.org libavahi")
     test4 = lambda s: BaseTest._testQueryExtra(s, "3450", "Error")
-
+    test5 = lambda s: BaseTest._testQueryFormat(s,
+                "--bug_id 3450 --outputformat "
+                "\"%{bug_id} %{assigned_to} %{summary}\"",
+                "3450 daniel@fooishbar.org Error")
 
 class RHTest(BaseTest):
     url = "https://bugzilla.redhat.com/xmlrpc.cgi"
@@ -173,3 +180,8 @@ class RHTest(BaseTest):
                 "[---] needinfo?")
     test9 = lambda s: BaseTest._testQueryExtra(s, "307471",
             " +Status Whiteboard:  bzcl34nup")
+    test10 = lambda s: BaseTest._testQueryFormat(s,
+            "--bug_id 307471 --outputformat=\"id=%{bug_id} "
+            "sw=%{whiteboard:status} needinfo=%{flag:needinfo} "
+            "sum=%{summary}\"",
+            "id=307471 sw= bzcl34nup")
