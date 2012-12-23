@@ -540,9 +540,13 @@ def main(bzinstance=None):
         log.setLevel(logging.WARN)
 
     # Get our action
-    if not len(args) or args[0] not in cmdlist:
-        parser.error("command must be one of: %s" % ','.join(cmdlist))
+    if len(args) == 0:
+        parser.error("No command specified, command must be one of: %s" %
+                     ','.join(cmdlist))
     action = args.pop(0)
+    if action not in cmdlist:
+        parser.error("Unknown command '%s', command must be one of: %s" %
+                     (action, ','.join(cmdlist)))
 
     # Parse action-specific args
     action_parser = setup_action_parser(action)
@@ -614,6 +618,9 @@ def main(bzinstance=None):
 
     buglist = []
     if action == 'info':
+        if args:
+            parser.error("Extra arguments '%s'" % args)
+
         if not (opt.products or
                 opt.components or
                 opt.component_owners or
@@ -623,11 +630,17 @@ def main(bzinstance=None):
         _do_info(bz, opt)
 
     elif action == 'query':
+        if args:
+            parser.error("Extra arguments '%s'" % args)
+
         buglist = do_query(bz, opt, parser)
         if opt.test_return_query:
             return buglist
 
     elif action == 'new':
+        if args:
+            parser.error("Extra arguments '%s'" % args)
+
         data = dict()
         required=['product','component','version','short_desc','comment',
              'rep_platform','bug_severity','op_sys','bug_file_loc','priority']
