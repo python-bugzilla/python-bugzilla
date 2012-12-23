@@ -85,16 +85,15 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
     _getbugsimple = _getbug
     _getbugssimple = _getbugs
 
-    #---- createbug - call to create a new bug
 
-    createbug_required = ('product','component','summary','version',
-                          'op_sys','platform')
-    def _createbug(self,**data):
+    #---- createbug - call to create a new bug
+    def _createbug(self, **data):
         '''Raw xmlrpc call for createBug() Doesn't bother guessing defaults
         or checking argument validity. Use with care.
         Returns bug_id'''
         r = self._proxy.Bug.create(data)
         return r['id']
+
 
     #---- Methods for interacting with users
 
@@ -119,7 +118,6 @@ class Bugzilla32(Bugzilla3):
 
     version = '0.1'
     user_agent = bugzilla.base.user_agent + ' Bugzilla32/%s' % version
-    createbug_required = ('product','component','summary','version')
     bz_ver_minor = 2
 
     def _addcomment(self,id,comment,private=False,

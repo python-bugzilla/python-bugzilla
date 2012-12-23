@@ -18,10 +18,7 @@ class Bugzilla4(Bugzilla36):
 
     version = '0.1'
     user_agent = bugzilla.base.user_agent + ' Bugzilla4/%s' % version
-    #createbug_required = ('product','component','summary','version')
 
-    createbug_required = ('product','component','summary','version',
-                          'op_sys','platform')
     bz_ver_major = 4
     bz_ver_minor = 0
 

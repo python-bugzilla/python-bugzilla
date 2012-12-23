@@ -814,11 +814,8 @@ class BugzillaBase(object):
         return att
 
     #---- createbug - big complicated call to create a new bug
-
-    # Default list of required fields for createbug.
-    # May be overridden by concrete subclasses.
-    createbug_required = ('product','component','version','short_desc','comment',
-                          'rep_platform','bug_severity','op_sys','bug_file_loc')
+    createbug_required = ('product', 'component', 'summary', 'version',
+                          'description')
 
     # List of field aliases. Maps old style RHBZ parameter names to actual
     # upstream values. Used for createbug() and query include_fields at
@@ -834,13 +831,13 @@ class BugzillaBase(object):
                      ('blocks', 'blockedby'),
                      ('whiteboard', 'status_whiteboard'))
 
-    def _createbug(self,**data):
+    def _createbug(self, **data):
         '''IMPLEMENT ME: Raw xmlrpc call for createBug()
         Doesn't bother guessing defaults or checking argument validity.
         Returns bug_id'''
         raise NotImplementedError
 
-    def createbug(self,check_args=False,**data):
+    def createbug(self, check_args=False, **data):
         '''Create a bug with the given info. Returns a new Bug object.
         data should be given as keyword args - remember that you can also
         populate a dict and call createbug(**dict) to fill in keyword args.
@@ -901,6 +898,8 @@ class BugzillaBase(object):
           blocked: List of bug ids this report blocks.
           dependson: List of bug ids this report depends on.
         '''
+        log.debug("bz.createbug(%s)", data)
+
         # If we're getting a call that uses an old fieldname, convert it to the
         # new fieldname instead.
         # XXX - emit deprecation warnings here
@@ -908,15 +907,6 @@ class BugzillaBase(object):
             if newfield in self.createbug_required and newfield not in data \
                     and oldfield in data:
                 data[newfield] = data.pop(oldfield)
-
-        # The xmlrpc will raise an error if one of these is missing, but
-        # let's try to save a network roundtrip here if possible..
-        for i in self.createbug_required:
-            if i not in data or not data[i]:
-                if i == 'bug_file_loc':
-                    data[i] = 'http://'
-                else:
-                    raise TypeError, "required field missing or empty: '%s'" % i
 
         # Sort of a chicken-and-egg problem here - check_args will save you a
         # network roundtrip if your op_sys or rep_platform is bad, but at the

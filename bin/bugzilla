@@ -81,29 +81,31 @@ def setup_parser():
 
 def setup_action_parser(action):
     p = optparse.OptionParser(usage="%%prog %s [options]" % action)
-    # TODO: product and version could default to current system
-    # info (read from /etc/redhat-release?)
+
     if action == 'new':
+        # TODO: product and version could default to current system
+        # info (read from /etc/redhat-release?)
         p.set_description("Create a new bug report.")
         p.add_option('-p','--product',
                 help="REQUIRED: product name (list with 'bugzilla info -p')")
         p.add_option('-v','--version',
                 help="REQUIRED: product version")
         p.add_option('-c','--component',
-                help="REQUIRED: component name (list with 'bugzilla info -c PRODUCT')")
-        p.add_option('-l','--comment',
+                help="REQUIRED: component name "
+                     "(list with 'bugzilla info -c PRODUCT')")
+        p.add_option('-l','--comment', dest='description',
                 help="REQUIRED: initial bug comment")
-        p.add_option('-s','--short_desc','--summary',dest='short_desc',
+        p.add_option('-s','--short_desc','--summary',dest='summary',
                 help="REQUIRED: bug summary")
-        p.add_option('-o','--os',default='Linux',dest='op_sys',
+        p.add_option('-o','--os', dest='op_sys',
                 help="OPTIONAL: operating system (default: Linux)")
-        p.add_option('-a','--arch',default='All',dest='rep_platform',
+        p.add_option('-a','--arch', dest='platform',
                 help="OPTIONAL: arch this bug occurs on (default: All)")
-        p.add_option('--severity',default='medium',dest='bug_severity',
+        p.add_option('--severity',
                 help="OPTIONAL: bug severity (default: medium)")
-        p.add_option('--priority',default='medium',dest='priority',
+        p.add_option('--priority',
                 help="OPTIONAL: bug priority (default: medium)")
-        p.add_option('-u','--url',dest='bug_file_loc',default='http://',
+        p.add_option('-u','--url', dest='bug_file_loc',
                 help="OPTIONAL: URL for further bug info")
         p.add_option('--cc',metavar='CC[,CC,...]',
                 help="OPTIONAL: add emails to initial CC list")
@@ -632,6 +634,29 @@ def _format_output(bz, opt, buglist):
         raise RuntimeError("Unknown output type '%s'" % opt.output)
 
 
+def _do_new(bz, opt):
+    data = {}
+    allopts = ["product", "version", "component", "description",
+               "summary", "op_sys", "platform", "severity", "priority",
+               "bug_file_loc", "cc", "blocked", "dependson"]
+
+    # Handle options that take a list format
+    multiopts = ['cc', 'blocked', 'dependson']
+
+    for key in allopts:
+        if not hasattr(opt, key) or getattr(opt, key) is None:
+            continue
+
+        data[key] = getattr(opt, key)
+        if key not in multiopts:
+            continue
+        data[key] = data[key].split(",")
+
+    b = bz.createbug(**data)
+    b.refresh()
+    return [b]
+
+
 #################
 # Main function #
 #################
@@ -665,7 +690,7 @@ def main(bzinstance=None):
     (opt, args) = action_parser.parse_args(args)
 
     # Connect to bugzilla
-    log.info('Connecting to %s',global_opt.bugzilla)
+    log.info('Connecting to %s', global_opt.bugzilla)
 
     if global_opt.bztype == 'auto':
         log.info('Autodetecting Bugzilla type')
@@ -685,6 +710,7 @@ def main(bzinstance=None):
         bz = bzinstance
     else:
         bz = bzclass(url=global_opt.bugzilla)
+
 
     # Handle 'login' action
     if action == 'login':
@@ -726,7 +752,9 @@ def main(bzinstance=None):
             log.info('No authentication info provided.')
 
 
-    # Run the actual commands
+    ###########################
+    # Run the actual commands #
+    ###########################
 
     buglist = []
     if action == 'info':
@@ -752,25 +780,8 @@ def main(bzinstance=None):
     elif action == 'new':
         if args:
             parser.error("Extra arguments '%s'" % args)
-
-        data = dict()
-        required=['product','component','version','short_desc','comment',
-             'rep_platform','bug_severity','op_sys','bug_file_loc','priority']
-        optional=['cc', 'blocked', 'dependson']
-        for a in optional:
-            i = getattr(opt,a)
-            data[a] = i.split(',')
-        for a in required:
-            i = getattr(opt,a)
-            if i:
-                data[a] = i
-        missing = [k for k in required if k not in data]
-        if missing:
-            parser.error("'new' command requires additional arguments: %s" % ",".join(missing))
-        log.debug("bz.createbug(%s)", data)
-        b = bz.createbug(**data)
-        b.refresh()
-        buglist = [b]
+        newbugs = _do_new(bz, opt)
+        buglist += newbugs
 
     elif action == 'attach':
         if opt.get or opt.getall:
