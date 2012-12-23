@@ -520,6 +520,118 @@ def _do_info(bz, opt):
             break
 
 
+def _format_output(bz, opt, buglist):
+    if opt.outputformat:
+        special_fields = {
+            'flag': lambda b,f: b.get_flag_status(f),
+            'whiteboard': lambda b,wb: b.getwhiteboard(wb),
+        }
+        def bug_field(matchobj):
+            (fieldname, rest) = matchobj.groups()
+
+            if special_fields.has_key(fieldname):
+                val = special_fields[fieldname](b, rest)
+            else:
+                val = getattr(b,fieldname)
+            if type(val) is list:
+                val = ','.join(val)
+            try:
+                return str(val)
+            except UnicodeEncodeError:
+                return to_encoding(val)
+        for b in buglist:
+            print format_field_re.sub(bug_field,opt.outputformat)
+
+    elif opt.output == 'ids':
+        for b in buglist:
+            print b.bug_id
+
+    elif opt.output == 'full':
+        fullbuglist = bz.getbugs([b.bug_id for b in buglist])
+        for b in fullbuglist:
+            print to_encoding(u'#%s %s - %s - %s' %
+                    (b.bug_id, b.bug_status, b.assigned_to, b.short_desc))
+
+            if hasattr(b, "cc"):
+                print "CC: %s" % " ".join(b.cc)
+            if hasattr(b, "blocked"):
+                print "Blocked: %s" % " ".join([str(i)
+                                                for i in b.blocked or []])
+            if hasattr(b, "dependson"):
+                print ("Depends: %s" %
+                       " ".join([str(i) for i in b.dependson or []]))
+
+            for c in getattr(b, "longdescs", []):
+                if 'email' in c:
+                    email = c['email']
+                elif 'safe_email' in c:
+                    email = c['safe_email']
+                else:
+                    email = 'Unknown'
+                print to_encoding(u"* %s - %s (%s):\n%s\n" % (c['time'],
+                    c['author'], email, c['body']))
+
+    elif opt.output == 'normal':
+        for b in buglist:
+            print to_encoding(u'#%s %8s - %s - %s' %
+                    (b.bug_id, b.bug_status, b.assigned_to, b.short_desc))
+
+    elif opt.output == 'extra':
+        print "Grabbing 'extra' bug information. This could take a moment."
+        fullbuglist = bz.getbugs([b.bug_id for b in buglist])
+        for b in fullbuglist:
+            print to_encoding(u'#%s %s - %s - %s' %
+                    (b.bug_id, b.bug_status, b.assigned_to, b.short_desc))
+            if hasattr(b, 'keywords') and b.keywords:
+                print to_encoding(u" +Keywords: %s" % b.keywords)
+            if hasattr(b, 'qa_whiteboard') and b.qa_whiteboard:
+                print to_encoding(u" +QA Whiteboard: %s" % b.qa_whiteboard)
+            if hasattr(b, 'status_whiteboard') and b.status_whiteboard:
+                print to_encoding(u" +Status Whiteboard: %s" %
+                        b.status_whiteboard)
+            if hasattr(b, 'devel_whiteboard') and b.devel_whiteboard:
+                print to_encoding(u" +Devel Whiteboard: %s" %
+                        b.devel_whiteboard)
+        print "\nBugs listed: ",len(buglist)
+
+    elif opt.output == 'oneline':
+        for b in buglist:
+            cve = ""
+            flags = ""
+            if hasattr(b, "flags"):
+                flags = "".join([str(i) for i in b.flags.split(',')])
+
+            keywords = getattr(b, "keywords", "")
+            if type(keywords) is list:
+                keywords = " ".join(keywords)
+
+            # grab CVE from keywords and blockers
+            if keywords.find("Security") != -1 and b.blockedby:
+                for bl in str(b.blockedby).split(','):
+                    cvebug = bz.getbug(bl)
+                    for cb in cvebug.alias:
+                        if cb.find("CVE") != -1:
+                            cve += cb + " "
+
+            # bugzilla.redhat.com has component as a list
+            if type(b.component) == list:
+                b.component = ','.join(b.component)
+            print to_encoding(u"#%s %8s %22s %s\t[%s] %s %s" %
+                    (b.bug_id, b.bug_status, b.assigned_to, b.component,
+                        b.target_milestone, flags, cve))
+
+    elif opt.output == 'raw':
+        fullbuglist = bz.getbugs([b.bug_id for b in buglist])
+        for b in fullbuglist:
+            print "Bugzilla %s: " % b.bug_id
+            for a in dir(b):
+                print to_encoding(u"ATTRIBUTE[%s]: %s" % (a, getattr(b, a)))
+            print "\n\n"
+
+    else:
+        raise RuntimeError("Unknown output type '%s'" % opt.output)
+
+
 #################
 # Main function #
 #################
@@ -774,112 +886,7 @@ def main(bzinstance=None):
 
     # If we're doing new/query/modify, output our results
     if action in ['new','query']:
-        if opt.outputformat:
-            special_fields = {
-                'flag': lambda b,f: b.get_flag_status(f),
-                'whiteboard': lambda b,wb: b.getwhiteboard(wb),
-            }
-            def bug_field(matchobj):
-                (fieldname, rest) = matchobj.groups()
-
-                if special_fields.has_key(fieldname):
-                    val = special_fields[fieldname](b, rest)
-                else:
-                    val = getattr(b,fieldname)
-                if type(val) is list:
-                    val = ','.join(val)
-                try:
-                    return str(val)
-                except UnicodeEncodeError:
-                    return to_encoding(val)
-            for b in buglist:
-                print format_field_re.sub(bug_field,opt.outputformat)
-        elif opt.output == 'ids':
-            for b in buglist:
-                print b.bug_id
-        elif opt.output == 'full':
-            fullbuglist = bz.getbugs([b.bug_id for b in buglist])
-            for b in fullbuglist:
-                print to_encoding(u'#%s %s - %s - %s' %
-                        (b.bug_id, b.bug_status, b.assigned_to, b.short_desc))
-
-                if hasattr(b, "cc"):
-                    print "CC: %s" % " ".join(b.cc)
-                if hasattr(b, "blocked"):
-                    print "Blocked: %s" % " ".join([str(i)
-                                                    for i in b.blocked or []])
-                if hasattr(b, "dependson"):
-                    print ("Depends: %s" %
-                           " ".join([str(i) for i in b.dependson or []]))
-
-                for c in getattr(b, "longdescs", []):
-                    if 'email' in c:
-                        email = c['email']
-                    elif 'safe_email' in c:
-                        email = c['safe_email']
-                    else:
-                        email = 'Unknown'
-                    print to_encoding(u"* %s - %s (%s):\n%s\n" % (c['time'],
-                        c['author'], email, c['body']))
-
-        elif opt.output == 'normal':
-            for b in buglist:
-                print to_encoding(u'#%s %8s - %s - %s' %
-                        (b.bug_id, b.bug_status, b.assigned_to, b.short_desc))
-
-        elif opt.output == 'extra':
-            print "Grabbing 'extra' bug information. This could take a moment."
-            fullbuglist = bz.getbugs([b.bug_id for b in buglist])
-            for b in fullbuglist:
-                print to_encoding(u'#%s %s - %s - %s' %
-                        (b.bug_id, b.bug_status, b.assigned_to, b.short_desc))
-                if hasattr(b, 'keywords') and b.keywords:
-                    print to_encoding(u" +Keywords: %s" % b.keywords)
-                if hasattr(b, 'qa_whiteboard') and b.qa_whiteboard:
-                    print to_encoding(u" +QA Whiteboard: %s" % b.qa_whiteboard)
-                if hasattr(b, 'status_whiteboard') and b.status_whiteboard:
-                    print to_encoding(u" +Status Whiteboard: %s" %
-                            b.status_whiteboard)
-                if hasattr(b, 'devel_whiteboard') and b.devel_whiteboard:
-                    print to_encoding(u" +Devel Whiteboard: %s" %
-                            b.devel_whiteboard)
-            print "\nBugs listed: ",len(buglist)
-
-        elif opt.output == 'oneline':
-            for b in buglist:
-                cve = ""
-                flags = ""
-                if hasattr(b, "flags"):
-                    flags = "".join([str(i) for i in b.flags.split(',')])
-
-                keywords = getattr(b, "keywords", "")
-                if type(keywords) is list:
-                    keywords = " ".join(keywords)
-
-                # grab CVE from keywords and blockers
-                if keywords.find("Security") != -1 and b.blockedby:
-                    for bl in str(b.blockedby).split(','):
-                        cvebug = bz.getbug(bl)
-                        for cb in cvebug.alias:
-                            if cb.find("CVE") != -1:
-                                cve += cb + " "
-
-                # bugzilla.redhat.com has component as a list
-                if type(b.component) == list:
-                    b.component = ','.join(b.component)
-                print to_encoding(u"#%s %8s %22s %s\t[%s] %s %s" %
-                        (b.bug_id, b.bug_status, b.assigned_to, b.component,
-                            b.target_milestone, flags, cve))
-
-        elif opt.output == 'raw':
-            fullbuglist = bz.getbugs([b.bug_id for b in buglist])
-            for b in fullbuglist:
-                print "Bugzilla %s: " % b.bug_id
-                for a in dir(b):
-                    print to_encoding(u"ATTRIBUTE[%s]: %s" % (a, getattr(b, a)))
-                print "\n\n"
-        else:
-            parser.error("opt.output was set to something weird.")
+        _format_output(bz, opt, buglist)
 
 
 if __name__ == '__main__':
