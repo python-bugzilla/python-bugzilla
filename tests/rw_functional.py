@@ -63,7 +63,7 @@ class RHPartnerTest(BaseTest):
         """
         Create a bug with minimal amount of fields, then close it
         """
-
+        bz = self.bzclass(url=self.url, cookiefile=self._getCookiefile())
         component = "python-bugzilla"
         version = "16"
         summary = ("python-bugzilla test basic bug %s" %
@@ -122,7 +122,6 @@ class RHPartnerTest(BaseTest):
         bug = bz.getbug(bugid)
         print "\nCreated bugid: %s" % bugid
 
-        # XXX: check full output for comment?
         self.assertEquals(bug.summary, summary)
         self.assertEquals(bug.bug_file_loc, url)
         self.assertEquals(bug.op_sys, osval)
@@ -332,3 +331,74 @@ class RHPartnerTest(BaseTest):
         bug2.refresh()
         self.assertEquals(bug1.fixed_in, "-")
         self.assertEquals(bug2.fixed_in, "-")
+
+
+    def test8Attachments(self):
+        """
+        Get and set attachments for a bug
+        """
+        bz = self.bzclass(url=self.url, cookiefile=self._getCookiefile())
+        getbugid = "663674"
+        setbugid = "461686"
+        attachid = "469147"
+        cmd = "bugzilla attach "
+        testfile = "../tests/data/bz-attach-get1.txt"
+
+        tmpdir = "__test_attach_output"
+        if tmpdir in os.listdir("."):
+            os.system("rm -r %s" % tmpdir)
+        os.mkdir(tmpdir)
+        os.chdir(tmpdir)
+
+        # Get first attachment
+        out = tests.clicomm(cmd + "--get %s" % attachid, bz).splitlines()
+
+        # Expect format:
+        #   Wrote <filename>
+        fname = out[2].split()[1].strip()
+
+        self.assertEquals(len(out), 3)
+        self.assertEquals(fname, "bugzilla-filename.patch")
+        self.assertEquals(file(fname).read(),
+                          file(testfile).read())
+
+        # Get all attachments
+        getbug = bz.getbug(getbugid)
+        numattach = len(getbug.attachments)
+        out = tests.clicomm(cmd + "--getall %s" % getbugid, bz).splitlines()
+
+        self.assertEquals(len(out), numattach + 2)
+        fnames = [l.split(" ", 1)[1].strip() for l in out[2:]]
+        self.assertEquals(len(fnames), numattach)
+        for f in fnames:
+            if not os.path.exists(f):
+                raise AssertionError("filename '%s' not found" % f)
+            os.unlink(f)
+
+        # Add attachment as CLI option
+        setbug = bz.getbug(setbugid)
+        orignumattach = len(setbug.attachments)
+
+        # Add attachment from CLI with mime guessing
+        desc1 = "python-bugzilla cli upload %s" % datetime.datetime.today()
+        out1 = tests.clicomm(cmd + "%s --description \"%s\" --file %s" %
+                             (setbugid, desc1, testfile), bz)
+
+        desc2 = "python-bugzilla cli upload %s" % datetime.datetime.today()
+        out2 = tests.clicomm(cmd + "%s --file test --description \"%s\"" %
+                             (setbugid, desc2), bz, stdin=open(testfile))
+
+        # Expected output format:
+        #   Created attachment <attachid> on bug <bugid>
+
+        setbug.refresh()
+        self.assertEquals(len(setbug.attachments), orignumattach + 2)
+        self.assertEquals(setbug.attachments[-2]["description"], desc1)
+        self.assertEquals(setbug.attachments[-2]["id"],
+                          int(out1.splitlines()[2].split()[2]))
+        self.assertEquals(setbug.attachments[-1]["description"], desc2)
+        self.assertEquals(setbug.attachments[-1]["id"],
+                          int(out2.splitlines()[2].split()[2]))
+
+        os.chdir("..")
+        os.system("rm -r %s" % tmpdir)

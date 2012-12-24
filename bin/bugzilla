@@ -37,12 +37,37 @@ handler.setFormatter(logging.Formatter(
 log.addHandler(handler)
 
 
+################
+# Util helpers #
+################
+
 def to_encoding(ustring):
     if isinstance(ustring, basestring):
         if isinstance(ustring, unicode):
             return ustring.encode(locale.getpreferredencoding(), 'replace')
         return ustring
     return u''
+
+
+def open_without_clobber(name, *args):
+    '''Try to open the given file with the given mode; if that filename exists,
+    try "name.1", "name.2", etc. until we find an unused filename.'''
+    fd = None
+    count = 1
+    orig_name = name
+    while fd is None:
+        try:
+            fd = os.open(name, os.O_CREAT|os.O_EXCL, 0666)
+        except OSError as e:
+            if e.errno == os.errno.EEXIST:
+                name = "%s.%i" % (orig_name, count)
+                count += 1
+            else: # raise IOError like regular open()
+                raise IOError, (e.errno, e.strerror, e.filename)
+    fobj = open(name, *args)
+    if fd != fobj.fileno():
+        os.close(fd)
+    return fobj
 
 
 ##################
@@ -78,6 +103,7 @@ def setup_parser():
             help=optparse.SUPPRESS_HELP)
 
     return p
+
 
 def setup_action_parser(action):
     p = optparse.OptionParser(usage="%%prog %s [options]" % action)
@@ -230,7 +256,8 @@ def setup_action_parser(action):
                 help='Add an email to the cc list')
         p.add_option('-F','--fixed_in',metavar="VERSION",
                 help='"Fixed in version" field')
-        # TODO: --keyword, --tag, --cc, ...
+        # TODO: --keyword, --tag, ...
+
     elif action == 'attach':
         p.set_usage('''
   %prog attach --file=FILE --desc=DESC [--type=TYPE] BUGID [BUGID...]
@@ -247,6 +274,7 @@ def setup_action_parser(action):
                 default=[], help="Download the attachment with the given ID")
         p.add_option("--getall","--get-all", metavar="BUGID", action="append",
                 default=[], help="Download all attachments on the given bug")
+
     elif action == 'login':
         p.set_usage('%prog login [username [password]]')
         p.set_description("Log into bugzilla and save a login cookie.")
@@ -718,6 +746,66 @@ def _do_modify(bz, opt, args):
         bz._update_bugs(bugid_list, data)
 
 
+def _do_attach(bz, opt, parser, args):
+    # Getting attachments
+    if opt.get or opt.getall:
+        if args:
+            parser.error("Extra args '%s' not used for getting attachments" %
+                         args)
+
+        for bug in bz.getbugs(opt.getall):
+            opt.get += [a['attach_id'] for a in bug.attachments]
+
+        for attid in set(opt.get):
+            att = bz.openattachment(attid)
+            outfile = open_without_clobber(att.name, "wb")
+            data = att.read(4096)
+            while data:
+                outfile.write(data)
+                data = att.read(4096)
+            print "Wrote %s" % outfile.name
+
+        return
+
+    # Setting attachments
+    if not args:
+        parser.error("Bug ID must be specified for setting attachments")
+
+    if not opt.type:
+        try:
+            import magic
+        except ImportError:
+            RuntimeError("specify --type or install python-magic")
+        mimemagic = magic.open(magic.MAGIC_MIME_TYPE)
+        mimemagic.load()
+
+    if sys.stdin.isatty():
+        # stdin is a tty -> normal CLI
+        if not opt.type:
+            opt.type = mimemagic.file(opt.file)
+        fileobj = open(opt.file)
+
+    else:
+        # piped input on stdin
+        # write it to a tempfile - and get the filetype if we need it
+        fileobj = NamedTemporaryFile(prefix="bugzilla-attach.")
+        data = sys.stdin.read(4096)
+        if not opt.type:
+            opt.type = mimemagic.buffer(data)
+        while data:
+            fileobj.write(data)
+            data = sys.stdin.read(4096)
+        fileobj.seek(0)
+
+    # Upload attachments
+    for bugid in args:
+        attid = bz.attachfile(bugid, fileobj, opt.desc,
+                              filename=opt.file,
+                              contenttype=opt.type,
+                              ispatch=(opt.type == "text/x-patch"))
+        print "Created attachment %i on bug %s" % (attid, bugid)
+
+
 #################
 # Main function #
 #################
@@ -845,47 +933,10 @@ def main(bzinstance=None):
         buglist += newbugs
 
     elif action == 'attach':
-        if opt.get or opt.getall:
-            for bug in bz.getbugs(opt.getall):
-                opt.get += [a['attach_id'] for a in bug.attachments]
-            for attid in set(opt.get):
-                att = bz.openattachment(attid)
-                outfile = bugzilla.util.open_without_clobber(att.name, "wb")
-                data = att.read(4096)
-                while data:
-                    outfile.write(data)
-                    data = att.read(4096)
-                print "Wrote %s" % outfile.name
-            return
         if not opt.file and opt.desc:
-            parser.error("attaching a file requires --file and --desc")
-        if not opt.type:
-            try:
-                import magic
-            except ImportError:
-                parser.error("specify --type or install python-magic")
-            mimemagic = magic.open(magic.MAGIC_MIME_TYPE)
-            mimemagic.load()
-        if sys.stdin.isatty(): # stdin is a tty -> normal CLI
-            if not opt.type:
-                opt.type = mimemagic.file(opt.file)
-            fileobj = open(opt.file)
-        else: # piped input on stdin
-            # write it to a tempfile - and get the filetype if we need it
-            fileobj = NamedTemporaryFile(prefix="bugzilla-attach.")
-            data = sys.stdin.read(4096)
-            if not opt.type:
-                opt.type = mimemagic.buffer(data)
-            while data:
-                fileobj.write(data)
-                data = sys.stdin.read(4096)
-            fileobj.seek(0)
-        for bugid in args:
-            attid = bz.attachfile(bugid, fileobj, opt.desc,
-                                  filename=opt.file,
-                                  contenttype=opt.type,
-                                  ispatch=(opt.type == "text/x-patch"))
-            print "Created attachment %i on bug %s" % (attid, bugid)
+            parser.error("attaching a file requires --file and --description")
+
+        _do_attach(bz, opt, parser, args)
 
     elif action == 'modify':
         if opt.dupeid is not None:

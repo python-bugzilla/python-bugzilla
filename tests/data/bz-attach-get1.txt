@@ -1,0 +1,33 @@
+--- base.py.old	2010-12-16 12:15:09.932010659 +0100
++++ base.py	2010-12-16 16:04:18.995185933 +0100
+@@ -19,6 +19,8 @@
+ import tempfile
+ import logging
+ import locale
++import email.header
++import re
+ 
+ log = logging.getLogger('bugzilla')
+ 
+@@ -677,10 +679,17 @@
+         # RFC 2183 defines the content-disposition header, if you're curious
+         disp = att.headers['content-disposition'].split(';')
+         [filename_parm] = [i for i in disp if i.strip().startswith('filename=')]
+-        (dummy,filename) = filename_parm.split('=')
+-        # RFC 2045/822 defines the grammar for the filename value, but
+-        # I think we just need to remove the quoting. I hope.
+-        att.name = filename.strip('"')
++        (dummy,filename) = filename_parm.split('=',1)
++        # RFC 2045/822 defines the grammar for the filename value
++        filename = filename.strip('"')
++        # email.header.decode_header cannot handle strings not ending with '?=',
++        # so let's transform one =?...?= part at a time
++        while True:
++            match = re.search("=\?.*?\?=", filename)
++            if match is None:
++                break
++            filename = filename[:match.start()] + email.header.decode_header(match.group(0))[0][0] + filename[match.end():]
++        att.name = filename
+         # Hooray, now we have a file-like object with .read() and .name
+         return att
+ 

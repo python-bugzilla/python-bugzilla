@@ -22,7 +22,8 @@ def difffile(expect, filename):
     if ret:
         raise AssertionError("Output was different:\n%s" % ret)
 
-def clicomm(argv, bzinstance, returnmain=False, printcliout=False):
+def clicomm(argv, bzinstance, returnmain=False, printcliout=False,
+            stdin=None):
     """
     Run bin/bugzilla.main() directly with passed argv
     """
@@ -39,7 +40,8 @@ def clicomm(argv, bzinstance, returnmain=False, printcliout=False):
             out = StringIO.StringIO()
             sys.stdout = out
             sys.stderr = out
-            sys.stdin = None
+            if stdin:
+                sys.stdin = stdin
         sys.argv = argv
 
         ret = 0
