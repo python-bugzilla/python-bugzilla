@@ -22,6 +22,7 @@ bz34 = Bugzilla34(cookiefile=None)
 bz4 = Bugzilla4(cookiefile=None)
 rhbz4 = RHBugzilla4(cookiefile=None)
 
+
 class BZ34Test(unittest.TestCase):
     """
     This is the base query class, but it's also functional on its
@@ -41,6 +42,7 @@ class BZ34Test(unittest.TestCase):
     def testBasicQuery(self):
         self.clicomm("--product foo --component foo,bar --bug_id 1234,2480",
                      self._basic_query_out)
+
     def testOneline(self):
         self.clicomm("--product foo --oneline", self._oneline_out)
 
@@ -52,14 +54,19 @@ class BZ34Test(unittest.TestCase):
 
     def testBugStatusALL(self):
         self.clicomm("--product foo --bug_status ALL", self._status_all_out)
+
     def testBugStatusDEV(self):
         self.clicomm("--bug_status DEV", self._status_dev_out)
+
     def testBugStatusQE(self):
         self.clicomm("--bug_status QE", self._status_qe_out)
+
     def testBugStatusEOL(self):
         self.clicomm("--bug_status EOL", self._status_eol_out)
+
     def testBugStatusOPEN(self):
         self.clicomm("--bug_status OPEN", self._status_open_out)
+
     def testBugStatusRegular(self):
         self.clicomm("--bug_status POST", self._status_post_out)
 
@@ -101,6 +108,8 @@ class BZ34Test(unittest.TestCase):
         'id': ["1234", "2480"]}
     _oneline_out = {'product': ['foo']}
     _output_format_out = {'product': ['foo']}
+    output_format_out = _output_format_out
+
     _status_all_out = {'product': ['foo']}
     _status_dev_out = {'bug_status': ['NEW', 'ASSIGNED', 'NEEDINFO',
         'ON_DEV', 'MODIFIED', 'POST', 'REOPENED']}
@@ -169,7 +178,7 @@ class BZ4Test(BZ34Test):
 class RHBZTest(BZ4Test):
     bz = rhbz4
 
-    _output_format_out = BZ34Test._output_format_out.copy()
+    _output_format_out = BZ34Test.output_format_out.copy()
     _output_format_out["include_fields"] = ['product', 'summary',
         'platform', 'status', 'id', 'blocks', 'whiteboard']
     _email_out = {'email1': 'foo1@example.com', 'email2': "foo2@example.com",
@@ -179,7 +188,7 @@ class RHBZTest(BZ4Test):
         'emailcc1': True, 'emailassigned_to2': True,
         'emailreporter3': True, 'emailqa_contact4': True,
         'include_fields': ['assigned_to', 'summary', 'status', 'id'],
-        'query_format' : 'advanced'}
+        'query_format': 'advanced'}
     _booleans_out = {'value2-0-0': 'baz', 'value0-0-0': '123456',
         'type3-0-1': 'substring', 'value1-1-0': 'devel_ack', 'type0-0-0':
         'substring', 'type2-0-0': 'substring', 'field3-0-1':

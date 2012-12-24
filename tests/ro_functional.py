@@ -9,8 +9,6 @@
 Unit tests that do readonly functional tests against real bugzilla instances.
 '''
 
-import os
-import re
 import unittest
 
 import bugzilla
@@ -18,9 +16,10 @@ from bugzilla import Bugzilla
 
 import tests
 
+
 class BaseTest(unittest.TestCase):
     url = None
-    bzclass = None
+    bzclass = Bugzilla
     closestatus = "CLOSED"
 
     def clicomm(self, argstr, expectexc=False):
@@ -156,6 +155,7 @@ class BZ42(BaseTest):
                 "--bug_id 3450 --outputformat "
                 "\"%{bug_id} %{assigned_to} %{summary}\"",
                 "3450 daniel@fooishbar.org Error")
+
 
 class RHTest(BaseTest):
     url = "https://bugzilla.redhat.com/xmlrpc.cgi"

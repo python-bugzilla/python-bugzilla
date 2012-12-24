@@ -104,13 +104,34 @@ class PylintCommand(Command):
             "--disable W0142 "
             # Name doesn't match some style regex
             "--disable C0103 "
-            # FIXME comments
-            "--disable W0511 "
             # C0111: No docstring
             "--disable C0111 "
             # W0603: Using the global statement
             "--disable W0603 "
-            "bin/bugzilla tests/")
+            # W0703: Catching too general exception:
+            "--disable W0703 "
+            # I0012: Warn about pylint messages disabled in comments
+            "--disable I0011 "
+            # R0201: Method could be a function
+            "--disable R0201 "
+
+            # These bits might be useful to enable later
+
+            # W0223: Abstract method not overwritten in
+            "--disable W0223 "
+            # W0511: FIXME comments
+            "--disable W0511 "
+            # W0212: Access to a protected member of a client class
+            "--disable W0212 "
+            "bugzilla/ bin/bugzilla tests/*.py ")
+
+        os.system("pep8 --format=pylint "
+            "bugzilla/ bin/bugzilla tests/ "
+            "--exclude scriptimports "
+            # E303: Too many blank lines
+            # E125: Continuation indent isn't different from next block
+            # E128: Not indented for visual style
+            "--ignore E303,E125,E128")
 
 
 setup(name='python-bugzilla',

@@ -1,4 +1,3 @@
-# bugzilla4.py - a really simple Python interface to Bugzilla 4.x using xmlrpclib.
 #
 # Copyright (C) 2008-2012 Red Hat Inc.
 # Author: Michal Novotny <minovotn@redhat.com>
@@ -12,6 +11,7 @@
 import bugzilla.base
 from bugzilla.bugzilla3 import Bugzilla36
 
+
 class Bugzilla4(Bugzilla36):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
     methods provided by standard Bugzilla 4.0.x releases.'''
@@ -22,23 +22,26 @@ class Bugzilla4(Bugzilla36):
     bz_ver_major = 4
     bz_ver_minor = 0
 
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
         Bugzilla36.__init__(self, **kwargs)
         self.user_agent = self.__class__.user_agent
 
     #---- Methods for reading bugs and bug info
 
-    def _getbugs(self,idlist):
+    def _getbugs(self, idlist):
         '''Return a list of dicts of full bug info for each given bug id.
         bug ids that couldn't be found will return None instead of a dict.'''
         # XXX This is only slightly different from Bugzilla36, combine them?
-        idlist = map(lambda i: int(i), idlist)
-        r = self._proxy.Bug.get_bugs({'ids':idlist, 'permissive': 1})
+        idlist = [int(i) for i in idlist]
+
+        r = self._proxy.Bug.get_bugs({'ids': idlist, 'permissive': 1})
+
         bugdict = dict([(b['id'], b) for b in r['bugs']])
         return [bugdict.get(i) for i in idlist]
-    def _getbug(self,id):
+
+    def _getbug(self, objid):
         '''Return a dict of full bug info for the given bug id'''
-        return self._getbugs([id])[0]
+        return self._getbugs([objid])[0]
 
    # TODO: Bugzilla4 should support getbugsimple, needs to be implemented
     _getbugsimple = _getbug
@@ -65,7 +68,10 @@ class Bugzilla4(Bugzilla36):
 
         return query
 
+
 class Bugzilla42(Bugzilla4):
     bz_ver_minor = 2
+
+
 class Bugzilla44(Bugzilla42):
     bz_ver_minor = 4

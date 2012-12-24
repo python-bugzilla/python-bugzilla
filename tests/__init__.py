@@ -6,6 +6,7 @@ import shlex
 import sys
 import StringIO
 
+
 def diff(orig, new):
     """
     Return a unified diff string between the passed strings
@@ -14,6 +15,8 @@ def diff(orig, new):
                                         new.splitlines(1),
                                         fromfile="Orig",
                                         tofile="New"))
+
+
 def difffile(expect, filename):
     expect += '\n'
     if not os.path.exists(filename) or os.getenv("__BUGZILLA_UNITTEST_REGEN"):
@@ -21,6 +24,7 @@ def difffile(expect, filename):
     ret = diff(file(filename).read(), expect)
     if ret:
         raise AssertionError("Output was different:\n%s" % ret)
+
 
 def clicomm(argv, bzinstance, returnmain=False, printcliout=False,
             stdin=None):

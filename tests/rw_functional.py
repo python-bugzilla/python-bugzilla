@@ -11,7 +11,6 @@ Unit tests that do permanent functional against a real bugzilla instances.
 
 import datetime
 import os
-import re
 import unittest
 import urllib2
 
@@ -19,6 +18,8 @@ import bugzilla
 from bugzilla import Bugzilla
 
 import tests
+
+cf = os.path.expanduser("~/.bugzillacookies")
 
 
 def _split_int(s):
@@ -29,16 +30,13 @@ class BaseTest(unittest.TestCase):
     url = None
     bzclass = None
 
-    def _getCookiefile(self):
-        return os.path.expanduser("~/.bugzillacookies")
-
     def _testBZClass(self):
         bz = Bugzilla(url=self.url, cookiefile=None)
         self.assertTrue(isinstance(bz, self.bzclass))
 
     def _testCookie(self):
-        cookiefile = self._getCookiefile()
-        domain = urllib2.urlparse.urlparse(self.url).netloc
+        cookiefile = cf
+        domain = urllib2.urlparse.urlparse(self.url)[1]
         if os.path.exists(cookiefile):
             out = file(cookiefile).read(1024)
             if domain in out:
@@ -63,7 +61,7 @@ class RHPartnerTest(BaseTest):
         """
         Create a bug with minimal amount of fields, then close it
         """
-        bz = self.bzclass(url=self.url, cookiefile=self._getCookiefile())
+        bz = self.bzclass(url=self.url, cookiefile=cf)
         component = "python-bugzilla"
         version = "16"
         summary = ("python-bugzilla test basic bug %s" %
@@ -97,7 +95,7 @@ class RHPartnerTest(BaseTest):
         """
         Create a bug using all 'new' fields, check some values, close it
         """
-        bz = self.bzclass(url=self.url, cookiefile=self._getCookiefile())
+        bz = self.bzclass(url=self.url, cookiefile=cf)
 
         summary = ("python-bugzilla test manyfields bug %s" %
                    datetime.datetime.today())
@@ -142,7 +140,7 @@ class RHPartnerTest(BaseTest):
         """
         Modify status and comment fields for an existing bug
         """
-        bz = self.bzclass(url=self.url, cookiefile=self._getCookiefile())
+        bz = self.bzclass(url=self.url, cookiefile=cf)
         bugid = "663674"
         cmd = "bugzilla modify %s " % bugid
 
@@ -211,15 +209,13 @@ class RHPartnerTest(BaseTest):
         """
         Modify cc, assignee, qa_contact for existing bug
         """
-        bz = self.bzclass(url=self.url, cookiefile=self._getCookiefile())
+        bz = self.bzclass(url=self.url, cookiefile=cf)
         bugid = "663674"
         cmd = "bugzilla modify %s " % bugid
 
         bug = bz.getbug(bugid)
 
         origcc = bug.cc
-        origassign = bug.assigned_to
-        origqa = bug.qa_contact
 
         # Test CC list and reset it
         email1 = "triage@lists.fedoraproject.org"
@@ -258,7 +254,7 @@ class RHPartnerTest(BaseTest):
         """
         Modify flags and fixed_in for 2 bugs
         """
-        bz = self.bzclass(url=self.url, cookiefile=self._getCookiefile())
+        bz = self.bzclass(url=self.url, cookiefile=cf)
         bugid1 = "461686"
         bugid2 = "461687"
         cmd = "bugzilla modify %s %s " % (bugid1, bugid2)
@@ -334,21 +330,28 @@ class RHPartnerTest(BaseTest):
 
 
     def test8Attachments(self):
-        """
-        Get and set attachments for a bug
-        """
-        bz = self.bzclass(url=self.url, cookiefile=self._getCookiefile())
-        getbugid = "663674"
-        setbugid = "461686"
-        attachid = "469147"
-        cmd = "bugzilla attach "
-        testfile = "../tests/data/bz-attach-get1.txt"
-
         tmpdir = "__test_attach_output"
         if tmpdir in os.listdir("."):
             os.system("rm -r %s" % tmpdir)
         os.mkdir(tmpdir)
         os.chdir(tmpdir)
+
+        try:
+            self._test8Attachments()
+        finally:
+            os.chdir("..")
+            os.system("rm -r %s" % tmpdir)
+
+    def _test8Attachments(self):
+        """
+        Get and set attachments for a bug
+        """
+        bz = self.bzclass(url=self.url, cookiefile=cf)
+        getbugid = "663674"
+        setbugid = "461686"
+        attachid = "469147"
+        cmd = "bugzilla attach "
+        testfile = "../tests/data/bz-attach-get1.txt"
 
         # Get first attachment
         out = tests.clicomm(cmd + "--get %s" % attachid, bz).splitlines()
@@ -399,6 +402,3 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(setbug.attachments[-1]["description"], desc2)
         self.assertEquals(setbug.attachments[-1]["id"],
                           int(out2.splitlines()[2].split()[2]))
-
-        os.chdir("..")
-        os.system("rm -r %s" % tmpdir)

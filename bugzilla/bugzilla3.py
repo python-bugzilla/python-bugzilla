@@ -11,6 +11,7 @@
 
 import bugzilla.base
 
+
 class Bugzilla3(bugzilla.base.BugzillaBase):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
     methods provided by standard Bugzilla 3.0.x releases.'''
@@ -20,13 +21,13 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
     bz_ver_major = 3
     bz_ver_minor = 0
 
-    def __init__(self,**kwargs):
-        bugzilla.base.BugzillaBase.__init__(self,**kwargs)
+    def __init__(self, **kwargs):
+        bugzilla.base.BugzillaBase.__init__(self, **kwargs)
         self.user_agent = self.__class__.user_agent
 
-    def _login(self,user,password):
+    def _login(self, user, password):
         '''Backend login method for Bugzilla3'''
-        return self._proxy.User.login({'login':user,'password':password})
+        return self._proxy.User.login({'login': user, 'password': password})
 
     def _logout(self):
         '''Backend login method for Bugzilla3'''
@@ -34,7 +35,7 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
 
     #---- Methods and properties with basic bugzilla info
 
-    def _getuserforid(self,userid):
+    def _getuserforid(self, userid):
         '''Get the username for the given userid'''
         # STUB FIXME
         return str(userid)
@@ -46,41 +47,45 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         # method, so we fake it by looking at bug #1. Yuck.
         # And at least gnome.bugzilla.org fails to lookup bug #1, so
         # try a few
-        err = None
+        err = False
         for bugid in [1, 100000]:
             try:
                 keylist = self._getbug(bugid).keys()
-                err = None
+                err = False
                 break
-            except Exception, err:
-                pass
+            except Exception:
+                err = True
 
         if err:
-            raise err
+            raise
 
         if 'assigned_to' not in keylist:
             keylist.append('assigned_to')
         return keylist
 
-    def _getcomponents(self,product):
+    def _getcomponents(self, product):
         if type(product) == str:
             product = self._product_name_to_id(product)
-        r = self._proxy.Bug.legal_values({'product_id':product,
-                                          'field':'component'})
+        r = self._proxy.Bug.legal_values({'product_id': product,
+                                          'field': 'component'})
         return r['values']
 
     #---- Methods for reading bugs and bug info
 
-    def _getbugs(self,idlist):
+    def _getbugs(self, idlist):
         '''Return a list of dicts of full bug info for each given bug id.
         bug ids that couldn't be found will return None instead of a dict.'''
-        idlist = map(lambda i: int(i), idlist)
-        r = self._proxy.Bug.get_bugs({'ids':idlist, 'permissive': 1})
+        idlist = [int(i) for i in idlist]
+
+        r = self._proxy.Bug.get_bugs({'ids': idlist, 'permissive': 1})
+
         bugdict = dict([(b['id'], b['internals']) for b in r['bugs']])
         return [bugdict.get(i) for i in idlist]
-    def _getbug(self,id):
+
+    def _getbug(self, objid):
         '''Return a dict of full bug info for the given bug id'''
-        return self._getbugs([id])[0]
+        return self._getbugs([objid])[0]
+
    # Bugzilla3 doesn't have getbugsimple - alias to the full method(s)
     _getbugsimple = _getbug
     _getbugssimple = _getbugs
@@ -107,6 +112,7 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         userid = self._proxy.User.create(email, name, password)
         return userid
 
+
 # Bugzilla 3.2 adds some new goodies on top of Bugzilla3.
 class Bugzilla32(Bugzilla3):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
@@ -120,8 +126,8 @@ class Bugzilla32(Bugzilla3):
     user_agent = bugzilla.base.user_agent + ' Bugzilla32/%s' % version
     bz_ver_minor = 2
 
-    def _addcomment(self,id,comment,private=False,
-                   timestamp='',worktime='',bz_gid=''):
+    def _addcomment(self, objid, comment, private=False,
+                    timestamp='', worktime='', bz_gid=''):
         '''Add a comment to the bug with the given ID. Other optional
         arguments are as follows:
             private:   if True, mark this comment as private.
@@ -129,10 +135,11 @@ class Bugzilla32(Bugzilla3):
             worktime:  amount of time spent on this comment, in hours
             bz_gid:    Ignored by BZ32.
         '''
-        return self._proxy.Bug.add_comment({'id':id,
-                                            'comment':comment,
-                                            'private':private,
-                                            'work_time':worktime})
+        return self._proxy.Bug.add_comment({'id': objid,
+                                            'comment': comment,
+                                            'private': private,
+                                            'work_time': worktime})
+
 
 # Bugzilla 3.4 adds some new goodies on top of Bugzilla32.
 class Bugzilla34(Bugzilla32):
@@ -164,12 +171,12 @@ class Bugzilla34(Bugzilla32):
         if match:
             params['match'] = match
         if not params:
-            raise bugzilla.base.NeedParamError('_get() needs one of ids,'
+            raise bugzilla.base.NeedParamError('_get() needs one of ids, '
                     ' names, or match kwarg.')
 
         return self._proxy.User.get(params)
 
-    def _query(self,query):
+    def _query(self, query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
         You can also pass in keys called 'quicksearch' or 'savedsearch' -
@@ -182,8 +189,6 @@ class Bugzilla34(Bugzilla32):
         buglist is a list of dicts describing bugs, and 'sql' contains the SQL
         generated by executing the search.
         You can also pass 'limit:[int]' to limit the number of results.
-        For more info, see:
-        http://www.bugzilla.org/docs/3.4/en/html/api/Bugzilla/WebService/Bug.html
         '''
         return self._proxy.Bug.search(query)
 
@@ -224,38 +229,47 @@ class Bugzilla34(Bugzilla32):
         Build a query string from passed arguments. Will handle
         query parameter differences between various bugzilla versions.
         """
-        ignore = include_fields
+        # pylint: disable=W0221
+        # Argument number differs from overridden method
+        # Base defines it with *args, **kwargs, so we don't have to maintain
+        # the master argument list in 2 places
 
-        for key, val in [('fixed_in', fixed_in),
-                         ('blocked', blocked),
-                         ('dependson', dependson),
-                         ('flag', flag),
-                         ('qa_whiteboard', qa_whiteboard),
-                         ('devel_whiteboard', devel_whiteboard),
-                         ('alias', alias),
-                         ('boolean_query', boolean_query)]:
+        ignore = include_fields
+        ignore = emailtype
+        ignore = booleantype
+
+        for key, val in [
+            ('fixed_in', fixed_in),
+            ('blocked', blocked),
+            ('dependson', dependson),
+            ('flag', flag),
+            ('qa_whiteboard', qa_whiteboard),
+            ('devel_whiteboard', devel_whiteboard),
+            ('alias', alias),
+            ('boolean_query', boolean_query),
+        ]:
             if not val is None:
                 raise RuntimeError("'%s' search not supported by this "
                                    "bugzilla" % key)
 
         query = {
-            "product" : self._listify(product),
-            "component" : self._listify(component),
-            "version" : version,
-            "long_desc" : long_desc,
-            "id" : bug_id,
-            "short_desc" : short_desc,
-            "bug_status" : status,
-            "keywords" : keywords,
-            "keywords_type" : keywords_type,
-            "bug_file_loc" : url,
-            "bug_file_loc_type" : url_type,
-            "status_whiteboard" : status_whiteboard,
-            "status_whiteboard_type" : status_whiteboard_type,
-            "fixed_in_type" : fixed_in_type,
-            "bug_severity" : bug_severity,
-            "priority" : priority,
-            "target_milestone" : target_milestone,
+            "product": self._listify(product),
+            "component": self._listify(component),
+            "version": version,
+            "long_desc": long_desc,
+            "id": bug_id,
+            "short_desc": short_desc,
+            "bug_status": status,
+            "keywords": keywords,
+            "keywords_type": keywords_type,
+            "bug_file_loc": url,
+            "bug_file_loc_type": url_type,
+            "status_whiteboard": status_whiteboard,
+            "status_whiteboard_type": status_whiteboard_type,
+            "fixed_in_type": fixed_in_type,
+            "bug_severity": bug_severity,
+            "priority": priority,
+            "target_milestone": target_milestone,
             "assigned_to": assigned_to,
             "cc": cc,
             "qa_contact": qa_contact,
@@ -278,6 +292,5 @@ class Bugzilla36(Bugzilla34):
 
     def _getbugfields(self):
         '''Get the list of valid fields for Bug objects'''
-        r = self._proxy.Bug.fields({'include_fields':['name']})
+        r = self._proxy.Bug.fields({'include_fields': ['name']})
         return [f['name'] for f in r['fields']]
-

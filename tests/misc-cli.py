@@ -9,10 +9,10 @@
 Unit tests for building query strings with bin/bugzilla
 '''
 
-import os
 import unittest
 
 import tests
+
 
 class MiscCLI(unittest.TestCase):
     """

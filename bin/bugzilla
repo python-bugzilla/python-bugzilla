@@ -11,22 +11,25 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-import bugzilla, optparse
-import os, sys, re
-import logging
 import getpass
-import bugzilla.util
 import locale
-import pprint
+import logging
+import optparse
+import os
+import re
 import socket
+import sys
+import tempfile
 import xmlrpclib
-from tempfile import NamedTemporaryFile
+
+import bugzilla
+import bugzilla.util
 
 version = '0.7.0'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
 _is_unittest = bool(os.getenv("__BUGZILLA_UNITTEST"))
-cmdlist = ['login','new','query','modify','attach','info']
+cmdlist = ['login', 'new', 'query', 'modify', 'attach', 'info']
 format_field_re = re.compile("%{([a-z0-9_]+)(?::([^}]*))?}")
 
 log = logging.getLogger("bugzilla")
@@ -57,13 +60,13 @@ def open_without_clobber(name, *args):
     orig_name = name
     while fd is None:
         try:
-            fd = os.open(name, os.O_CREAT|os.O_EXCL, 0666)
+            fd = os.open(name, os.O_CREAT | os.O_EXCL, 0666)
         except OSError as e:
             if e.errno == os.errno.EEXIST:
                 name = "%s.%i" % (orig_name, count)
                 count += 1
-            else: # raise IOError like regular open()
-                raise IOError, (e.errno, e.strerror, e.filename)
+            else:
+                raise IOError(e.errno, e.strerror, e.filename)
     fobj = open(name, *args)
     if fd != fobj.fileno():
         os.close(fd)
@@ -75,16 +78,16 @@ def open_without_clobber(name, *args):
 ##################
 
 def setup_parser():
-    u =   "%prog [global options] COMMAND [command-options]"
-    u +=  "\nCommands: %s" % ', '.join(cmdlist)
+    u = ("%%prog [global options] COMMAND [command-options]"
+         "\nCommands: %s" % ','.join(cmdlist))
     p = optparse.OptionParser(usage=u, version=version)
     p.disable_interspersed_args()
     p.epilog = 'Try "bugzilla COMMAND --help" for command-specific help.'
 
     # General bugzilla connection options
-    p.add_option('--bugzilla',default=default_bz,
+    p.add_option('--bugzilla', default=default_bz,
             help="bugzilla XMLRPC URI. default: %s" % default_bz)
-    p.add_option('--bztype',default='auto',
+    p.add_option('--bztype', default='auto',
             help="Bugzilla type. Autodetected if not set. "
                  "Available types: %s" % " ".join(bugzilla.classlist))
     p.add_option('--user',
@@ -93,9 +96,9 @@ def setup_parser():
             help="password")
     p.add_option('--cookiefile',
             help="cookie file to use for bugzilla authentication")
-    p.add_option('--verbose',action='store_true',
+    p.add_option('--verbose', action='store_true',
             help="give more info about what's going on")
-    p.add_option('--debug',action='store_true',
+    p.add_option('--debug', action='store_true',
             help="output bunches of debugging info")
 
     # Generate the man page, dump to stdout. Not for end users
@@ -112,102 +115,119 @@ def setup_action_parser(action):
         # TODO: product and version could default to current system
         # info (read from /etc/redhat-release?)
         p.set_description("Create a new bug report.")
-        p.add_option('-p','--product',
+        p.add_option('-p', '--product',
                 help="REQUIRED: product name (list with 'bugzilla info -p')")
-        p.add_option('-v','--version',
+        p.add_option('-v', '--version',
                 help="REQUIRED: product version")
-        p.add_option('-c','--component',
+        p.add_option('-c', '--component',
                 help="REQUIRED: component name "
                      "(list with 'bugzilla info -c PRODUCT')")
-        p.add_option('-l','--comment', dest='description',
+        p.add_option('-l', '--comment', dest='description',
                 help="REQUIRED: initial bug comment")
-        p.add_option('-s','--short_desc','--summary',dest='summary',
+        p.add_option('-s', '--short_desc', '--summary', dest='summary',
                 help="REQUIRED: bug summary")
-        p.add_option('-o','--os', dest='op_sys',
+        p.add_option('-o', '--os', dest='op_sys',
                 help="OPTIONAL: operating system (default: Linux)")
-        p.add_option('-a','--arch', dest='platform',
+        p.add_option('-a', '--arch', dest='platform',
                 help="OPTIONAL: arch this bug occurs on (default: All)")
         p.add_option('--severity',
                 help="OPTIONAL: bug severity (default: medium)")
         p.add_option('--priority',
                 help="OPTIONAL: bug priority (default: medium)")
-        p.add_option('-u','--url', dest='bug_file_loc',
+        p.add_option('-u', '--url', dest='bug_file_loc',
                 help="OPTIONAL: URL for further bug info")
-        p.add_option('--cc',metavar='CC[,CC,...]',
+        p.add_option('--cc', metavar='CC[, CC, ...]',
                 help="OPTIONAL: add emails to initial CC list")
-        p.add_option('--blocked',metavar='BUGID[,BUGID,...]',
+        p.add_option('--blocked', metavar='BUGID[, BUGID, ...]',
                 help="OPTIONAL: add bug_ids blocked by this bug")
-        p.add_option('--dependson',metavar='BUGID[,BUGID,...]',
+        p.add_option('--dependson', metavar='BUGID[, BUGID, ...]',
                 help="OPTIONAL: add bug_ids that this bug depends on")
         # no API to attach files during bug creation, so no --attach :/
 
     elif action == 'query':
         p.set_description("List bug reports that match the given criteria.")
         # General bug metadata
-        p.add_option('-b','--bug_id', default=None,
+        p.add_option('-b', '--bug_id', default=None,
                 help="specify individual bugs by IDs, separated with commas")
-        p.add_option('-p','--product',
-                help="product name, comma-separated (list with 'bugzilla info -p')")
-        p.add_option('-v','--version',
+        p.add_option('-p', '--product',
+                help="product name, comma-separated "
+                     "(list with 'bugzilla info -p')")
+        p.add_option('-v', '--version',
                 help="product version")
-        p.add_option('-c','--component',
-                help="component name(s), comma-separated (list with 'bugzilla info -c PRODUCT')")
+        p.add_option('-c', '--component',
+                help="component name(s), comma-separated "
+                     "(list with 'bugzilla info -c PRODUCT')")
         p.add_option('--components_file', default=None,
-                help="list of component names from a file, one component per line (list with 'bugzilla info -c PRODUCT')")
-        p.add_option('-l','--long_desc',
+                help="list of component names from a file, one component "
+                     "per line (list with 'bugzilla info -c PRODUCT')")
+        p.add_option('-l', '--long_desc',
                 help="search inside bug comments")
-        p.add_option('-m','--target_milestone',
+        p.add_option('-m', '--target_milestone',
                 help="search for a target milestone")
-        p.add_option('-s','--short_desc',
+        p.add_option('-s', '--short_desc',
                 help="search bug summaries")
-        p.add_option('-t','--bug_status',default="ALL",
-                help="comma-separated list of bug statuses to accept [Default:all] [Available:NEW,ASSIGNED,NEEDINFO,ON_DEV,MODIFIED,POST,ON_QA,FAILS_QA,PASSES_QA,REOPENED,VERIFIED,RELEASE_PENDING,CLOSED]")
-        p.add_option('-x','--bug_severity','--severity',
+        p.add_option('-t', '--bug_status', default="ALL",
+                help="comma-separated list of bug statuses to accept "
+                     "[Default:all]")
+        p.add_option('-x', '--bug_severity', '--severity',
                 help="search severities, comma-separated")
-        p.add_option('-z','--priority',
+        p.add_option('-z', '--priority',
                 help="search priorities, comma-separated")
 
         # Email
-        p.add_option('-E','--emailtype',
-                help="Email: specify searching option for emails, ie. substring,notsubstring,exact,... [Default: substring]",default="substring")
-        p.add_option('-o','--cc',
+        p.add_option('-E', '--emailtype', default="substring",
+                help="Email: specify searching option for emails, "
+                     "ie. substring, notsubstring, exact, ... "
+                     "[Default: substring]")
+        p.add_option('-o', '--cc',
                 help="Email: search cc lists for given address")
-        p.add_option('-r','--reporter',
+        p.add_option('-r', '--reporter',
                 help="Email: search reporter email for given address")
-        p.add_option('-a','--assigned_to',
+        p.add_option('-a', '--assigned_to',
                 help="Email: search for bugs assigned to this address")
-        p.add_option('-q','--qa_contact',
-                help="Email: search for bugs which have QA Contact assigned to this address")
+        p.add_option('-q', '--qa_contact',
+                help="Email: search for bugs which have QA Contact "
+                     "assigned to this address")
 
         # Strings
-        p.add_option('-u','--url',
+        p.add_option('-u', '--url',
                 help="search keywords field for given url")
-        p.add_option('-U','--url_type',
-                help="specify searching option for urls, ie. anywords,allwords,nowords")
-        p.add_option('-k','--keywords',
+        p.add_option('-U', '--url_type',
+                help="specify searching option for urls, "
+                     "ie. anywords, allwords, nowords")
+        p.add_option('-k', '--keywords',
                 help="search keywords field for specified words")
-        p.add_option('-K','--keywords_type',
-                help="specify searching option for keywords, ie. anywords,allwords,nowords")
-        p.add_option('-w','--status_whiteboard',
+        p.add_option('-K', '--keywords_type',
+                help="specify searching option for keywords, "
+                     "ie. anywords, allwords, nowords")
+        p.add_option('-w', '--status_whiteboard',
                 help="search Status Whiteboard field for specified words")
-        p.add_option('-W','--status_whiteboard_type',
-                help="specify searching option for Status Whiteboard, ie. anywords,allwords,nowords")
+        p.add_option('-W', '--status_whiteboard_type',
+                help="specify searching option for Status Whiteboard, "
+                     "ie. anywords, allwords, nowords")
 
         # Boolean Charts
-        p.add_option('-B','--booleantype',
-                help="specify searching option for booleans, ie. substring,notsubstring,exact,... [Default: substring]",default="substring")
+        p.add_option('-B', '--booleantype', default="substring",
+                help="specify searching option for booleans, ie. substring, "
+                     "notsubstring, exact, ... [Default: substring]")
         p.add_option('--boolean_query', action="append",
-                help="Boolean:Create your own query. Format: BooleanName-Condition-Parameter &/| ... . ie, keywords-substring-Partner & keywords-notsubstring-OtherQA")
+                help="Boolean:Create your own query. Format: "
+                     "BooleanName-Condition-Parameter &/| ... . ie, "
+                     "keywords-substring-Partner & "
+                     "keywords-notsubstring-OtherQA")
         p.add_option('--blocked', action="append",
                 help="Boolean:search for bugs that block this bug ID")
         p.add_option('--dependson', action="append",
                 help="Boolean:search for bugs that depend on this bug ID")
         p.add_option('--flag', action='append',
-                help="Boolean:search for bugs that have certain flag states present")
+                help="Boolean:search for bugs that have certain "
+                     "flag states present")
         p.add_option('--qa_whiteboard', action="append",
-                help="Boolean:search for bugs that have certain QA Whiteboard text present")
+                help="Boolean:search for bugs that have certain QA "
+                     "Whiteboard text present")
         p.add_option('--devel_whiteboard', action="append",
-                help="Boolean:search for bugs that have certain Devel Whiteboard text present")
+                help="Boolean:search for bugs that have certain "
+                     "Devel Whiteboard text present")
         p.add_option('--alias', action="append",
                 help="Boolean:search for bugs that have the provided alias")
         p.add_option('--fixed_in', action="append",
@@ -223,40 +243,39 @@ def setup_action_parser(action):
 
     elif action == 'info':
         p.set_description("Get information about the bugzilla server.")
-        p.add_option('-p','--products',action='store_true',
+        p.add_option('-p', '--products', action='store_true',
                 help='Get a list of products')
-        p.add_option('-c','--components',metavar="PRODUCT",
+        p.add_option('-c', '--components', metavar="PRODUCT",
                 help='List the components in the given product')
-        p.add_option('-o','--component_owners',metavar="PRODUCT",
+        p.add_option('-o', '--component_owners', metavar="PRODUCT",
                 help='List components (and their owners)')
-        p.add_option('-v','--versions',metavar="PRODUCT",
+        p.add_option('-v', '--versions', metavar="PRODUCT",
                 help='List the versions for the given product')
     elif action == 'modify':
         p.set_usage("%prog modify [options] BUGID [BUGID...]")
         p.set_description("Modify one or more bugs.")
-        p.add_option('-l','--comment',
+        p.add_option('-l', '--comment',
                 help='Add a comment')
-        # FIXME: check value for resolution
-        p.add_option('-k','--close',metavar="RESOLUTION",
+        # TODO: --keyword, --tag, ...
+        p.add_option('-k', '--close', metavar="RESOLUTION",
                 help='Close with the given resolution')
-        p.add_option('-d','--dupeid',metavar="ORIGINAL",
+        p.add_option('-d', '--dupeid', metavar="ORIGINAL",
                 help='ID of original bug (implies -k DUPLICATE)')
-        p.add_option('-p','--private',action='store_true',default=False,
+        p.add_option('-p', '--private', action='store_true', default=False,
                 help='Mark as private')
-        p.add_option('-s','--status',
+        p.add_option('-s', '--status',
                 help='Change status of bug')
         p.add_option('--assignee',
                 help='Assign bugzilla to assignee')
         p.add_option('--qa_contact',
                 help='Change QA contact')
-        p.add_option('-f','--flag', action='append',
-                help='Update bugzilla flags with requested type, ie fedora-cvs?\
- (Use a new option for each flag)')
+        p.add_option('-f', '--flag', action='append',
+                help='Update bugzilla flags with requested type, '
+                     'ie fedora-cvs? (Use a new option for each flag)')
         p.add_option('--cc', action='append',
                 help='Add an email to the cc list')
-        p.add_option('-F','--fixed_in',metavar="VERSION",
+        p.add_option('-F', '--fixed_in', metavar="VERSION",
                 help='"Fixed in version" field')
-        # TODO: --keyword, --tag, ...
 
     elif action == 'attach':
         p.set_usage('''
@@ -264,36 +283,42 @@ def setup_action_parser(action):
   %prog attach --get=ATTACHID --getall=BUGID [...]
   %prog attach --type=TYPE BUGID [BUGID...]''')
         p.set_description("Attach files or download attachments.")
-        p.add_option('-f','--file',metavar="FILENAME",
+        p.add_option('-f', '--file', metavar="FILENAME",
                 help='File to attach, or filename for data provided on stdin')
-        p.add_option('-d','--description', metavar="DESCRIPTION",dest='desc',
+        p.add_option('-d', '--description', metavar="DESCRIPTION", dest='desc',
                 help="A short description of the file being attached")
-        p.add_option('-t','--type', metavar="MIMETYPE",
+        p.add_option('-t', '--type', metavar="MIMETYPE",
                 help="Mime-type for the file being attached")
-        p.add_option('-g','--get', metavar="ATTACHID", action="append",
+        p.add_option('-g', '--get', metavar="ATTACHID", action="append",
                 default=[], help="Download the attachment with the given ID")
-        p.add_option("--getall","--get-all", metavar="BUGID", action="append",
+        p.add_option("--getall", "--get-all", metavar="BUGID", action="append",
                 default=[], help="Download all attachments on the given bug")
 
     elif action == 'login':
         p.set_usage('%prog login [username [password]]')
         p.set_description("Log into bugzilla and save a login cookie.")
 
-    if action in ['new','query']:
+    if action in ['new', 'query']:
         # output modifiers
-        p.add_option('-f','--full',action='store_const',dest='output',
-                const='full',default='normal',help="output detailed bug info")
-        p.add_option('-i','--ids',action='store_const',dest='output',
-                const='ids',help="output only bug IDs")
-        p.add_option('-e','--extra',action='store_const',dest='output',
-                const='extra',help="output additional bug information (keywords, Whiteboards, etc.)")
+        p.add_option('-f', '--full', action='store_const', dest='output',
+                const='full', default='normal',
+                help="output detailed bug info")
+        p.add_option('-i', '--ids', action='store_const', dest='output',
+                const='ids', help="output only bug IDs")
+        p.add_option('-e', '--extra', action='store_const',
+                dest='output', const='extra',
+                help="output additional bug information "
+                     "(keywords, Whiteboards, etc.)")
         p.add_option('--oneline', action='store_const', dest='output',
-                const='oneline',help="one line summary of the bug (useful for scripts)")
+                const='oneline',
+                help="one line summary of the bug (useful for scripts)")
         p.add_option('--raw', action='store_const', dest='output',
-                const='raw',help="raw output of the bugzilla contents")
+                const='raw', help="raw output of the bugzilla contents")
         p.add_option('--outputformat',
-                help="Print output in the form given. You can use RPM-style "+
-                "tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'")
+                help="Print output in the form given. "
+                     "You can use RPM-style tags that match bug "
+                     "fields, e.g.: '%{bug_id}: %{short_desc}'")
+
     return p
 
 
@@ -333,14 +358,14 @@ by Bugzilla.
 .I \\fR * attach - attach files to existing bugs, or get attachments
 .br
 .I \\fR * info - get info about the given bugzilla instance
-''' % (datestr,version)
+''' % (datestr, version)
 
     manformatter = ManHelpFormatter()
     parser = setup_parser()
     parser.formatter = manformatter
 
     opt_section = parser.format_option_help()
-    manpage += opt_section.replace("OPTIONS","GLOBAL OPTIONS")
+    manpage += opt_section.replace("OPTIONS", "GLOBAL OPTIONS")
     for action in cmdlist:
         action_parser = setup_action_parser(action)
         action_parser.remove_option("--help")
@@ -403,7 +428,7 @@ def do_query(bz, opt, parser):
         # Components slurped in from file (one component per line)
         # This can be made more robust
         clist = []
-        f = open (opt.components_file, 'r')
+        f = open(opt.components_file, 'r')
         for line in f.readlines():
             line = line.rstrip("\n")
             clist.append(line)
@@ -419,7 +444,7 @@ def do_query(bz, opt, parser):
         elif val == 'DEV':
             # Alias for all development bug statuses
             stat = ['NEW', 'ASSIGNED', 'NEEDINFO', 'ON_DEV',
-                      'MODIFIED', 'POST', 'REOPENED']
+                'MODIFIED', 'POST', 'REOPENED']
         elif val == 'QE':
             # Alias for all QE relevant bug statuses
             stat = ['ASSIGNED', 'ON_QA', 'FAILS_QA', 'PASSES_QA']
@@ -429,7 +454,7 @@ def do_query(bz, opt, parser):
         elif val == 'OPEN':
             # non-Closed statuses
             stat = ['NEW', 'ASSIGNED', 'MODIFIED', 'ON_DEV', 'ON_QA',
-                      'VERIFIED', 'RELEASE_PENDING', 'POST']
+                'VERIFIED', 'RELEASE_PENDING', 'POST']
         opt.bug_status = stat
 
     # Convert all comma separated list parameters to actual lists,
@@ -453,9 +478,9 @@ def do_query(bz, opt, parser):
     # this list and the output format have to be in _sync_.  Otherwise,
     # you lose speed by doing a look-up for each new output element.
     if opt.output == 'oneline':
-        include_fields = [ 'bug_id', 'bug_status', 'assigned_to',
+        include_fields = ['bug_id', 'bug_status', 'assigned_to',
             'component', 'target_milestone', 'short_desc', 'flags',
-            'keywords', 'blockedby' ]
+            'keywords', 'blockedby']
 
     elif opt.output == 'normal':
         include_fields = ['bug_id', 'bug_status', 'assigned_to',
@@ -553,16 +578,17 @@ def _do_info(bz, opt):
 def _format_output(bz, opt, buglist):
     if opt.outputformat:
         special_fields = {
-            'flag': lambda b,f: b.get_flag_status(f),
-            'whiteboard': lambda b,wb: b.getwhiteboard(wb),
+            'flag': lambda b, f: b.get_flag_status(f),
+            'whiteboard': lambda b, wb: b.getwhiteboard(wb),
         }
+
         def bug_field(matchobj):
             (fieldname, rest) = matchobj.groups()
 
-            if special_fields.has_key(fieldname):
+            if fieldname in special_fields:
                 val = special_fields[fieldname](b, rest)
             else:
-                val = getattr(b,fieldname)
+                val = getattr(b, fieldname)
             if type(val) is list:
                 val = ','.join(val)
             try:
@@ -570,7 +596,7 @@ def _format_output(bz, opt, buglist):
             except UnicodeEncodeError:
                 return to_encoding(val)
         for b in buglist:
-            print format_field_re.sub(bug_field,opt.outputformat)
+            print format_field_re.sub(bug_field, opt.outputformat)
 
     elif opt.output == 'ids':
         for b in buglist:
@@ -622,7 +648,7 @@ def _format_output(bz, opt, buglist):
             if hasattr(b, 'devel_whiteboard') and b.devel_whiteboard:
                 print to_encoding(u" +Devel Whiteboard: %s" %
                         b.devel_whiteboard)
-        print "\nBugs listed: ",len(buglist)
+        print "\nBugs listed: ", len(buglist)
 
     elif opt.output == 'oneline':
         for b in buglist:
@@ -788,7 +814,7 @@ def _do_attach(bz, opt, parser, args):
     else:
         # piped input on stdin
         # write it to a tempfile - and get the filetype if we need it
-        fileobj = NamedTemporaryFile(prefix="bugzilla-attach.")
+        fileobj = tempfile.NamedTemporaryFile(prefix="bugzilla-attach.")
         data = sys.stdin.read(4096)
         if not opt.type:
             opt.type = mimemagic.buffer(data)
@@ -851,7 +877,7 @@ def main(bzinstance=None):
             bzclass = bugzilla.Bugzilla
     elif global_opt.bztype in bugzilla.classlist:
         log.info('Using Bugzilla class %s' % global_opt.bztype)
-        bzclass = getattr(bugzilla,global_opt.bztype)
+        bzclass = getattr(bugzilla, global_opt.bztype)
     else:
         parser.error("bztype must be one of: %s" % str(bugzilla.classlist))
 
@@ -866,7 +892,7 @@ def main(bzinstance=None):
         if len(args) == 2:
             (global_opt.user, global_opt.password) = args
         elif len(args) == 1:
-            (global_opt.user,) = args
+            (global_opt.user, ) = args
         elif len(args) > 2:
             parser.error("Too many arguments for login")
         if not global_opt.user:
@@ -877,7 +903,7 @@ def main(bzinstance=None):
             global_opt.password = getpass.getpass()
         sys.stdout.write('Logging in... ')
         sys.stdout.flush()
-        if bz.login(global_opt.user,global_opt.password):
+        if bz.login(global_opt.user, global_opt.password):
             print 'Authorization cookie received.'
             sys.exit(0)
         else:
@@ -889,7 +915,7 @@ def main(bzinstance=None):
         if not global_opt.password:
             global_opt.password = getpass.getpass()
         log.info('Using username/password for authentication')
-        bz.login(global_opt.user,global_opt.password)
+        bz.login(global_opt.user, global_opt.password)
     elif not _is_unittest:
         if global_opt.cookiefile:
             bz.cookiefile = global_opt.cookiefile
@@ -958,7 +984,7 @@ def main(bzinstance=None):
         raise RuntimeError("Unexpected action '%s'" % action)
 
     # If we're doing new/query/modify, output our results
-    if action in ['new','query']:
+    if action in ['new', 'query']:
         _format_output(bz, opt, buglist)
 
 
@@ -980,7 +1006,7 @@ if __name__ == '__main__':
     except xmlrpclib.ProtocolError, e:
         log.debug("", exc_info=True)
         print "\nInvalid server response: %d %s" % (e.errcode, e.errmsg)
-        redir = e.headers.getheader("location",0)
+        redir = e.headers.getheader("location", 0)
         if redir:
             print "Server was attempting a redirect."
             print 'Try "bugzilla --bugzilla %s ..."' % redir

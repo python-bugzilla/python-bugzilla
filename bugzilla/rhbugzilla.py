@@ -18,6 +18,7 @@ from bugzilla.bugzilla4 import Bugzilla42
 
 log = logging.getLogger('bugzilla')
 
+
 class RHBugzilla(Bugzilla42):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
     methods provided by Red Hat's Bugzilla 4.2+ instance, which is a superset
@@ -55,12 +56,13 @@ class RHBugzilla(Bugzilla42):
         xmlrpclib.MultiCall object. Methods you call on this object will be
         added to the MultiCall queue, but they will return None. When you're
         ready, call the run() method and all the methods in the queue will be
-        run and the results of each will be returned in a list. So, for example:
+        run and the results of each will be returned in a list. So,
+        for example:
 
         mc = bz._multicall()
         mc._getbug(1)
         mc._getbug(1337)
-        mc._query({'component':'glibc','product':'Fedora','version':'devel'})
+        mc._query({'component':'glibc', 'product':'Fedora', 'version':'devel'})
         (bug1, bug1337, queryresult) = mc.run()
 
         Note that you should only use the raw xmlrpc calls (mostly the methods
@@ -76,11 +78,15 @@ class RHBugzilla(Bugzilla42):
         for id in idlist:
             mc._getbug(id)
         rawlist = mc.run()
-        return [_Bug(self,dict=b) for b in rawlist]
+        return [_Bug(self, dict=b) for b in rawlist]
         '''
+
         mc = copy.copy(self)
         mc._proxy = xmlrpclib.MultiCall(self._proxy)
-        def run(): return mc._proxy().results
+
+        def run():
+            return mc._proxy().results
+
         mc.run = run
         return mc
 
@@ -88,7 +94,8 @@ class RHBugzilla(Bugzilla42):
 
     def _getqueryinfo(self):
         return self._proxy.bugzilla.getQueryInfo()
-    def _get_info(self,product=None):
+
+    def _get_info(self, product=None):
         '''This is a convenience method that does getqueryinfo, getproducts,
         and (optionally) getcomponents in one big fat multicall. This is a bit
         faster than calling them all separately.
@@ -104,7 +111,7 @@ class RHBugzilla(Bugzilla42):
             mc._getcomponents(product)
             mc._getcomponentsdetails(product)
         r = mc.run()
-        (self._querydata,self._querydefaults) = r.pop(0)
+        (self._querydata, self._querydefaults) = r.pop(0)
         self._products = r.pop(0)
         self._bugfields = r.pop(0)
         if product:
@@ -114,19 +121,19 @@ class RHBugzilla(Bugzilla42):
     #---- Methods for modifying existing bugs.
 
     # Most of these will probably also be available as Bug methods, e.g.:
-    # Bugzilla.setstatus(id,status) ->
-    #   Bug.setstatus(status): self.bugzilla.setstatus(self.bug_id,status)
+    # Bugzilla.setstatus(id, status) ->
+    #   Bug.setstatus(status): self.bugzilla.setstatus(self.bug_id, status)
 
     # TODO: update this when the XMLRPC interface grows requestee support
-    def _updateflags(self,id,flags):
+    def _updateflags(self, objid, flags):
         '''Updates the flags associated with a bug report.
         data should be a hash of {'flagname':'value'} pairs, like so:
-        {'needinfo':'?','fedora-cvs':'+'}
+        {'needinfo':'?', 'fedora-cvs':'+'}
         You may also add a "nomail":1 item, which will suppress email if set.
 
         NOTE: the Red Hat XMLRPC interface does not yet support setting the
         requestee (as in: needinfo from smartguy@answers.com). Alas.'''
-        return self._proxy.bugzilla.updateFlags(id,flags)
+        return self._proxy.bugzilla.updateFlags(objid, flags)
 
     #---- Methods for working with attachments
 
@@ -135,52 +142,56 @@ class RHBugzilla(Bugzilla42):
     # If your bugzilla uses non-standard paths for attachment.cgi, you'll
     # want to override _attachment_uri here.
 
-    def _attachfile(self,id,**attachdata):
-        return self._proxy.bugzilla.addAttachment(id,attachdata)
+    def _attachfile(self, objid, **attachdata):
+        return self._proxy.bugzilla.addAttachment(objid, attachdata)
 
     #---- createbug - call to create a new bug
 
     # Methods for updating a user
-    def _updateperms(self,user,action,groups):
+    def _updateperms(self, user, action, groups):
         r = self._proxy.bugzilla.updatePerms(user, action, groups, self.user,
                 self.password)
         return r
-    def _adduser(self,user,name):
+
+    def _adduser(self, user, name):
         r = self._proxy.bugzilla.addUser(user, name, self.user, self.password)
         return r
-    def _addcomponent(self,data):
-        add_required_fields = ('product','component','initialowner','description')
+
+    def _addcomponent(self, data):
+        add_required_fields = ('product', 'component',
+                               'initialowner', 'description')
         for field in add_required_fields:
             if field not in data or not data[field]:
-                raise TypeError, "mandatory fields missing: %s" % field
+                raise TypeError("mandatory fields missing: %s" % field)
         if type(data['product']) == int:
             data['product'] = self._product_id_to_name(data['product'])
-        r = self._proxy.bugzilla.addComponent(data,self.user,self.password)
-        return r
-    def _editcomponent(self,data):
-        edit_required_fields = ('initialowner','product','component')
-        for field in edit_required_fields:
-            if field not in data or not data[field]:
-                raise TypeError, "mandatory field missing: %s" % field
-        if type(data['product']) == int:
-            data['product'] = self._product_id_to_name(data['product'])
-        r = self._proxy.bugzilla.editComponent(data,self.user,self.password)
+        r = self._proxy.bugzilla.addComponent(data, self.user, self.password)
         return r
 
-    def _getbugs(self,idlist):
+    def _editcomponent(self, data):
+        edit_required_fields = ('initialowner', 'product', 'component')
+        for field in edit_required_fields:
+            if field not in data or not data[field]:
+                raise TypeError("mandatory field missing: %s" % field)
+        if type(data['product']) == int:
+            data['product'] = self._product_id_to_name(data['product'])
+        r = self._proxy.bugzilla.editComponent(data, self.user, self.password)
+        return r
+
+    def _getbugs(self, idlist):
         r = []
         if self.multicall:
             if len(idlist) == 1:
                 return [self._proxy.bugzilla.getBug(idlist[0])]
             mc = self._multicall()
-            for id in idlist:
-                mc._proxy.bugzilla.getBug(id)
+            for objid in idlist:
+                mc._proxy.bugzilla.getBug(objid)
             raw_results = mc.run()
             del mc
             # check results for xmlrpc errors, and replace them with None
             r = bugzilla.base.replace_getbug_errors_with_None(raw_results)
         else:
-            raw_results = self._proxy.Bug.get({'ids':idlist})
+            raw_results = self._proxy.Bug.get({'ids': idlist})
             r = [i for i in raw_results['bugs']]
         return r
 
@@ -190,21 +201,21 @@ class RHBugzilla(Bugzilla42):
 
     #---- Methods for updating bugs.
 
-    def _add_bug_comment(self,ids,comment,is_private):
+    def _add_bug_comment(self, ids, comment, is_private):
         '''Add a new comment to a specified bug ID(s). Returns the comment
         ID(s) array.
         '''
 
         ret = list()
-        for id in ids:
-            r = self._proxy.Bug.add_comment({'id': id, 'comment': comment,
+        for objid in ids:
+            r = self._proxy.Bug.add_comment({'id': objid, 'comment': comment,
                                              'is_private': is_private})
             if 'id' in r:
                 ret.append(r['id'])
 
         return ret
 
-    def _update_bugs(self,ids,updates):
+    def _update_bugs(self, ids, updates):
         '''Update the given fields with the given data in one or more bugs.
         ids should be a list of integers or strings, representing bug ids or
         aliases.
@@ -223,10 +234,7 @@ class RHBugzilla(Bugzilla42):
 
         # Comments must be handled separately using add_comment() API, trying
         # to update using update() API causes error 117 (Invalid Comment ID)
-        # For more information please refer to:
-        #   http://www.bugzilla.org/docs/4.(0|2)/en/html/api/Bugzilla/WebService/Bug.html
         if 'comment' in updates:
-            comment = dict()
             body = updates['comment']
             if 'commentprivacy' in updates:
                 is_private = updates['commentprivacy']
@@ -237,10 +245,10 @@ class RHBugzilla(Bugzilla42):
 
         return ret
 
-    def _update_bug(self,id,updates):
+    def _update_bug(self, objid, updates):
         '''Update a single bug, specified by integer ID or (string) bug alias.
-        Really just a convenience method for _update_bugs(ids=[id],updates)'''
-        return self._update_bugs(ids=[id],updates=updates)
+        Really just a convenience method for _update_bugs(ids=[id], updates)'''
+        return self._update_bugs(ids=[objid], updates=updates)
 
     # Eventually - when RHBugzilla is well and truly obsolete - we'll delete
     # all of these methods and refactor the Base Bugzilla object so all the bug
@@ -250,11 +258,8 @@ class RHBugzilla(Bugzilla42):
     # TODO: allow multiple bug IDs
 
     def _update_add_comment(self, updatedict, comment, private):
-        if not comment:
-            return
         """
-        # XXX: This is how it's documented at:
-        # http://www.bugzilla.org/docs/4.2/en/html/api/Bugzilla/WebService/Bug.html#update
+        # XXX: This is how it's documented in 4.2 docs:
         # But with RHBugzilla justs adds a comment like:
         # HASH(0x1783a5b0)
         commentdict = {"body": comment}
@@ -262,6 +267,8 @@ class RHBugzilla(Bugzilla42):
             commentdict["is_private"] = private
         updatedict["comment"] = commentdict
         """
+        if not comment:
+            return
 
         # XXX: This works, but I think it's a RH only extensions
         updatedict["comment"] = comment
@@ -269,18 +276,20 @@ class RHBugzilla(Bugzilla42):
             updatedict["commentprivacy"] = private
 
 
-    def _setstatus(self,id,status,comment='',private=False,private_in_it=False,nomail=False):
+    def _setstatus(self, objid, status, comment='', private=False,
+                   private_in_it=False, nomail=False):
         '''Set the status of the bug with the given ID.'''
         update = {'status': status}
         self._update_add_comment(update, comment, private)
 
-        return self._update_bug(id,update)
+        return self._update_bug(objid, update)
 
-    def _closebug(self,id,resolution,dupeid,fixedin,comment,isprivate,private_in_it,nomail):
+    def _closebug(self, objid, resolution, dupeid, fixedin,
+                  comment, isprivate, private_in_it, nomail):
         '''Close the given bug. This is the raw call, and no data checking is
         done here. That's up to the closebug method.
         Note that the private_in_it and nomail args are ignored.'''
-        update={'bug_status':'CLOSED','resolution':resolution}
+        update = {'bug_status': 'CLOSED', 'resolution': resolution}
         if dupeid:
             update['resolution'] = 'DUPLICATE'
             update['dupe_of'] = dupeid
@@ -288,34 +297,36 @@ class RHBugzilla(Bugzilla42):
             update['fixed_in'] = fixedin
         self._update_add_comment(update, comment, isprivate)
 
-        return self._update_bug(id, update)
+        return self._update_bug(objid, update)
 
-    def _setassignee(self,id,**data):
+    def _setassignee(self, objid, **data):
         '''Raw xmlrpc call to set one of the assignee fields on a bug.
         changeAssignment($id, $data, $username, $password)
-        data: 'assigned_to','reporter','qa_contact','comment'
+        data: 'assigned_to', 'reporter', 'qa_contact', 'comment'
         returns: [$id, $mailresults]'''
         # drop empty items
-        update = dict([(k,v) for k,v in data.iteritems() if (v and v != '')])
-        return self._update_bug(id,update)
+        update = dict([(k, v) for k, v in data.iteritems() if (v and v != '')])
+        return self._update_bug(objid, update)
 
-    def _updatedeps(self,id,blocked,dependson,action):
+    def _updatedeps(self, objid, blocked, dependson, action):
         '''Update the deps (blocked/dependson) for the given bug.
         blocked, dependson: list of bug ids/aliases
         action: 'add' or 'delete'
         '''
-        if action not in ('add','delete', 'set'):
-            raise ValueError, "action must be 'add', 'set', or 'delete'"
+        if action not in ('add', 'delete', 'set'):
+            raise ValueError("action must be 'add', 'set', or 'delete'")
 
         # change the action to be remove if it is delete
         if action == 'delete':
             action = 'remove'
 
-        update={'blocks' : {action : blocked},
-                'depends_on' : {action: dependson}}
-        self._update_bug(id,update)
+        update = {
+            'blocks': {action: blocked},
+            'depends_on': {action: dependson}
+        }
+        self._update_bug(objid, update)
 
-    def _updatecc(self,id,cclist,action,comment='',nomail=False):
+    def _updatecc(self, objid, cclist, action, comment='', nomail=False):
         '''Updates the CC list using the action and account list specified.
         cclist must be a list (not a tuple!) of addresses.
         action may be 'add', 'delete', or 'overwrite'.
@@ -325,29 +336,32 @@ class RHBugzilla(Bugzilla42):
         update = {}
         self._update_add_comment(update, comment, False)
 
-        if action in ('add','delete'):
+        if action in ('add', 'delete'):
             # Action 'delete' has been changed to 'remove' in Bugzilla 4.0+
             if action == 'delete':
                 action = 'remove'
 
-            update = dict()
-            update['cc'] = dict()
+            update = {}
+            update['cc'] = {}
             update['cc'][action] = cclist
-            self._update_bug(id,update)
-        elif action == 'overwrite':
-            r = self._getbug(id)
-            if 'cc' not in r:
-                raise AttributeError, "Can't find cc list in bug %s" % str(id)
-            self._updatecc(id,r['cc'],'delete')
-            self._updatecc(id,cclist,'add')
-        # XXX we don't check inputs on other backend methods, maybe this
-        # is more appropriate in the public method(s)
-        else:
-            raise ValueError, "action must be 'add','delete', or 'overwrite'"
+            self._update_bug(objid, update)
 
-    def _updatewhiteboard(self,id,text,which,action,comment,private):
+        elif action == 'overwrite':
+            r = self._getbug(objid)
+            if 'cc' not in r:
+                raise AttributeError("Can't find cc list in bug %s" %
+                                     str(objid))
+            self._updatecc(objid, r['cc'], 'delete')
+            self._updatecc(objid, cclist, 'add')
+
+        else:
+            # XXX we don't check inputs on other backend methods, maybe this
+            # is more appropriate in the public method(s)
+            raise ValueError("action must be 'add', 'delete', or 'overwrite'")
+
+    def _updatewhiteboard(self, objid, text, which, action, comment, private):
         '''Update the whiteboard given by 'which' for the given bug.
-        performs the given action (which may be 'append',' prepend', or
+        performs the given action (which may be 'append', ' prepend', or
         'overwrite') using the given text.
 
         RHBZ3 Bug.update() only supports overwriting, so append/prepend
@@ -355,22 +369,24 @@ class RHBugzilla(Bugzilla42):
         '''
         if not which.endswith('_whiteboard'):
             which = which + '_whiteboard'
+
         update = {}
         if action == 'overwrite':
             update[which] = text
+
         else:
-            r = self._getbug(id)
+            r = self._getbug(objid)
             if which not in r:
-                raise ValueError, "No such whiteboard %s in bug %s" % \
-                                   (which,str(id))
+                raise ValueError("No such whiteboard %s in bug %s" %
+                                 (which, str(objid)))
             wb = r[which]
             if action == 'prepend':
-                update[which] = text+' '+wb
+                update[which] = text + ' ' + wb
             elif action == 'append':
-                update[which] = wb+' '+text
-        self._update_add_comment(update, comment, private)
+                update[which] = wb + ' ' + text
 
-        self._update_bug(id,update)
+        self._update_add_comment(update, comment, private)
+        self._update_bug(objid, update)
 
     def _getbugfields(self):
         '''Get the list of valid fields for Bug objects'''
@@ -432,17 +448,17 @@ class RHBugzilla(Bugzilla42):
             for tmp in bug['flags']:
                 tmpstr.append("%s%s" % (tmp['name'], tmp['status']))
 
-            bug['flags'] = ", ".join(tmpstr)
+            bug['flags'] = ",".join(tmpstr)
         if 'blocks' in bug:
             if len(bug['blocks']) > 0:
-                bug['blockedby'] = ', '.join(map(str, bug['blocks']))
-                bug['blocked'] = ', '.join(map(str, bug['blocks']))
+                bug['blockedby'] = ','.join([str(b) for b in bug['blocks']])
+                bug['blocked'] = ','.join([str(b) for b in bug['blocks']])
             else:
                 bug['blockedby'] = ''
                 bug['blocked'] = ''
         if 'keywords' in bug:
             if len(bug['keywords']) > 0:
-                bug['keywords'] = ', '.join(bug['keywords'])
+                bug['keywords'] = ','.join(bug['keywords'])
             else:
                 bug['keywords'] = ''
         if 'component' in bug:
@@ -452,7 +468,7 @@ class RHBugzilla(Bugzilla42):
             bug['component'] = bug['component'][0]
         if 'alias' in bug:
             if len(bug['alias']) > 0:
-                bug['alias'] = ', '.join(bug['alias'])
+                bug['alias'] = ','.join(bug['alias'])
             else:
                 bug['alias'] = ''
         if 'groups' in bug:
@@ -515,7 +531,7 @@ class RHBugzilla(Bugzilla42):
                     elif par.find('|') != -1:
                         or_count += 1
                     elif par.find('!') != -1:
-                         query['negate%i' % bool_id] = 1
+                        query['negate%i' % bool_id] = 1
                     elif not key:
                         if par.find('-') == -1:
                             raise RuntimeError('Malformed boolean query: %s' %
@@ -564,7 +580,7 @@ class RHBugzilla(Bugzilla42):
         self.pre_translation(query)
         return query
 
-    def _query(self,query):
+    def _query(self, query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
         You can also pass in keys called 'quicksearch' or 'savedsearch' -
@@ -578,7 +594,7 @@ class RHBugzilla(Bugzilla42):
         generated by executing the search.
         You can also pass 'limit:[int]' to limit the number of results.
         For more info, see:
-        http://www.bugzilla.org/docs/4.0/en/html/api/Bugzilla/WebService/Bug.html
+        http://www.bugzilla.org/docs/4.0/en/html/api/Bugzilla/
         '''
         old = query.copy()
         self.pre_translation(query)
@@ -595,8 +611,11 @@ class RHBugzilla(Bugzilla42):
 
         return ret
 
+
 # Just for API back compat
 class RHBugzilla3(RHBugzilla):
     pass
+
+
 class RHBugzilla4(RHBugzilla):
     pass
