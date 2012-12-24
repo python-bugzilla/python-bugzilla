@@ -29,11 +29,12 @@ def getBugzillaClassForURL(url):
     bzversion = ''
     c = None
 
-    # Check for a RH-only method
+    # Check for a Red Hat extension
     try:
-        log.debug("Checking for RH Bugzilla method bugzilla.getProdInfo()")
-        prodinfo = s.bugzilla.getProdInfo()
-        rhbz = True
+        log.debug("Checking for Red Hat Bugzilla extension")
+        extensions = s.Bugzilla.extensions()
+        if extensions.get('extensions', {}).get('RedHat', False):
+            rhbz = True
     except xmlrpclib.Fault:
         pass
     log.debug("rhbz=%s" % str(rhbz))
