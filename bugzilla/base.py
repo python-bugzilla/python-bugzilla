@@ -835,6 +835,8 @@ class BugzillaBase(object):
         ('whiteboard', 'status_whiteboard'),
         ('creator', 'reporter'),
         ('url', 'bug_file_loc'),
+        ('dupe_of', 'dupe_id'),
+        ('dupe_of', 'dup_id'),
     )
 
     def _createbug(self, **data):

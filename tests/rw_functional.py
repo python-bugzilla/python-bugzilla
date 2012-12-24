@@ -58,7 +58,6 @@ class RHPartnerTest(BaseTest):
     test1 = BaseTest._testCookie
     test2 = BaseTest._testBZClass
 
-
     def test3NewBugBasic(self):
         """
         Create a bug with minimal amount of fields, then close it
@@ -137,3 +136,69 @@ class RHPartnerTest(BaseTest):
         bug.refresh()
         self.assertEquals(bug.status, "CLOSED")
         self.assertEquals(bug.resolution, "WONTFIX")
+
+
+    # XXX: Multiple modify tests, one for each action
+    # XXX: Modify test for multiple bugs simultaneously
+    # XXX: Modify test for multiple actions in one go
+
+    def test5ModifyStatus(self):
+        """
+        Modify a bunch of bug fields for an existing bug, then put
+        it back the way you found it
+        """
+        bz = self.bzclass(url=self.url, cookiefile=self._getCookiefile())
+        bugid = "663674"
+        cmd = "bugzilla modify %s " % bugid
+
+        bug = bz.getbug(bugid)
+
+        # We want to start with an open bug, so fix things
+        if bug.status == "CLOSED":
+            tests.clicomm(cmd + "--status ASSIGNED", bz)
+            bug.refresh()
+            self.assertEquals(bug.status, "ASSIGNED")
+
+        origstatus = bug.status
+
+        # Set to ON_QA with a private comment
+        status = "ON_QA"
+        comment = ("changing status to %s at %s" %
+                   (status, datetime.datetime.today()))
+        tests.clicomm(cmd +
+            "--status %s --comment \"%s\" --private" % (status, comment), bz)
+
+        bug.refresh()
+        self.assertEquals(bug.status, status)
+        self.assertEquals(bug.longdescs[-1]["isprivate"], 1)
+        self.assertEquals(bug.longdescs[-1]["body"], comment)
+
+        # Close bug as DEFERRED with a private comment
+        resolution = "DEFERRED"
+        comment = ("changing status to CLOSED=%s at %s" %
+                   (resolution, datetime.datetime.today()))
+        tests.clicomm(cmd +
+            "--close %s --comment \"%s\" --private" %
+            (resolution, comment), bz)
+
+        bug.refresh()
+        self.assertEquals(bug.status, "CLOSED")
+        self.assertEquals(bug.resolution, resolution)
+        self.assertEquals(bug.longdescs[-1]["isprivate"], 1)
+        self.assertEquals(bug.longdescs[-1]["body"], comment)
+
+        # Close bug as dup with no comment
+        dupeid = "461686"
+        desclen = len(bug.longdescs)
+        tests.clicomm(cmd +
+            "--close DUPLICATE --dupeid %s" % dupeid, bz)
+
+        bug.refresh()
+        self.assertEquals(bug.dupe_of, int(dupeid))
+        self.assertEquals(len(bug.longdescs), desclen + 1)
+        self.assertTrue(not bug.longdescs[-1]["body"])
+
+        # Reset state
+        tests.clicomm(cmd + "--status %s" % origstatus, bz)
+        bug.refresh()
+        self.assertEquals(bug.status, origstatus)

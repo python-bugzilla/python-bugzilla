@@ -249,12 +249,31 @@ class RHBugzilla(Bugzilla42):
 
     # TODO: allow multiple bug IDs
 
+    def _update_add_comment(self, updatedict, comment, private):
+        if not comment:
+            return
+        """
+        # XXX: This is how it's documented at:
+        # http://www.bugzilla.org/docs/4.2/en/html/api/Bugzilla/WebService/Bug.html#update
+        # But with RHBugzilla justs adds a comment like:
+        # HASH(0x1783a5b0)
+        commentdict = {"body": comment}
+        if private:
+            commentdict["is_private"] = private
+        updatedict["comment"] = commentdict
+        """
+
+        # XXX: This works, but I think it's a RH only extensions
+        updatedict["comment"] = comment
+        if private:
+            updatedict["commentprivacy"] = private
+
+
     def _setstatus(self,id,status,comment='',private=False,private_in_it=False,nomail=False):
         '''Set the status of the bug with the given ID.'''
-        update={'status':status}
-        if comment:
-            update['comment'] = comment
-            update['commentprivacy'] = private
+        update = {'status': status}
+        self._update_add_comment(update, comment, private)
+
         return self._update_bug(id,update)
 
     def _closebug(self,id,resolution,dupeid,fixedin,comment,isprivate,private_in_it,nomail):
@@ -267,10 +286,8 @@ class RHBugzilla(Bugzilla42):
             update['dupe_of'] = dupeid
         if fixedin:
             update['fixed_in'] = fixedin
-        if comment:
-            update['comment'] = comment
-            if isprivate:
-                update['comment_is_private'] = True
+        self._update_add_comment(update, comment, isprivate)
+
         return self._update_bug(id, update)
 
     def _setassignee(self,id,**data):
@@ -301,8 +318,7 @@ class RHBugzilla(Bugzilla42):
         if mail is True, email will be generated for this change.
         '''
         update = {}
-        if comment:
-            update['comment'] = comment
+        self._update_add_comment(update, comment, False)
 
         if action in ('add','delete'):
             # Action 'delete' has been changed to 'remove' in Bugzilla 4.0+
@@ -347,10 +363,8 @@ class RHBugzilla(Bugzilla42):
                 update[which] = text+' '+wb
             elif action == 'append':
                 update[which] = wb+' '+text
-        if comment is not None:
-            update['comment'] = comment
-            if private:
-                update['commentprivacy'] = True
+        self._update_add_comment(update, comment, private)
+
         self._update_bug(id,update)
 
     def _getbugfields(self):
