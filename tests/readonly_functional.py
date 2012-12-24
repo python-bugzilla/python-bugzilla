@@ -175,7 +175,7 @@ class RHTest(BaseTest):
                 6, "621030")
     test6 = lambda s: BaseTest._testQueryFull(s, "663674", 70, "F14 is EOL.")
     test7 = lambda s: BaseTest._testQueryRaw(s, "663674", 70,
-                "ATTRIBUTE[status_whiteboard]: whiteboard test")
+                "ATTRIBUTE[whiteboard]: whiteboard test")
     test8 = lambda s: BaseTest._testQueryOneline(s, "307471",
                 "[---] needinfo?")
     test9 = lambda s: BaseTest._testQueryExtra(s, "307471",

@@ -829,7 +829,8 @@ class BugzillaBase(object):
                      ('status', 'bug_status'),
                      ('id', 'bug_id'),
                      ('blocks', 'blockedby'),
-                     ('whiteboard', 'status_whiteboard'))
+                     ('whiteboard', 'status_whiteboard'),
+                     ('creator', 'reporter'))
 
     def _createbug(self, **data):
         '''IMPLEMENT ME: Raw xmlrpc call for createBug()
@@ -1252,7 +1253,7 @@ class _Bug(object):
         self.autorefresh = True
         if 'dict' in kwargs and kwargs['dict']:
             log.debug("Bug(%s)" % sorted(kwargs['dict'].keys()))
-            self.__dict__.update(kwargs['dict'])
+            self._update_dict(kwargs['dict'])
         if 'bug_id' in kwargs:
             log.debug("Bug(%i)" % kwargs['bug_id'])
             setattr(self,'bug_id',kwargs['bug_id'])
@@ -1312,7 +1313,7 @@ class _Bug(object):
                                            id(self))
 
     def __getattr__(self, name):
-        if not ('bug_id' in self.__dict__ or 'id' in self.__dict__):
+        if 'id' not in self.__dict__:
             # This is fatal, since we have no ID to pass to refresh()
             # Can happen if a messed up include_fields is passed to query
             raise AttributeError("No bug ID cached for bug object")
@@ -1324,14 +1325,13 @@ class _Bug(object):
 
             # Check field aliases
             for newname, oldname in self.bugzilla.field_aliases:
-                if name == newname and oldname in self.__dict__:
-                    return self.__dict__[oldname]
                 if name == oldname and newname in self.__dict__:
                     return self.__dict__[newname]
 
-            log.debug("Bug %i missing %s - doing refresh()", self.bug_id, name)
             if refreshed:
                 break
+            log.debug("Bug %i missing attribute '%s' - doing refresh()",
+                      self.bug_id, name)
             self.refresh()
             refreshed = True
 
@@ -1345,39 +1345,44 @@ class _Bug(object):
         vals.append( ('bugfields', fields) )
         return dict(vals)
 
-    def __setstate__(self, dict):
-        self.__dict__.update(dict)
+    def __setstate__(self, d):
+        self._update_dict(d)
         self.bugzilla = None
 
     def refresh(self):
         '''Refresh all the data in this Bug.'''
-        if self.bugzilla.bugfields:
-            for k in self.bugzilla.bugfields:
-                self.__dict__.setdefault(k)
-
-            # Sync alias values. Otherwise we might have just set
-            # 'bug_id' = None, when the __dict__ already had a valid 'id'
-            for newname, oldname in self.bugzilla.field_aliases:
-                def setval(v1, v2):
-                    if v1 is None:
-                        return v2
-                    return v1
-
-                new = self.__dict__.get(newname)
-                old = self.__dict__.get(oldname)
-                self.__dict__[newname] = setval(new, old)
-                self.__dict__[oldname] = setval(old, new)
-
         r = self.bugzilla._getbug(self.bug_id)
-        # faking a query
-        q = {}
-        q['id'] = str(self.bug_id)
-        q['column_list'] = self.bugzilla.bugfields
 
-        # running post translation
+        # Use post_translation to convert getbug results to back compat values
+        q = {}
+        q["id"] = str(self.bug_id)
         self.bugzilla.post_translation(q, r)
 
-        self.__dict__.update(r)
+        self._update_dict(r)
+
+    def _update_dict(self, newdict):
+        '''
+        Update internal dictionary, in a way that ensures no duplicate
+        entries are stored WRT field aliases
+        '''
+        for newname, oldname in self.bugzilla.field_aliases:
+            hasnew = newname in newdict
+            hasold = newname in newdict
+
+            if not oldname in newdict:
+                continue
+
+            if newname not in newdict:
+                newdict[newname] = newdict[oldname]
+            elif newdict[newname] != newdict[oldname]:
+                logging.debug("Update dict contained differing alias values "
+                              "d[%s]=%s and d[%s]=%s , dropping the value "
+                              "d[%s]", newname, newdict[newname], oldname,
+                              newdict[oldname], oldname)
+            del(newdict[oldname])
+
+        self.__dict__.update(newdict)
+
 
     def reload(self):
         '''An alias for refresh()'''
