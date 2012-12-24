@@ -657,6 +657,68 @@ def _do_new(bz, opt):
     return [b]
 
 
+def _do_modify(bz, opt, args):
+    bugid_list = reduce(lambda l1, l2: l1 + l2,
+                        [a.split(",") for a in args])
+
+    # Iterate over a list of Bug objects
+    # FIXME: this should totally use some multicall magic
+    buglist = bz.getbugssimple(bugid_list)
+    log.debug("bz.getbugssimple(%s) -> %s" % (bugid_list, buglist))
+    if not buglist:
+        raise RuntimeError('No bugs were found. Check your bug IDs.')
+
+    for bugid, bug in zip(bugid_list, buglist):
+        if not bug:
+            log.error("failed to load bug %s" % bugid)
+            continue
+
+        log.debug("modifying bug %s" % bug.bug_id)
+        if opt.status:
+            log.debug("  set status: %s" % opt.status)
+            bug.setstatus(opt.status, opt.comment, private=opt.private)
+
+        elif opt.close:
+            log.debug("  close %s" % opt.close)
+            bug.close(opt.close, comment=opt.comment,
+                      isprivate=opt.private, dupeid=opt.dupeid)
+
+        elif opt.assignee:
+            log.debug("  assignee %s" % opt.assignee)
+            bug.setassignee(assigned_to=opt.assignee, comment=opt.comment)
+
+        elif opt.qa_contact:
+            log.debug("  qa_contact %s" % opt.qa_contact)
+            bug.setassignee(qa_contact=opt.qa_contact, comment=opt.comment)
+
+        elif opt.flag:
+            log.debug("  flag %s" % opt.flag)
+            flags=dict()
+            for f in opt.flag:
+                (flagname,status) = (f[:-1],f[-1])
+                flags[flagname]=status
+            bug.updateflags(flags)
+
+        elif opt.cc:
+            ccs=[]
+            for c in opt.cc:
+                log.debug("  cc'ing %s" % opt.cc)
+                ccs.append(c)
+            bug.addcc(ccs, comment=opt.comment)
+
+        # This has to be last and signifies a stand-alone comment
+        elif opt.comment:
+            log.debug("  add comment: %s" % opt.comment)
+            bug.addcomment(opt.comment, opt.private)
+
+    # stuff that I do in batch mode:
+    if opt.fixed_in:
+        data = {}
+        if opt.fixed_in:
+            data['fixed_in'] = opt.fixed_in
+        bz._update_bugs(bugid_list, data)
+
+
 #################
 # Main function #
 #################
@@ -830,70 +892,20 @@ def main(bzinstance=None):
         if opt.dupeid is not None:
             opt.close = "DUPLICATE"
 
-        if not (opt.status or opt.close or opt.assignee or opt.flag or opt.cc
-                or opt.comment or opt.fixed_in):
+        if not (opt.status or opt.close or
+                opt.assignee or opt.flag or
+                opt.cc or opt.comment or
+                opt.fixed_in):
             parser.error("'modify' command requires additional arguments")
 
-        bugid_list = []
-        for a in args:
-            if ',' in a:
-                for b in a.split(','):
-                    bugid_list.append(b)
-            else:
-                bugid_list.append(a)
-        # Surely there's a simpler way to do that..
-        # bail out if no bugs were given
-        if not bugid_list:
-            parser.error('No bug IDs given (maybe you forgot an argument somewhere?)')
-        # Iterate over a list of Bug objects
-        # FIXME: this should totally use some multicall magic
-        buglist = bz.getbugssimple(bugid_list)
-        log.debug("bz.getbugssimple(%s) -> %s" % (bugid_list, buglist))
-        if not buglist:
-            parser.error('No bugs were found. Check your bug IDs.')
-        for bugid,bug in zip(bugid_list,buglist):
-            if not bug:
-                log.error("  failed to load bug %s" % bugid)
-                continue
-            log.debug("modifying bug %s" % bug.bug_id)
-            if opt.status:
-                log.debug("  set status: %s" % opt.status)
-                bug.setstatus(opt.status, opt.comment, private=opt.private)
-            elif opt.close:
-                log.debug("  close %s" % opt.close)
-                bug.close(opt.close,comment=opt.comment,isprivate=opt.private,dupeid=opt.dupeid)
-            elif opt.assignee:
-                log.debug("  assignee %s" % opt.assignee)
-                bug.setassignee(assigned_to=opt.assignee,comment=opt.comment)
-            elif opt.qa_contact:
-                log.debug("  qa_contact %s" % opt.qa_contact)
-                bug.setassignee(qa_contact=opt.qa_contact,comment=opt.comment)
-            elif opt.flag:
-                log.debug("  flag %s" % opt.flag)
-                flags=dict()
-                for f in opt.flag:
-                    (flagname,status) = (f[:-1],f[-1])
-                    flags[flagname]=status
-                bug.updateflags(flags)
-            elif opt.cc:
-                ccs=[]
-                for c in opt.cc:
-                    log.debug("  cc'ing %s" % opt.cc)
-                    ccs.append(c)
-                bug.addcc(ccs, comment=opt.comment)
-            #this has to be last and signifies a stand-alone comment
-            elif opt.comment:
-                log.debug("  add comment: %s" % opt.comment)
-                bug.addcomment(opt.comment, opt.private)
+        if not args:
+            parser.error('No bug IDs given '
+                         '(maybe you forgot an argument somewhere?)')
 
-        # stuff that I do in batch mode:
-        if opt.fixed_in:
-            data = {}
-            if opt.fixed_in:
-                data['fixed_in'] = opt.fixed_in
-            bz._update_bugs(bugid_list, data)
+        _do_modify(bz, opt, args)
+
     else:
-        print "Sorry - '%s' not implemented yet." % action
+        raise RuntimeError("Unexpected action '%s'" % action)
 
     # If we're doing new/query/modify, output our results
     if action in ['new','query']:
