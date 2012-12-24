@@ -1388,6 +1388,11 @@ class _Bug(object):
                               newdict[oldname], oldname)
             del(newdict[oldname])
 
+        # XXX: RHBZ _getbug won't give us a 'cc' list if it's empty, upstream
+        # APIs don't have that bug though.
+        if "cc" not in newdict:
+            newdict["cc"] = []
+
         self.__dict__.update(newdict)
 
 

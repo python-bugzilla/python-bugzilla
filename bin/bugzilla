@@ -691,23 +691,22 @@ def _do_modify(bz, opt, args):
             log.debug("  qa_contact %s" % opt.qa_contact)
             bug.setassignee(qa_contact=opt.qa_contact, comment=opt.comment)
 
-        elif opt.flag:
-            log.debug("  flag %s" % opt.flag)
-            flags=dict()
-            for f in opt.flag:
-                (flagname,status) = (f[:-1],f[-1])
-                flags[flagname]=status
-            bug.updateflags(flags)
-
         elif opt.cc:
-            ccs=[]
-            for c in opt.cc:
-                log.debug("  cc'ing %s" % opt.cc)
-                ccs.append(c)
+            ccs = opt.cc[:]
+            log.debug("  cc'ing %s" % opt.cc)
             bug.addcc(ccs, comment=opt.comment)
 
-        # This has to be last and signifies a stand-alone comment
+        elif opt.flag:
+            log.debug("  flag %s" % opt.flag)
+            flags = {}
+
+            for f in opt.flag:
+                (flagname, status) = (f[:-1], f[-1])
+                flags[flagname] = status
+            bug.updateflags(flags)
+
         elif opt.comment:
+            # This has to be last and signifies a stand-alone comment
             log.debug("  add comment: %s" % opt.comment)
             bug.addcomment(opt.comment, opt.private)
 
@@ -893,8 +892,8 @@ def main(bzinstance=None):
             opt.close = "DUPLICATE"
 
         if not (opt.status or opt.close or
-                opt.assignee or opt.flag or
-                opt.cc or opt.comment or
+                opt.assignee or opt.qa_contact or
+                opt.flag or opt.cc or opt.comment or
                 opt.fixed_in):
             parser.error("'modify' command requires additional arguments")
 

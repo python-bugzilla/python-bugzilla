@@ -58,6 +58,7 @@ class RHPartnerTest(BaseTest):
     test1 = BaseTest._testCookie
     test2 = BaseTest._testBZClass
 
+
     def test3NewBugBasic(self):
         """
         Create a bug with minimal amount of fields, then close it
@@ -138,14 +139,9 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug.resolution, "WONTFIX")
 
 
-    # XXX: Multiple modify tests, one for each action
-    # XXX: Modify test for multiple bugs simultaneously
-    # XXX: Modify test for multiple actions in one go
-
     def test5ModifyStatus(self):
         """
-        Modify a bunch of bug fields for an existing bug, then put
-        it back the way you found it
+        Modify status and comment fields for an existing bug
         """
         bz = self.bzclass(url=self.url, cookiefile=self._getCookiefile())
         bugid = "663674"
@@ -198,7 +194,141 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(len(bug.longdescs), desclen + 1)
         self.assertTrue(not bug.longdescs[-1]["body"])
 
+        # Add lone comment
+        comment = ("adding lone comment at %s" % datetime.datetime.today())
+        tests.clicomm(cmd + "--comment \"%s\" --private" % comment, bz)
+
+        bug.refresh()
+        self.assertEquals(bug.longdescs[-1]["isprivate"], 1)
+        self.assertEquals(bug.longdescs[-1]["body"], comment)
+
         # Reset state
         tests.clicomm(cmd + "--status %s" % origstatus, bz)
         bug.refresh()
         self.assertEquals(bug.status, origstatus)
+
+
+    def test6ModifyEmails(self):
+        """
+        Modify cc, assignee, qa_contact for existing bug
+        """
+        bz = self.bzclass(url=self.url, cookiefile=self._getCookiefile())
+        bugid = "663674"
+        cmd = "bugzilla modify %s " % bugid
+
+        bug = bz.getbug(bugid)
+
+        origcc = bug.cc
+        origassign = bug.assigned_to
+        origqa = bug.qa_contact
+
+        # Test CC list and reset it
+        email1 = "triage@lists.fedoraproject.org"
+        email2 = "crobinso@redhat.com"
+        bug.deletecc(origcc)
+        tests.clicomm(cmd + "--cc %s --cc %s" % (email1, email2), bz)
+
+        bug.refresh()
+        self.assertTrue(email1 in bug.cc)
+        self.assertTrue(email2 in bug.cc)
+        self.assertEquals(len(bug.cc), 2)
+
+        # Test assigned target
+        tests.clicomm(cmd + "--assignee %s" % email1, bz)
+        bug.refresh()
+        self.assertEquals(bug.assigned_to, email1)
+
+        # Test QA target
+        tests.clicomm(cmd + "--qa_contact %s" % email1, bz)
+        bug.refresh()
+        self.assertEquals(bug.qa_contact, email1)
+
+        # Reset values
+        bug.deletecc(bug.cc)
+        email = "wwoods@redhat.com"
+        tests.clicomm(cmd + "--assignee %s" % email, bz)
+        tests.clicomm(cmd + "--qa_contact %s" % email, bz)
+
+        bug.refresh()
+        self.assertEquals(bug.cc, [])
+        self.assertEquals(bug.assigned_to, email)
+        self.assertEquals(bug.qa_contact, email)
+
+
+    def test7ModifyMultiFlags(self):
+        """
+        Modify flags and fixed_in for 2 bugs
+        """
+        bz = self.bzclass(url=self.url, cookiefile=self._getCookiefile())
+        bugid1 = "461686"
+        bugid2 = "461687"
+        cmd = "bugzilla modify %s %s " % (bugid1, bugid2)
+
+        def flagstr(b):
+            ret = []
+            for flag in b.flag_types:
+                if not flag["flags"]:
+                    continue
+                ret.append(flag["name"] + flag["flags"][0]["status"])
+            return " ".join(sorted(ret))
+
+        def cleardict(b):
+            clearflags = {}
+            for flag in b.flag_types:
+                if not flag["flags"]:
+                    continue
+                clearflags[flag["name"]] = "X"
+            return clearflags
+
+        bug1 = bz.getbug(bugid1)
+        if cleardict(bug1):
+            bug1.updateflags(cleardict(bug1))
+        bug2 = bz.getbug(bugid2)
+        if cleardict(bug2):
+            bug2.updateflags(cleardict(bug2))
+
+
+        # Set flags and confirm
+        setflags = "needinfo? requires_doc_text-"
+        tests.clicomm(cmd +
+            " ".join([(" --flag " + f) for f in setflags.split()]), bz)
+
+        bug1.refresh()
+        bug2.refresh()
+
+        self.assertEquals(flagstr(bug1), setflags)
+        self.assertEquals(flagstr(bug2), setflags)
+
+        # Clear flags
+        if cleardict(bug1):
+            bug1.updateflags(cleardict(bug1))
+        bug1.refresh()
+        if cleardict(bug2):
+            bug2.updateflags(cleardict(bug2))
+        bug2.refresh()
+
+        self.assertEquals(cleardict(bug1), {})
+        self.assertEquals(cleardict(bug2), {})
+
+        # Set "Fixed In" field
+        origfix1 = bug1.fixed_in
+        origfix2 = bug2.fixed_in
+
+        newfix = origfix1 and (origfix1 + "-new1") or "blippy1"
+        if newfix == origfix2:
+            newfix = origfix2 + "-2"
+
+        tests.clicomm(cmd + "--fixed_in %s" % newfix, bz)
+
+        bug1.refresh()
+        bug2.refresh()
+        self.assertEquals(bug1.fixed_in, newfix)
+        self.assertEquals(bug2.fixed_in, newfix)
+
+        # Reset fixed_in
+        tests.clicomm(cmd + "--fixed_in \"-\"", bz)
+
+        bug1.refresh()
+        bug2.refresh()
+        self.assertEquals(bug1.fixed_in, "-")
+        self.assertEquals(bug2.fixed_in, "-")
