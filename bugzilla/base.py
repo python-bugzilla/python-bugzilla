@@ -822,15 +822,20 @@ class BugzillaBase(object):
     # least.
     #
     # Format is (currentname, oldname)
-    field_aliases = (('summary', 'short_desc'),
-                     ('description', 'comment'),
-                     ('platform', 'rep_platform'),
-                     ('severity', 'bug_severity'),
-                     ('status', 'bug_status'),
-                     ('id', 'bug_id'),
-                     ('blocks', 'blockedby'),
-                     ('whiteboard', 'status_whiteboard'),
-                     ('creator', 'reporter'))
+    field_aliases = (
+        ('summary', 'short_desc'),
+        ('description', 'comment'),
+        ('platform', 'rep_platform'),
+        ('severity', 'bug_severity'),
+        ('status', 'bug_status'),
+        ('id', 'bug_id'),
+        ('blocks', 'blockedby'),
+        ('blocks', 'blocked'),
+        ('depends_on', 'dependson'),
+        ('whiteboard', 'status_whiteboard'),
+        ('creator', 'reporter'),
+        ('url', 'bug_file_loc'),
+    )
 
     def _createbug(self, **data):
         '''IMPLEMENT ME: Raw xmlrpc call for createBug()
