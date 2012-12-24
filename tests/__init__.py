@@ -22,7 +22,7 @@ def difffile(expect, filename):
     if ret:
         raise AssertionError("Output was different:\n%s" % ret)
 
-def clicomm(argv, bzinstance, returncliout=False, printcliout=False):
+def clicomm(argv, bzinstance, returnmain=False, printcliout=False):
     """
     Run bin/bugzilla.main() directly with passed argv
     """
@@ -61,7 +61,9 @@ def clicomm(argv, bzinstance, returncliout=False, printcliout=False):
         if ret != 0:
             raise RuntimeError("Command failed with %d\ncmd=%s\nout=%s" %
                                (ret, argv, outt))
-        return returncliout and outt or mainout
+        if returnmain:
+            return mainout
+        return outt
     finally:
         sys.stdout = oldstdout
         sys.stderr = oldstderr

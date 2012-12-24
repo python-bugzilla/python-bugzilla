@@ -30,7 +30,7 @@ class BaseTest(unittest.TestCase):
         if expectexc:
             self.assertRaises(RuntimeError, tests.clicomm, comm, bz)
         else:
-            return tests.clicomm(comm, bz, returncliout=True)
+            return tests.clicomm(comm, bz)
 
     def _testBZClass(self):
         bz = Bugzilla(url=self.url, cookiefile=None)

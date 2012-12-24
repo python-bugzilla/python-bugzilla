@@ -1271,8 +1271,8 @@ class _Bug(object):
             else:
                 raise TypeError, "Bug object needs a bug_id"
 
-        self.url = bugzilla.url.replace('xmlrpc.cgi',
-                                        'show_bug.cgi?id=%i' % self.bug_id)
+        self.weburl = bugzilla.url.replace('xmlrpc.cgi',
+                                           'show_bug.cgi?id=%i' % self.bug_id)
 
         # TODO: set properties for missing bugfields
         # The problem here is that the property doesn't know its own name,

@@ -35,7 +35,7 @@ class BZ34Test(unittest.TestCase):
         if out is None:
             self.assertRaises(RuntimeError, tests.clicomm, comm, self.bz)
         else:
-            q = tests.clicomm(comm, self.bz)
+            q = tests.clicomm(comm, self.bz, returnmain=True)
             self.assertDictEqual(out, q)
 
     def testBasicQuery(self):

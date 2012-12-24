@@ -21,18 +21,17 @@ class MiscCLI(unittest.TestCase):
     maxDiff = None
 
     def testManPageGeneration(self):
-        out = tests.clicomm("bugzilla --generate-man", None,
-                            returncliout=True)
+        out = tests.clicomm("bugzilla --generate-man", None)
         self.assertTrue(len(out.splitlines()) > 100)
 
     def testHelp(self):
-        out = tests.clicomm("bugzilla --help", None, returncliout=True)
+        out = tests.clicomm("bugzilla --help", None)
         self.assertTrue(len(out.splitlines()) > 20)
 
     def testCmdHelp(self):
-        out = tests.clicomm("bugzilla query --help", None, returncliout=True)
+        out = tests.clicomm("bugzilla query --help", None)
         self.assertTrue(len(out.splitlines()) > 40)
 
     def testVersion(self):
-        out = tests.clicomm("bugzilla --version", None, returncliout=True)
+        out = tests.clicomm("bugzilla --version", None)
         self.assertTrue(len(out.splitlines()) >= 2)

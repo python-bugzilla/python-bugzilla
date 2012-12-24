@@ -12,13 +12,19 @@ import bugzilla.base
 
 class TestCommand(Command):
     user_options = [
-        ("readonly-functional", None,
+        ("ro-functional", None,
          "Run readonly functional tests against actual bugzilla instances. "
-         "This will be very slow")
+         "This will be very slow."),
+        ("rw-functional", None,
+         "Run read/write functional tests against actual bugzilla instances. "
+         "As of now this only runs against partner-bugzilla.redhat.com, "
+         "which requires an RH bugzilla account with cached cookies. "
+         "This will also be very slow.")
     ]
 
     def initialize_options(self):
-        self.readonly_functional = False
+        self.ro_functional = False
+        self.rw_functional = False
 
     def finalize_options(self):
         pass
@@ -45,8 +51,10 @@ class TestCommand(Command):
                 continue
 
             base = os.path.basename(t)
-            if (base == "readonly_functional.py" and not
-                self.readonly_functional):
+            if (base == "ro_functional.py" and not self.ro_functional):
+                continue
+
+            if (base == "rw_functional.py" and not self.rw_functional):
                 continue
 
             testfiles.append('.'.join(['tests', os.path.splitext(base)[0]]))
