@@ -552,7 +552,7 @@ class RHBugzilla(Bugzilla42):
         email_count = add_email("qa_contact", email_count)
 
         chart_id = 0
-        chart_id = add_boolean("fixed_in", "fixed_in", chart_id)
+        chart_id = add_boolean("fixed_in", "cf_fixed_in", chart_id)
         chart_id = add_boolean("blocked", "blocked", chart_id)
         chart_id = add_boolean("dependson", "dependson", chart_id)
         chart_id = add_boolean("flag", "flagtypes.name", chart_id)
