@@ -12,15 +12,12 @@
 import base64
 import cookielib
 import locale
-import logging
 import os
 import tempfile
 import urllib2
 import xmlrpclib
 
-from bugzilla import __version__
-
-log = logging.getLogger('bugzilla')
+from bugzilla import __version__, log
 
 
 class BugzillaError(Exception):
@@ -1481,10 +1478,10 @@ class _Bug(object):
             if newname not in newdict:
                 newdict[newname] = newdict[oldname]
             elif newdict[newname] != newdict[oldname]:
-                logging.debug("Update dict contained differing alias values "
-                              "d[%s]=%s and d[%s]=%s , dropping the value "
-                              "d[%s]", newname, newdict[newname], oldname,
-                              newdict[oldname], oldname)
+                log.debug("Update dict contained differing alias values "
+                          "d[%s]=%s and d[%s]=%s , dropping the value "
+                          "d[%s]", newname, newdict[newname], oldname,
+                          newdict[oldname], oldname)
             del(newdict[oldname])
 
         # XXX: RHBZ _getbug won't give us a 'cc' list if it's empty, upstream

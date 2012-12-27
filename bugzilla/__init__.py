@@ -15,6 +15,9 @@ version = __version__
 import logging
 import xmlrpclib
 
+log = logging.getLogger("bugzilla")
+
+
 from bugzilla.bugzilla3 import Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36
 from bugzilla.bugzilla4 import Bugzilla4
 from bugzilla.nvlbugzilla import NovellBugzilla
@@ -25,7 +28,6 @@ classlist = ['Bugzilla3', 'Bugzilla32', 'Bugzilla34',
              'Bugzilla36', 'Bugzilla4', 'RHBugzilla3', 'RHBugzilla4',
              'NovellBugzilla']
 
-log = logging.getLogger("bugzilla")
 
 
 

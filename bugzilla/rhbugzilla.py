@@ -10,13 +10,12 @@
 # the full text of the license.
 
 import copy
-import logging
 import xmlrpclib
 
 import bugzilla.base
+from bugzilla import log
 from bugzilla.bugzilla4 import Bugzilla42
 
-log = logging.getLogger('bugzilla')
 
 
 class RHBugzilla(Bugzilla42):

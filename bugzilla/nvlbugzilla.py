@@ -9,11 +9,7 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-from bugzilla import Bugzilla32
-from bugzilla.base import BugzillaError
-
 import cookielib
-import logging
 import os
 import re
 import time
@@ -21,7 +17,8 @@ import urllib
 import urllib2
 import urlparse
 
-log = logging.getLogger('bugzilla')
+from bugzilla import Bugzilla32, log
+from bugzilla.base import BugzillaError
 
 
 class NovellBugzilla(Bugzilla32):
