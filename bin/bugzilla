@@ -25,7 +25,6 @@ import xmlrpclib
 import bugzilla
 import bugzilla.util
 
-version = '0.7.0'
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
 _is_unittest = bool(os.getenv("__BUGZILLA_UNITTEST"))
@@ -80,7 +79,7 @@ def open_without_clobber(name, *args):
 def setup_parser():
     u = ("%%prog [global options] COMMAND [command-options]"
          "\nCommands: %s" % ','.join(cmdlist))
-    p = optparse.OptionParser(usage=u, version=version)
+    p = optparse.OptionParser(usage=u, version=bugzilla.__version__)
     p.disable_interspersed_args()
     p.epilog = 'Try "bugzilla COMMAND --help" for command-specific help.'
 
@@ -358,7 +357,7 @@ by Bugzilla.
 .I \\fR * attach - attach files to existing bugs, or get attachments
 .br
 .I \\fR * info - get info about the given bugzilla instance
-''' % (datestr, version)
+''' % (datestr, bugzilla.__version__)
 
     manformatter = ManHelpFormatter()
     parser = setup_parser()

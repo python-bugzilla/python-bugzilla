@@ -18,11 +18,12 @@ import tempfile
 import urllib2
 import xmlrpclib
 
+from bugzilla import __version__
+
 log = logging.getLogger('bugzilla')
 
-version = '0.7.0'
 user_agent = ('Python-urllib2/%s bugzilla.py/%s' %
-              (urllib2.__version__, version))
+              (urllib2.__version__, __version__))
 
 
 class BugzillaError(Exception):

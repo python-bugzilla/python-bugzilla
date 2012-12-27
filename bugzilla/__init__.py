@@ -9,21 +9,24 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
+__version__ = "0.7.0"
+version = __version__
+
 import logging
 import xmlrpclib
 
-from bugzilla.base import version
 from bugzilla.bugzilla3 import Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36
 from bugzilla.bugzilla4 import Bugzilla4
 from bugzilla.nvlbugzilla import NovellBugzilla
 from bugzilla.rhbugzilla import RHBugzilla, RHBugzilla3, RHBugzilla4
 
-log = logging.getLogger("bugzilla")
-
 # advertised class list
 classlist = ['Bugzilla3', 'Bugzilla32', 'Bugzilla34',
              'Bugzilla36', 'Bugzilla4', 'RHBugzilla3', 'RHBugzilla4',
              'NovellBugzilla']
+
+log = logging.getLogger("bugzilla")
+
 
 
 def getBugzillaClassForURL(url):
@@ -76,7 +79,7 @@ class Bugzilla(object):
     to use and uses that. Requires 'url' parameter so we can check available
     XMLRPC methods to determine the Bugzilla version.'''
     def __init__(self, **kwargs):
-        log.info("Bugzilla v%s initializing" % version)
+        log.info("Bugzilla v%s initializing" % __version__)
         if 'url' not in kwargs:
             raise TypeError("You must pass a valid bugzilla xmlrpc.cgi URL")
 

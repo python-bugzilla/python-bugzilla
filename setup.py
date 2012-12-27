@@ -5,10 +5,13 @@ import unittest
 
 from distutils.core import setup, Command
 
-# XXX: importing this here means any external requirements are
-# required at RPM build time. Should store canonical version in its
-# own file
-import bugzilla.base
+
+def get_version():
+    f = open("bugzilla/__init__.py")
+    for line in f:
+        if line.startswith('__version__'):
+            return eval(line.split('=')[-1])
+
 
 class TestCommand(Command):
     user_options = [
@@ -37,13 +40,6 @@ class TestCommand(Command):
 
         cov.erase()
         cov.start()
-
-        # Reload the library so we get accurate coverage data
-        for name in dir(bugzilla):
-            attr = getattr(bugzilla, name)
-            if type(attr) is type(bugzilla):
-                reload(attr)
-        reload(bugzilla)
 
         testfiles = []
         for t in glob.glob(os.path.join(os.getcwd(), 'tests', '*.py')):
@@ -135,7 +131,7 @@ class PylintCommand(Command):
 
 
 setup(name='python-bugzilla',
-      version=str(bugzilla.base.version),
+      version=get_version(),
       description='Bugzilla XMLRPC access module',
       author='Will Woods',
       author_email='wwoods@redhat.com',
