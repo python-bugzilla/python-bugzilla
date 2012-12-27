@@ -89,7 +89,7 @@ class BZ34Test(unittest.TestCase):
     def testBooleans(self):
         self.clicomm("--blocked 123456 "
                     "--devel_whiteboard 'foobar | baz' "
-                    "--qa_whiteboard '! baz' "
+                    "--qa_whiteboard '! baz foo' "
                     "--flag 'needinfo & devel_ack'",
                     self._booleans_out)
 
@@ -189,7 +189,7 @@ class RHBZTest(BZ4Test):
         'emailreporter3': True, 'emailqa_contact4': True,
         'include_fields': ['assigned_to', 'summary', 'status', 'id'],
         'query_format': 'advanced'}
-    _booleans_out = {'value2-0-0': 'baz', 'value0-0-0': '123456',
+    _booleans_out = {'value2-0-0': 'baz foo', 'value0-0-0': '123456',
         'type3-0-1': 'substring', 'value1-1-0': 'devel_ack', 'type0-0-0':
         'substring', 'type2-0-0': 'substring', 'field3-0-1':
         'cf_devel_whiteboard', 'field3-0-0': 'cf_devel_whiteboard',

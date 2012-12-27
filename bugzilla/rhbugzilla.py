@@ -490,6 +490,30 @@ class RHBugzilla(Bugzilla42):
             query['emailtype%i' % count] = kwargs.get("emailtype", "substring")
             return count + 1
 
+        def bool_smart_split(boolval):
+            # This parses the CLI command syntax, but we only want to
+            # do space splitting if the space is actually part of a
+            # boolean operator
+            boolchars = ["|", "&", "!"]
+            add = ""
+            retlist = []
+
+            for word in boolval.split(" "):
+                if word.strip() in boolchars:
+                    word = word.strip()
+                    if add:
+                        retlist.append(add)
+                        add = ""
+                    retlist.append(word)
+                else:
+                    if add:
+                        add += " "
+                    add += word
+
+            if add:
+                retlist.append(add)
+            return retlist
+
         def add_boolean(kwkey, key, bool_id):
             if not kwkey in kwargs:
                 return bool_id
@@ -508,16 +532,16 @@ class RHBugzilla(Bugzilla42):
                     return "%s%i-%i-%i" % (prefix, bool_id,
                                            and_count, or_count)
 
-                for par in boolval.split(' '):
+                for par in bool_smart_split(boolval):
                     field = None
                     fval = par
                     typ = kwargs.get("booleantype", "substring")
 
-                    if par.find('&') != -1:
+                    if par == "&":
                         and_count += 1
-                    elif par.find('|') != -1:
+                    elif par == "|":
                         or_count += 1
-                    elif par.find('!') != -1:
+                    elif par == "!":
                         query['negate%i' % bool_id] = 1
                     elif not key:
                         if par.find('-') == -1:
