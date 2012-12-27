@@ -218,33 +218,21 @@ class RHBugzilla(Bugzilla42):
         aliases.
         updates is a dict containing pairs like so: {'fieldname':'newvalue'}
         '''
-        tmp = dict()
+        tmp = {"ids": ids}
+        custom_fields = ["fixed_in"]
+
         for key, value in updates.items():
-            if key != 'comment' and key != 'commentprivacy':
-                if key != 'fixed_in':
-                    tmp[key] = value
-                else:
-                    tmp['cf_' + key] = value
+            if key in custom_fields:
+                key = "cf_" + key
+            tmp[key] = value
 
-        tmp['ids'] = ids
-        ret = self._proxy.Bug.update(tmp)
-
-        # Comments must be handled separately using add_comment() API, trying
-        # to update using update() API causes error 117 (Invalid Comment ID)
-        if 'comment' in updates:
-            body = updates['comment']
-            if 'commentprivacy' in updates:
-                is_private = updates['commentprivacy']
-            else:
-                is_private = False
-
-            self._add_bug_comment(ids, body, is_private)
-
-        return ret
+        return self._proxy.Bug.update(tmp)
 
     def _update_bug(self, objid, updates):
-        '''Update a single bug, specified by integer ID or (string) bug alias.
-        Really just a convenience method for _update_bugs(ids=[id], updates)'''
+        '''
+        Update a single bug, specified by integer ID or (string) bug alias.
+        Really just a convenience method for _update_bugs(ids=[id], updates)
+        '''
         return self._update_bugs(ids=[objid], updates=updates)
 
     # Eventually - when RHBugzilla is well and truly obsolete - we'll delete
@@ -254,18 +242,20 @@ class RHBugzilla(Bugzilla42):
 
     # TODO: allow multiple bug IDs
 
-    def _update_add_comment(self, updatedict, comment, private):
+    def _update_add_comment_fields(self, updatedict, comment, private):
         """
         # XXX: This is how it's documented in 4.2 docs:
         # But with RHBugzilla justs adds a comment like:
         # HASH(0x1783a5b0)
+        """
+        if not comment:
+            return
+
         commentdict = {"body": comment}
         if private:
             commentdict["is_private"] = private
         updatedict["comment"] = commentdict
-        """
-        if not comment:
-            return
+        return
 
         # XXX: This works, but I think it's a RH only extensions
         updatedict["comment"] = comment
@@ -277,7 +267,7 @@ class RHBugzilla(Bugzilla42):
                    private_in_it=False, nomail=False):
         '''Set the status of the bug with the given ID.'''
         update = {'status': status}
-        self._update_add_comment(update, comment, private)
+        self._update_add_comment_fields(update, comment, private)
 
         return self._update_bug(objid, update)
 
@@ -292,7 +282,7 @@ class RHBugzilla(Bugzilla42):
             update['dupe_of'] = dupeid
         if fixedin:
             update['fixed_in'] = fixedin
-        self._update_add_comment(update, comment, isprivate)
+        self._update_add_comment_fields(update, comment, isprivate)
 
         return self._update_bug(objid, update)
 
@@ -331,7 +321,7 @@ class RHBugzilla(Bugzilla42):
         if mail is True, email will be generated for this change.
         '''
         update = {}
-        self._update_add_comment(update, comment, False)
+        self._update_add_comment_fields(update, comment, False)
 
         if action in ('add', 'delete'):
             # Action 'delete' has been changed to 'remove' in Bugzilla 4.0+
@@ -382,7 +372,7 @@ class RHBugzilla(Bugzilla42):
             elif action == 'append':
                 update[which] = wb + ' ' + text
 
-        self._update_add_comment(update, comment, private)
+        self._update_add_comment_fields(update, comment, private)
         self._update_bug(objid, update)
 
     def _getbugfields(self):
