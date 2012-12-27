@@ -42,7 +42,6 @@ class NovellBugzilla(Bugzilla32):
     '''
 
     version = '0.1'
-    user_agent = Bugzilla32.user_agent + ' NovellBugzilla/%s' % version
 
     bnc_cookie_re = re.compile('^Z.*-bugzilla')
     ichain_cookie_re = re.compile('^IPC.*')

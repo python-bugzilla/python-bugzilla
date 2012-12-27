@@ -17,13 +17,11 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
     methods provided by standard Bugzilla 3.0.x releases.'''
 
     version = '0.1'
-    user_agent = bugzilla.base.user_agent + ' Bugzilla3/%s' % version
     bz_ver_major = 3
     bz_ver_minor = 0
 
     def __init__(self, **kwargs):
         bugzilla.base.BugzillaBase.__init__(self, **kwargs)
-        self.user_agent = self.__class__.user_agent
 
     def _login(self, user, password):
         '''Backend login method for Bugzilla3'''
@@ -121,9 +119,7 @@ class Bugzilla32(Bugzilla3):
     For further information on the methods defined here, see the API docs:
     http://www.bugzilla.org/docs/3.2/en/html/api/
     '''
-
     version = '0.1'
-    user_agent = bugzilla.base.user_agent + ' Bugzilla32/%s' % version
     bz_ver_minor = 2
 
     def _addcomment(self, objid, comment, private=False,
@@ -144,7 +140,6 @@ class Bugzilla32(Bugzilla3):
 # Bugzilla 3.4 adds some new goodies on top of Bugzilla32.
 class Bugzilla34(Bugzilla32):
     version = '0.2'
-    user_agent = bugzilla.base.user_agent + ' Bugzilla34/%s' % version
     bz_ver_minor = 4
 
     def _getusers(self, ids=None, names=None, match=None):
@@ -287,7 +282,6 @@ class Bugzilla34(Bugzilla32):
 # XXX TODO probably more new methods from Bugzilla 3.6 we could use
 class Bugzilla36(Bugzilla34):
     version = '0.1'
-    user_agent = bugzilla.base.user_agent + ' Bugzilla36/%s' % version
     bz_ver_minor = 6
 
     def _getbugfields(self):

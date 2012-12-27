@@ -8,7 +8,6 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-import bugzilla.base
 from bugzilla.bugzilla3 import Bugzilla36
 
 
@@ -17,14 +16,12 @@ class Bugzilla4(Bugzilla36):
     methods provided by standard Bugzilla 4.0.x releases.'''
 
     version = '0.1'
-    user_agent = bugzilla.base.user_agent + ' Bugzilla4/%s' % version
 
     bz_ver_major = 4
     bz_ver_minor = 0
 
     def __init__(self, **kwargs):
         Bugzilla36.__init__(self, **kwargs)
-        self.user_agent = self.__class__.user_agent
 
     #---- Methods for reading bugs and bug info
 

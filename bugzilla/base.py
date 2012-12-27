@@ -22,9 +22,6 @@ from bugzilla import __version__
 
 log = logging.getLogger('bugzilla')
 
-user_agent = ('Python-urllib2/%s bugzilla.py/%s' %
-              (urllib2.__version__, __version__))
-
 
 class BugzillaError(Exception):
     '''Error raised in the Bugzilla client code.'''
@@ -114,6 +111,9 @@ class BugzillaBase(object):
     bz_ver_major = 0
     bz_ver_minor = 0
 
+    # This is the class API version
+    version = "0.1"
+
     def __init__(self, url=None, user=None, password=None,
             cookiefile=os.path.expanduser('~/.bugzillacookies')):
         # Settings the user might want to tweak
@@ -126,7 +126,6 @@ class BugzillaBase(object):
         self._cookiefile = -1
         self.cookiefile = cookiefile
 
-        self.user_agent = user_agent
         self.logged_in = False
 
         # Bugzilla object state info that users shouldn't mess with
@@ -172,6 +171,13 @@ class BugzillaBase(object):
         if type(val) is list:
             return val
         return [val]
+
+    def _get_user_agent(self):
+        ret = ('Python-urllib2/%s bugzilla.py/%s %s/%s' %
+               (urllib2.__version__, __version__,
+                str(self.__class__.__name__), self.version))
+        return ret
+    user_agent = property(_get_user_agent)
 
 
     #---- Methods for establishing bugzilla connection and logging in

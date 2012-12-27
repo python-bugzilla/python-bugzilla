@@ -11,6 +11,8 @@ Unit tests for building query strings with bin/bugzilla
 
 import unittest
 
+import bugzilla
+
 import tests
 
 
@@ -35,3 +37,15 @@ class MiscCLI(unittest.TestCase):
     def testVersion(self):
         out = tests.clicomm("bugzilla --version", None)
         self.assertTrue(len(out.splitlines()) >= 2)
+
+
+class MiscAPI(unittest.TestCase):
+    """
+    Test miscellaneous API bits
+    """
+    def testUserAgent(self):
+        b3 = bugzilla.Bugzilla3(url=None, cookiefile=None)
+        rhbz = bugzilla.RHBugzilla(url=None, cookiefile=None)
+
+        self.assertTrue(b3.user_agent.endswith("Bugzilla3/0.1"))
+        self.assertTrue(rhbz.user_agent.endswith("RHBugzilla/0.1"))
