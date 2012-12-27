@@ -151,7 +151,7 @@ def setup_action_parser(action):
                 help="product name, comma-separated "
                      "(list with 'bugzilla info -p')")
         p.add_option('-v', '--version',
-                help="product version")
+                help="product version, comma-separated")
         p.add_option('-c', '--component',
                 help="component name(s), comma-separated "
                      "(list with 'bugzilla info -c PRODUCT')")
@@ -461,7 +461,7 @@ def do_query(bz, opt, parser):
     # let's only do this for options we explicitly mention can be
     # comma separated.
     for optname in ["bug_severity", "bug_id", "bug_status", "component",
-                    "priority", "product"]:
+                    "priority", "product", "version"]:
         val = getattr(opt, optname, None)
         if type(val) is not str:
             continue
