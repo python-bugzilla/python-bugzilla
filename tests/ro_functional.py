@@ -196,3 +196,8 @@ class RHTest(BaseTest):
             "o2=lessthaneq&query_format=advanced&f2=creation_ts"
             "&v1=2010-01-01&component=python-bugzilla&v2=2011-01-01"
             "&product=Fedora", 26, "#553878 CLOSED")
+
+    def testQueryFixedIn(self):
+        out = self.clicomm("query --fixed_in anaconda-15.29-1")
+        self.assertEquals(len(out.splitlines()), 6)
+        self.assertTrue("#629311 CLOSED" in out)
