@@ -106,6 +106,11 @@ class BaseTest(unittest.TestCase):
         out = self.clicomm("query %s" % args)
         self.assertTrue(expectstr in out)
 
+    def _testQueryURL(self, url, count, expectstr):
+        out = self.clicomm("query --from-url \"%s\"" % url)
+        self.assertEqual(len(out.splitlines()), count)
+        self.assertTrue(expectstr in out)
+
 
 class BZ32(BaseTest):
     url = "https://bugzilla.kernel.org/xmlrpc.cgi"
@@ -185,3 +190,9 @@ class RHTest(BaseTest):
             "sw=%{whiteboard:status} needinfo=%{flag:needinfo} "
             "sum=%{summary}\"",
             "id=307471 sw= bzcl34nup")
+    test11 = lambda s: BaseTest._testQueryURL(s,
+            "https://bugzilla.redhat.com/buglist.cgi?f1=creation_ts"
+            "&list_id=973582&o1=greaterthaneq&classification=Fedora&"
+            "o2=lessthaneq&query_format=advanced&f2=creation_ts"
+            "&v1=2010-01-01&component=python-bugzilla&v2=2011-01-01"
+            "&product=Fedora", 26, "#553878 CLOSED")

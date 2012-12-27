@@ -23,7 +23,6 @@ import tempfile
 import xmlrpclib
 
 import bugzilla
-import bugzilla.util
 
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
@@ -418,7 +417,7 @@ def do_query(bz, opt, parser):
     # Parse preconstructed queries.
     u = getattr(opt, 'from_url', None)
     if u:
-        q = bugzilla.util.url_to_query(u)
+        q = bz.url_to_query(u)
 
     # TODO: flags to save queries, list/perform saved queries
     # TODO: use the given scheme/host for the bugzilla URL
