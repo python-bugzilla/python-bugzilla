@@ -57,8 +57,6 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
         if err:
             raise
 
-        if 'assigned_to' not in keylist:
-            keylist.append('assigned_to')
         return keylist
 
     def _getcomponents(self, product):
