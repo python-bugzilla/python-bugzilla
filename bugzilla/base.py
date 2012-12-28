@@ -25,22 +25,6 @@ class BugzillaError(Exception):
     pass
 
 
-class NeedSyncError(BugzillaError):
-    '''Must save data from this class to the bugzilla server before using this.
-    '''
-    pass
-
-
-class NeedParamError(BugzillaError):
-    '''A necessary parameter was left out.'''
-    pass
-
-
-class LoadError(BugzillaError):
-    '''Error loading credentials'''
-    pass
-
-
 def replace_getbug_errors_with_None(rawlist):
     '''r is a raw xmlrpc response.
     If it represents an error, None is returned.
@@ -1370,7 +1354,7 @@ class _User(object):
         :arg groups: list of groups to be added to (i.e. ['fedora_contrib'])
         '''
         if self._name_dirty:
-            raise NeedSyncError('name has been changed.  run update() before'
+            raise BugzillaError('name has been changed.  run update() before'
                     ' updating perms.')
         self.bugzilla._updateperms(self.name, action, groups)
 

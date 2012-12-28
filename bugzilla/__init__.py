@@ -18,17 +18,11 @@ import xmlrpclib
 log = logging.getLogger("bugzilla")
 
 
+from bugzilla.base import BugzillaError
 from bugzilla.bugzilla3 import Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36
-from bugzilla.bugzilla4 import Bugzilla4
+from bugzilla.bugzilla4 import Bugzilla4, Bugzilla42, Bugzilla44
 from bugzilla.nvlbugzilla import NovellBugzilla
 from bugzilla.rhbugzilla import RHBugzilla, RHBugzilla3, RHBugzilla4
-
-# advertised class list
-classlist = ['Bugzilla3', 'Bugzilla32', 'Bugzilla34',
-             'Bugzilla36', 'Bugzilla4', 'RHBugzilla3', 'RHBugzilla4',
-             'NovellBugzilla']
-
-
 
 
 def getBugzillaClassForURL(url):
@@ -60,10 +54,16 @@ def getBugzillaClassForURL(url):
     # note preference order: RHBugzilla* wins if available
     if rhbz:
         c = RHBugzilla
-    else:
-        if bzversion.startswith("4."):
+    elif bzversion.startswith("4."):
+        if bzversion.startswith("4.0"):
             c = Bugzilla4
-        elif bzversion.startswith('3.6'):
+        elif bzversion.startswith("4.2"):
+            c = Bugzilla42
+        else:
+            log.debug("No explicit match for %s, using latest bz4" % bzversion)
+            c = Bugzilla44
+    else:
+        if bzversion.startswith('3.6'):
             c = Bugzilla36
         elif bzversion.startswith('3.4'):
             c = Bugzilla34
@@ -77,9 +77,11 @@ def getBugzillaClassForURL(url):
 
 
 class Bugzilla(object):
-    '''Magical Bugzilla class that figures out which Bugzilla implementation
+    '''
+    Magical Bugzilla class that figures out which Bugzilla implementation
     to use and uses that. Requires 'url' parameter so we can check available
-    XMLRPC methods to determine the Bugzilla version.'''
+    XMLRPC methods to determine the Bugzilla version.
+    '''
     def __init__(self, **kwargs):
         log.info("Bugzilla v%s initializing" % __version__)
         if 'url' not in kwargs:
@@ -89,10 +91,28 @@ class Bugzilla(object):
         # Use of __init__ of non parent class
 
         c = getBugzillaClassForURL(kwargs['url'])
+        if not c:
+            raise ValueError("Couldn't determine Bugzilla version for %s" %
+                             kwargs['url'])
+
         if c:
             self.__class__ = c
             c.__init__(self, **kwargs)
             log.info("Chose subclass %s v%s" % (c.__name__, c.version))
-        else:
-            raise ValueError("Couldn't determine Bugzilla version for %s" %
-                             kwargs['url'])
+
+# This is the list of possible Bugzilla instances an app can use,
+# bin/bugzilla uses it for the --bztype field
+classlist = [
+    "Bugzilla3", "Bugzilla32", "Bugzilla34", "Bugzilla36",
+    "Bugzilla4", "Bugzilla42", "Bugzilla44",
+    "RHBugzilla3", "RHBugzilla4", "RHBugzilla",
+    "NovellBugzilla",
+]
+
+# This is the public API. If you are explicitly instantiating any other
+# class, using some function, or poking into internal files, don't complain
+# if things break on you.
+__all__ = classlist + [
+    'BugzillaError',
+    'Bugzilla',
+]

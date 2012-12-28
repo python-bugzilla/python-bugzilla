@@ -9,10 +9,11 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-import bugzilla.base
+from bugzilla import BugzillaError
+from bugzilla.base import BugzillaBase
 
 
-class Bugzilla3(bugzilla.base.BugzillaBase):
+class Bugzilla3(BugzillaBase):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
     methods provided by standard Bugzilla 3.0.x releases.'''
 
@@ -21,7 +22,7 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
     bz_ver_minor = 0
 
     def __init__(self, **kwargs):
-        bugzilla.base.BugzillaBase.__init__(self, **kwargs)
+        BugzillaBase.__init__(self, **kwargs)
 
     def _login(self, user, password):
         '''Backend login method for Bugzilla3'''
@@ -177,8 +178,8 @@ class Bugzilla34(Bugzilla32):
         if match:
             params['match'] = match
         if not params:
-            raise bugzilla.base.NeedParamError('_get() needs one of ids, '
-                    ' names, or match kwarg.')
+            raise BugzillaError('_get() needs one of ids, '
+                                ' names, or match kwarg.')
 
         return self._proxy.User.get(params)
 

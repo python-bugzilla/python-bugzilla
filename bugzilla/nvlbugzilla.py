@@ -17,8 +17,7 @@ import urllib
 import urllib2
 import urlparse
 
-from bugzilla import Bugzilla32, log
-from bugzilla.base import BugzillaError
+from bugzilla import BugzillaError, Bugzilla32, log
 
 
 class NovellBugzilla(Bugzilla32):
