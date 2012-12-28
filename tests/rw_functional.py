@@ -126,7 +126,7 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug.blocks, _split_int(blocked))
         self.assertEquals(bug.depends_on, _split_int(dependson))
         self.assertTrue(all([e in bug.cc for e in cc.split(",")]))
-        self.assertEquals(bug.longdescs[0]["body"], comment)
+        self.assertEquals(bug.longdescs[0]["text"], comment)
 
         # Close the bug
         tests.clicomm("bugzilla modify --close WONTFIX %s" % bugid,
@@ -163,8 +163,8 @@ class RHPartnerTest(BaseTest):
 
         bug.refresh()
         self.assertEquals(bug.status, status)
-        self.assertEquals(bug.longdescs[-1]["isprivate"], 1)
-        self.assertEquals(bug.longdescs[-1]["body"], comment)
+        self.assertEquals(bug.longdescs[-1]["is_private"], 1)
+        self.assertEquals(bug.longdescs[-1]["text"], comment)
 
         # Close bug as DEFERRED with a private comment
         resolution = "DEFERRED"
@@ -177,8 +177,8 @@ class RHPartnerTest(BaseTest):
         bug.refresh()
         self.assertEquals(bug.status, "CLOSED")
         self.assertEquals(bug.resolution, resolution)
-        self.assertEquals(bug.longdescs[-1]["isprivate"], 1)
-        self.assertEquals(bug.longdescs[-1]["body"], comment)
+        self.assertEquals(bug.longdescs[-1]["is_private"], 1)
+        self.assertEquals(bug.longdescs[-1]["text"], comment)
 
         # Close bug as dup with no comment
         dupeid = "461686"
@@ -189,15 +189,15 @@ class RHPartnerTest(BaseTest):
         bug.refresh()
         self.assertEquals(bug.dupe_of, int(dupeid))
         self.assertEquals(len(bug.longdescs), desclen + 1)
-        self.assertTrue(not bug.longdescs[-1]["body"])
+        self.assertTrue("marked as a duplicate" in bug.longdescs[-1]["text"])
 
         # Add lone comment
         comment = ("adding lone comment at %s" % datetime.datetime.today())
         tests.clicomm(cmd + "--comment \"%s\" --private" % comment, bz)
 
         bug.refresh()
-        self.assertEquals(bug.longdescs[-1]["isprivate"], 1)
-        self.assertEquals(bug.longdescs[-1]["body"], comment)
+        self.assertEquals(bug.longdescs[-1]["is_private"], 1)
+        self.assertEquals(bug.longdescs[-1]["text"], comment)
 
         # Reset state
         tests.clicomm(cmd + "--status %s" % origstatus, bz)

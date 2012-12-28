@@ -178,7 +178,8 @@ class RHTest(BaseTest):
     test5 = lambda s: BaseTest._testQuery(s,
                 "--product Fedora --component python-bugzilla --version 14",
                 6, "621030")
-    test6 = lambda s: BaseTest._testQueryFull(s, "663674", 70, "F14 is EOL.")
+    test6 = lambda s: BaseTest._testQueryFull(s, "621601", 60,
+                                              "end-of-life (EOL)")
     test7 = lambda s: BaseTest._testQueryRaw(s, "663674", 70,
                 "ATTRIBUTE[whiteboard]: whiteboard test")
     test8 = lambda s: BaseTest._testQueryOneline(s, "307471",

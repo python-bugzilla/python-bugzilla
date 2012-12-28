@@ -907,6 +907,14 @@ class BugzillaBase(object):
     createbug_required = ('product', 'component', 'summary', 'version',
                           'description')
 
+    # getbug_extra_fields: Extra fields that need to be explicitly
+    # requested from Bug.get in order for the data to be returned. This
+    # decides the difference between getbug() and getbugsimple().
+    #
+    # As of Dec 2012 it seems like only RH bugzilla actually has behavior
+    # like this, for upstream bz it returns all info for every Bug.get()
+    getbug_extra_fields = []
+
     # List of field aliases. Maps old style RHBZ parameter names to actual
     # upstream values. Used for createbug() and query include_fields at
     # least.
@@ -927,6 +935,7 @@ class BugzillaBase(object):
         ('url', 'bug_file_loc'),
         ('dupe_of', 'dupe_id'),
         ('dupe_of', 'dup_id'),
+        ('longdescs', 'comments'),
     )
 
     def _createbug(self, **data):

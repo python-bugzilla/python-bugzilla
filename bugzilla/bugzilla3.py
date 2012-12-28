@@ -79,6 +79,8 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
             "ids": idlist,
             "permissive": 1,
         }
+        if self.getbug_extra_fields:
+            getbugdata["extra_fields"] = self.getbug_extra_fields
 
         r = self._proxy.Bug.get_bugs(getbugdata)
 

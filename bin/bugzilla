@@ -628,14 +628,8 @@ def _format_output(bz, opt, buglist):
                        " ".join([str(i) for i in b.dependson or []]))
 
             for c in getattr(b, "longdescs", []):
-                if 'email' in c:
-                    email = c['email']
-                elif 'safe_email' in c:
-                    email = c['safe_email']
-                else:
-                    email = 'Unknown'
-                print to_encoding(u"* %s - %s (%s):\n%s\n" % (c['time'],
-                    c['author'], email, c['body']))
+                print to_encoding(u"* %s - %s:\n%s\n" % (c['time'],
+                    c['author'], c['text']))
 
     elif opt.output == 'normal':
         for b in buglist:
@@ -788,7 +782,7 @@ def _do_attach(bz, opt, parser, args):
                          args)
 
         for bug in bz.getbugs(opt.getall):
-            opt.get += [a['attach_id'] for a in bug.attachments]
+            opt.get += [a['id'] for a in bug.attachments]
 
         for attid in set(opt.get):
             att = bz.openattachment(attid)

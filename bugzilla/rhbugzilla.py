@@ -40,6 +40,7 @@ class RHBugzilla(Bugzilla42):
     version = '0.1'
 
     def __init__(self, **kwargs):
+        # 'multicall' is no longer used, keep it here for back compat
         self.multicall = True
         if "multicall" in kwargs:
             self.multicall = kwargs.pop("multicall")
@@ -48,49 +49,16 @@ class RHBugzilla(Bugzilla42):
 
     #---- Methods and properties with basic bugzilla info
 
-    def _multicall(self):
-        '''This returns kind of a mash-up of the Bugzilla object and the
-        xmlrpclib.MultiCall object. Methods you call on this object will be
-        added to the MultiCall queue, but they will return None. When you're
-        ready, call the run() method and all the methods in the queue will be
-        run and the results of each will be returned in a list. So,
-        for example:
-
-        mc = bz._multicall()
-        mc._getbug(1)
-        mc._getbug(1337)
-        mc._query({'component':'glibc', 'product':'Fedora', 'version':'devel'})
-        (bug1, bug1337, queryresult) = mc.run()
-
-        Note that you should only use the raw xmlrpc calls (mostly the methods
-        starting with an underscore). Normal getbug(), for example, tries to
-        return a _Bug object, but with the multicall object it'll end up empty
-        and, therefore, useless.
-
-        Further note that run() returns a list of raw xmlrpc results; you'll
-        need to wrap the output in Bug objects yourself if you're doing that
-        kind of thing. For example, Bugzilla.getbugs() could be implemented:
-
-        mc = self._multicall()
-        for id in idlist:
-            mc._getbug(id)
-        rawlist = mc.run()
-        return [_Bug(self, dict=b) for b in rawlist]
-        '''
-
-        mc = copy.copy(self)
-        mc._proxy = xmlrpclib.MultiCall(self._proxy)
-
-        def run():
-            return mc._proxy().results
-
-        mc.run = run
-        return mc
-
     # Connect the backend methods to the XMLRPC methods
 
     def _getqueryinfo(self):
         return self._proxy.bugzilla.getQueryInfo()
+
+    getbug_extra_fields = ["attachments", "comments", "description",
+        "external_bugs", "flags"]
+    field_aliases = (Bugzilla42.field_aliases + (
+        ('fixed_in', 'cf_fixed_in'),
+        ))
 
     #---- Methods for modifying existing bugs.
 
@@ -151,27 +119,6 @@ class RHBugzilla(Bugzilla42):
             data['product'] = self._product_id_to_name(data['product'])
         r = self._proxy.bugzilla.editComponent(data, self.user, self.password)
         return r
-
-    def _getbugs(self, idlist):
-        r = []
-        if self.multicall:
-            if len(idlist) == 1:
-                return [self._proxy.bugzilla.getBug(idlist[0])]
-            mc = self._multicall()
-            for objid in idlist:
-                mc._proxy.bugzilla.getBug(objid)
-            raw_results = mc.run()
-            del mc
-            # check results for xmlrpc errors, and replace them with None
-            r = bugzilla.base.replace_getbug_errors_with_None(raw_results)
-        else:
-            raw_results = self._proxy.Bug.get({'ids': idlist})
-            r = [i for i in raw_results['bugs']]
-        return r
-
-    # This can be activated once Bug.get() returns all the data that
-    # RHBZ's getBug() does.
-    #_getbugs = Bugzilla3._getbugs # Also _getbug, _getbugsimple, etc.
 
     #---- Methods for updating bugs.
 
