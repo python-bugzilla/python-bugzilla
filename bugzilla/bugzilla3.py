@@ -69,20 +69,31 @@ class Bugzilla3(bugzilla.base.BugzillaBase):
     #---- Methods for reading bugs and bug info
 
     def _getbugs(self, idlist):
-        '''Return a list of dicts of full bug info for each given bug id.
-        bug ids that couldn't be found will return None instead of a dict.'''
+        '''
+        Return a list of dicts of full bug info for each given bug id.
+        bug ids that couldn't be found will return None instead of a dict.
+        '''
         idlist = [int(i) for i in idlist]
 
-        r = self._proxy.Bug.get_bugs({'ids': idlist, 'permissive': 1})
+        getbugdata = {
+            "ids": idlist,
+            "permissive": 1,
+        }
 
-        bugdict = dict([(b['id'], b['internals']) for b in r['bugs']])
+        r = self._proxy.Bug.get_bugs(getbugdata)
+
+        if self.bz_ver_major >= 4:
+            bugdict = dict([(b['id'], b) for b in r['bugs']])
+        else:
+            bugdict = dict([(b['id'], b['internals']) for b in r['bugs']])
+
         return [bugdict.get(i) for i in idlist]
 
     def _getbug(self, objid):
         '''Return a dict of full bug info for the given bug id'''
         return self._getbugs([objid])[0]
 
-   # Bugzilla3 doesn't have getbugsimple - alias to the full method(s)
+   # getbugsimple is poorly defined, just alias it to _getbug
     _getbugsimple = _getbug
     _getbugssimple = _getbugs
 

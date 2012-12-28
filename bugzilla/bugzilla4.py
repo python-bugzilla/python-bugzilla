@@ -23,26 +23,10 @@ class Bugzilla4(Bugzilla36):
     def __init__(self, **kwargs):
         Bugzilla36.__init__(self, **kwargs)
 
-    #---- Methods for reading bugs and bug info
 
-    def _getbugs(self, idlist):
-        '''Return a list of dicts of full bug info for each given bug id.
-        bug ids that couldn't be found will return None instead of a dict.'''
-        # XXX This is only slightly different from Bugzilla36, combine them?
-        idlist = [int(i) for i in idlist]
-
-        r = self._proxy.Bug.get_bugs({'ids': idlist, 'permissive': 1})
-
-        bugdict = dict([(b['id'], b) for b in r['bugs']])
-        return [bugdict.get(i) for i in idlist]
-
-    def _getbug(self, objid):
-        '''Return a dict of full bug info for the given bug id'''
-        return self._getbugs([objid])[0]
-
-   # TODO: Bugzilla4 should support getbugsimple, needs to be implemented
-    _getbugsimple = _getbug
-    _getbugssimple = _getbugs
+    #################
+    # Query Methods #
+    #################
 
     def build_query(self, **kwargs):
         query = Bugzilla36.build_query(self, **kwargs)

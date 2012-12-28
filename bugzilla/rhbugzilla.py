@@ -220,11 +220,6 @@ class RHBugzilla(Bugzilla42):
     # TODO: allow multiple bug IDs
 
     def _update_add_comment_fields(self, updatedict, comment, private):
-        """
-        # XXX: This is how it's documented in 4.2 docs:
-        # But with RHBugzilla justs adds a comment like:
-        # HASH(0x1783a5b0)
-        """
         if not comment:
             return
 
