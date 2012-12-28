@@ -255,13 +255,6 @@ class RHBugzilla(Bugzilla42):
         if private:
             commentdict["is_private"] = private
         updatedict["comment"] = commentdict
-        return
-
-        # XXX: This works, but I think it's a RH only extensions
-        updatedict["comment"] = comment
-        if private:
-            updatedict["commentprivacy"] = private
-
 
     def _setstatus(self, objid, status, comment='', private=False,
                    private_in_it=False, nomail=False):
