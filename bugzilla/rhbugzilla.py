@@ -92,29 +92,6 @@ class RHBugzilla(Bugzilla42):
     def _getqueryinfo(self):
         return self._proxy.bugzilla.getQueryInfo()
 
-    def _get_info(self, product=None):
-        '''This is a convenience method that does getqueryinfo, getproducts,
-        and (optionally) getcomponents in one big fat multicall. This is a bit
-        faster than calling them all separately.
-
-        If you're doing interactive stuff you should call this, with the
-        appropriate product name, after connecting to Bugzilla. This will
-        cache all the info for you and save you an ugly delay later on.'''
-        mc = self._multicall()
-        mc._getqueryinfo()
-        mc._getproducts()
-        mc._getbugfields()
-        if product:
-            mc._getcomponents(product)
-            mc._getcomponentsdetails(product)
-        r = mc.run()
-        (self._querydata, self._querydefaults) = r.pop(0)
-        self._products = r.pop(0)
-        self._bugfields = r.pop(0)
-        if product:
-            self._components[product] = r.pop(0)
-            self._components_details[product] = r.pop(0)
-
     #---- Methods for modifying existing bugs.
 
     # Most of these will probably also be available as Bug methods, e.g.:
