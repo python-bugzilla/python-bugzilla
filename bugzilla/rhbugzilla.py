@@ -43,25 +43,24 @@ class RHBugzilla(Bugzilla42):
 
         Bugzilla42.__init__(self, **kwargs)
 
-    #---- Methods and properties with basic bugzilla info
+    getbug_extra_fields = (
+        Bugzilla42.getbug_extra_fields + [
+            "attachments", "comments", "description",
+            "external_bugs", "flags",
+        ]
+    )
 
-    # Connect the backend methods to the XMLRPC methods
+    field_aliases = (
+        Bugzilla42.field_aliases + (
+            ('fixed_in', 'cf_fixed_in'),
+        )
+    )
 
-    def _getqueryinfo(self):
-        return self._proxy.bugzilla.getQueryInfo()
 
-    getbug_extra_fields = ["attachments", "comments", "description",
-        "external_bugs", "flags"]
-    field_aliases = (Bugzilla42.field_aliases + (
-        ('fixed_in', 'cf_fixed_in'),))
+    #######################################
+    # Methods for modifying existing bugs #
+    #######################################
 
-    #---- Methods for modifying existing bugs.
-
-    # Most of these will probably also be available as Bug methods, e.g.:
-    # Bugzilla.setstatus(id, status) ->
-    #   Bug.setstatus(status): self.bugzilla.setstatus(self.bug_id, status)
-
-    # TODO: update this when the XMLRPC interface grows requestee support
     def _updateflags(self, objid, flags):
         '''Updates the flags associated with a bug report.
         data should be a hash of {'flagname':'value'} pairs, like so:
