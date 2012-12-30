@@ -25,22 +25,6 @@ class BugzillaError(Exception):
     pass
 
 
-def replace_getbug_errors_with_None(rawlist):
-    '''r is a raw xmlrpc response.
-    If it represents an error, None is returned.
-    Otherwise, r is returned.
-    This is mostly used for XMLRPC Multicall handling.'''
-    # Yes, this is a naive implementation
-    # XXX: return a generator?
-    result = []
-    for r in rawlist:
-        if isinstance(r, dict) and 'bug_id' in r:
-            result.append(r)
-        else:
-            result.append(None)
-    return result
-
-
 def decode_rfc2231_value(val):
     # BUG WORKAROUND: decode_header doesn't work unless there's whitespace
     # around the encoded string (see http://bugs.python.org/issue1079)

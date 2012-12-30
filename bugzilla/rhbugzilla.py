@@ -9,13 +9,9 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-import copy
-import xmlrpclib
 
-import bugzilla.base
 from bugzilla import log
 from bugzilla.bugzilla4 import Bugzilla42
-
 
 
 class RHBugzilla(Bugzilla42):
@@ -57,8 +53,7 @@ class RHBugzilla(Bugzilla42):
     getbug_extra_fields = ["attachments", "comments", "description",
         "external_bugs", "flags"]
     field_aliases = (Bugzilla42.field_aliases + (
-        ('fixed_in', 'cf_fixed_in'),
-        ))
+        ('fixed_in', 'cf_fixed_in'),))
 
     #---- Methods for modifying existing bugs.
 
