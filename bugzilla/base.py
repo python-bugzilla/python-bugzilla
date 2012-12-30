@@ -905,7 +905,7 @@ class BugzillaBase(object):
         ('dupe_of', 'dup_id'),
         ('comments', 'longdescs'),
         ('creation_time', 'opendate'),
-        ('creation_ts', 'opendate'),
+        ('creation_time', 'creation_ts'),
     )
 
     def _createbug(self, **data):
