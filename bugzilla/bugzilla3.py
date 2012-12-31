@@ -110,19 +110,6 @@ class Bugzilla3(BugzillaBase):
         return r['id']
 
 
-    #---- Methods for interacting with users
-
-    def _createuser(self, email, name=None, password=None):
-        '''Create a new bugzilla user directly.
-
-        :arg email: email address for the new user
-        :kwarg name: full name for the user
-        :kwarg password: a password to use with the account
-        '''
-        userid = self._proxy.User.create(email, name, password)
-        return userid
-
-
 # Bugzilla 3.2 adds some new goodies on top of Bugzilla3.
 class Bugzilla32(Bugzilla3):
     '''Concrete implementation of the Bugzilla protocol. This one uses the

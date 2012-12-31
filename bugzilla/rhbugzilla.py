@@ -69,10 +69,6 @@ class RHBugzilla(Bugzilla42):
                 self.password)
         return r
 
-    def _adduser(self, user, name):
-        r = self._proxy.bugzilla.addUser(user, name, self.user, self.password)
-        return r
-
 
     #####################
     # Component methods #

@@ -931,7 +931,7 @@ class BugzillaBase(object):
             Code 503 if the password is too long
         :return: User record for the username
         '''
-        self._createuser(email, name, password)
+        self._proxy.User.create(email, name, password)
         return self.getuser(email)
 
 
@@ -993,20 +993,10 @@ class BugzillaBase(object):
         '''IMPLEMEMT ME: Get a list of Bugzilla user'''
         raise NotImplementedError
 
-    def _createuser(self, email, name=None, password=None):
-        '''IMPLEMEMT ME: Create a Bugzilla user'''
-        raise NotImplementedError
-
     def _updateperms(self, user, action, group):
         '''IMPLEMEMT ME: Update Bugzilla user permissions'''
         raise NotImplementedError
 
-    def _adduser(self, email, name):
-        '''IMPLEMENT ME: Add a bugzilla user
-
-        Deprecated.  User _createuser() instead
-        '''
-        raise NotImplementedError
 
 
     def _createbug(self, **data):
@@ -1051,4 +1041,4 @@ class BugzillaBase(object):
         user: The email address of the user to create
         name: The full name of the user to create
         '''
-        self._adduser(user, name)
+        self.createuser(user, name)
