@@ -294,6 +294,8 @@ class RHPartnerTest(BaseTest):
 
         self.assertEquals(flagstr(bug1), setflags)
         self.assertEquals(flagstr(bug2), setflags)
+        self.assertEquals(bug1.get_flags("needinfo")[0]["status"], "?")
+        self.assertEquals(bug1.get_flag_status("requires_doc_text"), "-")
 
         # Clear flags
         if cleardict(bug1):
