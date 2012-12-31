@@ -22,13 +22,9 @@ class _Bug(object):
         bug_id=ID   - if dict does not contain bug_id, this is required before
                       you can read any attributes or make modifications to this
                       bug.
-        autorefresh - automatically refresh the data in this bug after calling
-                      a method that modifies the bug. Defaults to True. You can
-                      call refresh() to do this manually.
     '''
     def __init__(self, bugzilla, **kwargs):
         self.bugzilla = bugzilla
-        self.autorefresh = True
 
         if 'dict' in kwargs and kwargs['dict']:
             log.debug("Bug(%s)" % sorted(kwargs['dict'].keys()))
@@ -38,10 +34,10 @@ class _Bug(object):
             log.debug("Bug(%i)" % kwargs['bug_id'])
             setattr(self, 'id', kwargs['bug_id'])
 
+        # Back compat for a previously handled param
         if 'autorefresh' in kwargs:
-            self.autorefresh = kwargs['autorefresh']
+            del(kwargs["autorefresh"])
 
-        # No bug_id? this bug is invalid!
         if not hasattr(self, 'id'):
             raise TypeError("Bug object needs a bug_id")
 
