@@ -857,8 +857,9 @@ class BugzillaBase(object):
     createbug_required = ('product', 'component', 'summary', 'version',
                           'description')
 
-    def createbug(self, check_args=False, **data):
-        '''Create a bug with the given info. Returns a new Bug object.
+    def createbug(self, **data):
+        '''
+        Create a bug with the given info. Returns a new Bug object.
         Check bugzilla API documentation for valid values, at least
         product, component, summary, version, and description need to
         be passed.
@@ -873,26 +874,10 @@ class BugzillaBase(object):
                 oldfield in data):
                 data[newfield] = data.pop(oldfield)
 
-        # Sort of a chicken-and-egg problem here - check_args will save you a
-        # network roundtrip if your op_sys or rep_platform is bad, but at the
-        # expense of getting querydefaults, which is.. an added network
-        # roundtrip. Basically it's only useful if you're mucking around with
-        # createbug() in ipython and you've already loaded querydefaults.
-        if check_args:
-            if data['op_sys'] not in self.querydefaults['op_sys_list']:
-                raise ValueError("invalid value for op_sys: %s" %
-                                 data['op_sys'])
-            if (data['rep_platform'] not in
-                self.querydefaults['rep_platform_list']):
-                raise ValueError("invalid value for rep_platform: %s" %
-                                 data['rep_platform'])
+        # Back compat handling for check_args
+        if "check_args" in data:
+            del(data["check_args"])
 
-        # Actually perform the createbug call.
-        # We return a nearly-empty Bug object, which is kind of a bummer 'cuz
-        # it'll take another network roundtrip to fill it. We *could* fake it
-        # and fill in the blanks with the data given to this method, but the
-        # server might modify/add/drop stuff. Then we'd have a Bug object that
-        # lied about the actual contents of the database. That would be bad.
         bug_id = self._createbug(**data)
         return _Bug(self, bug_id=bug_id)
 
