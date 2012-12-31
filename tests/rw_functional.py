@@ -11,6 +11,7 @@ Unit tests that do permanent functional against a real bugzilla instances.
 
 import datetime
 import os
+import random
 import unittest
 import urllib2
 
@@ -402,3 +403,43 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(setbug.attachments[-1]["description"], desc2)
         self.assertEquals(setbug.attachments[-1]["id"],
                           int(out2.splitlines()[2].split()[2]))
+
+
+    def test9Whiteboards(self):
+        bz = self.bzclass(url=self.url, cookiefile=cf)
+        bug = bz.getbug("663674")
+
+        # Set all whiteboards
+        initval = str(random.randint(1, 1024))
+        bug.setwhiteboard(initval + "status", "status")
+        bug.setwhiteboard(initval + "qa", "qa")
+        bug.setwhiteboard(initval + "devel", "devel")
+        bug.setwhiteboard(initval + "internal", "internal")
+
+        bug.refresh()
+        self.assertEquals(bug.whiteboard, initval + "status")
+        self.assertEquals(bug.qa_whiteboard, initval + "qa")
+        self.assertEquals(bug.devel_whiteboard, initval + "devel")
+        self.assertEquals(bug.internal_whiteboard, initval + "internal")
+
+        # Modify whiteboards
+        bug.appendwhiteboard("-app", "qa")
+        bug.prependwhiteboard("pre-", "devel")
+        bug.setwhiteboard("foobar", "status")
+
+        bug.refresh()
+        self.assertEquals(bug.qa_whiteboard, initval + "qa" + " -app")
+        self.assertEquals(bug.devel_whiteboard, "pre- " + initval + "devel")
+        self.assertEquals(bug.status_whiteboard, "foobar")
+
+        # Clear whiteboards
+        bug.setwhiteboard("", "status")
+        bug.setwhiteboard("", "qa")
+        bug.setwhiteboard("", "devel")
+        bug.setwhiteboard("", "internal")
+
+        bug.refresh()
+        self.assertEquals(bug.whiteboard, "")
+        self.assertEquals(bug.qa_whiteboard, "")
+        self.assertEquals(bug.devel_whiteboard, "")
+        self.assertEquals(bug.internal_whiteboard, "")

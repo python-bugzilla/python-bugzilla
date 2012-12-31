@@ -304,7 +304,6 @@ def setup_action_parser(action):
         p.set_description("Log into bugzilla and save a login cookie.")
 
     if action in ['new', 'query']:
-        # output modifiers
         outg = optparse.OptionGroup(p, "Output format options")
         outg.add_option('-f', '--full', action='store_const', dest='output',
                 const='full', default='normal',
@@ -766,12 +765,11 @@ def _do_modify(bz, opt, args):
             log.debug("  add comment: %s" % opt.comment)
             bug.addcomment(opt.comment, opt.private)
 
-    # stuff that I do in batch mode:
-    if opt.fixed_in:
-        data = {}
-        if opt.fixed_in:
-            data['fixed_in'] = opt.fixed_in
-        bz._update_bugs(bugid_list, data)
+    update = bz.build_update(fixed_in=opt.fixed_in or None)
+
+    if update:
+        log.debug("generated bulk update dict=%s" % update)
+        bz.update_bugs(bugid_list, update)
 
 
 def _do_attach(bz, opt, parser, args):

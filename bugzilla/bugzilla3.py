@@ -134,20 +134,6 @@ class Bugzilla32(Bugzilla3):
     version = '0.1'
     bz_ver_minor = 2
 
-    def _addcomment(self, objid, comment, private=False,
-                    timestamp='', worktime='', bz_gid=''):
-        '''Add a comment to the bug with the given ID. Other optional
-        arguments are as follows:
-            private:   if True, mark this comment as private.
-            timestamp: Ignored by BZ32.
-            worktime:  amount of time spent on this comment, in hours
-            bz_gid:    Ignored by BZ32.
-        '''
-        return self._proxy.Bug.add_comment({'id': objid,
-                                            'comment': comment,
-                                            'private': private,
-                                            'work_time': worktime})
-
 
 # Bugzilla 3.4 adds some new goodies on top of Bugzilla32.
 class Bugzilla34(Bugzilla32):

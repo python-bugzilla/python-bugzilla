@@ -53,6 +53,9 @@ class RHBugzilla(Bugzilla42):
     field_aliases = (
         Bugzilla42.field_aliases + (
             ('fixed_in', 'cf_fixed_in'),
+            ('qa_whiteboard', 'cf_qa_whiteboard'),
+            ('devel_whiteboard', 'cf_devel_whiteboard'),
+            ('internal_whiteboard', 'cf_internal_whiteboard'),
         )
     )
 
@@ -114,163 +117,32 @@ class RHBugzilla(Bugzilla42):
         r = self._proxy.bugzilla.editComponent(data, self.user, self.password)
         return r
 
-    #---- Methods for updating bugs.
 
-    def _add_bug_comment(self, ids, comment, is_private):
-        '''Add a new comment to a specified bug ID(s). Returns the comment
-        ID(s) array.
-        '''
+    ######################
+    # Bug update methods #
+    ######################
 
-        ret = list()
-        for objid in ids:
-            r = self._proxy.Bug.add_comment({'id': objid, 'comment': comment,
-                                             'is_private': is_private})
-            if 'id' in r:
-                ret.append(r['id'])
+    def build_update(self, *args, **kwargs):
+        adddict = {}
 
-        return ret
+        def pop(key, destkey):
+            if key not in kwargs:
+                return
 
-    def _update_bugs(self, ids, updates):
-        '''Update the given fields with the given data in one or more bugs.
-        ids should be a list of integers or strings, representing bug ids or
-        aliases.
-        updates is a dict containing pairs like so: {'fieldname':'newvalue'}
-        '''
-        tmp = {"ids": self._listify(ids)}
-        custom_fields = ["fixed_in"]
+            val = kwargs.pop(key)
+            if val is None:
+                return
+            adddict[destkey] = val
 
-        for key, value in updates.items():
-            if key in custom_fields:
-                key = "cf_" + key
-            tmp[key] = value
+        pop("fixed_in", "cf_fixed_in")
+        pop("qa_whiteboard", "cf_qa_whiteboard")
+        pop("devel_whiteboard", "cf_devel_whiteboard")
+        pop("internal_whiteboard", "cf_internal_whiteboard")
 
-        return self._proxy.Bug.update(tmp)
+        vals = Bugzilla42.build_update(self, *args, **kwargs)
+        vals.update(adddict)
 
-    # Eventually - when RHBugzilla is well and truly obsolete - we'll delete
-    # all of these methods and refactor the Base Bugzilla object so all the bug
-    # modification calls go through _update_bug.
-    # Until then, all of these methods are basically just wrappers around it.
-
-    def _update_add_comment_fields(self, updatedict, comment, private):
-        if not comment:
-            return
-
-        commentdict = {"body": comment}
-        if private:
-            commentdict["is_private"] = private
-        updatedict["comment"] = commentdict
-
-    def _setstatus(self, objid, status, comment='', private=False,
-                   private_in_it=False, nomail=False):
-        '''Set the status of the bug with the given ID.'''
-        update = {'status': status}
-        self._update_add_comment_fields(update, comment, private)
-
-        return self._update_bugs(objid, update)
-
-    def _closebug(self, objid, resolution, dupeid, fixedin,
-                  comment, isprivate, private_in_it, nomail):
-        '''Close the given bug. This is the raw call, and no data checking is
-        done here. That's up to the closebug method.
-        Note that the private_in_it and nomail args are ignored.'''
-        update = {'bug_status': 'CLOSED', 'resolution': resolution}
-        if dupeid:
-            update['resolution'] = 'DUPLICATE'
-            update['dupe_of'] = dupeid
-        if fixedin:
-            update['fixed_in'] = fixedin
-        self._update_add_comment_fields(update, comment, isprivate)
-
-        return self._update_bugs(objid, update)
-
-    def _setassignee(self, objid, **data):
-        '''Raw xmlrpc call to set one of the assignee fields on a bug.
-        changeAssignment($id, $data, $username, $password)
-        data: 'assigned_to', 'reporter', 'qa_contact', 'comment'
-        returns: [$id, $mailresults]'''
-        # drop empty items
-        update = dict([(k, v) for k, v in data.iteritems() if (v and v != '')])
-        return self._update_bugs(objid, update)
-
-    def _updatedeps(self, objid, blocked, dependson, action):
-        '''Update the deps (blocked/dependson) for the given bug.
-        blocked, dependson: list of bug ids/aliases
-        action: 'add' or 'delete'
-        '''
-        if action not in ('add', 'delete', 'set'):
-            raise ValueError("action must be 'add', 'set', or 'delete'")
-
-        # change the action to be remove if it is delete
-        if action == 'delete':
-            action = 'remove'
-
-        update = {
-            'blocks': {action: blocked},
-            'depends_on': {action: dependson}
-        }
-        self._update_bugs(objid, update)
-
-    def _updatecc(self, objid, cclist, action, comment='', nomail=False):
-        '''Updates the CC list using the action and account list specified.
-        cclist must be a list (not a tuple!) of addresses.
-        action may be 'add', 'delete', or 'overwrite'.
-        comment specifies an optional comment to add to the bug.
-        if mail is True, email will be generated for this change.
-        '''
-        update = {}
-        self._update_add_comment_fields(update, comment, False)
-
-        if action in ('add', 'delete'):
-            # Action 'delete' has been changed to 'remove' in Bugzilla 4.0+
-            if action == 'delete':
-                action = 'remove'
-
-            update = {}
-            update['cc'] = {}
-            update['cc'][action] = cclist
-            self._update_bugs(objid, update)
-
-        elif action == 'overwrite':
-            r = self._getbug(objid)
-            if 'cc' not in r:
-                raise AttributeError("Can't find cc list in bug %s" %
-                                     str(objid))
-            self._updatecc(objid, r['cc'], 'delete')
-            self._updatecc(objid, cclist, 'add')
-
-        else:
-            # XXX we don't check inputs on other backend methods, maybe this
-            # is more appropriate in the public method(s)
-            raise ValueError("action must be 'add', 'delete', or 'overwrite'")
-
-    def _updatewhiteboard(self, objid, text, which, action, comment, private):
-        '''Update the whiteboard given by 'which' for the given bug.
-        performs the given action (which may be 'append', ' prepend', or
-        'overwrite') using the given text.
-
-        RHBZ3 Bug.update() only supports overwriting, so append/prepend
-        may cause two server roundtrips - one to fetch, and one to update.
-        '''
-        if not which.endswith('_whiteboard'):
-            which = which + '_whiteboard'
-
-        update = {}
-        if action == 'overwrite':
-            update[which] = text
-
-        else:
-            r = self._getbug(objid)
-            if which not in r:
-                raise ValueError("No such whiteboard %s in bug %s" %
-                                 (which, str(objid)))
-            wb = r[which]
-            if action == 'prepend':
-                update[which] = text + ' ' + wb
-            elif action == 'append':
-                update[which] = wb + ' ' + text
-
-        self._update_add_comment_fields(update, comment, private)
-        self._update_bugs(objid, update)
+        return vals
 
 
     #################

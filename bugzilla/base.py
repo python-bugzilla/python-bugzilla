@@ -616,7 +616,6 @@ class BugzillaBase(object):
         ('blocks', 'blockedby'),
         ('blocks', 'blocked'),
         ('depends_on', 'dependson'),
-        ('whiteboard', 'status_whiteboard'),
         ('creator', 'reporter'),
         ('url', 'bug_file_loc'),
         ('dupe_of', 'dupe_id'),
@@ -624,6 +623,7 @@ class BugzillaBase(object):
         ('comments', 'longdescs'),
         ('creation_time', 'opendate'),
         ('creation_time', 'creation_ts'),
+        ('whiteboard', 'status_whiteboard'),
     )
 
 
@@ -709,61 +709,24 @@ class BugzillaBase(object):
     # Methods for modifying existing bugs #
     #######################################
 
-    # Most of these will probably also be available as Bug methods, e.g.:
-    # Bugzilla.setstatus(id, status) ->
-    #   Bug.setstatus(status): self.bugzilla.setstatus(self.bug_id, status)
+    # Bug() also has individual methods for many ops, like setassignee()
 
-    def _addcomment(self, objid, comment, private=False,
-                   timestamp='', worktime='', bz_gid=''):
-        '''IMPLEMENT ME: add a comment to the given bug ID'''
-        raise NotImplementedError
+    def update_bugs(self, ids, updates):
+        """
+        A thin wrapper around bugzilla Bug.update(). Used to update all
+        values of an existing bug report, as well as add comments.
 
-    def _setstatus(self, objid, status, comment='', private=False,
-                   private_in_it=False, nomail=False):
-        '''IMPLEMENT ME: Set the status of the given bug ID'''
-        raise NotImplementedError
+        The dictionary passed to this function should be generated with
+        build_update(), otherwise we cannot guarantee back compatibility.
+        """
+        tmp = updates.copy()
+        tmp["ids"] = self._listify(ids)
 
-    def _closebug(self, objid, resolution, dupeid, fixedin, comment,
-                  isprivate, private_in_it, nomail):
-        '''IMPLEMENT ME: close the given bug ID'''
-        raise NotImplementedError
+        return self._proxy.Bug.update(tmp)
 
-    def _setassignee(self, objid, **data):
-        '''IMPLEMENT ME: set the assignee of the given bug ID'''
-        raise NotImplementedError
-
-    def _updatedeps(self, objid, blocked, dependson, action):
-        '''IMPLEMENT ME: update the deps (blocked/dependson) for the given bug.
-        blocked, dependson: list of bug ids/aliases
-        action: 'add' or 'delete'
-        '''
-        raise NotImplementedError
-
-    def _updatecc(self, objid, cclist, action, comment='', nomail=False):
-        '''IMPLEMENT ME: Update the CC list using the action and account list
-        specified.
-        cclist must be a list (not a tuple!) of addresses.
-        action may be 'add', 'delete', or 'overwrite'.
-        comment specifies an optional comment to add to the bug.
-        if mail is True, email will be generated for this change.
-        Note that using 'overwrite' may result in up to three XMLRPC calls
-        (fetch list, remove each element, add new elements). Avoid if possible.
-        '''
-        raise NotImplementedError
-
-    def _updatewhiteboard(self, objid, text, which, action, comment, private):
-        '''IMPLEMENT ME: Update the whiteboard given by 'which' for the given
-        bug. performs the given action (which may be 'append', ' prepend', or
-        'overwrite') using the given text.'''
-        raise NotImplementedError
-
-    def _updateflags(self, objid, flags):
-        '''Updates the flags associated with a bug report.
-        data should be a hash of {'flagname':'value'} pairs, like so:
-        {'needinfo':'?', 'fedora-cvs':'+'}
-        You may also add a "nomail":1 item, which will suppress email if set.
-        '''
-        raise NotImplementedError
+    def build_update(self, *args, **kwargs):
+        raise NotImplementedError("This bugzilla instance does not support "
+                "modifying bugs")
 
 
     ########################################

@@ -142,46 +142,32 @@ class _Bug(object):
         '''An alias for refresh()'''
         self.refresh()
 
-    def setstatus(self, status, comment='', private=False,
+
+    #####################
+    # Modify bug status #
+    #####################
+
+    def setstatus(self, status, comment=None, private=False,
                   private_in_it=False, nomail=False):
-        '''Update the status for this bug report.
-        Valid values for status are listed in querydefaults['bug_status_list']
+        '''
+        Update the status for this bug report.
         Commonly-used values are ASSIGNED, MODIFIED, and NEEDINFO.
+
         To change bugs to CLOSED, use .close() instead.
-        See Bugzilla._setstatus() for details.'''
-        self.bugzilla._setstatus(self.bug_id, status, comment,
-                                 private, private_in_it, nomail)
+        '''
+        ignore = private_in_it
+        ignore = nomail
 
-    def setassignee(self, assigned_to='', reporter='',
-                    qa_contact='', comment=''):
-        '''Set any of the assigned_to, reporter, or qa_contact fields to a new
-        bugzilla account, with an optional comment, e.g.
-        setassignee(reporter='sadguy@brokencomputer.org',
-                    assigned_to='wwoods@redhat.com')
-        setassignee(qa_contact='wwoods@redhat.com', comment='wwoods QA ftw')
-        You must set at least one of the three assignee fields, or this method
-        will throw a ValueError.
-        Returns [bug_id, mailresults].'''
-        if not (assigned_to or reporter or qa_contact):
-            raise ValueError("You must set one of assigned_to, "
-                             "reporter, or qa_contact")
+        vals = self.bugzilla.build_update(status=status,
+                                          comment=comment,
+                                          comment_private=private)
+        log.debug("setstatus: update=%s", vals)
 
-        r = self.bugzilla._setassignee(self.bug_id, assigned_to=assigned_to,
-                reporter=reporter, qa_contact=qa_contact, comment=comment)
-        return r
+        return self.bugzilla.update_bugs(self.bug_id, vals)
 
-    def addcomment(self, comment, private=False,
-                   timestamp='', worktime='', bz_gid=''):
-        '''Add the given comment to this bug. Set private to True to mark this
-        comment as private. You can also set a timestamp for the comment, in
-        "YYYY-MM-DD HH:MM:SS" form. Worktime is undocumented upstream.
-        If bz_gid is set, and the entire bug is not already private to that
-        group, this comment will be private.'''
-        self.bugzilla._addcomment(self.bug_id, comment, private, timestamp,
-                                  worktime, bz_gid)
-
-    def close(self, resolution, dupeid=0, fixedin='',
-              comment='', isprivate=False, private_in_it=False, nomail=False):
+    def close(self, resolution, dupeid=None, fixedin=None,
+              comment=None, isprivate=False,
+              private_in_it=False, nomail=False):
         '''Close this bug.
         Valid values for resolution are in bz.querydefaults['resolution_list']
         For bugzilla.redhat.com that's:
@@ -194,50 +180,148 @@ class _Bug(object):
           version that fixes the bug.
         You can optionally add a comment while closing the bug. Set 'isprivate'
           to True if you want that comment to be private.
-        If you want to suppress sending out mail for this bug closing, set
-          nomail=True.
         '''
-        self.bugzilla._closebug(self.bug_id, resolution, dupeid, fixedin,
-                                comment, isprivate, private_in_it, nomail)
+        ignore = private_in_it
+        ignore = nomail
 
-    def updateflags(self, flags):
-        '''Updates the bugzilla flags.
-        The flags values are a hash of {'flagname': 'value'} pairs.
-        Each product seems to have different flags available, so this can be
-        error-prone unless the error code is understood.
+        vals = self.bugzilla.build_update(comment=comment,
+                                          comment_private=isprivate,
+                                          resolution=resolution,
+                                          dupe_of=dupeid,
+                                          fixed_in=fixedin,
+                                          status="CLOSED")
+        log.debug("close: update=%s", vals)
+
+        return self.bugzilla.update_bugs(self.bug_id, vals)
+
+
+    #####################
+    # Modify bug emails #
+    #####################
+
+    def setassignee(self, assigned_to=None, reporter=None,
+                    qa_contact=None, comment=None):
         '''
-        self.bugzilla._updateflags(self.bug_id, flags)
+        Set any of the assigned_to or qa_contact fields to a new
+        bugzilla account, with an optional comment, e.g.
+        setassignee(assigned_to='wwoods@redhat.com')
+        setassignee(qa_contact='wwoods@redhat.com', comment='wwoods QA ftw')
+
+        You must set at least one of the two assignee fields, or this method
+        will throw a ValueError.
+
+        Returns [bug_id, mailresults].
+        '''
+        if reporter:
+            raise ValueError("reporter can not be changed")
+
+        if not (assigned_to or qa_contact):
+            raise ValueError("You must set one of assigned_to "
+                             " or qa_contact")
+
+        vals = self.bugzilla.build_update(assigned_to=assigned_to,
+                                          qa_contact=qa_contact,
+                                          comment=comment)
+        log.debug("setassignee: update=%s", vals)
+
+        return self.bugzilla.update_bugs(self.bug_id, vals)
+
+    def addcc(self, cclist, comment=None):
+        '''
+        Adds the given email addresses to the CC list for this bug.
+        cclist: list of email addresses (strings)
+        comment: optional comment to add to the bug
+        '''
+        vals = self.bugzilla.build_update(comment=comment,
+                                          cc_add=cclist)
+        log.debug("addcc: update=%s", vals)
+
+        return self.bugzilla.update_bugs(self.bug_id, vals)
+
+    def deletecc(self, cclist, comment=None):
+        '''
+        Removes the given email addresses from the CC list for this bug.
+        '''
+        vals = self.bugzilla.build_update(comment=comment,
+                                          cc_remove=cclist)
+        log.debug("deletecc: update=%s", vals)
+
+        return self.bugzilla.update_bugs(self.bug_id, vals)
+
+
+    ###############
+    # Add comment #
+    ###############
+
+    def addcomment(self, comment, private=False,
+                   timestamp=None, worktime=None, bz_gid=None):
+        '''
+        Add the given comment to this bug. Set private to True to mark this
+        comment as private.
+        '''
+        ignore = timestamp
+        ignore = bz_gid
+        ignore = worktime
+
+        vals = self.bugzilla.build_update(comment=comment,
+                                          comment_private=private)
+        log.debug("addcomment: update=%s", vals)
+
+        return self.bugzilla.update_bugs(self.bug_id, vals)
+
+
+    ##########################
+    # Get/set bug whiteboard #
+    ##########################
 
     def _dowhiteboard(self, text, which, action, comment, private):
-        '''Actually does the updateWhiteboard call to perform the given action
-        (append, prepend, overwrite) with the given text on the given
-        whiteboard for the given bug.'''
-        self.bugzilla._updatewhiteboard(self.bug_id, text, which,
-                                        action, comment, private)
+        '''
+        Update the whiteboard given by 'which' for the given bug.
+        '''
+        if which not in ["status", "qa", "devel", "internal"]:
+            raise ValueError("Unknown whiteboard type '%s'" % which)
 
-    def getwhiteboard(self, which='status'):
-        '''Get the current value of the whiteboard specified by 'which'.
-        Known whiteboard names: 'status', 'internal', 'devel', 'qa'.
-        Defaults to the 'status' whiteboard.'''
-        return getattr(self, "%s_whiteboard" % which)
+        if not which.endswith('_whiteboard'):
+            which = which + '_whiteboard'
+        if which == "status_whiteboard":
+            which = "whiteboard"
+
+        if action != 'overwrite':
+            wb = getattr(self, which, '')
+
+            if action == 'prepend':
+                text = text + ' ' + wb
+            elif action == 'append':
+                text = wb + ' ' + text
+            else:
+                raise ValueError("Unknown whiteboard action '%s'" % action)
+
+        updateargs = {which: text}
+        vals = self.bugzilla.build_update(comment=comment,
+                                          comment_private=private,
+                                          **updateargs)
+        log.debug("_updatewhiteboard: update=%s", vals)
+
+        self.bugzilla.update_bugs(self.bug_id, vals)
+
 
     def appendwhiteboard(self, text, which='status',
                          comment=None, private=False):
         '''Append the given text (with a space before it) to the given
         whiteboard. Defaults to using status_whiteboard.'''
-        self._dowhiteboard(text, which, 'append', comment, private)
+        self._dowhiteboard(text, which, "append", comment, private)
 
     def prependwhiteboard(self, text, which='status',
                           comment=None, private=False):
         '''Prepend the given text (with a space following it) to the given
         whiteboard. Defaults to using status_whiteboard.'''
-        self._dowhiteboard(text, which, 'prepend', comment, private)
+        self._dowhiteboard(text, which, "prepend", comment, private)
 
     def setwhiteboard(self, text, which='status',
                       comment=None, private=False):
         '''Overwrites the contents of the given whiteboard with the given text.
         Defaults to using status_whiteboard.'''
-        self._dowhiteboard(text, which, 'overwrite', comment, private)
+        self._dowhiteboard(text, which, "overwrite", comment, private)
 
     def addtag(self, tag, which='status'):
         '''Adds the given tag to the given bug.'''
@@ -258,15 +342,21 @@ class _Bug(object):
         tags.remove(tag)
         self.setwhiteboard(' '.join(tags), which)
 
-    def addcc(self, cclist, comment=''):
-        '''Adds the given email addresses to the CC list for this bug.
-        cclist: list of email addresses (strings)
-        comment: optional comment to add to the bug'''
-        self.bugzilla._updatecc(self.bug_id, cclist, 'add', comment)
 
-    def deletecc(self, cclist, comment=''):
-        '''Removes the given email addresses from the CC list for this bug.'''
-        self.bugzilla._updatecc(self.bug_id, cclist, 'delete', comment)
+    #####################
+    # Get/Set bug flags #
+    #####################
+
+    def updateflags(self, flags):
+        '''
+        Updates the bugzilla flags.
+        The flags values are a hash of {'flagname': 'value'} pairs.
+        Each product seems to have different flags available, so this can be
+        error-prone unless the error code is understood.
+        Set value=# to unset a flag
+        '''
+        self.bugzilla._updateflags(self.bug_id, flags)
+
 
     def get_flag_type(self, name):
         """Return flag_type information for a specific flag"""
@@ -306,6 +396,18 @@ class _Bug(object):
         assert len(f) <= 1
 
         return f[0]['status']
+
+
+    ######################
+    # Deprecated methods #
+    ######################
+
+    def getwhiteboard(self, which='status'):
+        '''
+        Deprecated. Use bug.qa_whiteboard, bug.devel_whiteboard, etc.
+        '''
+        return getattr(self, "%s_whiteboard" % which)
+
 
 
 class _User(object):
