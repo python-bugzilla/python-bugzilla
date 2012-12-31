@@ -60,33 +60,10 @@ class RHBugzilla(Bugzilla42):
     )
 
 
-    #######################################
-    # Methods for modifying existing bugs #
-    #######################################
+    ################
+    # User methods #
+    ################
 
-    def _updateflags(self, objid, flags):
-        '''Updates the flags associated with a bug report.
-        data should be a hash of {'flagname':'value'} pairs, like so:
-        {'needinfo':'?', 'fedora-cvs':'+'}
-        You may also add a "nomail":1 item, which will suppress email if set.
-
-        NOTE: the Red Hat XMLRPC interface does not yet support setting the
-        requestee (as in: needinfo from smartguy@answers.com). Alas.'''
-        return self._proxy.bugzilla.updateFlags(objid, flags)
-
-    #---- Methods for working with attachments
-
-    # If your bugzilla wants attachments in something other than base64, you
-    # should override _attachment_encode here.
-    # If your bugzilla uses non-standard paths for attachment.cgi, you'll
-    # want to override _attachment_uri here.
-
-    def _attachfile(self, objid, **attachdata):
-        return self._proxy.bugzilla.addAttachment(objid, attachdata)
-
-    #---- createbug - call to create a new bug
-
-    # Methods for updating a user
     def _updateperms(self, user, action, groups):
         r = self._proxy.bugzilla.updatePerms(user, action, groups, self.user,
                 self.password)
@@ -95,6 +72,11 @@ class RHBugzilla(Bugzilla42):
     def _adduser(self, user, name):
         r = self._proxy.bugzilla.addUser(user, name, self.user, self.password)
         return r
+
+
+    #####################
+    # Component methods #
+    #####################
 
     def _addcomponent(self, data):
         add_required_fields = ('product', 'component',

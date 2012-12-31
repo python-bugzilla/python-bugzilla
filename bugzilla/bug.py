@@ -347,17 +347,6 @@ class _Bug(object):
     # Get/Set bug flags #
     #####################
 
-    def updateflags(self, flags):
-        '''
-        Updates the bugzilla flags.
-        The flags values are a hash of {'flagname': 'value'} pairs.
-        Each product seems to have different flags available, so this can be
-        error-prone unless the error code is understood.
-        Set value=# to unset a flag
-        '''
-        self.bugzilla._updateflags(self.bug_id, flags)
-
-
     def get_flag_type(self, name):
         """Return flag_type information for a specific flag"""
 
@@ -408,6 +397,14 @@ class _Bug(object):
         '''
         return getattr(self, "%s_whiteboard" % which)
 
+    def updateflags(self, flags):
+        '''
+        Deprecated, use bugzilla.update_flags() directly
+        '''
+        flaglist = []
+        for key, value in flags.items():
+            flaglist.append({"name": key, "status": value})
+        return self.bugzilla.update_flags(self.bug_id, flaglist)
 
 
 class _User(object):

@@ -188,6 +188,18 @@ class Bugzilla4(Bugzilla36):
         return ret
 
 
+    def update_flags(self, idlist, flags):
+        '''
+        Updates the flags associated with a bug report.
+        Format of flags is:
+        [{"name": "needinfo", "status": "+", "requestee": "foo@bar.com"},
+         {"name": "devel_ack", "status": "-"}, ...]
+        '''
+        d = {"ids": self._listify(idlist), "updates": flags}
+        return self._proxy.Flag.update(d)
+
+
+
 class Bugzilla42(Bugzilla4):
     bz_ver_minor = 2
 

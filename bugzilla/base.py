@@ -733,25 +733,29 @@ class BugzillaBase(object):
     # Methods for working with attachments #
     ########################################
 
-    def attachfile(self, objid, attachfile, description, **kwargs):
-        '''Attach a file to the given bug ID. Returns the ID of the attachment
+    def attachfile(self, idlist, attachfile, description, **kwargs):
+        '''
+        Attach a file to the given bug IDs. Returns the ID of the attachment
         or raises xmlrpclib.Fault if something goes wrong.
         attachfile may be a filename (which will be opened) or a file-like
         object, which must provide a 'read' method. If it's not one of these,
         this method will raise a TypeError.
         description is the short description of this attachment.
         Optional keyword args are as follows:
-            filename:  this will be used as the filename for the attachment.
+            file_name:  this will be used as the filename for the attachment.
                        REQUIRED if attachfile is a file-like object with no
                        'name' attribute, otherwise the filename or .name
                        attribute will be used.
             comment:   An optional comment about this attachment.
-            isprivate: Set to True if the attachment should be marked private.
-            ispatch:   Set to True if the attachment is a patch.
-            contenttype: The mime-type of the attached file. Defaults to
+            is_private: Set to True if the attachment should be marked private.
+            is_patch:   Set to True if the attachment is a patch.
+            content_type: The mime-type of the attached file. Defaults to
                          application/octet-stream if not set. NOTE that text
                          files will *not* be viewable in bugzilla unless you
                          remember to set this to text/plain. So remember that!
+
+        Returns the list of attachment ids that were added. If only one
+        attachment was added, we return the single int ID for back compat
         '''
         if isinstance(attachfile, str):
             f = open(attachfile)
@@ -760,15 +764,39 @@ class BugzillaBase(object):
         else:
             raise TypeError("attachfile must be filename or file-like object")
 
-        kwargs['description'] = description
-        if 'filename' not in kwargs:
-            kwargs['filename'] = os.path.basename(f.name)
+        # Back compat
+        if "contenttype" in kwargs:
+            kwargs["content_type"] = kwargs.pop("contenttype")
+        if "ispatch" in kwargs:
+            kwargs["is_patch"] = kwargs.pop("ispatch")
+        if "isprivate" in kwargs:
+            kwargs["is_private"] = kwargs.pop("isprivate")
+        if "filename" in kwargs:
+            kwargs["file_name"] = kwargs.pop("filename")
 
-        if 'contenttype' not in kwargs:
-            kwargs['contenttype'] = 'application/octet-stream'
+        kwargs['summary'] = description
+        if 'file_name' not in kwargs:
+            kwargs['file_name'] = os.path.basename(f.name)
+
+        if 'content_type' not in kwargs:
+            kwargs['content_type'] = 'application/octet-stream'
 
         kwargs['data'] = self._attachment_encode(f)
-        return self._attachfile(objid, **kwargs)[0]
+        kwargs['ids'] = self._listify(idlist)
+
+        ret = self._proxy.Bug.add_attachment(kwargs)
+
+        if "attachments" in ret:
+            # Up to BZ 4.2
+            ret = [int(k) for k in ret["attachments"].keys()]
+        elif "ids" in ret:
+            # BZ 4.4+
+            ret = ret["ids"]
+
+        if type(ret) is list and len(ret) == 1:
+            ret = ret[0]
+        return ret
+
 
     def openattachment(self, attachid):
         '''Get the contents of the attachment with the given attachment ID.
@@ -991,12 +1019,6 @@ class BugzillaBase(object):
         '''IMPLEMENT ME: Query bugzilla and return a list of matching bugs.'''
         raise NotImplementedError("This version of bugzilla does not "
                                   "support bug querying.")
-
-    def _attachfile(self, objid, **attachdata):
-        '''IMPLEMENT ME: attach a file to the given bug.
-        Returns (attachment_id, mailresults).
-        '''
-        raise NotImplementedError
 
 
     ######################
