@@ -276,7 +276,8 @@ def setup_action_parser(action):
                 help='Change QA contact')
         p.add_option('-f', '--flag', action='append',
                 help='Update bugzilla flags with requested type, '
-                     'ie fedora-cvs? (Use a new option for each flag)')
+                     'ie fedora-cvs?, or needinfoX to clear '
+                     '(Use a new option for each flag)')
         p.add_option('--cc', action='append',
                 help='Add an email to the cc list')
         p.add_option('-F', '--fixed_in', metavar="VERSION",
