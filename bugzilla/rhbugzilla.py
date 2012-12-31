@@ -136,7 +136,7 @@ class RHBugzilla(Bugzilla42):
         aliases.
         updates is a dict containing pairs like so: {'fieldname':'newvalue'}
         '''
-        tmp = {"ids": ids}
+        tmp = {"ids": self._listify(ids)}
         custom_fields = ["fixed_in"]
 
         for key, value in updates.items():
@@ -146,19 +146,10 @@ class RHBugzilla(Bugzilla42):
 
         return self._proxy.Bug.update(tmp)
 
-    def _update_bug(self, objid, updates):
-        '''
-        Update a single bug, specified by integer ID or (string) bug alias.
-        Really just a convenience method for _update_bugs(ids=[id], updates)
-        '''
-        return self._update_bugs(ids=[objid], updates=updates)
-
     # Eventually - when RHBugzilla is well and truly obsolete - we'll delete
     # all of these methods and refactor the Base Bugzilla object so all the bug
     # modification calls go through _update_bug.
     # Until then, all of these methods are basically just wrappers around it.
-
-    # TODO: allow multiple bug IDs
 
     def _update_add_comment_fields(self, updatedict, comment, private):
         if not comment:
@@ -175,7 +166,7 @@ class RHBugzilla(Bugzilla42):
         update = {'status': status}
         self._update_add_comment_fields(update, comment, private)
 
-        return self._update_bug(objid, update)
+        return self._update_bugs(objid, update)
 
     def _closebug(self, objid, resolution, dupeid, fixedin,
                   comment, isprivate, private_in_it, nomail):
@@ -190,7 +181,7 @@ class RHBugzilla(Bugzilla42):
             update['fixed_in'] = fixedin
         self._update_add_comment_fields(update, comment, isprivate)
 
-        return self._update_bug(objid, update)
+        return self._update_bugs(objid, update)
 
     def _setassignee(self, objid, **data):
         '''Raw xmlrpc call to set one of the assignee fields on a bug.
@@ -199,7 +190,7 @@ class RHBugzilla(Bugzilla42):
         returns: [$id, $mailresults]'''
         # drop empty items
         update = dict([(k, v) for k, v in data.iteritems() if (v and v != '')])
-        return self._update_bug(objid, update)
+        return self._update_bugs(objid, update)
 
     def _updatedeps(self, objid, blocked, dependson, action):
         '''Update the deps (blocked/dependson) for the given bug.
@@ -217,7 +208,7 @@ class RHBugzilla(Bugzilla42):
             'blocks': {action: blocked},
             'depends_on': {action: dependson}
         }
-        self._update_bug(objid, update)
+        self._update_bugs(objid, update)
 
     def _updatecc(self, objid, cclist, action, comment='', nomail=False):
         '''Updates the CC list using the action and account list specified.
@@ -237,7 +228,7 @@ class RHBugzilla(Bugzilla42):
             update = {}
             update['cc'] = {}
             update['cc'][action] = cclist
-            self._update_bug(objid, update)
+            self._update_bugs(objid, update)
 
         elif action == 'overwrite':
             r = self._getbug(objid)
@@ -279,7 +270,7 @@ class RHBugzilla(Bugzilla42):
                 update[which] = wb + ' ' + text
 
         self._update_add_comment_fields(update, comment, private)
-        self._update_bug(objid, update)
+        self._update_bugs(objid, update)
 
 
     #################
