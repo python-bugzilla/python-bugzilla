@@ -589,18 +589,20 @@ def _do_info(bz, opt):
 
 def _format_output(bz, opt, buglist):
     if opt.outputformat:
-        special_fields = {
-            'flag': lambda b, f: b.get_flag_status(f),
-            'whiteboard': lambda b, wb: b.getwhiteboard(wb),
-        }
-
         def bug_field(matchobj):
+            # whiteboard and flag allow doing
+            #   %{whiteboard:devel} and %{flag:needinfo}
+            # That's what 'rest' matches
             (fieldname, rest) = matchobj.groups()
 
-            if fieldname in special_fields:
-                val = special_fields[fieldname](b, rest)
+            if fieldname == "whiteboard" and rest:
+                fieldname = rest + "_" + fieldname
+
+            if fieldname == "flag":
+                val = b.get_flag_status(rest)
             else:
-                val = getattr(b, fieldname)
+                val = getattr(b, fieldname, "")
+
             if type(val) is list:
                 val = ','.join(val)
 
