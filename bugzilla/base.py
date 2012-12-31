@@ -24,7 +24,7 @@ from bugzilla.cookies import CookieTransport, SafeCookieTransport
 Bug = _Bug
 
 
-def decode_rfc2231_value(val):
+def _decode_rfc2231_value(val):
     # BUG WORKAROUND: decode_header doesn't work unless there's whitespace
     # around the encoded string (see http://bugs.python.org/issue1079)
     from email import utils
@@ -76,7 +76,6 @@ class BugzillaBase(object):
         to ~/.bugzillacookies.  If set to None, the library won't save the
         cookies persistently.
     '''
-
     bz_ver_major = 0
     bz_ver_minor = 0
 
@@ -148,6 +147,18 @@ class BugzillaBase(object):
         self._components = {}
         self._components_details = {}
 
+    def _get_user_agent(self):
+        ret = ('Python-urllib2/%s bugzilla.py/%s %s/%s' %
+               (urllib2.__version__, __version__,
+                str(self.__class__.__name__), self.version))
+        return ret
+    user_agent = property(_get_user_agent)
+
+
+    ###################
+    # Private helpers #
+    ###################
+
     def _check_version(self, major, minor):
         """
         Check if the detected bugzilla version is >= passed major/minor pair.
@@ -165,15 +176,24 @@ class BugzillaBase(object):
             return val
         return [val]
 
-    def _get_user_agent(self):
-        ret = ('Python-urllib2/%s bugzilla.py/%s %s/%s' %
-               (urllib2.__version__, __version__,
-                str(self.__class__.__name__), self.version))
-        return ret
-    user_agent = property(_get_user_agent)
+    def _product_id_to_name(self, productid):
+        '''Convert a product ID (int) to a product name (str).'''
+        for p in self.products:
+            if p['id'] == productid:
+                return p['name']
+        raise ValueError('No product with id #%i' % productid)
+
+    def _product_name_to_id(self, product):
+        '''Convert a product name (str) to a product ID (int).'''
+        for p in self.products:
+            if p['name'] == product:
+                return p['id']
+        raise ValueError('No product named "%s"' % product)
 
 
-    #---- Methods for establishing bugzilla connection and logging in
+    ###################
+    # Cookie handling #
+    ###################
 
     def _getcookiefile(self):
         '''cookiefile is the file that bugzilla session cookies are loaded
@@ -241,25 +261,17 @@ class BugzillaBase(object):
 
     cookiefile = property(_getcookiefile, _setcookiefile, _delcookiefile)
 
-    def initcookiefile(self, cookiefile=None):
-        '''Deprecated: Set self.cookiefile instead. It's a property that will
-        take care of these details.
 
-        Read the given (Mozilla-style) cookie file and fill in the
-        cookiejar, allowing us to use saved credentials to access Bugzilla.
-
-        :kwarg cookiefile: Location to save the session cookies so you don't
-            have to keep giving the library your username and password.  This
-            defaults to ~/.bugzillacookies.
-        '''
-        if not cookiefile:
-            cookiefile = os.path.expanduser('~/.bugzillacookies')
-        self.cookiefile = cookiefile
+    #############################
+    # Login/connection handling #
+    #############################
 
     configpath = ['/etc/bugzillarc', '~/.bugzillarc']
 
     def readconfig(self, configpath=None):
-        '''Read bugzillarc file(s) into memory.'''
+        '''
+        Read bugzillarc file(s) into memory.
+        '''
         import ConfigParser
         if not configpath:
             configpath = self.configpath
@@ -285,7 +297,8 @@ class BugzillaBase(object):
                 setattr(self, k, v)
 
     def connect(self, url):
-        '''Connect to the bugzilla instance with the given url.
+        '''
+        Connect to the bugzilla instance with the given url.
 
         This will also read any available config files (see readconfig()),
         which may set 'user' and 'password'.
@@ -322,16 +335,11 @@ class BugzillaBase(object):
             self.login()
 
     def disconnect(self):
-        '''Disconnect from the given bugzilla instance.'''
+        '''
+        Disconnect from the given bugzilla instance.
+        '''
         # clears all the connection state
         self._init_private_data()
-
-    # Note that the bugzilla methods will ignore an empty user/password if you
-    # send authentication info as a cookie in the request headers. So it's
-    # OK if we keep sending empty / bogus login info in other methods.
-    def _login(self, user, password):
-        '''IMPLEMENT ME: backend login method'''
-        raise NotImplementedError
 
     def login(self, user=None, password=None):
         '''Attempt to log in using the given username and password. Subsequent
@@ -366,10 +374,6 @@ class BugzillaBase(object):
             r = False
         return r
 
-    def _logout(self):
-        '''IMPLEMENT ME: backend login method'''
-        raise NotImplementedError
-
     def logout(self):
         '''Log out of bugzilla. Drops server connection and user info, and
         destroys authentication cookies.'''
@@ -379,20 +383,17 @@ class BugzillaBase(object):
         self.password = ''
         self.logged_in = False
 
-    #---- Methods and properties with basic bugzilla info
 
-    def _getbugfields(self):
-        '''IMPLEMENT ME: Get bugfields from Bugzilla.'''
-        raise NotImplementedError
-
-    def _getqueryinfo(self):
-        '''IMPLEMENT ME: Get queryinfo from Bugzilla.'''
-        raise NotImplementedError
+    #############################################
+    # Fetching info about the bugzilla instance #
+    #############################################
 
     def getbugfields(self, force_refresh=False):
-        '''Calls getBugFields, which returns a list of fields in each bug
+        '''
+        Calls getBugFields, which returns a list of fields in each bug
         for this bugzilla instance. This can be used to set the list of attrs
-        on the Bug object.'''
+        on the Bug object.
+        '''
         if force_refresh or self._bugfields is None:
             log.debug("Refreshing bugfields")
             try:
@@ -412,26 +413,110 @@ class BugzillaBase(object):
                          fdel=lambda self: setattr(self, '_bugfields', None))
 
     def getqueryinfo(self, force_refresh=False):
-        '''Calls getQueryInfo, which returns a (quite large!) structure that
+        '''
+        Calls getQueryInfo, which returns a (quite large!) structure that
         contains all of the query data and query defaults for the bugzilla
         instance. Since this is a weighty call - takes a good 5-10sec on
         bugzilla.redhat.com - we load the info in this private method and the
         user instead plays with the querydata and querydefaults attributes of
-        the bugzilla object.'''
-        # Only fetch the data if we don't already have it, or are forced to
+        the bugzilla object.
+        '''
         if force_refresh or not (self._querydata and self._querydefaults):
             (self._querydata, self._querydefaults) = self._getqueryinfo()
-            # TODO: map _querydata to a dict, as with _components_details?
         return (self._querydata, self._querydefaults)
+
     # Set querydata and querydefaults as properties so they auto-create
-    # themselves when touched by a user. This bit was lifted from YumBase,
-    # because skvidal is much smarter than I am.
+    # themselves when touched by a user. This bit was lifted from YumBase.
     querydata = property(fget=lambda self: self.getqueryinfo()[0],
                          fdel=lambda self: setattr(self, "_querydata", None))
     querydefaults = property(fget=lambda self: self.getqueryinfo()[1],
                      fdel=lambda self: setattr(self, "_querydefaults", None))
 
-    #---- Methods for retrieving Products
+
+    def refresh_products(self, **kwargs):
+        """
+        Refresh a product's cached info
+        Takes same arguments as _getproductinfo
+        """
+        for product in self._getproductinfo(**kwargs):
+            for current in self.products[:]:
+                if (current.get("id", -1) != product.get("id", -2) and
+                    current.get("name", -1) != product.get("name", -2)):
+                    continue
+
+                self.products.remove(current)
+                self.products.append(product)
+                break
+
+    def getproducts(self, force_refresh=False, **kwargs):
+        '''Get product data: names, descriptions, etc.
+        The data varies between Bugzilla versions but the basic format is a
+        list of dicts, where the dicts will have at least the following keys:
+        {'id':1, 'name':"Some Product", 'description':"This is a product"}
+
+        Any method that requires a 'product' can be given either the
+        id or the name.'''
+        if force_refresh or not self._products:
+            self._products = self._getproducts(**kwargs)
+        return self._products
+
+    products = property(fget=lambda self: self.getproducts(),
+                        fdel=lambda self: setattr(self, '_products', None))
+
+
+    def getcomponentsdetails(self, product, force_refresh=False):
+        '''Returns a dict of dicts, containing detailed component information
+        for the given product. The keys of the dict are component names. For
+        each component, the value is a dict with the following keys:
+        description, initialowner, initialqacontact'''
+        if force_refresh or product not in self._components_details:
+            clist = self._getcomponentsdetails(product)
+            cdict = {}
+            for item in clist:
+                name = item['component']
+                del item['component']
+                cdict[name] = item
+            self._components_details[product] = cdict
+
+        return self._components_details[product]
+
+    def getcomponentdetails(self, product, component, force_refresh=False):
+        '''Get details for a single component. Returns a dict with the
+        following keys:
+        description, initialowner, initialqacontact, initialcclist'''
+        d = self.getcomponentsdetails(product, force_refresh)
+        return d[component]
+
+    def getcomponents(self, product, force_refresh=False):
+        '''Return a dict of components:descriptions for the given product.'''
+        if force_refresh or product not in self._components:
+            self._components[product] = self._getcomponents(product)
+        return self._components[product]
+
+    def addcomponent(self, data):
+        '''A method to create a component in Bugzilla. Takes a dict, with the
+        following elements:
+
+        product: The product to create the component in
+        component: The name of the component to create
+        initialowner: The bugzilla login (email address) of the initial owner
+        of the component
+        initialqacontact: The bugzilla login of the initial QA contact
+        initialcclist: The initial list of users to be CC'ed on new bugs for
+        the component.
+        desription: A one sentence summary of the component
+
+        product, component, description and initalowner are mandatory.
+        '''
+        self._addcomponent(data)
+
+    def editcomponent(self, data):
+        '''A method to edit a component in Bugzilla. Takes a dict, with
+            mandatory elements of product. component, and initialowner.
+            All other elements are optional and use the same names as the
+            addcomponent() method.'''
+        self._editcomponent(data)
+
 
     def _getproductinfo(self, ids=None, names=None,
                         include_fields=None, exclude_fields=None):
@@ -470,59 +555,10 @@ class BugzillaBase(object):
         ret = self._proxy.Product.get_products(kwargs)
         return ret['products']
 
-    def refresh_products(self, **kwargs):
-        """
-        Refresh a product's cached info
-        Takes same arguments as _getproductinfo
-        """
-        for product in self._getproductinfo(**kwargs):
-            for current in self.products[:]:
-                if (current.get("id", -1) != product.get("id", -2) and
-                    current.get("name", -1) != product.get("name", -2)):
-                    continue
-
-                self.products.remove(current)
-                self.products.append(product)
-                break
-
     def _getproducts(self, **kwargs):
         product_ids = self._proxy.Product.get_accessible_products()
         r = self._getproductinfo(product_ids['ids'], **kwargs)
         return r
-
-    def getproducts(self, force_refresh=False, **kwargs):
-        '''Get product data: names, descriptions, etc.
-        The data varies between Bugzilla versions but the basic format is a
-        list of dicts, where the dicts will have at least the following keys:
-        {'id':1, 'name':"Some Product", 'description':"This is a product"}
-
-        Any method that requires a 'product' can be given either the
-        id or the name.'''
-        if force_refresh or not self._products:
-            self._products = self._getproducts(**kwargs)
-        return self._products
-
-    # Bugzilla.products is a property - we cache the product list on the first
-    # call and return it for each subsequent call.
-    products = property(fget=lambda self: self.getproducts(),
-                        fdel=lambda self: setattr(self, '_products', None))
-
-    def _product_id_to_name(self, productid):
-        '''Convert a product ID (int) to a product name (str).'''
-        # This will auto-create the 'products' list
-        for p in self.products:
-            if p['id'] == productid:
-                return p['name']
-        raise ValueError('No product with id #%i' % productid)
-
-    def _product_name_to_id(self, product):
-        '''Convert a product name (str) to a product ID (int).'''
-        for p in self.products:
-            if p['name'] == product:
-                return p['id']
-        raise ValueError('No product named "%s"' % product)
-
-    #---- Methods for retrieving Components
 
     def _getcomponentsdetails(self, product):
         # Originally this was a RH extension getProdCompDetails
@@ -541,6 +577,7 @@ class BugzillaBase(object):
             raise ValueError("Unknown product '%s'" % product)
 
         # Convert to old style dictionary to maintain back compat
+        # with original RH bugzilla call
         ret = []
         for comp in comps:
             row = {}
@@ -551,104 +588,45 @@ class BugzillaBase(object):
             ret.append(row)
         return ret
 
-    def _getcomponents(self, product):
-        '''IMPLEMENT ME: Get component dict for a product'''
-        raise NotImplementedError
 
-    def _addcomponent(self, data):
-        '''IMPLEMENT ME: Add a component'''
-        raise NotImplementedError
+    ###################
+    # getbug* methods #
+    ###################
 
-    def _editcomponent(self, data):
-        '''IMPLEMENT ME: Edit a component'''
-        raise NotImplementedError
+    # getbug_extra_fields: Extra fields that need to be explicitly
+    # requested from Bug.get in order for the data to be returned. This
+    # decides the difference between getbug() and getbugsimple().
+    #
+    # As of Dec 2012 it seems like only RH bugzilla actually has behavior
+    # like this, for upstream bz it returns all info for every Bug.get()
+    getbug_extra_fields = []
 
-    def getcomponents(self, product, force_refresh=False):
-        '''Return a dict of components:descriptions for the given product.'''
-        if force_refresh or product not in self._components:
-            self._components[product] = self._getcomponents(product)
-        return self._components[product]
+    # List of field aliases. Maps old style RHBZ parameter names to actual
+    # upstream values. Used for createbug() and query include_fields at
+    # least.
+    #
+    # Format is (currentname, oldname)
+    field_aliases = (
+        ('summary', 'short_desc'),
+        ('description', 'comment'),
+        ('platform', 'rep_platform'),
+        ('severity', 'bug_severity'),
+        ('status', 'bug_status'),
+        ('id', 'bug_id'),
+        ('blocks', 'blockedby'),
+        ('blocks', 'blocked'),
+        ('depends_on', 'dependson'),
+        ('whiteboard', 'status_whiteboard'),
+        ('creator', 'reporter'),
+        ('url', 'bug_file_loc'),
+        ('dupe_of', 'dupe_id'),
+        ('dupe_of', 'dup_id'),
+        ('comments', 'longdescs'),
+        ('creation_time', 'opendate'),
+        ('creation_time', 'creation_ts'),
+    )
 
-    def getcomponentsdetails(self, product, force_refresh=False):
-        '''Returns a dict of dicts, containing detailed component information
-        for the given product. The keys of the dict are component names. For
-        each component, the value is a dict with the following keys:
-        description, initialowner, initialqacontact'''
-        if force_refresh or product not in self._components_details:
-            clist = self._getcomponentsdetails(product)
-            cdict = {}
-            for item in clist:
-                name = item['component']
-                del item['component']
-                cdict[name] = item
-            self._components_details[product] = cdict
 
-        return self._components_details[product]
-
-    def getcomponentdetails(self, product, component, force_refresh=False):
-        '''Get details for a single component. Returns a dict with the
-        following keys:
-        description, initialowner, initialqacontact, initialcclist'''
-        d = self.getcomponentsdetails(product, force_refresh)
-        return d[component]
-
-    def addcomponent(self, data):
-        '''A method to create a component in Bugzilla. Takes a dict, with the
-        following elements:
-
-        product: The product to create the component in
-        component: The name of the component to create
-        initialowner: The bugzilla login (email address) of the initial owner
-        of the component
-        initialqacontact: The bugzilla login of the initial QA contact
-        initialcclist: The initial list of users to be CC'ed on new bugs for
-        the component.
-        desription: A one sentence summary of the component
-
-        product, component, description and initalowner are mandatory.
-        '''
-        self._addcomponent(data)
-
-    def editcomponent(self, data):
-        '''A method to edit a component in Bugzilla. Takes a dict, with
-            mandatory elements of product. component, and initialowner.
-            All other elements are optional and use the same names as the
-            addcomponent() method.'''
-        # FIXME - initialowner is mandatory for some reason now. Toshio
-        # following up with dkl as to why.
-        self._editcomponent(data)
-
-    #---- Methods for reading bugs and bug info
-
-    def _getbug(self, objid,):
-        '''IMPLEMENT ME: Return a dict of full bug info for the given bug id'''
-        raise NotImplementedError
-
-    def _getbugs(self, idlist):
-        '''IMPLEMENT ME: Return a list of full bug dicts, one for each of the
-        given bug ids'''
-        raise NotImplementedError
-
-    def _getbugsimple(self, objid,):
-        '''IMPLEMENT ME: Return a short dict of simple bug info for the given
-        bug id'''
-        raise NotImplementedError
-
-    def _getbugssimple(self, idlist):
-        '''IMPLEMENT ME: Return a list of short bug dicts, one for each of the
-        given bug ids'''
-        raise NotImplementedError
-
-    def build_query(self, *args, **kwargs):
-        raise NotImplementedError("This version of bugzilla does not "
-                                  "support bug querying.")
-
-    def _query(self, query):
-        '''IMPLEMENT ME: Query bugzilla and return a list of matching bugs.'''
-        raise NotImplementedError("This version of bugzilla does not "
-                                  "support bug querying.")
-
-    # these return Bug objects
     def getbug(self, objid,):
         '''Return a Bug object with the full complement of bug data
         already loaded.'''
@@ -673,6 +651,15 @@ class BugzillaBase(object):
         be None.'''
         return [(b and _Bug(bugzilla=self, dict=b)) or None
                 for b in self._getbugssimple(idlist)]
+
+
+    #################
+    # query methods #
+    #################
+
+    def build_query(self, *args, **kwargs):
+        raise NotImplementedError("This version of bugzilla does not "
+                                  "support bug querying.")
 
     def query(self, query):
         '''Query bugzilla and return a list of matching bugs.
@@ -717,7 +704,10 @@ class BugzillaBase(object):
         '''
         pass
 
-    #---- Methods for modifying existing bugs.
+
+    #######################################
+    # Methods for modifying existing bugs #
+    #######################################
 
     # Most of these will probably also be available as Bug methods, e.g.:
     # Bugzilla.setstatus(id, status) ->
@@ -775,45 +765,10 @@ class BugzillaBase(object):
         '''
         raise NotImplementedError
 
-    #---- Methods for working with attachments
 
-    def _attachment_encode(self, fh):
-        '''Return the contents of the file-like object fh in a form
-        appropriate for attaching to a bug in bugzilla. This is the default
-        encoding method, base64.'''
-        # Read data in chunks so we don't end up with two copies of the file
-        # in RAM.
-
-        # base64 encoding wants input in multiples of 3
-        chunksize = 3072
-        data = ''
-        chunk = fh.read(chunksize)
-        while chunk:
-            # we could use chunk.encode('base64') but that throws a newline
-            # at the end of every output chunk, which increases the size of
-            # the output.
-            data = data + base64.b64encode(chunk)
-            chunk = fh.read(chunksize)
-        return data
-
-    def _attachfile(self, objid, **attachdata):
-        '''IMPLEMENT ME: attach a file to the given bug.
-        attachdata MUST contain the following keys:
-            data:        File data, encoded in the bugzilla-preferred format.
-                         attachfile() will encode it with _attachment_encode().
-            description: Short description of this attachment.
-            filename:    Filename for the attachment.
-        The following optional keys may also be added:
-            comment:   An optional comment about this attachment.
-            isprivate: Set to True if the attachment should be marked private.
-            ispatch:   Set to True if the attachment is a patch.
-            contenttype: The mime-type of the attached file. Defaults to
-                         application/octet-stream if not set. NOTE that text
-                         files will *not* be viewable in bugzilla unless you
-                         remember to set this to text/plain. So remember that!
-        Returns (attachment_id, mailresults).
-        '''
-        raise NotImplementedError
+    ########################################
+    # Methods for working with attachments #
+    ########################################
 
     def attachfile(self, objid, attachfile, description, **kwargs):
         '''Attach a file to the given bug ID. Returns the ID of the attachment
@@ -852,12 +807,6 @@ class BugzillaBase(object):
         kwargs['data'] = self._attachment_encode(f)
         return self._attachfile(objid, **kwargs)[0]
 
-    def _attachment_uri(self, attachid):
-        '''Returns the URI for the given attachment ID.'''
-        att_uri = self.url.replace('xmlrpc.cgi', 'attachment.cgi')
-        att_uri = att_uri + '?id=%s' % attachid
-        return att_uri
-
     def openattachment(self, attachid):
         '''Get the contents of the attachment with the given attachment ID.
         Returns a file-like object.'''
@@ -871,119 +820,53 @@ class BugzillaBase(object):
         disp.pop(0)
         parms = dict([p.strip().split("=", 1) for p in disp])
         # Parameter values can be quoted/encoded as per RFC 2231
-        att.name = decode_rfc2231_value(parms['filename'])
+        att.name = _decode_rfc2231_value(parms['filename'])
         # Hooray, now we have a file-like object with .read() and .name
         return att
 
-    #---- createbug - big complicated call to create a new bug
+    def _attachment_uri(self, attachid):
+        '''Returns the URI for the given attachment ID.'''
+        att_uri = self.url.replace('xmlrpc.cgi', 'attachment.cgi')
+        att_uri = att_uri + '?id=%s' % attachid
+        return att_uri
+
+    def _attachment_encode(self, fh):
+        '''Return the contents of the file-like object fh in a form
+        appropriate for attaching to a bug in bugzilla. This is the default
+        encoding method, base64.'''
+        # Read data in chunks so we don't end up with two copies of the file
+        # in RAM.
+
+        # base64 encoding wants input in multiples of 3
+        chunksize = 3072
+        data = ''
+        chunk = fh.read(chunksize)
+        while chunk:
+            # we could use chunk.encode('base64') but that throws a newline
+            # at the end of every output chunk, which increases the size of
+            # the output.
+            data = data + base64.b64encode(chunk)
+            chunk = fh.read(chunksize)
+        return data
+
+
+    #####################
+    # createbug methods #
+    #####################
+
     createbug_required = ('product', 'component', 'summary', 'version',
                           'description')
 
-    # getbug_extra_fields: Extra fields that need to be explicitly
-    # requested from Bug.get in order for the data to be returned. This
-    # decides the difference between getbug() and getbugsimple().
-    #
-    # As of Dec 2012 it seems like only RH bugzilla actually has behavior
-    # like this, for upstream bz it returns all info for every Bug.get()
-    getbug_extra_fields = []
-
-    # List of field aliases. Maps old style RHBZ parameter names to actual
-    # upstream values. Used for createbug() and query include_fields at
-    # least.
-    #
-    # Format is (currentname, oldname)
-    field_aliases = (
-        ('summary', 'short_desc'),
-        ('description', 'comment'),
-        ('platform', 'rep_platform'),
-        ('severity', 'bug_severity'),
-        ('status', 'bug_status'),
-        ('id', 'bug_id'),
-        ('blocks', 'blockedby'),
-        ('blocks', 'blocked'),
-        ('depends_on', 'dependson'),
-        ('whiteboard', 'status_whiteboard'),
-        ('creator', 'reporter'),
-        ('url', 'bug_file_loc'),
-        ('dupe_of', 'dupe_id'),
-        ('dupe_of', 'dup_id'),
-        ('comments', 'longdescs'),
-        ('creation_time', 'opendate'),
-        ('creation_time', 'creation_ts'),
-    )
-
-    def _createbug(self, **data):
-        '''IMPLEMENT ME: Raw xmlrpc call for createBug()
-        Doesn't bother guessing defaults or checking argument validity.
-        Returns bug_id'''
-        raise NotImplementedError
-
     def createbug(self, check_args=False, **data):
         '''Create a bug with the given info. Returns a new Bug object.
-        data should be given as keyword args - remember that you can also
-        populate a dict and call createbug(**dict) to fill in keyword args.
-        The arguments are as follows. Note that some are required, some are
-        defaulted, and some are completely optional.
-
-        The Bugzilla 3.2 docs say the following:
-
-        "Clients that want to be able to interact uniformly with multiple
-        Bugzillas should always set both the params marked Required and those
-        marked Defaulted, because some Bugzillas may not have defaults set for
-        Defaulted parameters, and then this method will throw an error if you
-        don't specify them."
-
-        REQUIRED:
-          product: Name of Bugzilla product.
-            Ex: Red Hat Enterprise Linux
-          component: Name of component in Bugzilla product.
-            Ex: anaconda
-          version: Version in the list for the Bugzilla product.
-            Ex: 4.5
-            See querydata['product'][<product>]['versions'] for values.
-          summary: One line summary describing the bug report.
-
-        DEFAULTED:
-          platform: Hardware type where this bug was experienced.
-            Ex: i386
-            See querydefaults['rep_platform_list'] for accepted values.
-          severity: Bug severity.
-            Ex: medium
-            See querydefaults['bug_severity_list'] for accepted values.
-          priority: Bug priority.
-            Ex: medium
-            See querydefaults['priority_list'] for accepted values.
-          op_sys: Operating system bug occurs on.
-            Ex: Linux
-            See querydefaults['op_sys_list'] for accepted values.
-          description: A detailed description of the bug report.
-
-        OPTIONAL:
-          alias: Give the bug a (string) alias name.
-            Alias can't be merely numerical.
-            Alias can't contain spaces or commas.
-            Alias can't be more than 20 chars long.
-            Alias has to be unique.
-          assigned_to: Bugzilla username to assign this bug to.
-          qa_contact: Bugzilla username of QA contact for this bug.
-          cc: List of Bugzilla usernames to CC on this bug.
-          keywords: List of keywords for the new bug
-          status: Status to place the new bug in. Defaults to NEW.
-
-        Important custom fields (used by RH Bugzilla and maybe others):
-        DEFAULTED:
-          bug_file_loc: URL pointing to additional information for bug report.
-            Ex: http://username.fedorapeople.org/logs/crashlog.txt
-          reporter: Bugzilla username to use as reporter.
-        OPTIONAL:
-          blocked: List of bug ids this report blocks.
-          dependson: List of bug ids this report depends on.
+        Check bugzilla API documentation for valid values, at least
+        product, component, summary, version, and description need to
+        be passed.
         '''
         log.debug("bz.createbug(%s)", data)
 
         # If we're getting a call that uses an old fieldname, convert it to the
         # new fieldname instead.
-        # XXX - emit deprecation warnings here
         for newfield, oldfield in self.field_aliases:
             if (newfield in self.createbug_required and
                 newfield not in data and
@@ -1013,28 +896,11 @@ class BugzillaBase(object):
         bug_id = self._createbug(**data)
         return _Bug(self, bug_id=bug_id)
 
-    #---- Methods for retrieving Users
 
-    def _getusers(self, ids=None, names=None, match=None):
-        '''IMPLEMEMT ME: Get a list of Bugzilla user'''
-        raise NotImplementedError
+    ##############################
+    # Methods for handling Users #
+    ##############################
 
-    def _createuser(self, email, name=None, password=None):
-        '''IMPLEMEMT ME: Create a Bugzilla user'''
-        raise NotImplementedError
-
-    def _updateperms(self, user, action, group):
-        '''IMPLEMEMT ME: Update Bugzilla user permissions'''
-        raise NotImplementedError
-
-    def _adduser(self, email, name):
-        '''IMPLEMENT ME: Add a bugzilla user
-
-        Deprecated.  User _createuser() instead
-        '''
-        raise NotImplementedError
-
-    ### These return a User Object ###
     def getuser(self, username):
         '''Return a bugzilla User for the given username
 
@@ -1091,6 +957,111 @@ class BugzillaBase(object):
         '''
         self._createuser(email, name, password)
         return self.getuser(email)
+
+
+    ######################################################
+    # Internal API methods, overwritten by child classes #
+    ######################################################
+
+    def _login(self, user, password):
+        '''IMPLEMENT ME: backend login method'''
+        raise NotImplementedError
+
+    def _logout(self):
+        '''IMPLEMENT ME: backend login method'''
+        raise NotImplementedError
+
+    def _getbugfields(self):
+        '''IMPLEMENT ME: Get bugfields from Bugzilla.'''
+        raise NotImplementedError
+
+    def _getqueryinfo(self):
+        '''IMPLEMENT ME: Get queryinfo from Bugzilla.'''
+        raise NotImplementedError
+
+    def _getcomponents(self, product):
+        '''IMPLEMENT ME: Get component dict for a product'''
+        raise NotImplementedError
+
+    def _addcomponent(self, data):
+        '''IMPLEMENT ME: Add a component'''
+        raise NotImplementedError
+
+    def _editcomponent(self, data):
+        '''IMPLEMENT ME: Edit a component'''
+        raise NotImplementedError
+
+
+    def _getbug(self, objid):
+        '''IMPLEMENT ME: Return a dict of full bug info for the given bug id'''
+        raise NotImplementedError
+
+    def _getbugs(self, idlist):
+        '''IMPLEMENT ME: Return a list of full bug dicts, one for each of the
+        given bug ids'''
+        raise NotImplementedError
+
+    def _getbugsimple(self, objid):
+        '''IMPLEMENT ME: Return a short dict of simple bug info for the given
+        bug id'''
+        raise NotImplementedError
+
+    def _getbugssimple(self, idlist):
+        '''IMPLEMENT ME: Return a list of short bug dicts, one for each of the
+        given bug ids'''
+        raise NotImplementedError
+
+
+
+    def _getusers(self, ids=None, names=None, match=None):
+        '''IMPLEMEMT ME: Get a list of Bugzilla user'''
+        raise NotImplementedError
+
+    def _createuser(self, email, name=None, password=None):
+        '''IMPLEMEMT ME: Create a Bugzilla user'''
+        raise NotImplementedError
+
+    def _updateperms(self, user, action, group):
+        '''IMPLEMEMT ME: Update Bugzilla user permissions'''
+        raise NotImplementedError
+
+    def _adduser(self, email, name):
+        '''IMPLEMENT ME: Add a bugzilla user
+
+        Deprecated.  User _createuser() instead
+        '''
+        raise NotImplementedError
+
+
+    def _createbug(self, **data):
+        '''IMPLEMENT ME: Raw xmlrpc call for createBug()
+        Doesn't bother guessing defaults or checking argument validity.
+        Returns bug_id'''
+        raise NotImplementedError
+
+    def _query(self, query):
+        '''IMPLEMENT ME: Query bugzilla and return a list of matching bugs.'''
+        raise NotImplementedError("This version of bugzilla does not "
+                                  "support bug querying.")
+
+    def _attachfile(self, objid, **attachdata):
+        '''IMPLEMENT ME: attach a file to the given bug.
+        Returns (attachment_id, mailresults).
+        '''
+        raise NotImplementedError
+
+
+    ######################
+    # Deprecated methods #
+    ######################
+
+    def initcookiefile(self, cookiefile=None):
+        '''
+        Deprecated: Set self.cookiefile instead.
+        '''
+        if not cookiefile:
+            cookiefile = os.path.expanduser('~/.bugzillacookies')
+        self.cookiefile = cookiefile
 
     def updateperms(self, user, action, groups):
         '''A method to update the permissions (group membership) of a bugzilla
