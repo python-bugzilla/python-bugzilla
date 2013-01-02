@@ -719,59 +719,35 @@ def _do_modify(bz, opt, args):
     bugid_list = reduce(lambda l1, l2: l1 + l2,
                         [a.split(",") for a in args])
 
-    # Iterate over a list of Bug objects
-    # FIXME: this should totally use some multicall magic
-    buglist = bz.getbugssimple(bugid_list)
-    log.debug("bz.getbugssimple(%s) -> %s" % (bugid_list, buglist))
-    if not buglist:
-        raise RuntimeError('No bugs were found. Check your bug IDs.')
+    status = opt.status or None
+    if opt.close:
+        status = "CLOSED"
 
-    for bugid, bug in zip(bugid_list, buglist):
-        if not bug:
-            log.error("failed to load bug %s" % bugid)
-            continue
+    update = bz.build_update(
+                comment=opt.comment or None,
+                comment_private=opt.private or None,
+                cc_add=opt.cc and opt.cc[:] or None,
+                qa_contact=opt.qa_contact or None,
+                assigned_to=opt.assignee or None,
+                status=status,
+                resolution=opt.close or None,
+                dupe_of=opt.dupeid or None,
+                fixed_in=opt.fixed_in or None)
 
-        log.debug("modifying bug %s" % bug.bug_id)
-        if opt.status:
-            log.debug("  set status: %s" % opt.status)
-            bug.setstatus(opt.status, opt.comment, private=opt.private)
+    flags = []
+    if opt.flag:
+        for f in opt.flag:
+            flags.append({"name": f[:-1], "status": f[-1]})
 
-        elif opt.close:
-            log.debug("  close %s" % opt.close)
-            bug.close(opt.close, comment=opt.comment,
-                      isprivate=opt.private, dupeid=opt.dupeid)
+    if not update and not flags:
+        raise RuntimeError("Didn't generate anything to update?")
 
-        elif opt.assignee:
-            log.debug("  assignee %s" % opt.assignee)
-            bug.setassignee(assigned_to=opt.assignee, comment=opt.comment)
+    log.debug("update bug dict=%s", update)
+    log.debug("update flags dict=%s", flags)
 
-        elif opt.qa_contact:
-            log.debug("  qa_contact %s" % opt.qa_contact)
-            bug.setassignee(qa_contact=opt.qa_contact, comment=opt.comment)
-
-        elif opt.cc:
-            ccs = opt.cc[:]
-            log.debug("  cc'ing %s" % opt.cc)
-            bug.addcc(ccs, comment=opt.comment)
-
-        elif opt.flag:
-            log.debug("  flag %s" % opt.flag)
-            flags = {}
-
-            for f in opt.flag:
-                (flagname, status) = (f[:-1], f[-1])
-                flags[flagname] = status
-            bug.updateflags(flags)
-
-        elif opt.comment:
-            # This has to be last and signifies a stand-alone comment
-            log.debug("  add comment: %s" % opt.comment)
-            bug.addcomment(opt.comment, opt.private)
-
-    update = bz.build_update(fixed_in=opt.fixed_in or None)
-
+    if flags:
+        bz.update_flags(bugid_list, flags)
     if update:
-        log.debug("generated bulk update dict=%s" % update)
         bz.update_bugs(bugid_list, update)
 
 
