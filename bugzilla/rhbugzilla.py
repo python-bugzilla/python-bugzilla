@@ -15,22 +15,19 @@ from bugzilla.bugzilla4 import Bugzilla42
 
 
 class RHBugzilla(Bugzilla42):
-    '''Concrete implementation of the Bugzilla protocol. This one uses the
-    methods provided by Red Hat's Bugzilla 4.2+ instance, which is a superset
-    of the Bugzilla 4.2 methods. The additional methods (e.g. Bug.update)
-    should make their way into a later upstream Bugzilla release.
+    '''
+    Bugzilla class for connecting Red Hat's forked bugzilla instance,
+    bugzilla.redhat.com
 
-    Note that RHBZ4 *also* supports most of the old RHBZ methods, under the
-    'bugzilla' namespace, so we use those when BZ4 methods aren't available.
+    Historically this class used many more non-upstream methods, but
+    in 2012 RH started dropping most of its custom bits. By that time,
+    upstream BZ had most of the important functionality.
+
+    Much of the remaining code here is just trying to keep things operating
+    in python-bugzilla back compatible manner.
 
     This class was written using bugzilla.redhat.com's API docs:
     https://bugzilla.redhat.com/docs/en/html/api/
-
-    By default, _getbugs will multicall getBug(id) multiple times, rather than
-    doing a single Bug.get(idlist) call. You can disable this behavior by
-    setting the 'multicall' property to False. This will make it somewhat
-    faster, but any missing/unreadable bugs will cause the entire call to
-    Fault rather than returning any data.
     '''
 
     version = '0.1'
