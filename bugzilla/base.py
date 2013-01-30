@@ -629,7 +629,7 @@ class BugzillaBase(object):
     )
 
 
-    def getbug(self, objid,):
+    def getbug(self, objid):
         '''Return a Bug object with the full complement of bug data
         already loaded.'''
         log.debug("getbug(%s)" % str(objid))
@@ -970,11 +970,11 @@ class BugzillaBase(object):
         raise NotImplementedError
 
 
-    def _getbug(self, objid):
+    def _getbug(self, objid, simple=False):
         '''IMPLEMENT ME: Return a dict of full bug info for the given bug id'''
         raise NotImplementedError
 
-    def _getbugs(self, idlist):
+    def _getbugs(self, idlist, simple=False):
         '''IMPLEMENT ME: Return a list of full bug dicts, one for each of the
         given bug ids'''
         raise NotImplementedError
