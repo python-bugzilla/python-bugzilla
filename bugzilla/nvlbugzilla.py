@@ -21,17 +21,17 @@ from bugzilla import BugzillaError, Bugzilla32, log
 
 
 class NovellBugzilla(Bugzilla32):
-    '''bugzilla.novell.com is a standard bugzilla 3.2 with some extensions, but
+    '''
+    bugzilla.novell.com is a standard bugzilla 3.2 with some extensions, but
     it uses an proprietary and non-standard IChain login system. This class
     reimplements a login method which is compatible with iChain.
 
     Because login process takes relativelly long time, because it needs several
     HTTP requests,  NovellBugzilla caches the session cookies of bugzilla
-    (ZXXXXXXX-bugzilla) and IChain (IPCXXXXXXXXXXXXX) in a self._cookiefile to
-    speedup a repeated connections.  To avoid problems with cookie expiration,
-    it set the expiration of cookie to 5 minutes. This expects cookies stored
-    in LWPCookieJar format and login method warn if cookies are in
-    MozillaCookieJar format.
+    and IChain in a self._cookiefile to speedup a repeated connections.
+    To avoid problems with cookie expiration, it set the expiration of cookie
+    to 5 minutes. This expects cookies stored in LWPCookieJar format and
+    login method warn if cookies are in MozillaCookieJar format.
 
     It can also read a credentials from ~/.oscrc if exists, so it should not
     be duplicated in /etc/bugzillarc, or ~/.bugzillarc.
@@ -49,7 +49,6 @@ class NovellBugzilla(Bugzilla32):
     bugzilla_url = 'https://bugzilla.novell.com/xmlrpc.cgi'
     logout_url = 'https://www.novell.com/cmd/ICSLogout'
     obs_url = 'https://api.opensuse.org/'
-    #FIXME: is it really necessary to use all those paths???
     login_path = '/index.cgi?GoAheadAndLogIn=1'
     auth_path = '/ICSLogin/auth-up'
     ichainlogin_path = '/ichainlogin.cgi'

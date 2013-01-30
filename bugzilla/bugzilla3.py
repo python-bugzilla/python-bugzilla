@@ -36,7 +36,6 @@ class Bugzilla3(BugzillaBase):
 
     def _getuserforid(self, userid):
         '''Get the username for the given userid'''
-        # STUB FIXME
         return str(userid)
 
     # Connect the backend methods to the XMLRPC methods
@@ -271,8 +270,6 @@ class Bugzilla34(Bugzilla32):
         return query
 
 
-# Bugzilla 3.6 was released April 13, 2010
-# XXX TODO probably more new methods from Bugzilla 3.6 we could use
 class Bugzilla36(Bugzilla34):
     version = '0.1'
     bz_ver_minor = 6

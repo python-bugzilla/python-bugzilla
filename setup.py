@@ -115,8 +115,6 @@ class PylintCommand(Command):
 
             # W0223: Abstract method not overwritten in
             "--disable W0223 "
-            # W0511: FIXME comments
-            "--disable W0511 "
             # W0212: Access to a protected member of a client class
             "--disable W0212 "
             "bugzilla/ bin/bugzilla tests/*.py ")

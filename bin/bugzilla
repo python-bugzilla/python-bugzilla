@@ -110,8 +110,6 @@ def setup_action_parser(action):
     p = optparse.OptionParser(usage="%%prog %s [options]" % action)
 
     if action == 'new':
-        # TODO: product and version could default to current system
-        # info (read from /etc/redhat-release?)
         p.set_description("Create a new bug report.")
         p.add_option('-p', '--product',
                 help="REQUIRED: product name (list with 'bugzilla info -p')")
@@ -261,7 +259,6 @@ def setup_action_parser(action):
         p.set_description("Modify one or more bugs.")
         p.add_option('-l', '--comment',
                 help='Add a comment')
-        # TODO: --keyword, --tag, ...
         p.add_option('-k', '--close', metavar="RESOLUTION",
                 help='Close with the given resolution')
         p.add_option('-d', '--dupeid', metavar="ORIGINAL",
@@ -433,9 +430,6 @@ def do_query(bz, opt, parser):
     if u:
         q = bz.url_to_query(u)
 
-    # TODO: flags to save queries, list/perform saved queries
-    # TODO: use the given scheme/host for the bugzilla URL
-
     if opt.components_file:
         # Components slurped in from file (one component per line)
         # This can be made more robust
@@ -447,7 +441,6 @@ def do_query(bz, opt, parser):
         opt.component = clist
 
     if opt.bug_status:
-        # FIXME: statuses can differ between bugzilla instances..
         val = opt.bug_status
         stat = val
         if val == 'ALL':
@@ -902,7 +895,6 @@ def main(bzinstance=None):
         if os.path.exists(cookiefile):
             log.info('Using cookies in %s for authentication', cookiefile)
         else:
-            # FIXME check to see if .bugzillarc is in use
             log.info('No authentication info provided.')
 
 
