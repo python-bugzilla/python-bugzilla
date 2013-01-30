@@ -41,7 +41,10 @@ class NovellBugzilla(Bugzilla32):
 
     bnc_cookie_re = re.compile('^Z.*-bugzilla')
     ichain_cookie_re = re.compile('^IPC.*')
+    # pylint: disable=W1401
+    # Anomolous backslash in string
     cookie_domain_re = re.compile('.*\.novell\.com$')
+    # pylint: enable=W1401
 
     bugzilla_url = 'https://bugzilla.novell.com/xmlrpc.cgi'
     logout_url = 'https://www.novell.com/cmd/ICSLogout'

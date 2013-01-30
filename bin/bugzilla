@@ -724,15 +724,15 @@ def _do_modify(bz, opt, args):
         status = "CLOSED"
 
     update = bz.build_update(
-                comment=opt.comment or None,
-                comment_private=opt.private or None,
-                cc_add=opt.cc and opt.cc[:] or None,
-                qa_contact=opt.qa_contact or None,
-                assigned_to=opt.assignee or None,
-                status=status,
-                resolution=opt.close or None,
-                dupe_of=opt.dupeid or None,
-                fixed_in=opt.fixed_in or None)
+        comment=opt.comment or None,
+        comment_private=opt.private or None,
+        cc_add=opt.cc and opt.cc[:] or None,
+        qa_contact=opt.qa_contact or None,
+        assigned_to=opt.assignee or None,
+        status=status,
+        resolution=opt.close or None,
+        dupe_of=opt.dupeid or None,
+        fixed_in=opt.fixed_in or None)
 
     flags = []
     if opt.flag:

@@ -30,6 +30,8 @@ def _decode_rfc2231_value(val):
     from email import utils
     from email import header
 
+    # pylint: disable=W1401
+    # Anomolous backslash in string
     val = utils.ecre.sub(' \g<0> ', val)
     val = val.strip('"')
     return ''.join(f[0].decode(f[1] or 'us-ascii')
