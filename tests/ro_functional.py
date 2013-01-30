@@ -180,8 +180,8 @@ class RHTest(BaseTest):
                 6, "621030")
     test6 = lambda s: BaseTest._testQueryFull(s, "621601", 60,
                                               "end-of-life (EOL)")
-    test7 = lambda s: BaseTest._testQueryRaw(s, "663674", 70,
-                "ATTRIBUTE[whiteboard]: whiteboard test")
+    test7 = lambda s: BaseTest._testQueryRaw(s, "307471", 70,
+                "ATTRIBUTE[whiteboard]:  bzcl34nup")
     test8 = lambda s: BaseTest._testQueryOneline(s, "785016",
                 "[---] fedora-review+ fedora-cvs+")
     test9 = lambda s: BaseTest._testQueryExtra(s, "307471",
