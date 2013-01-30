@@ -183,7 +183,7 @@ class RHTest(BaseTest):
     test7 = lambda s: BaseTest._testQueryRaw(s, "663674", 70,
                 "ATTRIBUTE[whiteboard]: whiteboard test")
     test8 = lambda s: BaseTest._testQueryOneline(s, "785016",
-                "[---] fedora-review+fedora-cvs+")
+                "[---] fedora-review+ fedora-cvs+")
     test9 = lambda s: BaseTest._testQueryExtra(s, "307471",
             " +Status Whiteboard:  bzcl34nup")
     test10 = lambda s: BaseTest._testQueryFormat(s,
