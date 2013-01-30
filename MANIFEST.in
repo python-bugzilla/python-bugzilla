@@ -1,3 +1,3 @@
-include COPYING THANKS TODO README MANIFEST.in
+include COPYING THANKS README MANIFEST.in
 include bugzilla.1
 recursive-include tests *.py *.txt
