@@ -87,6 +87,15 @@ class _Bug(object):
 
         raise AttributeError("Bug object has no attribute '%s'" % name)
 
+    def __hasattr__(self):
+        if name in self.__dict__:
+            return True
+
+        for newname, oldname in self.bugzilla.field_aliases:
+            if name == oldname and newname in self.__dict__:
+                return True
+        return False
+
     def __getstate__(self):
         sd = self.__dict__
         if self.bugzilla:

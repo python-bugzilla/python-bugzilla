@@ -80,6 +80,10 @@ class RHPartnerTest(BaseTest):
         bug = bz.getbug(bugid)
         print "\nCreated bugid: %s" % bugid
 
+        # Verify hasattr works
+        self.assertTrue(hasattr(bug, "id"))
+        self.assertTrue(hasattr(bug, "bug_id"))
+
         self.assertEquals(bug.component, [component])
         self.assertEquals(bug.version, [version])
         self.assertEquals(bug.summary, summary)
