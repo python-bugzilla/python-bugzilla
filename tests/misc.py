@@ -23,12 +23,23 @@ class MiscCLI(unittest.TestCase):
     maxDiff = None
 
     def testManPageGeneration(self):
+        try:
+            # If logilab found, we get some useless import warning
+            import warnings
+            warnings.simplefilter("ignore")
+
+            from logilab.common.optik_ext import ManHelpFormatter
+            ignore = ManHelpFormatter
+        except Exception, e:
+            print "Skipping man page test: %s" % e
+            return
+
         out = tests.clicomm("bugzilla --generate-man", None)
         self.assertTrue(len(out.splitlines()) > 100)
 
     def testHelp(self):
         out = tests.clicomm("bugzilla --help", None)
-        self.assertTrue(len(out.splitlines()) > 20)
+        self.assertTrue(len(out.splitlines()) > 18)
 
     def testCmdHelp(self):
         out = tests.clicomm("bugzilla query --help", None)

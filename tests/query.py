@@ -30,6 +30,12 @@ class BZ34Test(unittest.TestCase):
     """
     maxDiff = None
 
+    def assertDictEqual(self, *args, **kwargs):
+        # EPEL5 back compat
+        if hasattr(unittest.TestCase, "assertDictEqual"):
+            return unittest.TestCase.assertDictEqual(self, *args, **kwargs)
+        return self.assertEqual(*args, **kwargs)
+
     def clicomm(self, argstr, out):
         comm = "bugzilla query --test-return-query " + argstr
 

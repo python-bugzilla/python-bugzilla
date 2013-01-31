@@ -36,10 +36,12 @@ class TestCommand(Command):
         os.environ["__BUGZILLA_UNITTEST"] = "1"
 
         import coverage
-        cov = coverage.coverage(omit=["/*/tests/*", "/usr/*"])
+        usecov = int(coverage.__version__.split(".")[0]) >= 3
 
-        cov.erase()
-        cov.start()
+        if usecov:
+            cov = coverage.coverage(omit=["/*/tests/*", "/usr/*"])
+            cov.erase()
+            cov.start()
 
         testfiles = []
         for t in glob.glob(os.path.join(os.getcwd(), 'tests', '*.py')):
@@ -67,12 +69,13 @@ class TestCommand(Command):
 
         result = t.run(tests)
 
-        cov.stop()
-        cov.save()
+        if usecov:
+            cov.stop()
+            cov.save()
 
         err = int(bool(len(result.failures) > 0 or
                        len(result.errors) > 0))
-        if not err:
+        if not err and usecov:
             cov.report(show_missing=False)
         sys.exit(err)
 

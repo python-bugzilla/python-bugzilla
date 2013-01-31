@@ -59,7 +59,7 @@ def open_without_clobber(name, *args):
     while fd is None:
         try:
             fd = os.open(name, os.O_CREAT | os.O_EXCL, 0666)
-        except OSError as e:
+        except OSError, e:
             if e.errno == os.errno.EEXIST:
                 name = "%s.%i" % (orig_name, count)
                 count += 1
