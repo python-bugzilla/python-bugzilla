@@ -1,0 +1,23 @@
+If submitting any patch, please verify that no new pylint or pep8 violations
+are introduced:
+
+  python setup.py pylint
+
+And ensure that the basic unit test suite does not regress
+
+  python setup.py test
+
+There are more comprehensive tests that are disabled by default. Readonly
+functional tests that run against several public bugzilla instances. No
+login account is required:
+
+  python setup.py test --ro-functional
+
+And read/write functional tests. These currently run against the test
+bugzilla instance at partner-bugzilla.redhat.com, and requires a valid
+login there:
+
+  python setup.py test --rw-functional
+
+Running any of the functional tests is not a requirement for patch submission,
+but please give them a go if you are interested.
