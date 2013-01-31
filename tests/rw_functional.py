@@ -413,6 +413,7 @@ class RHPartnerTest(BaseTest):
 
     def test9Whiteboards(self):
         bz = self.bzclass(url=self.url, cookiefile=cf)
+        bug_id = "663674"
         bug = bz.getbug("663674")
 
         # Set all whiteboards
@@ -427,6 +428,16 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug.qa_whiteboard, initval + "qa")
         self.assertEquals(bug.devel_whiteboard, initval + "devel")
         self.assertEquals(bug.internal_whiteboard, initval + "internal")
+
+        # Via the command line
+        tests.clicomm("bugzilla modify %s --whiteboard foo" % bug_id, bz)
+        bug.refresh()
+        self.assertEquals(bug.whiteboard, initval + "status foo")
+
+        tests.clicomm("bugzilla modify %s --whiteboard =%s" %
+                      (bug_id, initval + "status"), bz)
+        bug.refresh()
+        self.assertEquals(bug.whiteboard, initval + "status")
 
         # Modify whiteboards
         bug.appendwhiteboard("-app", "qa")

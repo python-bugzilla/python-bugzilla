@@ -279,6 +279,9 @@ def setup_action_parser(action):
                 help='Add an email to the cc list')
         p.add_option('-F', '--fixed_in', metavar="VERSION",
                 help='"Fixed in version" field')
+        p.add_option("", "--whiteboard", metavar="TEXT",
+                help=('Alter status whiteboard text. TEXT appends, '
+                      '-TEXT removes, =TEXT overwrites'))
 
     elif action == 'attach':
         p.set_usage('''
@@ -713,6 +716,24 @@ def _do_modify(bz, opt, args):
     if opt.close:
         status = "CLOSED"
 
+    def parse_triset(val):
+        val = val or ""
+        add_val = None
+        rm_val = None
+        set_val = None
+
+        if val.startswith("+"):
+            add_val = val[1:]
+        elif val.startswith("-"):
+            rm_val = val[1:]
+        elif val.startswith("="):
+            set_val = val[1:]
+        else:
+            add_val = val
+        return add_val, rm_val, set_val
+
+    add_wb, rm_wb, set_wb = parse_triset(opt.whiteboard)
+
     update = bz.build_update(
         comment=opt.comment or None,
         comment_private=opt.private or None,
@@ -722,15 +743,13 @@ def _do_modify(bz, opt, args):
         status=status,
         resolution=opt.close or None,
         dupe_of=opt.dupeid or None,
-        fixed_in=opt.fixed_in or None)
+        fixed_in=opt.fixed_in or None,
+        whiteboard=set_wb or None)
 
     flags = []
     if opt.flag:
         for f in opt.flag:
             flags.append({"name": f[:-1], "status": f[-1]})
-
-    if not update and not flags:
-        raise RuntimeError("Didn't generate anything to update?")
 
     log.debug("update bug dict=%s", update)
     log.debug("update flags dict=%s", flags)
@@ -739,6 +758,19 @@ def _do_modify(bz, opt, args):
         bz.update_flags(bugid_list, flags)
     if update:
         bz.update_bugs(bugid_list, update)
+
+
+    # Now for the things we can't blindly batch.
+    # This could be improved to batch identical updates.
+    if rm_wb is None and add_wb is None:
+        return
+
+    for bug in bz.getbugs(bugid_list):
+        if add_wb:
+            bug.addtag(add_wb)
+        if rm_wb:
+            bug.deltag(rm_wb)
+
 
 
 def _do_attach(bz, opt, parser, args):
@@ -943,7 +975,7 @@ def main(bzinstance=None):
         if not (opt.status or opt.close or
                 opt.assignee or opt.qa_contact or
                 opt.flag or opt.cc or opt.comment or
-                opt.fixed_in):
+                opt.fixed_in or opt.whiteboard):
             parser.error("'modify' command requires additional arguments")
 
         if not args:
