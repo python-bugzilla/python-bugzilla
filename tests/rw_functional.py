@@ -84,8 +84,8 @@ class RHPartnerTest(BaseTest):
         self.assertTrue(hasattr(bug, "id"))
         self.assertTrue(hasattr(bug, "bug_id"))
 
-        self.assertEquals(bug.component, [component])
-        self.assertEquals(bug.version, [version])
+        self.assertEquals(bug.component, component)
+        self.assertEquals(bug.version, version)
         self.assertEquals(bug.summary, summary)
 
         # Close the bug

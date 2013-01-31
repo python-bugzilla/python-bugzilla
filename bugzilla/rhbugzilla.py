@@ -33,10 +33,21 @@ class RHBugzilla(Bugzilla42):
     version = '0.1'
 
     def __init__(self, **kwargs):
+        """
+        @multicall: No longer used
+        @rhbz_back_compat: If True, convert parameters to the format they were
+                           in prior RHBZ upgrade in June 2012. Mostly this
+                           replaces lists with comma separated strings,
+                           and alters groups and flags. Default is False
+        """
         # 'multicall' is no longer used, keep it here for back compat
         self.multicall = True
+        self.rhbz_back_compat = False
+
         if "multicall" in kwargs:
             self.multicall = kwargs.pop("multicall")
+        if "rhbz_back_compat" in kwargs:
+            self.rhbz_back_compat = bool(kwargs.pop("rhbz_back_compat"))
 
         Bugzilla42.__init__(self, **kwargs)
 
@@ -141,7 +152,7 @@ class RHBugzilla(Bugzilla42):
             return
 
         if 'include_fields' not in query:
-            query['include_fields'] = list()
+            query['include_fields'] = []
             if 'column_list' in query:
                 query['include_fields'] = query['column_list']
                 del query['column_list']
@@ -154,41 +165,51 @@ class RHBugzilla(Bugzilla42):
                     include_fields.append(newname)
 
     def post_translation(self, query, bug):
-        '''Translates the query result'''
-        tmpstr = []
+        '''
+        Convert the results of getbug back to the ancient RHBZ value
+        formats
+        '''
+        ignore = query
+
+        # RHBZ _still_ returns component and version as lists, which
+        # deviates from upstream. Copy the list values to components
+        # and versions respectively.
+        if 'component' in bug:
+            val = bug['component']
+            bug['components'] = type(val) is list and val or [val]
+            bug['component'] = bug['components'][0]
+
+        if 'version' in bug:
+            val = bug['version']
+            bug['versions'] = type(val) is list and val or [val]
+            bug['version'] = bug['version'][0]
+
+        if not self.rhbz_back_compat:
+            return
+
         if 'flags' in bug:
+            tmpstr = []
             for tmp in bug['flags']:
                 tmpstr.append("%s%s" % (tmp['name'], tmp['status']))
 
             bug['flags'] = ",".join(tmpstr)
+
         if 'blocks' in bug:
-            if len(bug['blocks']) > 0:
-                bug['blockedby'] = ','.join([str(b) for b in bug['blocks']])
-                bug['blocked'] = ','.join([str(b) for b in bug['blocks']])
-            else:
-                bug['blockedby'] = ''
-                bug['blocked'] = ''
+            # Aliases will handle the 'blockedby' and 'blocked' back compat
+            bug['blocks'] = ','.join([str(b) for b in bug['blocks']])
+
         if 'keywords' in bug:
-            if len(bug['keywords']) > 0:
-                bug['keywords'] = ','.join(bug['keywords'])
-            else:
-                bug['keywords'] = ''
-        if 'component' in bug:
-            # we have to emulate the old behavior and add 'components' as
-            # list instead
-            bug['components'] = bug['component']
-            bug['component'] = bug['component'][0]
+            bug['keywords'] = ','.join(bug['keywords'])
+
         if 'alias' in bug:
-            if len(bug['alias']) > 0:
-                bug['alias'] = ','.join(bug['alias'])
-            else:
-                bug['alias'] = ''
+            bug['alias'] = ','.join(bug['alias'])
+
         if 'groups' in bug:
             # groups went to the opposite direction: it got simpler
             # instead of having name, ison, description, it's now just
             # an array of strings of the groups the bug belongs to
             # we're emulating the old behaviour here
-            tmp = list()
+            tmp = []
             for g in bug['groups']:
                 t = {}
                 t['name'] = g

@@ -660,7 +660,9 @@ def _format_output(bz, opt, buglist):
             cve = ""
             flags = ""
             if hasattr(b, "flags"):
-                flags = " ".join([str(i).strip() for i in b.flags.split(',')])
+                for flag in b.flags:
+                    flags = " ".join([f["name"] + f["status"]
+                                      for f in b.flags])
 
             keywords = getattr(b, "keywords", "")
             if type(keywords) is list:

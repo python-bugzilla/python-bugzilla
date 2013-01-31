@@ -123,7 +123,6 @@ class _Bug(object):
         # Use post_translation to convert getbug results to back compat values
         q = {}
         q["id"] = str(self.bug_id)
-        self.bugzilla.post_translation(q, r)
 
         self._update_dict(r)
 
@@ -132,6 +131,8 @@ class _Bug(object):
         Update internal dictionary, in a way that ensures no duplicate
         entries are stored WRT field aliases
         '''
+        self.bugzilla.post_translation({}, newdict)
+
         for newname, oldname in self.bugzilla.field_aliases:
             if not oldname in newdict:
                 continue
