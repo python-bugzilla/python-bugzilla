@@ -491,6 +491,10 @@ def do_query(bz, opt, parser):
         include_fields = ['bug_id', 'bug_status', 'assigned_to',
             'short_desc']
 
+    elif opt.output == 'raw':
+        # 'raw' always does a getbug() call anyways, so just ask for ID back
+        include_fields = ['id']
+
     if opt.outputformat:
         include_fields = []
         for fieldname, rest in format_field_re.findall(opt.outputformat):
