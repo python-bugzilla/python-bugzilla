@@ -369,8 +369,11 @@ class _Bug(object):
     def get_flag_type(self, name):
         """
         Return flag_type information for a specific flag
+
+        Older RHBugzilla returned a lot more info here, but it was
+        non-upstream and is now gone.
         """
-        for t in self.flag_types:
+        for t in self.flags:
             if t['name'] == name:
                 return t
         return None
@@ -383,7 +386,7 @@ class _Bug(object):
         if not ft:
             return None
 
-        return ft['flags']
+        return [ft]
 
     def get_flag_status(self, name):
         """

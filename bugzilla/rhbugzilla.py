@@ -64,6 +64,8 @@ class RHBugzilla(Bugzilla42):
             ('qa_whiteboard', 'cf_qa_whiteboard'),
             ('devel_whiteboard', 'cf_devel_whiteboard'),
             ('internal_whiteboard', 'cf_internal_whiteboard'),
+            # Format isn't exactly the same but it's the closest approximation
+            ('flags', 'flag_types'),
         )
     )
 

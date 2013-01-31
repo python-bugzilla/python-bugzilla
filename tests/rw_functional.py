@@ -266,17 +266,13 @@ class RHPartnerTest(BaseTest):
 
         def flagstr(b):
             ret = []
-            for flag in b.flag_types:
-                if not flag["flags"]:
-                    continue
-                ret.append(flag["name"] + flag["flags"][0]["status"])
+            for flag in b.flags:
+                ret.append(flag["name"] + flag["status"])
             return " ".join(sorted(ret))
 
         def cleardict(b):
             clearflags = {}
-            for flag in b.flag_types:
-                if not flag["flags"]:
-                    continue
+            for flag in b.flags:
                 clearflags[flag["name"]] = "X"
             return clearflags
 
