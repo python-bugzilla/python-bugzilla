@@ -137,7 +137,7 @@ class BZ34(BaseTest):
                 "--product dogtail --component sniff",
                 9, "321654")
     # BZ < 4 doesn't report values for --full
-    test2 = lambda s: BaseTest._testQueryRaw(s, "321654", 70,
+    test2 = lambda s: BaseTest._testQueryRaw(s, "321654", 50,
                                              "ATTRIBUTE[version]: CVS HEAD")
     test3 = lambda s: BaseTest._testQueryOneline(s, "321654", "Sniff")
 
@@ -151,7 +151,7 @@ class BZ42(BaseTest):
 
     test1 = lambda s: BaseTest._testQuery(s, "--product avahi", 10, "3450")
     test2 = lambda s: BaseTest._testQueryFull(s, "3450", 10, "Blocked: \n")
-    test2 = lambda s: BaseTest._testQueryRaw(s, "3450", 70,
+    test2 = lambda s: BaseTest._testQueryRaw(s, "3450", 50,
                                     "ATTRIBUTE[creator]: daniel@fooishbar.org")
     test3 = lambda s: BaseTest._testQueryOneline(s, "3450",
                                     "daniel@fooishbar.org libavahi")

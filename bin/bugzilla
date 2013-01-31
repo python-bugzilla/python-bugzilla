@@ -678,6 +678,8 @@ def _format_output(bz, opt, buglist):
         for b in fullbuglist:
             print "Bugzilla %s: " % b.bug_id
             for a in dir(b):
+                if a.startswith("__") and a.endswith("__"):
+                    continue
                 print to_encoding(u"ATTRIBUTE[%s]: %s" % (a, getattr(b, a)))
             print "\n\n"
 

@@ -63,11 +63,6 @@ class _Bug(object):
                                            id(self))
 
     def __getattr__(self, name):
-        if 'id' not in self.__dict__:
-            # This is fatal, since we have no ID to pass to refresh()
-            # Can happen if a messed up include_fields is passed to query
-            raise AttributeError("No bug ID cached for bug object")
-
         refreshed = False
         while True:
             if name in self.__dict__:
@@ -78,8 +73,19 @@ class _Bug(object):
                 if name == oldname and newname in self.__dict__:
                     return self.__dict__[newname]
 
+            # Doing dir(bugobj) does getattr __members__/__methods__,
+            # don't refresh for those
+            if name.startswith("__") and name.endswith("__"):
+                break
+
             if refreshed:
                 break
+
+            if 'id' not in self.__dict__:
+                # This is fatal, since we have no ID to pass to refresh()
+                # Can happen if a messed up include_fields is passed to query
+                raise AttributeError("No bug ID cached for bug object")
+
             log.debug("Bug %i missing attribute '%s' - doing refresh()",
                       self.bug_id, name)
             self.refresh()
