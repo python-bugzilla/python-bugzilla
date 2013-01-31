@@ -93,7 +93,7 @@ class _Bug(object):
 
         raise AttributeError("Bug object has no attribute '%s'" % name)
 
-    def __hasattr__(self):
+    def __hasattr__(self, name):
         if name in self.__dict__:
             return True
 
