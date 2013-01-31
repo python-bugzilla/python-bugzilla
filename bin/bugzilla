@@ -475,34 +475,30 @@ def do_query(bz, opt, parser):
         setattr(opt, optname, val.split(","))
 
     include_fields = None
-    # To optimize speed and reduce network traffic through lookups, we
-    # specifically tell bugzilla the exact data we want.  This allows us
-    # make one call to output the data, rather than have a follow-on
-    # getbug() to grab more info than what the default has.
-    # Testing has shown this to be a _huge_ time saver.  Unfortunately,
-    # this list and the output format have to be in _sync_.  Otherwise,
-    # you lose speed by doing a look-up for each new output element.
-    if opt.output == 'oneline':
-        include_fields = ['bug_id', 'bug_status', 'assigned_to',
-            'component', 'target_milestone', 'short_desc', 'flags',
-            'keywords', 'blockedby']
-
-    elif opt.output == 'normal':
-        include_fields = ['bug_id', 'bug_status', 'assigned_to',
-            'short_desc']
-
-    elif opt.output == 'raw':
+    if opt.output == 'raw':
         # 'raw' always does a getbug() call anyways, so just ask for ID back
         include_fields = ['id']
 
-    if opt.outputformat:
+    elif opt.outputformat:
         include_fields = []
         for fieldname, rest in format_field_re.findall(opt.outputformat):
             if fieldname == "whiteboard" and rest:
                 fieldname = rest + "_" + fieldname
             elif fieldname == "flag":
                 fieldname = "flags"
-            include_fields.append(fieldname)
+            elif fieldname == "cve":
+                fieldname = ["keywords", "blocks"]
+            elif fieldname == "__unicode__":
+                # Needs to be in sync with bug.__unicode__
+                fieldname = ["id", "status", "assigned_to", "summary"]
+
+            flist = type(fieldname) is list and fieldname or [fieldname]
+            for f in flist:
+                if f not in include_fields:
+                    include_fields.append(f)
+
+    if include_fields is not None:
+        include_fields.sort()
 
     built_query = bz.build_query(
         product=getattr(opt, "product", None),
@@ -588,113 +584,102 @@ def _do_info(bz, opt):
             break
 
 
+def _convert_to_outputformat(output):
+    fmt = ""
+
+    if output == "normal":
+        fmt = "%{__unicode__}"
+
+    elif output == "ids":
+        fmt = "%{id}"
+
+    elif output == 'full':
+        fmt += "%{__unicode__}\n"
+        fmt += "CC: %{cc}\n"
+        fmt += "Blocked: %{blocks}\n"
+        fmt += "Depends: %{depends_on}\n"
+        fmt += "%{comments}\n"
+
+    elif output == 'extra':
+        fmt += "%{__unicode__}\n"
+        fmt += " +Keywords: %{keywords}\n"
+        fmt += " +QA Whiteboard: %{qa_whiteboard}\n"
+        fmt += " +Status Whiteboard: %{status_whiteboard}\n"
+        fmt += " +Devel Whiteboard: %{devel_whiteboard}\n"
+
+    elif output == 'oneline':
+        fmt += "#%{bug_id} %{status} %{assigned_to} %{component}\t"
+        fmt += "[%{target_milestone}] %{flags} %{cve}"
+
+    else:
+        raise RuntimeError("Unknown output type '%s'" % opt.output)
+
+    return fmt
+
+
 def _format_output(bz, opt, buglist):
-    if opt.outputformat:
-        def bug_field(matchobj):
-            # whiteboard and flag allow doing
-            #   %{whiteboard:devel} and %{flag:needinfo}
-            # That's what 'rest' matches
-            (fieldname, rest) = matchobj.groups()
-
-            if fieldname == "whiteboard" and rest:
-                fieldname = rest + "_" + fieldname
-
-            if fieldname == "flag":
-                val = b.get_flag_status(rest)
-            else:
-                val = getattr(b, fieldname, "")
-
-            if type(val) is list:
-                val = ','.join(val)
-
-            return str(val)
-
+    if opt.output == 'raw':
+        buglist = bz.getbugs([b.bug_id for b in buglist])
         for b in buglist:
-            print format_field_re.sub(bug_field, opt.outputformat)
-
-    elif opt.output == 'ids':
-        for b in buglist:
-            print b.bug_id
-
-    elif opt.output == 'full':
-        fullbuglist = bz.getbugs([b.bug_id for b in buglist])
-        for b in fullbuglist:
-            print b
-
-            if hasattr(b, "cc"):
-                print "CC: %s" % " ".join(b.cc)
-            if hasattr(b, "blocked"):
-                print "Blocked: %s" % " ".join([str(i)
-                                                for i in b.blocked or []])
-            if hasattr(b, "dependson"):
-                print ("Depends: %s" %
-                       " ".join([str(i) for i in b.dependson or []]))
-
-            for c in getattr(b, "longdescs", []):
-                print to_encoding(u"* %s - %s:\n%s\n" % (c['time'],
-                    c['author'], c['text']))
-
-    elif opt.output == 'normal':
-        for b in buglist:
-            print b
-
-    elif opt.output == 'extra':
-        print "Grabbing 'extra' bug information. This could take a moment."
-        fullbuglist = bz.getbugs([b.bug_id for b in buglist])
-        for b in fullbuglist:
-            print b
-            if hasattr(b, 'keywords') and b.keywords:
-                print to_encoding(u" +Keywords: %s" % b.keywords)
-            if hasattr(b, 'qa_whiteboard') and b.qa_whiteboard:
-                print to_encoding(u" +QA Whiteboard: %s" % b.qa_whiteboard)
-            if hasattr(b, 'status_whiteboard') and b.status_whiteboard:
-                print to_encoding(u" +Status Whiteboard: %s" %
-                        b.status_whiteboard)
-            if hasattr(b, 'devel_whiteboard') and b.devel_whiteboard:
-                print to_encoding(u" +Devel Whiteboard: %s" %
-                        b.devel_whiteboard)
-        print "\nBugs listed: ", len(buglist)
-
-    elif opt.output == 'oneline':
-        for b in buglist:
-            cve = ""
-            flags = ""
-            if hasattr(b, "flags"):
-                for flag in b.flags:
-                    flags = " ".join([f["name"] + f["status"]
-                                      for f in b.flags])
-
-            keywords = getattr(b, "keywords", "")
-            if type(keywords) is list:
-                keywords = " ".join(keywords)
-
-            # grab CVE from keywords and blockers
-            if keywords.find("Security") != -1 and b.blockedby:
-                for bl in str(b.blockedby).split(','):
-                    cvebug = bz.getbug(bl)
-                    for cb in cvebug.alias:
-                        if cb.find("CVE") != -1:
-                            cve += cb + " "
-
-            # bugzilla.redhat.com has component as a list
-            if type(b.component) == list:
-                b.component = ','.join(b.component)
-            print to_encoding(u"#%s %8s %22s %s\t[%s] %s %s" %
-                    (b.bug_id, b.bug_status, b.assigned_to, b.component,
-                        b.target_milestone, flags, cve))
-
-    elif opt.output == 'raw':
-        fullbuglist = bz.getbugs([b.bug_id for b in buglist])
-        for b in fullbuglist:
             print "Bugzilla %s: " % b.bug_id
             for a in dir(b):
                 if a.startswith("__") and a.endswith("__"):
                     continue
                 print to_encoding(u"ATTRIBUTE[%s]: %s" % (a, getattr(b, a)))
             print "\n\n"
+        return
 
-    else:
-        raise RuntimeError("Unknown output type '%s'" % opt.output)
+    def bug_field(matchobj):
+        # whiteboard and flag allow doing
+        #   %{whiteboard:devel} and %{flag:needinfo}
+        # That's what 'rest' matches
+        (fieldname, rest) = matchobj.groups()
+
+        if fieldname == "whiteboard" and rest:
+            fieldname = rest + "_" + fieldname
+
+        if fieldname == "flag" and rest:
+            val = b.get_flag_status(rest)
+
+        elif fieldname == "flags":
+            val = ",".join([f["name"] + f["status"]
+                            for f in getattr(b, "flags", [])])
+
+        elif fieldname == "cve":
+            cves = []
+            for key in getattr(b, "keywords", []):
+                # grab CVE from keywords and blockers
+                if key.find("Security") == -1:
+                    continue
+                for bl in b.blocks:
+                    cvebug = bz.getbug(bl)
+                    for cb in cvebug.alias:
+                        if cb.find("CVE") == -1:
+                            continue
+                        if cb.strip() not in cves:
+                            cves.append(cb)
+            val = ",".join(cves)
+
+        elif fieldname == "comments":
+            val = ""
+            for c in getattr(b, "comments", []):
+                val += ("\n* %s - %s:\n%s\n" %
+                        (c['time'], c['author'], c['text']))
+
+        elif fieldname == "__unicode__":
+            val = unicode(b)
+        else:
+            val = getattr(b, fieldname, "")
+
+        if type(val) is list:
+            val = ','.join(val)
+        elif type(val) is int:
+            val = str(val)
+
+        return to_encoding(val)
+
+    for b in buglist:
+        print format_field_re.sub(bug_field, opt.outputformat)
 
 
 def _do_new(bz, opt):
@@ -913,6 +898,10 @@ def main(bzinstance=None):
     ###########################
     # Run the actual commands #
     ###########################
+
+    if hasattr(opt, "outputformat"):
+        if not opt.outputformat and opt.output not in ['raw', None]:
+            opt.outputformat = _convert_to_outputformat(opt.output)
 
     buglist = []
     if action == 'info':

@@ -134,15 +134,18 @@ class BugzillaBase(object):
         (ignore, ignore, path,
          ignore, query, ignore) = urlparse.urlparse(url)
 
-        if os.path.basename(path) in ('buglist.cgi', 'query.cgi'):
-            for (k, v) in urlparse.parse_qsl(query):
-                if k not in q:
-                    q[k] = v
-                elif isinstance(q[k], list):
-                    q[k].append(v)
+        if os.path.basename(path) not in ('buglist.cgi', 'query.cgi'):
+            return {}
+
+        for (k, v) in urlparse.parse_qsl(query):
+            if k not in q:
+                q[k] = v
+            elif isinstance(q[k], list):
+                q[k].append(v)
             else:
                 oldv = q[k]
                 q[k] = [oldv, v]
+
         return q
 
 

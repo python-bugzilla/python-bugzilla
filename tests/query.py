@@ -138,15 +138,14 @@ class BZ34Test(unittest.TestCase):
 class BZ4Test(BZ34Test):
     bz = bz4
 
-    _default_includes = ['assigned_to', 'summary', 'status', 'id']
+    _default_includes = ['assigned_to', 'id', 'status', 'summary']
 
     _basic_query_out = BZ34Test._basic_query_out.copy()
     _basic_query_out["include_fields"] = _default_includes
 
     _oneline_out = BZ34Test._oneline_out.copy()
-    _oneline_out["include_fields"] = ['assigned_to', 'component',
-        'target_milestone', 'flags', 'keywords', 'summary', 'status', 'id',
-        'blocks']
+    _oneline_out["include_fields"] = ['assigned_to', 'blocks', 'component',
+        'flags', 'keywords', 'status', 'target_milestone', 'id']
 
     _output_format_out = BZ34Test._output_format_out.copy()
     _output_format_out["include_fields"] = ['product', 'summary',
@@ -193,7 +192,7 @@ class RHBZTest(BZ4Test):
         'emailtype3': 'substring', 'emailtype4': 'substring',
         'emailcc1': True, 'emailassigned_to2': True,
         'emailreporter3': True, 'emailqa_contact4': True,
-        'include_fields': ['assigned_to', 'summary', 'status', 'id'],
+        'include_fields': BZ4Test._default_includes,
         'query_format': 'advanced'}
     _booleans_out = {'value2-0-0': 'baz foo', 'value0-0-0': '123456',
         'type3-0-1': 'substring', 'value1-1-0': 'devel_ack', 'type0-0-0':
@@ -204,13 +203,13 @@ class RHBZTest(BZ4Test):
         'substring', 'type1-0-0': 'substring', 'field1-1-0':
         'flagtypes.name', 'negate2': 1, 'field2-0-0':
         'cf_qa_whiteboard', 'type3-0-0': 'substring', 'field0-0-0':
-        'blocked', 'include_fields': ['assigned_to', 'summary', 'status',
-        'id'], 'query_format': 'advanced'}
+        'blocked', 'include_fields': BZ4Test._default_includes,
+        'query_format': 'advanced'}
     _booleans_chart_out = {'value1-0-1': 'wee', 'value2-0-0': 'yargh',
         'field2-0-0': 'foo', 'value0-0-0': 'Partner', 'type0-0-0':
         'substring', 'type2-0-0': 'bar', 'field1-0-1': 'foo', 'field1-0-0':
         'foo', 'value1-0-0': 'baz', 'field0-1-0': 'keywords', 'field0-0-0':
         'keywords', 'type1-0-0': 'bar', 'type1-0-1': 'bar', 'negate2': 1,
         'type0-1-0': 'notsubstring', 'value0-1-0': 'OtherQA',
-        'include_fields': ['assigned_to', 'summary', 'status', 'id'],
+        'include_fields': BZ4Test._default_includes,
         'query_format': 'advanced'}

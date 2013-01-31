@@ -1,3 +1,5 @@
+# -*- encoding: utf-8 -*-
+
 #
 # Copyright Red Hat, Inc. 2012
 #
@@ -71,7 +73,7 @@ class BaseTest(unittest.TestCase):
         if expectexc:
             return
 
-        self.assertTrue(len(out) >= mincount)
+        self.assertTrue(len(out.splitlines()) >= mincount)
         self.assertTrue(any([l.startswith("#" + expectbug)
                              for l in out.splitlines()]))
 
@@ -183,14 +185,14 @@ class RHTest(BaseTest):
     test7 = lambda s: BaseTest._testQueryRaw(s, "307471", 70,
                 "ATTRIBUTE[whiteboard]:  bzcl34nup")
     test8 = lambda s: BaseTest._testQueryOneline(s, "785016",
-                "[---] fedora-review+ fedora-cvs+")
+                "[---] fedora-review+,fedora-cvs+")
     test9 = lambda s: BaseTest._testQueryExtra(s, "307471",
             " +Status Whiteboard:  bzcl34nup")
     test10 = lambda s: BaseTest._testQueryFormat(s,
             "--bug_id 307471 --outputformat=\"id=%{bug_id} "
             "sw=%{whiteboard:status} needinfo=%{flag:needinfo} "
             "sum=%{summary}\"",
-            "id=307471 sw= bzcl34nup needinfo=None")
+            "id=307471 sw= bzcl34nup needinfo= ")
     test11 = lambda s: BaseTest._testQueryURL(s,
             "https://bugzilla.redhat.com/buglist.cgi?f1=creation_ts"
             "&list_id=973582&o1=greaterthaneq&classification=Fedora&"
@@ -202,6 +204,13 @@ class RHTest(BaseTest):
             "sw=%{whiteboard:status} flag=%{flag:fedora-review} "
             "sum=%{summary}\"",
             "id=785016 sw= flag=+")
+    # Unicode in this bugs summary
+    test13 = lambda s: BaseTest._testQueryFormat(s,
+             "--bug_id 522796 --outputformat \"%{summary}\"",
+             "V34 — system")
+    # CVE bug
+    test14 = lambda s: BaseTest._testQueryOneline(s, "720784",
+            " CVE-2011-2527")
 
     def testQueryFixedIn(self):
         out = self.clicomm("query --fixed_in anaconda-15.29-1")
