@@ -411,6 +411,21 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(setbug.attachments[-1]["id"],
                           int(out2.splitlines()[2].split()[2]))
 
+        # Set attachment flags
+        self.assertEquals(setbug.attachments[-1]["flags"], [])
+        bz.updateattachmentflags(setbug.id, setbug.attachments[-1]["id"],
+                                 "review", status="+")
+        setbug.refresh()
+
+        self.assertEquals(len(setbug.attachments[-1]["flags"]), 1)
+        self.assertEquals(setbug.attachments[-1]["flags"][0]["name"], "review")
+        self.assertEquals(setbug.attachments[-1]["flags"][0]["status"], "+")
+
+        bz.updateattachmentflags(setbug.id, setbug.attachments[-1]["id"],
+                                 "review", status="X")
+        setbug.refresh()
+        self.assertEquals(setbug.attachments[-1]["flags"], [])
+
 
     def test9Whiteboards(self):
         bz = self.bzclass(url=self.url, cookiefile=cf)

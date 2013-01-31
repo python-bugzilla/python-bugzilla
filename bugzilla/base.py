@@ -873,6 +873,24 @@ class BugzillaBase(object):
             chunk = fh.read(chunksize)
         return data
 
+    def updateattachmentflags(self, bugid, attachid, flagname, **kwargs):
+        '''
+        Updates a flag for the given attachment ID.
+        Optional keyword args are:
+            status:    new status for the flag ('-', '+', '?', 'X')
+            requestee: new requestee for the flag
+        '''
+        update = {
+            'name': flagname,
+            'attach_id': int(attachid),
+        }
+        update.update(kwargs.items())
+
+        result = self._proxy.Flag.update({
+            'ids': [int(bugid)],
+            'updates': [update]})
+        return result['flag_updates'][str(bugid)]
+
 
     #####################
     # createbug methods #
