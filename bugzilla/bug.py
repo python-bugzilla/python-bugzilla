@@ -298,12 +298,18 @@ class _Bug(object):
             which = "whiteboard"
 
         if action != 'overwrite':
-            wb = getattr(self, which, '')
+            wb = getattr(self, which, '').strip()
+            tags = wb.split()
+
+            sep = " "
+            for t in tags:
+                if t.endswith(","):
+                    sep = ", "
 
             if action == 'prepend':
-                text = text + ' ' + wb
+                text = text + sep + wb
             elif action == 'append':
-                text = wb + ' ' + text
+                text = wb + sep + text
             else:
                 raise ValueError("Unknown whiteboard action '%s'" % action)
 
@@ -350,7 +356,9 @@ class _Bug(object):
     def deltag(self, tag, which='status'):
         '''Removes the given tag from the given bug.'''
         tags = self.gettags(which)
-        tags.remove(tag)
+        for t in tags:
+            if t.strip(",") == tag:
+                tags.remove(t)
         self.setwhiteboard(' '.join(tags), which)
 
 

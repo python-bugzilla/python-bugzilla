@@ -349,6 +349,7 @@ class RHPartnerTest(BaseTest):
             os.chdir("..")
             os.system("rm -r %s" % tmpdir)
 
+
     def _test8Attachments(self):
         """
         Get and set attachments for a bug
@@ -421,13 +422,15 @@ class RHPartnerTest(BaseTest):
         bug.setwhiteboard(initval + "status", "status")
         bug.setwhiteboard(initval + "qa", "qa")
         bug.setwhiteboard(initval + "devel", "devel")
-        bug.setwhiteboard(initval + "internal", "internal")
+        bug.setwhiteboard(initval + "internal, security, foo security1",
+                         "internal")
 
         bug.refresh()
         self.assertEquals(bug.whiteboard, initval + "status")
         self.assertEquals(bug.qa_whiteboard, initval + "qa")
         self.assertEquals(bug.devel_whiteboard, initval + "devel")
-        self.assertEquals(bug.internal_whiteboard, initval + "internal")
+        self.assertEquals(bug.internal_whiteboard,
+                          initval + "internal, security, foo security1")
 
         # Via the command line
         tests.clicomm("bugzilla modify %s --whiteboard foo" % bug_id, bz)
@@ -448,6 +451,21 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug.qa_whiteboard, initval + "qa" + " -app")
         self.assertEquals(bug.devel_whiteboard, "pre- " + initval + "devel")
         self.assertEquals(bug.status_whiteboard, "foobar")
+
+        # Verify that tag manipulation is smart about separator
+        bug.deltag("-app", "qa")
+        bug.deltag("security", "internal")
+        bug.refresh()
+
+        self.assertEquals(bug.qa_whiteboard, initval + "qa")
+        self.assertEquals(bug.internal_whiteboard,
+                          initval + "internal, foo security1")
+
+        bug.addtag("teststuff", "internal")
+        bug.refresh()
+        self.assertEquals(bug.internal_whiteboard,
+                          initval + "internal, foo security1, teststuff")
+
 
         # Clear whiteboards
         bug.setwhiteboard("", "status")
