@@ -838,11 +838,11 @@ def main(bzinstance=None):
     # Get our action
     if len(args) == 0:
         parser.error("No command specified, command must be one of: %s" %
-                     ','.join(cmdlist))
+                     ', '.join(cmdlist))
     action = args.pop(0)
     if action not in cmdlist:
         parser.error("Unknown command '%s', command must be one of: %s" %
-                     (action, ','.join(cmdlist)))
+                     (action, ', '.join(cmdlist)))
 
     # Parse action-specific args
     action_parser = setup_action_parser(action)
