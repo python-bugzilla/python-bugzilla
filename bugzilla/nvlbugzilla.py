@@ -55,10 +55,12 @@ class NovellBugzilla(Bugzilla32):
 
     def __init__(self, expires=300, **kwargs):
         self._expires = expires
-        super(NovellBugzilla, self).__init__(**kwargs)
+        self._url = self.__class__.bugzilla_url
+        self._opener = None
+
         # url argument exists only for backward compatibility,
         # but is always set to same url
-        self._url = self.__class__.bugzilla_url
+        super(NovellBugzilla, self).__init__(**kwargs)
 
     def __get_expiration(self):
         return self._expires
@@ -138,7 +140,12 @@ class NovellBugzilla(Bugzilla32):
         return super(NovellBugzilla, self)._login(user, password)
 
     def connect(self, url):
-        # NovellBugzilla should connect only to bnc,
+        # NovellBugzilla should connect only to bnc
+
+        handler = urllib2.HTTPCookieProcessor(self._cookiejar)
+        self._opener = urllib2.build_opener(handler)
+        self._opener.addheaders = [('User-agent', self.user_agent)]
+
         return super(NovellBugzilla, self).connect(self.__class__.bugzilla_url)
 
     def _logout(self):

@@ -18,7 +18,6 @@ import xmlrpclib
 
 from bugzilla import __version__, log
 from bugzilla.bug import _Bug, _User
-from bugzilla.cookies import CookieTransport, SafeCookieTransport
 
 # Backwards compatibility
 Bug = _Bug
@@ -36,6 +35,45 @@ def _decode_rfc2231_value(val):
     val = val.strip('"')
     return ''.join(f[0].decode(f[1] or 'us-ascii')
                    for f in header.decode_header(val))
+
+
+# CookieTransport code mostly borrowed from pybugz
+class _CookieTransport(xmlrpclib.Transport):
+    def __init__(self, uri, cookiejar, use_datetime=0):
+        self.verbose = 0
+
+        # python 2.4 compat
+        if hasattr(xmlrpclib.Transport, "__init__"):
+            xmlrpclib.Transport.__init__(self, use_datetime=use_datetime)
+
+        self.uri = uri
+        self.opener = urllib2.build_opener()
+        self.opener.add_handler(urllib2.HTTPCookieProcessor(cookiejar))
+
+    def request(self, host, handler, request_body, verbose=0):
+        req = urllib2.Request(self.uri)
+        req.add_header('User-Agent', self.user_agent)
+        req.add_header('Content-Type', 'text/xml')
+
+        if hasattr(self, 'accept_gzip_encoding') and self.accept_gzip_encoding:
+            req.add_header('Accept-Encoding', 'gzip')
+
+        req.add_data(request_body)
+
+        resp = self.opener.open(req)
+
+        # In Python 2, resp is a urllib.addinfourl instance, which does not
+        # have the getheader method that parse_response expects.
+        if not hasattr(resp, 'getheader'):
+            resp.getheader = resp.headers.getheader
+
+        if resp.code == 200:
+            self.verbose = verbose
+            return self.parse_response(resp)
+
+        resp.close()
+        raise xmlrpclib.ProtocolError(self.uri, resp.status,
+                                      resp.reason, resp.msg)
 
 
 class BugzillaError(Exception):
@@ -124,8 +162,6 @@ class BugzillaBase(object):
 
         # Bugzilla object state info that users shouldn't mess with
         self._proxy = None
-        self._transport = None
-        self._opener = None
         self._querydata = None
         self._querydefaults = None
         self._products = None
@@ -140,8 +176,6 @@ class BugzillaBase(object):
     def _init_private_data(self):
         '''initialize private variables used by this bugzilla instance.'''
         self._proxy = None
-        self._transport = None
-        self._opener = None
         self._querydata = None
         self._querydefaults = None
         self._products = None
@@ -314,21 +348,12 @@ class BugzillaBase(object):
         if url.count('/') < 3:
             log.debug('No path given for url, assuming /xmlrpc.cgi')
             url = url + '/xmlrpc.cgi'
-        # Set up the transport
-        if url.startswith('https'):
-            self._transport = SafeCookieTransport()
-        else:
-            self._transport = CookieTransport()
-        self._transport.user_agent = self.user_agent
-        self._transport.cookiejar = self._cookiejar
-        # Set up the proxy, using the transport
-        self._proxy = xmlrpclib.ServerProxy(url, self._transport)
-        # Set up the urllib2 opener (using the same cookiejar)
-        handler = urllib2.HTTPCookieProcessor(self._cookiejar)
-        self._opener = urllib2.build_opener(handler)
-        self._opener.addheaders = [('User-agent', self.user_agent)]
-        self.url = url
 
+        transport = _CookieTransport(url, self._cookiejar)
+        transport.user_agent = self.user_agent
+        self._proxy = xmlrpclib.ServerProxy(url, transport)
+
+        self.url = url
         # we've changed URLs - reload config
         self.readconfig()
 
@@ -374,6 +399,9 @@ class BugzillaBase(object):
             self.password = ''
         except xmlrpclib.Fault:
             r = False
+
+        if r and self._cookiejar:
+            self._cookiejar.save(self._cookiejar.filename)
         return r
 
     def logout(self):
