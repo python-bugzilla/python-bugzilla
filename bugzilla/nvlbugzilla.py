@@ -17,10 +17,10 @@ import urllib
 import urllib2
 import urlparse
 
-from bugzilla import BugzillaError, Bugzilla32, log
+from bugzilla import BugzillaError, Bugzilla34, log
 
 
-class NovellBugzilla(Bugzilla32):
+class NovellBugzilla(Bugzilla34):
     '''
     bugzilla.novell.com is a standard bugzilla 3.2 with some extensions, but
     it uses an proprietary and non-standard IChain login system. This class

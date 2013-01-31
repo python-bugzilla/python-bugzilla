@@ -32,6 +32,10 @@ def getBugzillaClassForURL(url):
     bzversion = ''
     c = None
 
+    if url.count("novell.com"):
+        logging.debug("Detected Novell bugzilla based on novell.com")
+        return NovellBugzilla
+
     # Check for a Red Hat extension
     try:
         log.debug("Checking for Red Hat Bugzilla extension")
@@ -44,7 +48,7 @@ def getBugzillaClassForURL(url):
 
     # Try to get the bugzilla version string
     try:
-        log.debug("Checking return value of Buzilla.version()")
+        log.debug("Checking return value of Bugzilla.version()")
         r = s.Bugzilla.version()
         bzversion = r['version']
     except xmlrpclib.Fault:
