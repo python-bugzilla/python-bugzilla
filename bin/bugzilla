@@ -493,7 +493,11 @@ def do_query(bz, opt, parser):
 
     if opt.outputformat:
         include_fields = []
-        for fieldname, ignore in format_field_re.findall(opt.outputformat):
+        for fieldname, rest in format_field_re.findall(opt.outputformat):
+            if fieldname == "whiteboard" and rest:
+                fieldname = rest + "_" + fieldname
+            elif fieldname == "flag":
+                fieldname = "flags"
             include_fields.append(fieldname)
 
     built_query = bz.build_query(
