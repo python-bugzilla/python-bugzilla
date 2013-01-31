@@ -27,7 +27,7 @@ def difffile(expect, filename):
 
 
 def clicomm(argv, bzinstance, returnmain=False, printcliout=False,
-            stdin=None):
+            stdin=None, expectfail=False):
     """
     Run bin/bugzilla.main() directly with passed argv
     """
@@ -64,9 +64,13 @@ def clicomm(argv, bzinstance, returnmain=False, printcliout=False,
             if outt.endswith("\n"):
                 outt = outt[:-1]
 
-        if ret != 0:
+        if ret != 0 and not expectfail:
             raise RuntimeError("Command failed with %d\ncmd=%s\nout=%s" %
                                (ret, argv, outt))
+        elif ret == 0 and expectfail:
+            raise RuntimeError("Command succeeded but we expected success\n"
+                               "ret=%d\ncmd=%s\nout=%s" % (ret, argv, outt))
+
         if returnmain:
             return mainout
         return outt

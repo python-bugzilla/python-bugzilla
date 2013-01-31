@@ -449,3 +449,13 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug.qa_whiteboard, "")
         self.assertEquals(bug.devel_whiteboard, "")
         self.assertEquals(bug.internal_whiteboard, "")
+
+    def test10Login(self):
+        """
+        Failed login test, gives us a bit more coverage
+        """
+        ret = tests.clicomm("bugzilla --bugzilla %s "
+                            "--user foobar@example.com "
+                            "--password foobar login" % self.url, None,
+                            expectfail=True)
+        self.assertTrue("Logging in... failed." in ret)
