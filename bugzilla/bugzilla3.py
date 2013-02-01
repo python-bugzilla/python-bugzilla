@@ -152,11 +152,11 @@ class Bugzilla34(Bugzilla32):
         '''
         params = {}
         if ids:
-            params['ids'] = ids
+            params['ids'] = self._listify(ids)
         if names:
-            params['names'] = names
+            params['names'] = self._listify(names)
         if match:
-            params['match'] = match
+            params['match'] = self._listify(match)
         if not params:
             raise BugzillaError('_get() needs one of ids, '
                                 ' names, or match kwarg.')

@@ -431,20 +431,17 @@ class _User(object):
     '''Container object for a bugzilla User.
 
     :arg bugzilla: Bugzilla instance that this User belongs to.
-    :arg name: name that references a user
-    :kwarg userid: id in bugzilla for a user
-    :kwarg real_name: User's real name
-    :kwarg email: User's email address
-    :kwarg can_login: If set True, the user can login
+    Rest of the params come straight from User.get()
     '''
-    def __init__(self, bugzilla, name, userid, real_name=None, email=None,
-            can_login=True):
+    def __init__(self, bugzilla, **kwargs):
         self.bugzilla = bugzilla
-        self.__name = name
-        self.__userid = userid
-        self.real_name = real_name
-        self.__email = email
-        self.__can_login = can_login
+        self.__userid = kwargs.get('id')
+        self.__name = kwargs.get('name')
+
+        self.__email = kwargs.get('email', self.__name)
+        self.__can_login = kwargs.get('can_login', False)
+
+        self.real_name = kwargs.get('real_name', None)
         self.password = None
 
 

@@ -935,16 +935,8 @@ class BugzillaBase(object):
         :raises xmlrpclib.Fault: Code 51 if the username does not exist
         :returns: User record for the username
         '''
-        rawuser = self._getusers(names=[username])['users'][0]
-        # Required fields
-        userid = rawuser['id']
-        name = rawuser['name']
-        # Optional fields
-        real_name = rawuser.get('real_name', '')
-        email = rawuser.get('email', name)
-        can_login = rawuser.get('can_login', False)
-        return _User(self, userid=userid, real_name=real_name, email=email,
-                name=name, can_login=can_login)
+        ret = self.getusers(username)
+        return ret and ret[0]
 
     def getusers(self, userlist):
         '''Return a list of Users from bugzilla.
@@ -952,11 +944,8 @@ class BugzillaBase(object):
         :userlist: List of usernames to lookup
         :returns: List of User records
         '''
-        return [_User(self, userid=rawuser['id'], name=rawuser['name'],
-            real_name=rawuser.get('real_name', ''),
-            email=rawuser.get('email', rawuser['name']),
-            can_login=rawuser.get('can_login', False))
-            for rawuser in self._getusers(names=userlist)['users']]
+        return [_User(self, **rawuser) for rawuser in
+                self._getusers(names=userlist).get('users', [])]
 
     def searchusers(self, pattern):
         '''Return a bugzilla User for the given list of patterns
@@ -964,11 +953,8 @@ class BugzillaBase(object):
         :arg pattern: List of patterns to match against.
         :returns: List of User records
         '''
-        return [_User(self, userid=rawuser['id'], name=rawuser['name'],
-            real_name=rawuser.get('real_name', ''),
-            email=rawuser.get('email', rawuser['name']),
-            can_login=rawuser.get('can_login', False))
-            for rawuser in self._getusers(match=pattern)['users']]
+        return [_User(self, **rawuser) for rawuser in
+                self._getusers(match=pattern).get('users', [])]
 
     def createuser(self, email, name='', password=''):
         '''Return a bugzilla User for the given username
