@@ -447,9 +447,6 @@ class _User(object):
         self.__can_login = can_login
         self.password = None
 
-        # This tells us whether self.name has been changed but not synced to
-        # bugzilla
-        self._name_dirty = False
 
     ### Read-only attributes ###
 
@@ -469,24 +466,9 @@ class _User(object):
         return self.__can_login
 
     ### name is a key in some methods.  Mark it dirty when we change it ###
-    def _name(self):
+    @property
+    def name(self):
         return self.__name
-
-    def _set_name(self, value):
-        self._name_dirty = True
-        self.__name = value
-
-    name = property(_name, _set_name)
-
-    def update(self):
-        '''Update Bugzilla with these values.
-
-        :raises xmlrpclib.Fault: Code 304 if you aren't allowed to edit
-            the user
-        '''
-        self._name_dirty = False
-        self.bugzilla._update(ids=self.userid, update={'name': self.name,
-            'real_name': self.real_name, 'password': self.password})
 
     def updateperms(self, action, groups):
         '''A method to update the permissions (group membership) of a bugzilla
@@ -495,8 +477,4 @@ class _User(object):
         :arg action: either add or rem
         :arg groups: list of groups to be added to (i.e. ['fedora_contrib'])
         '''
-        if self._name_dirty:
-            from bugzilla import BugzillaError
-            raise BugzillaError('name has been changed.  run update() before'
-                    ' updating perms.')
         self.bugzilla._updateperms(self.name, action, groups)
