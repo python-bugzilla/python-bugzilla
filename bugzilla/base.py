@@ -944,8 +944,20 @@ class BugzillaBase(object):
         :userlist: List of usernames to lookup
         :returns: List of User records
         '''
-        return [_User(self, **rawuser) for rawuser in
-                self._getusers(names=userlist).get('users', [])]
+        userobjs = [_User(self, **rawuser) for rawuser in
+                    self._getusers(names=userlist).get('users', [])]
+
+        # Return users in same order they were passed in
+        ret = []
+        for u in userlist:
+            for uobj in userobjs[:]:
+                if uobj.email == u:
+                    userobjs.remove(uobj)
+                    ret.append(uobj)
+                    break
+        ret += userobjs
+        return ret
+
 
     def searchusers(self, pattern):
         '''Return a bugzilla User for the given list of patterns
