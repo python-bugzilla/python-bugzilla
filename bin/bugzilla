@@ -47,7 +47,9 @@ def to_encoding(ustring):
         if isinstance(ustring, unicode):
             return ustring.encode(locale.getpreferredencoding(), 'replace')
         return ustring
-    return u''
+    if ustring is None:
+        return u''
+    return str(ustring)
 
 
 def open_without_clobber(name, *args):
@@ -674,10 +676,8 @@ def _format_output(bz, opt, buglist):
         else:
             val = getattr(b, fieldname, "")
 
-        if type(val) is list:
-            val = ','.join(val)
-        elif type(val) is int:
-            val = str(val)
+        vallist = type(val) is list and val or [val]
+        val = ','.join([to_encoding(v) for v in vallist])
 
         return to_encoding(val)
 
