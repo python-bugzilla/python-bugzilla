@@ -870,12 +870,7 @@ def main(bzinstance=None):
 
     if global_opt.bztype == 'auto':
         log.info('Autodetecting Bugzilla type')
-        # Cheat a little, for the sake of speed
-        if 'bugzilla.redhat.com' in global_opt.bugzilla:
-            log.info('Using RHBugzilla for URL containing bugzilla.redhat.com')
-            bzclass = bugzilla.RHBugzilla
-        else:
-            bzclass = bugzilla.Bugzilla
+        bzclass = bugzilla.Bugzilla
     elif global_opt.bztype in bugzilla.classlist:
         log.info('Using Bugzilla class %s' % global_opt.bztype)
         bzclass = getattr(bugzilla, global_opt.bztype)

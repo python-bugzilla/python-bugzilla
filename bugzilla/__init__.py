@@ -26,14 +26,18 @@ from bugzilla.rhbugzilla import RHBugzilla, RHBugzilla3, RHBugzilla4
 
 
 def getBugzillaClassForURL(url):
-    log.debug("Choosing subclass for %s" % url)
+    url = Bugzilla3.fix_url(url)
+    log.debug("Detecting subclass for %s" % url)
     s = xmlrpclib.ServerProxy(url)
     rhbz = False
     bzversion = ''
     c = None
 
-    if url.count("novell.com"):
-        logging.debug("Detected Novell bugzilla based on novell.com")
+    if "bugzilla.redhat.com" in url:
+        log.info("Using RHBugzilla for URL containing bugzilla.redhat.com")
+        return RHBugzilla
+    if "bugzilla.novell.com" in url:
+        logging.info("Using NovellBugzilla for URL containing novell.com")
         return NovellBugzilla
 
     # Check for a Red Hat extension

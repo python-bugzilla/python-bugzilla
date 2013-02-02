@@ -148,6 +148,18 @@ class BugzillaBase(object):
 
         return q
 
+    @staticmethod
+    def fix_url(url):
+        """
+        Turn passed url into a bugzilla XMLRPC web url
+        """
+        if not '://' in url:
+            log.debug('No scheme given for url, assuming https')
+            url = 'https://' + url
+        if url.count('/') < 3:
+            log.debug('No path given for url, assuming /xmlrpc.cgi')
+            url = url + '/xmlrpc.cgi'
+        return url
 
     def __init__(self, url=None, user=None, password=None,
             cookiefile=os.path.expanduser('~/.bugzillacookies')):
@@ -345,12 +357,7 @@ class BugzillaBase(object):
         If 'user' and 'password' are both set, we'll run login(). Otherwise
         you'll have to login() yourself before some methods will work.
         '''
-        if not '://' in url:
-            log.debug('No scheme given for url, assuming https')
-            url = 'https://' + url
-        if url.count('/') < 3:
-            log.debug('No path given for url, assuming /xmlrpc.cgi')
-            url = url + '/xmlrpc.cgi'
+        url = self.fix_url(url)
 
         transport = _CookieTransport(url, self._cookiejar)
         transport.user_agent = self.user_agent
