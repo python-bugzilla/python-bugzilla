@@ -1,0 +1,122 @@
+
+Fedora infrastructure depends on python-bugzilla in various ways:
+http://lists.fedorahosted.org/pipermail/python-bugzilla/2012-June/000001.html
+
+Red Hat bugzilla originally had a totally custom API. Much of that is
+being dropped in 2013, API conversions outlined here:
+https://bugzilla.redhat.com/show_bug.cgi?id=822007
+
+Current RH bugzilla docs:
+https://bugzilla.redhat.com/docs/en/html/api/
+
+Externally facing RH bugzilla instance that doesn't send email and is
+refreshed periodically. This is what is used in the functional test suite:
+http://partner-bugzilla.redhat.com
+
+As of February 2013, here's the bugzilla versions of various upstream
+trackers:
+    https://bugzilla.kernel.org         3.2
+    https://bugzilla.gnome.org          3.4 (with modifications)
+    https://bugs.freedesktop.org        4.2
+    https://bugzilla.novell.com         3.4 (with modifications)
+    http://bugzilla.zimbra.com/         3.0
+    https://bugzilla.samba.org/         3.6
+
+
+  Upstream timeline
+  =================
+
+Here's a timeline of the evolution of the upstream bugzilla XMLRPC API:
+
+Bugzilla 2.*:
+    No XMLRPC API that I can tell
+
+Bugzilla 3.0:
+    http://www.bugzilla.org/docs/3.0/html/api/index.html
+    Bug:
+        legal_values
+        get_bugs:
+            returns: id, alias, summary, creation_time, last_change_time
+        create
+    Bugzilla:
+        version
+        timezone
+    Product:
+        get_selectable_products
+        get_enterable_products
+        get_accessible_products
+        get_products
+    User:
+        login
+        logout
+        offer_account_by_email
+        create
+
+Bugzilla 3.2:
+    http://www.bugzilla.org/docs/3.2/en/html/api/index.html
+    Bug:
+        RENAME: get_bugs->get, get_bugs should still work
+        add_comment
+    Bugzilla:
+        extensions
+    Product:
+        RENAME: get_products->get, get_products should still work
+
+Bugzilla 3.4:
+    http://www.bugzilla.org/docs/3.4/html/api/index.html
+    Bug:
+        comments
+        history
+        search
+        update_see_also
+    Bugzilla:
+        time
+        DEPRECATED: timezon,e use time instead
+    User:
+        get
+    Util:
+        filter_fields
+        validate
+
+Bugzilla 3.6:
+    http://www.bugzilla.org/docs/3.6/html/api/index.html
+    Bug:
+        attachments
+        fields
+        DEPRECATED: legal_values
+    Bugzilla:
+        timezone now always returns UTC+0000
+
+Bugzilla 4.0:
+    http://www.bugzilla.org/docs/4.0/html/api/index.html
+    Bug:
+        add_attachment
+        update
+    Util:
+        filter_wants
+
+Bugzilla 4.2:
+    http://www.bugzilla.org/docs/4.2/html/api/index.html
+    Group:
+        create
+    Product:
+        create
+
+Bugzilla 4.4:
+    http://www.bugzilla.org/docs/4.4/html/api/index.html
+    Bug:
+        update_tags
+    Bugzilla:
+        parameters
+        last_audit_time
+    Classification:
+        get
+    Group:
+        update
+    Product:
+        update
+    User:
+        update
+    Util:
+        translate
+        params_to_objects
