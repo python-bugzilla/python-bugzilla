@@ -407,6 +407,16 @@ class _Bug(object):
         return f[0]['status']
 
 
+    ########################
+    # Experimental methods #
+    ########################
+
+    def get_history(self):
+        '''
+        Experimental. Get the history of changes for this bug.
+        '''
+        return self.bugzilla.bugs_history([self.bug_id])
+
     ######################
     # Deprecated methods #
     ######################
