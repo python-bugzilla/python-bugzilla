@@ -184,7 +184,7 @@ class RHBugzilla(Bugzilla42):
         if 'version' in bug:
             val = bug['version']
             bug['versions'] = type(val) is list and val or [val]
-            bug['version'] = bug['version'][0]
+            bug['version'] = bug['versions'][0]
 
         if not self.rhbz_back_compat:
             return
