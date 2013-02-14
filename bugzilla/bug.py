@@ -454,6 +454,13 @@ class _User(object):
         self.real_name = kwargs.get('real_name', None)
         self.password = None
 
+        self.groups = kwargs.get('groups', {})
+        self.groupnames = []
+        for g in self.groups:
+            if "name" in g:
+                self.groupnames.append(g["name"])
+        self.groupnames.sort()
+
 
     ### Read-only attributes ###
 
