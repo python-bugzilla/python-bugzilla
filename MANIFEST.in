@@ -1,3 +1,4 @@
 include COPYING HACKING MANIFEST.in README THANKS
 include bugzilla.1
-recursive-include tests *.py *.txt
+include bz-api-notes.txt
+recursive-include tests *.py
