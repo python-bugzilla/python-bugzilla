@@ -533,29 +533,83 @@ class BugzillaBase(object):
             self._components[product] = self._getcomponents(product)
         return self._components[product]
 
+    def _component_data_convert(self, data, update=False):
+        if type(data['product']) is int:
+            data['product'] = self._product_id_to_name(data['product'])
+
+
+        # Back compat for the old RH interface
+        convert_fields = [
+            ("initialowner", "default_assignee"),
+            ("initialqacontact", "default_qa_contact"),
+            ("initialcclist", "default_cc"),
+        ]
+        for old, new in convert_fields:
+            if old in data:
+                data[new] = data.pop(old)
+
+        if update:
+            names = {"product": data.pop("product"),
+                     "component": data.pop("component")}
+            updates = {}
+            for k in data.keys():
+                updates[k] = data.pop(k)
+
+            data["names"] = [names]
+            data["updates"] = updates
+
+
     def addcomponent(self, data):
-        '''A method to create a component in Bugzilla. Takes a dict, with the
+        '''
+        A method to create a component in Bugzilla. Takes a dict, with the
         following elements:
 
         product: The product to create the component in
         component: The name of the component to create
-        initialowner: The bugzilla login (email address) of the initial owner
-        of the component
-        initialqacontact: The bugzilla login of the initial QA contact
-        initialcclist: The initial list of users to be CC'ed on new bugs for
-        the component.
         desription: A one sentence summary of the component
-
-        product, component, description and initalowner are mandatory.
+        default_assignee: The bugzilla login (email address) of the initial
+                          owner of the component
+        default_qa_contact (optional): The bugzilla login of the
+                                       initial QA contact
+        default_cc: (optional) The initial list of users to be CC'ed on
+                               new bugs for the component.
         '''
-        self._addcomponent(data)
+        # Pre RHBZ 4.4 code, drop once it hits bugzilla.redhat.com
+        try:
+            if type(data['product']) is int:
+                data['product'] = self._product_id_to_name(data['product'])
+
+            return self._proxy.bugzilla.addComponent(data,
+                                                     self.user, self.password)
+        except Exception, e:
+            if "replaced by Component.create" not in str(e):
+                raise
+
+        data = data.copy()
+        self._component_data_convert(data)
+        return self._proxy.Component.create(data)
 
     def editcomponent(self, data):
-        '''A method to edit a component in Bugzilla. Takes a dict, with
-            mandatory elements of product. component, and initialowner.
-            All other elements are optional and use the same names as the
-            addcomponent() method.'''
-        self._editcomponent(data)
+        '''
+        A method to edit a component in Bugzilla. Takes a dict, with
+        mandatory elements of product. component, and initialowner.
+        All other elements are optional and use the same names as the
+        addcomponent() method.
+        '''
+        # Pre RHBZ 4.4 code, drop once it hits bugzilla.redhat.com
+        try:
+            if type(data['product']) is int:
+                data['product'] = self._product_id_to_name(data['product'])
+
+            return self._proxy.bugzilla.editComponent(data,
+                                                      self.user, self.password)
+        except Exception, e:
+            if "replaced by Component.update" not in str(e):
+                raise
+
+        data = data.copy()
+        self._component_data_convert(data, update=True)
+        return self._proxy.Component.update(data)
 
 
     def _getproductinfo(self, ids=None, names=None,
@@ -1056,14 +1110,6 @@ class BugzillaBase(object):
 
     def _getcomponents(self, product):
         '''IMPLEMENT ME: Get component dict for a product'''
-        raise NotImplementedError
-
-    def _addcomponent(self, data):
-        '''IMPLEMENT ME: Add a component'''
-        raise NotImplementedError
-
-    def _editcomponent(self, data):
-        '''IMPLEMENT ME: Edit a component'''
         raise NotImplementedError
 
 

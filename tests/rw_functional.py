@@ -55,6 +55,17 @@ class RHPartnerTest(BaseTest):
     url = "https://partner-bugzilla.redhat.com/xmlrpc.cgi"
     bzclass = bugzilla.RHBugzilla
 
+
+    def _check_have_admin(self, bz, funcname):
+        # groupnames is empty for any user if our logged in user does not
+        # have admin privs.
+        # Check a known account that likely won't ever go away
+        ret = bool(bz.getuser("anaconda-maint-list@redhat.com").groupnames)
+        if not ret:
+            print "\nNo admin privs, skipping %s" % funcname
+        return ret
+
+
     test1 = BaseTest._testCookie
     test2 = BaseTest._testBZClass
 
@@ -491,6 +502,7 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug.devel_whiteboard, "")
         self.assertEquals(bug.internal_whiteboard, "")
 
+
     def test10Login(self):
         """
         Failed login test, gives us a bit more coverage
@@ -500,16 +512,6 @@ class RHPartnerTest(BaseTest):
                             "--password foobar login" % self.url, None,
                             expectfail=True)
         self.assertTrue("Logging in... failed." in ret)
-
-
-    def _check_have_admin(self, bz, funcname):
-        # groupnames is empty for any user if our logged in user does not
-        # have admin privs.
-        # Check a known account that likely won't ever go away
-        ret = bool(bz.getuser("anaconda-maint-list@redhat.com").groupnames)
-        if not ret:
-            print "\nNo admin privs, skipping %s" % funcname
-        return ret
 
 
     def test11UserUpdate(self):
@@ -546,3 +548,57 @@ class RHPartnerTest(BaseTest):
         bz.updateperms(email, "set", origgroups)
         user.refresh()
         self.assertEqual(user.groupnames, origgroups)
+
+
+    def test11ComponentEditing(self):
+        bz = self.bzclass(url=self.url, cookiefile=cf)
+        component = ("python-bugzilla-testcomponent-%s" %
+                     str(random.randint(1, 1024 * 1024 * 1024)))
+        basedata = {
+            "product": "Virtualization Tools",
+            "component": component,
+        }
+
+        if not self._check_have_admin(bz, sys._getframe().f_code.co_name):
+            return
+
+
+        def compare(data, newid):
+            products = bz._proxy.Product.get({"names": [basedata["product"]]})
+            compdata = None
+            for c in products["products"][0]["components"]:
+                if int(c["id"]) == int(newid):
+                    compdata = c
+                    break
+
+            self.assertTrue(bool(compdata))
+            self.assertEqual(data["component"], compdata["name"])
+            self.assertEqual(data["description"], compdata["description"])
+            self.assertEqual(data["initialowner"],
+                             compdata["default_assigned_to"])
+            self.assertEqual(data["initialqacontact"],
+                             compdata["default_qa_contact"])
+
+
+        # Create component
+        data = basedata.copy()
+        data.update({
+            "description": "foo test bar",
+            "initialowner": "crobinso@redhat.com",
+            "initialqacontact": "extras-qa@fedoraproject.org",
+            "initialcclist": ["wwoods@redhat.com", "toshio@fedoraproject.org"],
+        })
+        newid = bz.addcomponent(data)['id']
+        compare(data, newid)
+
+        # Edit component
+        data = basedata.copy()
+        data.update({
+            "description": "hey new desc!",
+            "initialowner": "extras-qa@fedoraproject.org",
+            "initialqacontact": "virt-mgr-maint@redhat.com",
+            "initialcclist": ["libvirt-maint@redhat.com",
+                              "virt-maint@lists.fedoraproject.org"],
+        })
+        bz.editcomponent(data)
+        compare(data, newid)

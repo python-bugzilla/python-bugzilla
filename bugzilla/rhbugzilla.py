@@ -70,32 +70,6 @@ class RHBugzilla(Bugzilla42):
     )
 
 
-    #####################
-    # Component methods #
-    #####################
-
-    def _addcomponent(self, data):
-        add_required_fields = ('product', 'component',
-                               'initialowner', 'description')
-        for field in add_required_fields:
-            if field not in data or not data[field]:
-                raise TypeError("mandatory fields missing: %s" % field)
-        if type(data['product']) == int:
-            data['product'] = self._product_id_to_name(data['product'])
-        r = self._proxy.bugzilla.addComponent(data, self.user, self.password)
-        return r
-
-    def _editcomponent(self, data):
-        edit_required_fields = ('initialowner', 'product', 'component')
-        for field in edit_required_fields:
-            if field not in data or not data[field]:
-                raise TypeError("mandatory field missing: %s" % field)
-        if type(data['product']) == int:
-            data['product'] = self._product_id_to_name(data['product'])
-        r = self._proxy.bugzilla.editComponent(data, self.user, self.password)
-        return r
-
-
     ######################
     # Bug update methods #
     ######################
