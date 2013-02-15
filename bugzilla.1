@@ -1,4 +1,4 @@
-.TH bugzilla 1  "June 06, 2012" "version 0.7.0" "User Commands"
+.TH bugzilla 1  "February 15, 2013" "version 0.7.0" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -24,12 +24,14 @@ by Bugzilla.
 .br
 .I \fR * info - get info about the given bugzilla instance
 .SH GLOBAL OPTIONS
+.IP "--version"
+show program's version number and exit
 .IP "--help, -h"
 show this help message and exit
 .IP "--bugzilla=BUGZILLA"
 bugzilla XMLRPC URI. default: https://bugzilla.redhat.com/xmlrpc.cgi
 .IP "--bztype=BZTYPE"
-Bugzilla type. Autodetected if not set. Available types: Bugzilla3 Bugzilla32 Bugzilla34 Bugzilla36 Bugzilla4 RHBugzilla3 RHBugzilla4 NovellBugzilla
+Bugzilla type. Autodetected if not set. Available types: Bugzilla3 Bugzilla32 Bugzilla34 Bugzilla36 Bugzilla4 Bugzilla42 Bugzilla44 RHBugzilla3 RHBugzilla4 RHBugzilla NovellBugzilla
 .IP "--user=USER"
 username
 .IP "--password=PASSWORD"
@@ -47,26 +49,28 @@ REQUIRED: product name (list with 'bugzilla info -p')
 REQUIRED: product version
 .IP "--component=COMPONENT, -c COMPONENT"
 REQUIRED: component name (list with 'bugzilla info -c PRODUCT')
-.IP "--comment=COMMENT, -l COMMENT"
+.IP "--comment=DESCRIPTION, -l DESCRIPTION"
 REQUIRED: initial bug comment
-.IP "--short_desc=SHORT_DESC, --summary=SHORT_DESC, -s SHORT_DESC"
+.IP "--short_desc=SUMMARY, --summary=SUMMARY, -s SUMMARY"
 REQUIRED: bug summary
 .IP "--os=OP_SYS, -o OP_SYS"
 OPTIONAL: operating system (default: Linux)
-.IP "--arch=REP_PLATFORM, -a REP_PLATFORM"
+.IP "--arch=PLATFORM, -a PLATFORM"
 OPTIONAL: arch this bug occurs on (default: All)
-.IP "--severity=BUG_SEVERITY"
+.IP "--severity=SEVERITY"
 OPTIONAL: bug severity (default: medium)
 .IP "--priority=PRIORITY"
 OPTIONAL: bug priority (default: medium)
 .IP "--url=BUG_FILE_LOC, -u BUG_FILE_LOC"
 OPTIONAL: URL for further bug info
-.IP "--cc=CC[,CC,...]"
+.IP "--cc=CC[, CC, ...]"
 OPTIONAL: add emails to initial CC list
-.IP "--blocked=BUGID[,BUGID,...]"
+.IP "--blocked=BUGID[, BUGID, ...]"
 OPTIONAL: add bug_ids blocked by this bug
-.IP "--dependson=BUGID[,BUGID,...]"
+.IP "--dependson=BUGID[, BUGID, ...]"
 OPTIONAL: add bug_ids that this bug depends on
+
+.SH OUTPUT FORMAT \[oq]NEW\[cq] OPTIONS
 .IP "--full, -f"
 output detailed bug info
 .IP "--ids, -i"
@@ -85,7 +89,7 @@ specify individual bugs by IDs, separated with commas
 .IP "--product=PRODUCT, -p PRODUCT"
 product name, comma-separated (list with 'bugzilla info -p')
 .IP "--version=VERSION, -v VERSION"
-product version
+product version, comma-separated
 .IP "--component=COMPONENT, -c COMPONENT"
 component name(s), comma-separated (list with 'bugzilla info -c PRODUCT')
 .IP "--components_file=COMPONENTS_FILE"
@@ -97,13 +101,17 @@ search for a target milestone
 .IP "--short_desc=SHORT_DESC, -s SHORT_DESC"
 search bug summaries
 .IP "--bug_status=BUG_STATUS, -t BUG_STATUS"
-comma-separated list of bug statuses to accept [Default:all] [Available:NEW,ASSIGNED,NEEDINFO,ON_DEV,MODIFIED,POST,ON_QA,FAILS_QA,PASSES_QA,REOPENED,VERIFIED,RELEASE_PENDING,CLOSED]
+comma-separated list of bug statuses to accept [Default:all]
 .IP "--bug_severity=BUG_SEVERITY, --severity=BUG_SEVERITY, -x BUG_SEVERITY"
 search severities, comma-separated
 .IP "--priority=PRIORITY, -z PRIORITY"
 search priorities, comma-separated
+.IP "--from-url=FROM_URL"
+Use the query given by a query.cgi URL. (Use quotes!)
+
+.SH EMAIL \[oq]QUERY\[cq] OPTIONS
 .IP "--emailtype=EMAILTYPE, -E EMAILTYPE"
-Email: specify searching option for emails, ie. substring,notsubstring,exact,... [Default: substring]
+Email: specify searching option for emails, ie. substring, notsubstring, exact, ... [Default: substring]
 .IP "--cc=CC, -o CC"
 Email: search cc lists for given address
 .IP "--reporter=REPORTER, -r REPORTER"
@@ -112,20 +120,24 @@ Email: search reporter email for given address
 Email: search for bugs assigned to this address
 .IP "--qa_contact=QA_CONTACT, -q QA_CONTACT"
 Email: search for bugs which have QA Contact assigned to this address
+
+.SH STRING SEARCH \[oq]QUERY\[cq] OPTIONS
 .IP "--url=URL, -u URL"
 search keywords field for given url
 .IP "--url_type=URL_TYPE, -U URL_TYPE"
-specify searching option for urls, ie. anywords,allwords,nowords
+specify searching option for urls, ie. anywords, allwords, nowords
 .IP "--keywords=KEYWORDS, -k KEYWORDS"
 search keywords field for specified words
 .IP "--keywords_type=KEYWORDS_TYPE, -K KEYWORDS_TYPE"
-specify searching option for keywords, ie. anywords,allwords,nowords
+specify searching option for keywords, ie. anywords, allwords, nowords
 .IP "--status_whiteboard=STATUS_WHITEBOARD, -w STATUS_WHITEBOARD"
 search Status Whiteboard field for specified words
 .IP "--status_whiteboard_type=STATUS_WHITEBOARD_TYPE, -W STATUS_WHITEBOARD_TYPE"
-specify searching option for Status Whiteboard, ie. anywords,allwords,nowords
+specify searching option for Status Whiteboard, ie. anywords, allwords, nowords
+
+.SH BOOLEAN \[oq]QUERY\[cq] OPTIONS
 .IP "--booleantype=BOOLEANTYPE, -B BOOLEANTYPE"
-specify searching option for booleans, ie. substring,notsubstring,exact,... [Default: substring]
+specify searching option for booleans, ie. substring, notsubstring, exact, ... [Default: substring]
 .IP "--boolean_query=BOOLEAN_QUERY"
 Boolean:Create your own query. Format: BooleanName-Condition-Parameter &/| ... . ie, keywords-substring-Partner & keywords-notsubstring-OtherQA
 .IP "--blocked=BLOCKED"
@@ -142,8 +154,8 @@ Boolean:search for bugs that have certain Devel Whiteboard text present
 Boolean:search for bugs that have the provided alias
 .IP "--fixed_in=FIXED_IN"
 search Status Whiteboard field for specified words
-.IP "--from-url=FROM_URL"
-Use the query given by a query.cgi URL. (Use quotes!)
+
+.SH OUTPUT FORMAT \[oq]QUERY\[cq] OPTIONS
 .IP "--full, -f"
 output detailed bug info
 .IP "--ids, -i"
@@ -161,6 +173,8 @@ Print output in the form given. You can use RPM-style tags that match bug fields
 Add a comment
 .IP "--close=RESOLUTION, -k RESOLUTION"
 Close with the given resolution
+.IP "--dupeid=ORIGINAL, -d ORIGINAL"
+ID of original bug (implies -k DUPLICATE)
 .IP "--private, -p"
 Mark as private
 .IP "--status=STATUS, -s STATUS"
@@ -170,11 +184,13 @@ Assign bugzilla to assignee
 .IP "--qa_contact=QA_CONTACT"
 Change QA contact
 .IP "--flag=FLAG, -f FLAG"
-Update bugzilla flags with requested type, ie fedora-cvs? (Use a new option for each flag)
+Update bugzilla flags with requested type, ie fedora-cvs?, or needinfoX to clear (Use a new option for each flag)
 .IP "--cc=CC"
 Add an email to the cc list
 .IP "--fixed_in=VERSION, -F VERSION"
 "Fixed in version" field
+.IP "--whiteboard=TEXT"
+Alter status whiteboard text. TEXT appends, -TEXT removes, =TEXT overwrites
 .SH \[oq]ATTACH\[cq] OPTIONS
 .IP "--file=FILENAME, -f FILENAME"
 File to attach, or filename for data provided on stdin
@@ -202,6 +218,10 @@ bugzilla query --bug_id 62037
 
 bugzilla query --version 15 --component python-bugzilla
 
+# All boolean options can be formatted like this
+.br
+bugzilla query --blocked "123456 | 224466"
+
 bugzilla login
 
 bugzilla create -p Fedora -v rawhide -c python-bugzilla \\
@@ -214,6 +234,7 @@ bugzilla attach --getall $BUGID
 
 bugzilla modify --close NOTABUG --comment "Actually, you're hungover." $BUGID
 
+
 .SH EXIT STATUS
 .BR bugzilla
 normally returns 0 if the requested command was successful.
@@ -222,11 +243,11 @@ Otherwise, exit status is 1 if
 is interrupted by the user (or a login attempt fails), 2 if a
 socket error occurs (e.g. TCP connection timeout), and 3 if the server returns
 an XML-RPC fault.
-.SH NOTES
-Not everything that's exposed in the Web UI is exposed by XML-RPC, and not
-everything that's exposed by XML-RPC is used by
-.BR bugzilla .
 .SH BUGS
-Bugs? In a sub-1.0 release? Preposterous.
+Please report any bugs to bugzilla.redhat.com
+.br
+Product=Fedora component=python-bugzilla or to the mailing list at
+.br
+https://fedorahosted.org/mailman/listinfo/python-bugzilla
 .SH AUTHOR
 Will Woods <wwoods@redhat.com>
