@@ -996,6 +996,43 @@ class BugzillaBase(object):
         self._proxy.User.create(email, name, password)
         return self.getuser(email)
 
+    def updateperms(self, user, action, groups):
+        '''
+        A method to update the permissions (group membership) of a bugzilla
+        user.
+
+        :arg user: The e-mail address of the user to be acted upon. Can
+            also be a list of emails.
+        :arg action: add, remove, or set
+        :arg groups: list of groups to be added to (i.e. ['fedora_contrib'])
+        '''
+        groups = self._listify(groups)
+
+        try:
+            # Old RHBZ method. This will be removed in RHBZ 4.4, but lets
+            # keep it around so we can deploy early
+            r = self._proxy.bugzilla.updatePerms(user, action, groups,
+                self.user, self.password)
+            return r
+        except Exception, e:
+            if "replaced by User.update" not in str(e):
+                raise
+
+        if action == "rem":
+            action = "remove"
+        if action not in ["add", "remove", "set"]:
+            raise BugzillaError("Unknown user permission action '%s'" % action)
+
+        update = {
+            "names": self._listify(user),
+            "groups": {
+                action: groups,
+            }
+        }
+
+        log.debug("updating user permissions:\n%s", update)
+        return self._proxy.User.update(update)
+
 
     ######################################################
     # Internal API methods, overwritten by child classes #
@@ -1055,10 +1092,6 @@ class BugzillaBase(object):
         '''IMPLEMEMT ME: Get a list of Bugzilla user'''
         raise NotImplementedError
 
-    def _updateperms(self, user, action, group):
-        '''IMPLEMEMT ME: Update Bugzilla user permissions'''
-        raise NotImplementedError
-
 
 
     def _createbug(self, **data):
@@ -1085,15 +1118,6 @@ class BugzillaBase(object):
             cookiefile = os.path.expanduser('~/.bugzillacookies')
         self.cookiefile = cookiefile
 
-    def updateperms(self, user, action, groups):
-        '''A method to update the permissions (group membership) of a bugzilla
-        user.  Deprecated.  Use User.updateperms(action, group) instead.
-
-        :arg user: The e-mail address of the user to be acted upon
-        :arg action: either add or rem
-        :arg groups: list of groups to be added to (i.e. ['fedora_contrib'])
-        '''
-        self._updateperms(user, action, groups)
 
     def adduser(self, user, name):
         '''Deprecated: Use createuser() instead.

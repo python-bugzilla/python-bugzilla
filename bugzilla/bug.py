@@ -484,11 +484,19 @@ class _User(object):
     def name(self):
         return self.__name
 
+    def refresh(self):
+        """
+        Update User object with latest info from bugzilla
+        """
+        newuser = self.bugzilla.getuser(self.email)
+        self.__dict__.update(newuser.__dict__)
+
     def updateperms(self, action, groups):
-        '''A method to update the permissions (group membership) of a bugzilla
+        '''
+        A method to update the permissions (group membership) of a bugzilla
         user.
 
-        :arg action: either add or rem
+        :arg action: add, remove, or set
         :arg groups: list of groups to be added to (i.e. ['fedora_contrib'])
         '''
-        self.bugzilla._updateperms(self.name, action, groups)
+        self.bugzilla.updateperms(self.name, action, groups)

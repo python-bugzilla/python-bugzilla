@@ -12,6 +12,7 @@ Unit tests that do permanent functional against a real bugzilla instances.
 import datetime
 import os
 import random
+import sys
 import unittest
 import urllib2
 
@@ -499,3 +500,49 @@ class RHPartnerTest(BaseTest):
                             "--password foobar login" % self.url, None,
                             expectfail=True)
         self.assertTrue("Logging in... failed." in ret)
+
+
+    def _check_have_admin(self, bz, funcname):
+        # groupnames is empty for any user if our logged in user does not
+        # have admin privs.
+        # Check a known account that likely won't ever go away
+        ret = bool(bz.getuser("anaconda-maint-list@redhat.com").groupnames)
+        if not ret:
+            print "\nNo admin privs, skipping %s" % funcname
+        return ret
+
+
+    def test11UserUpdate(self):
+        # This won't work if run by the same user we are using
+        bz = self.bzclass(url=self.url, cookiefile=cf)
+        email = "anaconda-maint-list@redhat.com"
+        group = "fedora_contrib"
+
+        if not self._check_have_admin(bz, sys._getframe().f_code.co_name):
+            return
+
+        user = bz.getuser(email)
+        self.assertTrue(group in user.groupnames)
+        origgroups = user.groupnames
+
+        # Remove the group
+        bz.updateperms(email, "remove", [group])
+        user.refresh()
+        self.assertTrue(group not in user.groupnames)
+
+        # Re add it
+        bz.updateperms(email, "add", group)
+        user.refresh()
+        self.assertTrue(group in user.groupnames)
+
+        # Set groups
+        newgroups = user.groupnames[:]
+        newgroups.remove(group)
+        bz.updateperms(email, "set", newgroups)
+        user.refresh()
+        self.assertTrue(group not in user.groupnames)
+
+        # Reset everything
+        bz.updateperms(email, "set", origgroups)
+        user.refresh()
+        self.assertEqual(user.groupnames, origgroups)

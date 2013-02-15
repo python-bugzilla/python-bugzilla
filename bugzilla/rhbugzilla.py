@@ -70,16 +70,6 @@ class RHBugzilla(Bugzilla42):
     )
 
 
-    ################
-    # User methods #
-    ################
-
-    def _updateperms(self, user, action, groups):
-        r = self._proxy.bugzilla.updatePerms(user, action, groups, self.user,
-                self.password)
-        return r
-
-
     #####################
     # Component methods #
     #####################
