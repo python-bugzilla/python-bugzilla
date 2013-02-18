@@ -718,6 +718,7 @@ class BugzillaBase(object):
         ('creation_time', 'opendate'),
         ('creation_time', 'creation_ts'),
         ('whiteboard', 'status_whiteboard'),
+        ('last_change_time', 'delta_ts'),
     )
 
 
