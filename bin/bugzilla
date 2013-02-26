@@ -796,19 +796,9 @@ def _do_set_attach(bz, opt, parser, args):
     if not args:
         parser.error("Bug ID must be specified for setting attachments")
 
-    if not opt.type:
-        try:
-            import magic
-        except ImportError:
-            RuntimeError("specify --type or install python-magic")
-        mimemagic = magic.open(magic.MAGIC_MIME_TYPE)
-        mimemagic.load()
-
     if sys.stdin.isatty():
         if not opt.file:
             parser.error("--file must be specified")
-        if not opt.type:
-            opt.type = mimemagic.file(opt.file)
         fileobj = open(opt.file)
     else:
         # piped input on stdin
@@ -819,8 +809,6 @@ def _do_set_attach(bz, opt, parser, args):
         fileobj = tempfile.NamedTemporaryFile(prefix="bugzilla-attach.")
         data = sys.stdin.read(4096)
 
-        if not opt.type:
-            opt.type = mimemagic.buffer(data)
         while data:
             fileobj.write(data)
             data = sys.stdin.read(4096)
@@ -833,7 +821,7 @@ def _do_set_attach(bz, opt, parser, args):
         kwargs["contenttype"] = opt.type
     if opt.type in ["text/x-patch"]:
         kwargs["ispatch"] = True
-    desc = opt.desc or fileobj.name
+    desc = opt.desc or os.path.basename(fileobj.name)
 
     # Upload attachments
     for bugid in args:

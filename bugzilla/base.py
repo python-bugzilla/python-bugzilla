@@ -18,8 +18,35 @@ import xmlrpclib
 from bugzilla import __version__, log
 from bugzilla.bug import _Bug, _User
 
+
 # Backwards compatibility
 Bug = _Bug
+
+mimemagic = None
+
+
+def _detect_filetype(fname):
+    global mimemagic
+
+    if mimemagic is None:
+        try:
+            import magic
+            mimemagic = magic.open(magic.MAGIC_MIME_TYPE)
+            mimemagic.load()
+        except ImportError, e:
+            log.debug("Could not load python-magic: %s", e)
+            mimemagic = False
+    if mimemagic is False:
+        return None
+
+    if not os.path.isabs(fname):
+        return None
+
+    try:
+        return mimemagic.file(fname)
+    except Exception, e:
+        log.debug("Could not detect content_type: %s", e)
+    return None
 
 
 def _decode_rfc2231_value(val):
@@ -889,7 +916,10 @@ class BugzillaBase(object):
         if 'file_name' not in kwargs and hasattr(f, "name"):
             kwargs['file_name'] = os.path.basename(f.name)
         if 'content_type' not in kwargs:
-            kwargs['content_type'] = 'application/octet-stream'
+            ctype = _detect_filetype(getattr(f, "name", None))
+            if not ctype:
+                ctype = 'application/octet-stream'
+            kwargs['content_type'] = ctype
 
         ret = self._proxy.Bug.add_attachment(kwargs)
 
