@@ -9,7 +9,6 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-import base64
 import cookielib
 import os
 import tempfile
@@ -834,14 +833,22 @@ class BugzillaBase(object):
     # Methods for working with attachments #
     ########################################
 
+    def _attachment_uri(self, attachid):
+        '''Returns the URI for the given attachment ID.'''
+        att_uri = self.url.replace('xmlrpc.cgi', 'attachment.cgi')
+        att_uri = att_uri + '?id=%s' % attachid
+        return att_uri
+
     def attachfile(self, idlist, attachfile, description, **kwargs):
         '''
         Attach a file to the given bug IDs. Returns the ID of the attachment
         or raises xmlrpclib.Fault if something goes wrong.
+
         attachfile may be a filename (which will be opened) or a file-like
         object, which must provide a 'read' method. If it's not one of these,
         this method will raise a TypeError.
         description is the short description of this attachment.
+
         Optional keyword args are as follows:
             file_name:  this will be used as the filename for the attachment.
                        REQUIRED if attachfile is a file-like object with no
@@ -851,9 +858,9 @@ class BugzillaBase(object):
             is_private: Set to True if the attachment should be marked private.
             is_patch:   Set to True if the attachment is a patch.
             content_type: The mime-type of the attached file. Defaults to
-                         application/octet-stream if not set. NOTE that text
-                         files will *not* be viewable in bugzilla unless you
-                         remember to set this to text/plain. So remember that!
+                          application/octet-stream if not set. NOTE that text
+                          files will *not* be viewable in bugzilla unless you
+                          remember to set this to text/plain. So remember that!
 
         Returns the list of attachment ids that were added. If only one
         attachment was added, we return the single int ID for back compat
@@ -876,14 +883,13 @@ class BugzillaBase(object):
             kwargs["file_name"] = kwargs.pop("filename")
 
         kwargs['summary'] = description
+        kwargs['data'] = xmlrpclib.Binary(f.read())
+        kwargs['ids'] = self._listify(idlist)
+
         if 'file_name' not in kwargs:
             kwargs['file_name'] = os.path.basename(f.name)
-
         if 'content_type' not in kwargs:
             kwargs['content_type'] = 'application/octet-stream'
-
-        kwargs['data'] = self._attachment_encode(f)
-        kwargs['ids'] = self._listify(idlist)
 
         ret = self._proxy.Bug.add_attachment(kwargs)
 
@@ -915,31 +921,6 @@ class BugzillaBase(object):
         att.name = _decode_rfc2231_value(parms['filename'])
         # Hooray, now we have a file-like object with .read() and .name
         return att
-
-    def _attachment_uri(self, attachid):
-        '''Returns the URI for the given attachment ID.'''
-        att_uri = self.url.replace('xmlrpc.cgi', 'attachment.cgi')
-        att_uri = att_uri + '?id=%s' % attachid
-        return att_uri
-
-    def _attachment_encode(self, fh):
-        '''Return the contents of the file-like object fh in a form
-        appropriate for attaching to a bug in bugzilla. This is the default
-        encoding method, base64.'''
-        # Read data in chunks so we don't end up with two copies of the file
-        # in RAM.
-
-        # base64 encoding wants input in multiples of 3
-        chunksize = 3072
-        data = ''
-        chunk = fh.read(chunksize)
-        while chunk:
-            # we could use chunk.encode('base64') but that throws a newline
-            # at the end of every output chunk, which increases the size of
-            # the output.
-            data = data + base64.b64encode(chunk)
-            chunk = fh.read(chunksize)
-        return data
 
     def updateattachmentflags(self, bugid, attachid, flagname, **kwargs):
         '''

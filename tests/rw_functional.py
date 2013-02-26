@@ -357,42 +357,15 @@ class RHPartnerTest(BaseTest):
             os.chdir("..")
             os.system("rm -r %s" % tmpdir)
 
-
     def _test8Attachments(self):
         """
         Get and set attachments for a bug
         """
         bz = self.bzclass(url=self.url, cookiefile=cf)
-        getbugid = "663674"
+        getallbugid = "663674"
         setbugid = "461686"
-        attachid = "469147"
         cmd = "bugzilla attach "
         testfile = "../tests/data/bz-attach-get1.txt"
-
-        # Get first attachment
-        out = tests.clicomm(cmd + "--get %s" % attachid, bz).splitlines()
-
-        # Expect format:
-        #   Wrote <filename>
-        fname = out[2].split()[1].strip()
-
-        self.assertEquals(len(out), 3)
-        self.assertEquals(fname, "bugzilla-filename.patch")
-        self.assertEquals(file(fname).read(),
-                          file(testfile).read())
-
-        # Get all attachments
-        getbug = bz.getbug(getbugid)
-        numattach = len(getbug.attachments)
-        out = tests.clicomm(cmd + "--getall %s" % getbugid, bz).splitlines()
-
-        self.assertEquals(len(out), numattach + 2)
-        fnames = [l.split(" ", 1)[1].strip() for l in out[2:]]
-        self.assertEquals(len(fnames), numattach)
-        for f in fnames:
-            if not os.path.exists(f):
-                raise AssertionError("filename '%s' not found" % f)
-            os.unlink(f)
 
         # Add attachment as CLI option
         setbug = bz.getbug(setbugid)
@@ -418,6 +391,7 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(setbug.attachments[-1]["description"], desc2)
         self.assertEquals(setbug.attachments[-1]["id"],
                           int(out2.splitlines()[2].split()[2]))
+        attachid = setbug.attachments[-2]["id"]
 
         # Set attachment flags
         self.assertEquals(setbug.attachments[-1]["flags"], [])
@@ -433,6 +407,33 @@ class RHPartnerTest(BaseTest):
                                  "review", status="X")
         setbug.refresh()
         self.assertEquals(setbug.attachments[-1]["flags"], [])
+
+
+        # Get attachment, verify content
+        out = tests.clicomm(cmd + "--get %s" % attachid, bz).splitlines()
+
+        # Expect format:
+        #   Wrote <filename>
+        fname = out[2].split()[1].strip()
+
+        self.assertEquals(len(out), 3)
+        self.assertEquals(fname, "bz-attach-get1.txt")
+        self.assertEquals(file(fname).read(),
+                          file(testfile).read())
+        os.unlink(fname)
+
+        # Get all attachments
+        getbug = bz.getbug(getallbugid)
+        numattach = len(getbug.attachments)
+        out = tests.clicomm(cmd + "--getall %s" % getallbugid, bz).splitlines()
+
+        self.assertEquals(len(out), numattach + 2)
+        fnames = [l.split(" ", 1)[1].strip() for l in out[2:]]
+        self.assertEquals(len(fnames), numattach)
+        for f in fnames:
+            if not os.path.exists(f):
+                raise AssertionError("filename '%s' not found" % f)
+            os.unlink(f)
 
 
     def test9Whiteboards(self):
