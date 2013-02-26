@@ -886,7 +886,7 @@ class BugzillaBase(object):
         kwargs['data'] = xmlrpclib.Binary(f.read())
         kwargs['ids'] = self._listify(idlist)
 
-        if 'file_name' not in kwargs:
+        if 'file_name' not in kwargs and hasattr(f, "name"):
             kwargs['file_name'] = os.path.basename(f.name)
         if 'content_type' not in kwargs:
             kwargs['content_type'] = 'application/octet-stream'
