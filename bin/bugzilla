@@ -772,31 +772,32 @@ def _do_modify(bz, opt, args):
             bug.deltag(rm_wb)
 
 
+def _do_get_attach(bz, opt, parser, args):
+    if args:
+        parser.error("Extra args '%s' not used for getting attachments" %
+                     args)
 
-def _do_attach(bz, opt, parser, args):
-    # Getting attachments
-    if opt.get or opt.getall:
-        if args:
-            parser.error("Extra args '%s' not used for getting attachments" %
-                         args)
+    for bug in bz.getbugs(opt.getall):
+        opt.get += [a['id'] for a in bug.attachments]
 
-        for bug in bz.getbugs(opt.getall):
-            opt.get += [a['id'] for a in bug.attachments]
-
-        for attid in set(opt.get):
-            att = bz.openattachment(attid)
-            outfile = open_without_clobber(att.name, "wb")
+    for attid in set(opt.get):
+        att = bz.openattachment(attid)
+        outfile = open_without_clobber(att.name, "wb")
+        data = att.read(4096)
+        while data:
+            outfile.write(data)
             data = att.read(4096)
-            while data:
-                outfile.write(data)
-                data = att.read(4096)
-            print "Wrote %s" % outfile.name
+        print "Wrote %s" % outfile.name
 
-        return
+    return
 
-    # Setting attachments
+
+def _do_set_attach(bz, opt, parser, args):
     if not args:
         parser.error("Bug ID must be specified for setting attachments")
+
+    if not opt.file and opt.desc:
+        parser.error("attaching a file requires --file and --description")
 
     if not opt.type:
         try:
@@ -958,10 +959,10 @@ def main(bzinstance=None):
         buglist += newbugs
 
     elif action == 'attach':
-        if not opt.file and opt.desc:
-            parser.error("attaching a file requires --file and --description")
-
-        _do_attach(bz, opt, parser, args)
+        if opt.get or opt.getall:
+            _do_get_attach(bz, opt, parser, args)
+        else:
+            _do_set_attach(bz, opt, parser, args)
 
     elif action == 'modify':
         if opt.dupeid is not None:
