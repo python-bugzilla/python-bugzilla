@@ -22,12 +22,15 @@ class TestCommand(Command):
          "Run read/write functional tests against actual bugzilla instances. "
          "As of now this only runs against partner-bugzilla.redhat.com, "
          "which requires an RH bugzilla account with cached cookies. "
-         "This will also be very slow.")
+         "This will also be very slow."),
+        ("only=", None,
+         "Run only tests whose name contains the passed string"),
     ]
 
     def initialize_options(self):
         self.ro_functional = False
         self.rw_functional = False
+        self.only = None
 
     def finalize_options(self):
         pass
@@ -65,6 +68,15 @@ class TestCommand(Command):
                 print "installHandler hack failed"
 
         tests = unittest.TestLoader().loadTestsFromNames(testfiles)
+        if self.only:
+            newtests = []
+            for suite1 in tests:
+                for suite2 in suite1:
+                    for testcase in suite2:
+                        if self.only in str(testcase):
+                            newtests.append(testcase)
+            tests = unittest.TestSuite(newtests)
+
         t = unittest.TextTestRunner(verbosity=1)
 
         result = t.run(tests)
