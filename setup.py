@@ -75,7 +75,17 @@ class TestCommand(Command):
                     for testcase in suite2:
                         if self.only in str(testcase):
                             newtests.append(testcase)
+
+            if not newtests:
+                print "--only didn't find any tests"
+                sys.exit(1)
+
             tests = unittest.TestSuite(newtests)
+            print "Running only:"
+            for test in newtests:
+                print "%s" % test
+            print
+
 
         t = unittest.TextTestRunner(verbosity=1)
 
