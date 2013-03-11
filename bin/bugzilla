@@ -279,6 +279,9 @@ def setup_action_parser(action):
                      '(Use a new option for each flag)')
         p.add_option('--cc', action='append',
                 help='Add an email to the cc list')
+        p.add_option('--dependson', metavar='BUGID[, BUGID, ...]',
+                help=('Alter depends_on list.  BUGID appends, '
+                     '-BUGID removes, =BUGID overwrites'))
         p.add_option('-F', '--fixed_in', metavar="VERSION",
                 help='"Fixed in version" field')
         p.add_option("", "--whiteboard", metavar="TEXT",
@@ -732,12 +735,26 @@ def _do_modify(bz, opt, args):
             add_val = val
         return add_val, rm_val, set_val
 
+    def parse_triset_list(val):
+        add_val, rm_val, set_val = parse_triset(val)
+        if add_val:
+            add_val = add_val.split(",")
+        if rm_val:
+            rm_val = rm_val.split(",")
+        if set_val:
+            set_val = set_val.split(",")
+        return add_val, rm_val, set_val
+
     add_wb, rm_wb, set_wb = parse_triset(opt.whiteboard)
+    add_deps, rm_deps, set_deps = parse_triset_list(opt.dependson)
 
     update = bz.build_update(
         comment=opt.comment or None,
         comment_private=opt.private or None,
         cc_add=opt.cc and opt.cc[:] or None,
+        depends_on_add=add_deps or None,
+        depends_on_remove=rm_deps or None,
+        depends_on_set=set_deps or None,
         qa_contact=opt.qa_contact or None,
         assigned_to=opt.assignee or None,
         status=status,
@@ -966,7 +983,7 @@ def main(bzinstance=None):
         if not (opt.status or opt.close or
                 opt.assignee or opt.qa_contact or
                 opt.flag or opt.cc or opt.comment or
-                opt.fixed_in or opt.whiteboard):
+                opt.fixed_in or opt.whiteboard or opt.dependson):
             parser.error("'modify' command requires additional arguments")
 
         if not args:
