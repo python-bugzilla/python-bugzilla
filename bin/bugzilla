@@ -430,7 +430,7 @@ Will Woods <wwoods@redhat.com>'''
     print manpage
 
 
-def do_query(bz, opt, parser):
+def _do_query(bz, opt, parser):
     # Construct the query from the list of queryable options
     q = dict()
     # Parse preconstructed queries.
@@ -711,11 +711,13 @@ def _do_new(bz, opt):
     return [b]
 
 
-def _do_modify(bz, opt, args):
+def _do_modify(bz, parser, opt, args):
     bugid_list = reduce(lambda l1, l2: l1 + l2,
                         [a.split(",") for a in args])
 
     status = opt.status or None
+    if opt.dupeid is not None:
+        opt.close = "DUPLICATE"
     if opt.close:
         status = "CLOSED"
 
@@ -765,11 +767,16 @@ def _do_modify(bz, opt, args):
 
     flags = []
     if opt.flag:
+        # Convert "foo+" to tuple ("foo", "+")
         for f in opt.flag:
             flags.append({"name": f[:-1], "status": f[-1]})
 
     log.debug("update bug dict=%s", update)
     log.debug("update flags dict=%s", flags)
+
+    if (not flags and not update
+        and rm_wb is None and add_wb is None):
+        parser.error("'modify' command requires additional arguments")
 
     if flags:
         bz.update_flags(bugid_list, flags)
@@ -960,7 +967,7 @@ def main(bzinstance=None):
         if args:
             parser.error("Extra arguments '%s'" % args)
 
-        buglist = do_query(bz, opt, parser)
+        buglist = _do_query(bz, opt, parser)
         if opt.test_return_query:
             return buglist
 
@@ -968,7 +975,7 @@ def main(bzinstance=None):
         if args:
             parser.error("Extra arguments '%s'" % args)
         newbugs = _do_new(bz, opt)
-        buglist += newbugs
+        buglist = newbugs
 
     elif action == 'attach':
         if opt.get or opt.getall:
@@ -977,20 +984,11 @@ def main(bzinstance=None):
             _do_set_attach(bz, opt, parser, args)
 
     elif action == 'modify':
-        if opt.dupeid is not None:
-            opt.close = "DUPLICATE"
-
-        if not (opt.status or opt.close or
-                opt.assignee or opt.qa_contact or
-                opt.flag or opt.cc or opt.comment or
-                opt.fixed_in or opt.whiteboard or opt.dependson):
-            parser.error("'modify' command requires additional arguments")
-
         if not args:
             parser.error('No bug IDs given '
                          '(maybe you forgot an argument somewhere?)')
 
-        _do_modify(bz, opt, args)
+        _do_modify(bz, parser, opt, args)
 
     else:
         raise RuntimeError("Unexpected action '%s'" % action)
