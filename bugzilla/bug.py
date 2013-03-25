@@ -120,10 +120,6 @@ class _Bug(object):
         '''Refresh all the data in this Bug.'''
         r = self.bugzilla._getbug(self.bug_id)
 
-        # Use post_translation to convert getbug results to back compat values
-        q = {}
-        q["id"] = str(self.bug_id)
-
         self._update_dict(r)
 
     def _update_dict(self, newdict):

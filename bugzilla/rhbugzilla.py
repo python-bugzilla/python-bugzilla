@@ -325,14 +325,8 @@ class RHBugzilla(Bugzilla42):
         if old != query:
             log.debug("RHBugzilla altered query to: %s", query)
 
-        ret = self._proxy.Bug.search(query)
-
-        # Unfortunately we need a hack to preserve backwards
-        # compabibility with older RHBZ
-        for bug in ret['bugs']:
-            self.post_translation(query, bug)
-
-        return ret
+        # post_translation is called via Bug.py
+        return self._proxy.Bug.search(query)
 
 
 # Just for API back compat
