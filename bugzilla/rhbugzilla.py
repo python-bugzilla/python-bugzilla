@@ -140,12 +140,12 @@ class RHBugzilla(Bugzilla42):
         # RHBZ _still_ returns component and version as lists, which
         # deviates from upstream. Copy the list values to components
         # and versions respectively.
-        if 'component' in bug:
+        if 'component' in bug and not "components" in bug:
             val = bug['component']
             bug['components'] = type(val) is list and val or [val]
             bug['component'] = bug['components'][0]
 
-        if 'version' in bug:
+        if 'version' in bug and not "versions" in bug:
             val = bug['version']
             bug['versions'] = type(val) is list and val or [val]
             bug['version'] = bug['versions'][0]
@@ -153,24 +153,27 @@ class RHBugzilla(Bugzilla42):
         if not self.rhbz_back_compat:
             return
 
-        if 'flags' in bug:
+        if 'flags' in bug and type(bug["flags"]) is list:
             tmpstr = []
             for tmp in bug['flags']:
                 tmpstr.append("%s%s" % (tmp['name'], tmp['status']))
 
             bug['flags'] = ",".join(tmpstr)
 
-        if 'blocks' in bug:
+        if 'blocks' in bug and type(bug["blocks"]) is list:
             # Aliases will handle the 'blockedby' and 'blocked' back compat
             bug['blocks'] = ','.join([str(b) for b in bug['blocks']])
 
-        if 'keywords' in bug:
+        if 'keywords' in bug and type(bug["keywords"]) is list:
             bug['keywords'] = ','.join(bug['keywords'])
 
-        if 'alias' in bug:
+        if 'alias' in bug and type(bug["alias"]) is list:
             bug['alias'] = ','.join(bug['alias'])
 
-        if 'groups' in bug:
+        if ('groups' in bug and
+            type(bug["groups"]) is list and
+            len(bug["groups"]) > 0 and
+            type(bug["groups"][0]) is str):
             # groups went to the opposite direction: it got simpler
             # instead of having name, ison, description, it's now just
             # an array of strings of the groups the bug belongs to
