@@ -31,7 +31,8 @@ def clicomm(argv, bzinstance, returnmain=False, printcliout=False,
     """
     Run bin/bugzilla.main() directly with passed argv
     """
-    from tests.scriptimports import bugzillascript
+    import imp
+    bugzillascript = imp.load_source("bugzillascript", "bin/bugzilla")
 
     argv = shlex.split(argv)
 
