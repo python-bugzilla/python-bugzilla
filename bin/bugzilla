@@ -287,6 +287,10 @@ def setup_action_parser(action):
         p.add_option("", "--whiteboard", metavar="TEXT",
                 help=('Alter status whiteboard text. TEXT appends, '
                       '-TEXT removes, =TEXT overwrites'))
+        p.add_option('--product',
+                help="Reassing bug to different product")
+        p.add_option('-c', '--component',
+                help="Reassign bug to different component")
 
     elif action == 'attach':
         p.set_usage('''
@@ -753,6 +757,8 @@ def _do_modify(bz, parser, opt, args):
     update = bz.build_update(
         comment=opt.comment or None,
         comment_private=opt.private or None,
+        component=opt.component or None,
+        product=opt.product or None,
         cc_add=opt.cc and opt.cc[:] or None,
         depends_on_add=add_deps or None,
         depends_on_remove=rm_deps or None,
