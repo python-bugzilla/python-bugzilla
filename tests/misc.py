@@ -49,6 +49,7 @@ class MiscCLI(unittest.TestCase):
         out = tests.clicomm("bugzilla --version", None)
         self.assertTrue(len(out.splitlines()) >= 2)
 
+
 class MiscAPI(unittest.TestCase):
     """
     Test miscellaneous API bits
@@ -78,12 +79,12 @@ class MiscAPI(unittest.TestCase):
             "component": ["comp1"],
             "version": ["ver1", "ver2"],
 
-            'flags': [ {
+            'flags': [{
                 'is_active': 1,
                 'name': 'qe_test_coverage',
                 'setter': 'pm-rhel@redhat.com',
                 'status': '?',
-            },{
+            }, {
                 'is_active': 1,
                 'name': 'rhel-6.4.0',
                 'setter': 'pm-rhel@redhat.com',
