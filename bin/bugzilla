@@ -94,7 +94,7 @@ def setup_parser():
             help="username")
     p.add_option('--password',
             help="password")
-    p.add_option('--cookiefile',
+    p.add_option('--cookiefile', default=None,
             help="cookie file to use for bugzilla authentication")
     p.add_option('--verbose', action='store_true',
             help="give more info about what's going on")
@@ -906,7 +906,7 @@ def main(bzinstance=None):
     if bzinstance:
         bz = bzinstance
     else:
-        bz = bzclass(url=global_opt.bugzilla)
+        bz = bzclass(url=global_opt.bugzilla, cookiefile=global_opt.cookiefile)
 
 
     # Handle 'login' action
@@ -939,11 +939,8 @@ def main(bzinstance=None):
         log.info('Using username/password for authentication')
         bz.login(global_opt.user, global_opt.password)
     elif not _is_unittest:
-        if global_opt.cookiefile:
-            bz.cookiefile = global_opt.cookiefile
-        cookiefile = bz.cookiefile
-        if os.path.exists(cookiefile):
-            log.info('Using cookies in %s for authentication', cookiefile)
+        if os.path.exists(bz.cookiefile):
+            log.info('Using cookies in %s for authentication', bz.cookiefile)
         else:
             log.info('No authentication info provided.')
 

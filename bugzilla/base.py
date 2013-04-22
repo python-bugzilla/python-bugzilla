@@ -187,13 +187,14 @@ class BugzillaBase(object):
             url = url + '/xmlrpc.cgi'
         return url
 
-    def __init__(self, url=None, user=None, password=None,
-            cookiefile=os.path.expanduser('~/.bugzillacookies')):
+    def __init__(self, url=None, user=None, password=None, cookiefile=None):
         # Settings the user might want to tweak
         self.user = user or ''
         self.password = password or ''
         self.url = ''
 
+        if not cookiefile:
+            cookiefile = os.path.expanduser('~/.bugzillacookies')
         self._cookiefobj = None
         self._cookiejar = None
         self._cookiefile = -1
