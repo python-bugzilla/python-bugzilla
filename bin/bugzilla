@@ -906,7 +906,8 @@ def main(bzinstance=None):
     if bzinstance:
         bz = bzinstance
     else:
-        bz = bzclass(url=global_opt.bugzilla, cookiefile=global_opt.cookiefile)
+        bz = bzclass(url=global_opt.bugzilla,
+                     cookiefile=global_opt.cookiefile or -1)
 
 
     # Handle 'login' action
