@@ -4,4 +4,3 @@ MANIFEST
 dist
 build
 .coverage
-bin/bugzillac

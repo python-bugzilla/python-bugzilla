@@ -1,10 +1,31 @@
 
+import atexit
 import commands
 import difflib
+import imp
 import os
 import shlex
 import sys
 import StringIO
+
+
+_cleanup = []
+
+
+def _import(name, path):
+    _cleanup.append(path + "c")
+    return imp.load_source(name, path)
+
+
+def _cleanup_cb():
+    for f in _cleanup:
+        if os.path.exists(f):
+            os.unlink(f)
+
+
+atexit.register(_cleanup_cb)
+bugzillascript = _import("bugzillascript", "bin/bugzilla")
+
 
 
 def diff(orig, new):
@@ -31,8 +52,6 @@ def clicomm(argv, bzinstance, returnmain=False, printcliout=False,
     """
     Run bin/bugzilla.main() directly with passed argv
     """
-    import imp
-    bugzillascript = imp.load_source("bugzillascript", "bin/bugzilla")
 
     argv = shlex.split(argv)
 
