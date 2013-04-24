@@ -233,8 +233,7 @@ class RHBugzilla(Bugzilla42):
             if not kwkey in kwargs:
                 return bool_id
 
-            value = kwargs.get(kwkey)
-            del(kwargs[kwkey])
+            value = self._listify(kwargs.pop(kwkey))
             if value is None:
                 return bool_id
 
