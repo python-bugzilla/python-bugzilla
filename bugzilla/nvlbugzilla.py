@@ -28,7 +28,7 @@ class NovellBugzilla(Bugzilla34):
 
     Because login process takes relativelly long time, because it needs several
     HTTP requests,  NovellBugzilla caches the session cookies of bugzilla
-    and IChain in a self._cookiefile to speedup a repeated connections.
+    and IChain in a cookiejar to speedup a repeated connections.
     To avoid problems with cookie expiration, it set the expiration of cookie
     to 5 minutes. This expects cookies stored in LWPCookieJar format and
     login method warn if cookies are in MozillaCookieJar format.
@@ -101,7 +101,8 @@ class NovellBugzilla(Bugzilla34):
             log.warn("File `%s' is not in LWP format required for "
                      "NovellBugzilla. If you want cache the cookies "
                      "and speedup the repeated connections, remove it "
-                     "or use an another file for cookies.", self._cookiefile)
+                     "or use an another file for cookies.",
+                     self.cookiefile)
 
         if lwp_format and not self._is_bugzilla_cookie():
             login_url = urlparse.urljoin(base_url, cls.login_path)
@@ -139,7 +140,7 @@ class NovellBugzilla(Bugzilla34):
 
         return super(NovellBugzilla, self)._login(user, password)
 
-    def connect(self, url):
+    def connect(self, url=None):
         # NovellBugzilla should connect only to bnc
 
         handler = urllib2.HTTPCookieProcessor(self._cookiejar)

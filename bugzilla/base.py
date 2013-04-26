@@ -11,7 +11,6 @@
 
 import cookielib
 import os
-import tempfile
 import urllib2
 import xmlrpclib
 
@@ -193,12 +192,7 @@ class BugzillaBase(object):
         self.password = password or ''
         self.url = ''
 
-        if cookiefile == -1:
-            cookiefile = os.path.expanduser('~/.bugzillacookies')
-        self._cookiefobj = None
         self._cookiejar = None
-        self._cookiefile = -1
-        self.cookiefile = cookiefile
 
         self.logged_in = False
 
@@ -211,6 +205,10 @@ class BugzillaBase(object):
         self._components = {}
         self._components_details = {}
         self._init_private_data()
+
+        if cookiefile == -1:
+            cookiefile = os.path.expanduser('~/.bugzillacookies')
+        self.cookiefile = cookiefile
 
         if url:
             self.connect(url)
@@ -277,64 +275,38 @@ class BugzillaBase(object):
         '''cookiefile is the file that bugzilla session cookies are loaded
         and saved from.
         '''
-        return self._cookiefile
-
-    def _loadcookies(self, cj):
-        """Load cookies from self._cookiefile
-
-        It first tries to use the existing cookiejar object. If it fails, it
-        falls back to MozillaCookieJar.
-
-        Returns the CookieJar object used to load the file.
-        """
-        try:
-            cj.load(self._cookiefile)
-        except cookielib.LoadError:
-            cj = cookielib.MozillaCookieJar(self._cookiefile)
-            cj.load(self._cookiefile)
-
-        return cj
+        return self._cookiejar.filename
 
     def _setcookiefile(self, cookiefile):
-        if cookiefile == self._cookiefile:
-            # no need to do anything if they're already the same
+        if (self._cookiejar and
+            cookiefile == self._cookiejar.filename):
             return
-        del self.cookiefile
-        self._cookiefile = cookiefile
 
-        # default. May be overwritten by _loadcookies()
-        cj = cookielib.LWPCookieJar(self._cookiefile)
+        if self._proxy is not None:
+            raise RuntimeError("Can't set cookies with an open connection, "
+                               "disconnect() first.")
 
-        if not self._cookiefile:
-            # Create a temporary cookie file
-            tmpfile = tempfile.NamedTemporaryFile(prefix="python-bugzilla.")
-            self._cookiefile = tmpfile.name
-            # NOTE: tmpfile only exists as long as we have a reference to it!
-            self._cookiefobj = tmpfile
-            try:
-                cj.save(self._cookiefile)
-            except Exception, e:
-                log.warn("Couldn't initialize temporary cookiefile%s: %s" %
-                        (self._cookiefile, str(e)))
-        else:
-            if os.path.exists(self._cookiefile):
-                cj = self._loadcookies(cj)
-            else:
-                # Create an empty cookiefile that's only readable by this user
-                old_umask = os.umask(0077)
-                try:
-                    cj.save(self._cookiefile)
-                except Exception, e:
-                    log.error("Couldn't initialize cookiefile %s: %s" %
-                            (self._cookiefile, str(e)))
-                os.umask(old_umask)
+        log.debug("Using cookiefile=%s", cookiefile)
+        # It first tries to use the existing cookiejar object. If it fails, it
+        # falls back to MozillaCookieJar.
+        do_load = cookiefile is not None and os.path.exists(cookiefile)
+        try:
+            cj = cookielib.LWPCookieJar(cookiefile)
+            if do_load:
+                cj.load()
+        except cookielib.LoadError:
+            cj = cookielib.MozillaCookieJar(cookiefile)
+            if do_load:
+                cj.load()
+
+        if cookiefile is not None and not do_load:
+            open(cookiefile, 'a').close()
+            os.chmod(cookiefile, 0600)
+            cj.save()
 
         self._cookiejar = cj
-        self._cookiejar.filename = self._cookiefile
 
     def _delcookiefile(self):
-        self._cookiefile = None
-        self._cookiefobj = None
         self._cookiejar = None
 
     cookiefile = property(_getcookiefile, _setcookiefile, _delcookiefile)
@@ -374,7 +346,7 @@ class BugzillaBase(object):
                 log.debug("Setting '%s' from configfile" % k)
                 setattr(self, k, v)
 
-    def connect(self, url):
+    def connect(self, url=None):
         '''
         Connect to the bugzilla instance with the given url.
 
@@ -384,6 +356,8 @@ class BugzillaBase(object):
         If 'user' and 'password' are both set, we'll run login(). Otherwise
         you'll have to login() yourself before some methods will work.
         '''
+        if url is None and self.url:
+            url = self.url
         url = self.fix_url(url)
 
         transport = _CookieTransport(url, self._cookiejar)
@@ -437,8 +411,8 @@ class BugzillaBase(object):
         except xmlrpclib.Fault:
             r = False
 
-        if r and self._cookiejar:
-            self._cookiejar.save(self._cookiejar.filename)
+        if r and self._cookiejar.filename:
+            self._cookiejar.save()
         return r
 
     def logout(self):

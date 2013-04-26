@@ -53,6 +53,7 @@ class RHPartnerTest(BaseTest):
     # doesn't send out emails and is blown away occasionally. The front
     # page has some info.
     url = "https://partner-bugzilla.redhat.com/xmlrpc.cgi"
+    #url = "https://bzweb01-devel.app.eng.rdu.redhat.com/"
     bzclass = bugzilla.RHBugzilla
 
 
@@ -64,6 +65,12 @@ class RHPartnerTest(BaseTest):
         if not ret:
             print "\nNo admin privs, skipping %s" % funcname
         return ret
+
+    def _check_rh_privs(self, bz, funcname, quiet=False):
+        noprivs = bool(bz.getbugs([184858]) == [None])
+        if noprivs and not quiet:
+            print "\nNo RH privs, skipping %s" % funcname
+        return not noprivs
 
 
     test1 = BaseTest._testCookie
@@ -603,3 +610,20 @@ class RHPartnerTest(BaseTest):
         })
         bz.editcomponent(data)
         compare(data, newid)
+
+    def test12SetCookie(self):
+        bz = self.bzclass(url=self.url, cookiefile=cf)
+        if not self._check_rh_privs(bz, sys._getframe().f_code.co_name):
+            return
+
+        try:
+            bz.cookiefile = None
+            raise AssertionError("Setting cookiefile for active connection "
+                                 "should fail.")
+        except RuntimeError, e:
+            self.assertTrue("disconnect()" in str(e))
+
+        bz.disconnect()
+        bz.cookiefile = None
+        bz.connect()
+        self.assertFalse(bool(self._check_rh_privs(bz, "", True)))
