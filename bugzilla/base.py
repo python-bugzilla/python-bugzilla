@@ -757,6 +757,12 @@ class BugzillaBase(object):
         raise NotImplementedError("This version of bugzilla does not "
                                   "support bug querying.")
 
+    def _query(self, query):
+        # This is kinda redundant now, but various scripts call
+        # _query with their own assembled dictionarys, so don't
+        # drop this lest we needlessly break those users
+        return self._proxy.Bug.search(query)
+
     def query(self, query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
@@ -1133,10 +1139,6 @@ class BugzillaBase(object):
         Returns bug_id'''
         raise NotImplementedError
 
-    def _query(self, query):
-        '''IMPLEMENT ME: Query bugzilla and return a list of matching bugs.'''
-        raise NotImplementedError("This version of bugzilla does not "
-                                  "support bug querying.")
 
 
     ######################
