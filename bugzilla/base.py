@@ -198,8 +198,6 @@ class BugzillaBase(object):
 
         # Bugzilla object state info that users shouldn't mess with
         self._proxy = None
-        self._querydata = None
-        self._querydefaults = None
         self._products = None
         self._bugfields = None
         self._components = {}
@@ -216,8 +214,6 @@ class BugzillaBase(object):
     def _init_private_data(self):
         '''initialize private variables used by this bugzilla instance.'''
         self._proxy = None
-        self._querydata = None
-        self._querydefaults = None
         self._products = None
         self._bugfields = None
         self._components = {}
@@ -452,26 +448,6 @@ class BugzillaBase(object):
         return self._bugfields
     bugfields = property(fget=lambda self: self.getbugfields(),
                          fdel=lambda self: setattr(self, '_bugfields', None))
-
-    def getqueryinfo(self, force_refresh=False):
-        '''
-        Calls getQueryInfo, which returns a (quite large!) structure that
-        contains all of the query data and query defaults for the bugzilla
-        instance. Since this is a weighty call - takes a good 5-10sec on
-        bugzilla.redhat.com - we load the info in this private method and the
-        user instead plays with the querydata and querydefaults attributes of
-        the bugzilla object.
-        '''
-        if force_refresh or not (self._querydata and self._querydefaults):
-            (self._querydata, self._querydefaults) = self._getqueryinfo()
-        return (self._querydata, self._querydefaults)
-
-    # Set querydata and querydefaults as properties so they auto-create
-    # themselves when touched by a user. This bit was lifted from YumBase.
-    querydata = property(fget=lambda self: self.getqueryinfo()[0],
-                         fdel=lambda self: setattr(self, "_querydata", None))
-    querydefaults = property(fget=lambda self: self.getqueryinfo()[1],
-                     fdel=lambda self: setattr(self, "_querydefaults", None))
 
 
     def refresh_products(self, **kwargs):
@@ -1097,10 +1073,6 @@ class BugzillaBase(object):
         '''IMPLEMENT ME: Get bugfields from Bugzilla.'''
         raise NotImplementedError
 
-    def _getqueryinfo(self):
-        '''IMPLEMENT ME: Get queryinfo from Bugzilla.'''
-        raise NotImplementedError
-
     def _getcomponents(self, product):
         '''IMPLEMENT ME: Get component dict for a product'''
         raise NotImplementedError
@@ -1163,3 +1135,9 @@ class BugzillaBase(object):
         name: The full name of the user to create
         '''
         self.createuser(user, name)
+
+    def getqueryinfo(self, force_refresh=False):
+        raise NotImplementedError("getqueryinfo is deprecated and the "
+                "information is not provided by any modern bugzilla.")
+    querydata = property(getqueryinfo)
+    querydefaults = property(getqueryinfo)
