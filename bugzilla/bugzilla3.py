@@ -199,6 +199,15 @@ class Bugzilla34(Bugzilla32):
         """
         Build a query string from passed arguments. Will handle
         query parameter differences between various bugzilla versions.
+
+        Most of the parameters should be self explanatory. However
+        if you want to perform a complex query, and easy way is to
+        create it with the bugzilla web UI, copy the entire URL it
+        generates, and pass it to the static method
+
+        Bugzilla.url_to_query
+
+        Then pass the output to Bugzilla.query()
         """
         # pylint: disable=W0221
         # Argument number differs from overridden method
