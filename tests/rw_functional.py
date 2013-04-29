@@ -83,7 +83,7 @@ class RHPartnerTest(BaseTest):
         """
         bz = self.bzclass(url=self.url, cookiefile=cf)
         component = "python-bugzilla"
-        version = "16"
+        version = "rawhide"
         summary = ("python-bugzilla test basic bug %s" %
                    datetime.datetime.today())
         newout = tests.clicomm("bugzilla new "
@@ -130,7 +130,7 @@ class RHPartnerTest(BaseTest):
         dependson = "427301"
         comment = "Test bug from python-bugzilla test suite"
         newout = tests.clicomm("bugzilla new "
-            "--product Fedora --component python-bugzilla --version 16 "
+            "--product Fedora --component python-bugzilla --version rawhide "
             "--summary \"%s\" "
             "--comment \"%s\" "
             "--url %s --severity Urgent --priority Low --os %s "
