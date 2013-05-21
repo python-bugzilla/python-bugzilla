@@ -140,6 +140,8 @@ def setup_action_parser(action):
                 help="OPTIONAL: add bug_ids blocked by this bug")
         p.add_option('--dependson', metavar='BUGID[, BUGID, ...]',
                 help="OPTIONAL: add bug_ids that this bug depends on")
+        p.add_option('--groups', metavar='GROUP[, GROUP, ...]',
+                help="OPTIONAL: add groups to which bug is visible")
         # no API to attach files during bug creation, so no --attach :/
 
     elif action == 'query':
@@ -696,10 +698,10 @@ def _do_new(bz, opt):
     data = {}
     allopts = ["product", "version", "component", "description",
                "summary", "op_sys", "platform", "severity", "priority",
-               "bug_file_loc", "cc", "blocked", "dependson"]
+               "bug_file_loc", "cc", "blocked", "dependson", "groups"]
 
     # Handle options that take a list format
-    multiopts = ['cc', 'blocked', 'dependson']
+    multiopts = ['cc', 'blocked', 'dependson', 'groups']
 
     for key in allopts:
         if not hasattr(opt, key) or getattr(opt, key) is None:
