@@ -34,10 +34,6 @@ class Bugzilla3(BugzillaBase):
 
     #---- Methods and properties with basic bugzilla info
 
-    def _getuserforid(self, userid):
-        '''Get the username for the given userid'''
-        return str(userid)
-
     # Connect the backend methods to the XMLRPC methods
     def _getbugfields(self):
         '''Get a list of valid fields for bugs.'''
