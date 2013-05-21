@@ -696,7 +696,7 @@ class BugzillaBase(object):
         ('last_change_time', 'delta_ts'),
     )
 
-    def _getbugs(self, idlist, simple=False):
+    def _getbugs(self, idlist, simple=False, permissive=True):
         '''
         Return a list of dicts of full bug info for each given bug id.
         bug ids that couldn't be found will return None instead of a dict.
@@ -705,10 +705,9 @@ class BugzillaBase(object):
         '''
         idlist = [int(i) for i in idlist]
 
-        getbugdata = {
-            "ids": idlist,
-            "permissive": 1,
-        }
+        getbugdata = {"ids": idlist}
+        if permissive:
+            getbugdata["permissive"] = 1
         if self.getbug_extra_fields and not simple:
             getbugdata["extra_fields"] = self.getbug_extra_fields
 
@@ -723,8 +722,7 @@ class BugzillaBase(object):
 
     def _getbug(self, objid, simple=False):
         '''Return a dict of full bug info for the given bug id'''
-        return self._getbugs([objid], simple=simple)[0]
-
+        return self._getbugs([objid], simple=simple, permissive=False)[0]
 
     def getbug(self, objid):
         '''Return a Bug object with the full complement of bug data
