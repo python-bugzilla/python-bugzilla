@@ -564,17 +564,6 @@ class BugzillaBase(object):
         default_cc: (optional) The initial list of users to be CC'ed on
                                new bugs for the component.
         '''
-        # Pre RHBZ 4.4 code, drop once it hits bugzilla.redhat.com
-        try:
-            if type(data['product']) is int:
-                data['product'] = self._product_id_to_name(data['product'])
-
-            return self._proxy.bugzilla.addComponent(data,
-                                                     self.user, self.password)
-        except Exception, e:
-            if "replaced by Component.create" not in str(e):
-                raise
-
         data = data.copy()
         self._component_data_convert(data)
         return self._proxy.Component.create(data)
@@ -586,17 +575,6 @@ class BugzillaBase(object):
         All other elements are optional and use the same names as the
         addcomponent() method.
         '''
-        # Pre RHBZ 4.4 code, drop once it hits bugzilla.redhat.com
-        try:
-            if type(data['product']) is int:
-                data['product'] = self._product_id_to_name(data['product'])
-
-            return self._proxy.bugzilla.editComponent(data,
-                                                      self.user, self.password)
-        except Exception, e:
-            if "replaced by Component.update" not in str(e):
-                raise
-
         data = data.copy()
         self._component_data_convert(data, update=True)
         return self._proxy.Component.update(data)
@@ -1119,17 +1097,6 @@ class BugzillaBase(object):
         :arg groups: list of groups to be added to (i.e. ['fedora_contrib'])
         '''
         groups = self._listify(groups)
-
-        try:
-            # Old RHBZ method. This will be removed in RHBZ 4.4, but lets
-            # keep it around so we can deploy early
-            r = self._proxy.bugzilla.updatePerms(user, action, groups,
-                self.user, self.password)
-            return r
-        except Exception, e:
-            if "replaced by User.update" not in str(e):
-                raise
-
         if action == "rem":
             action = "remove"
         if action not in ["add", "remove", "set"]:
