@@ -434,6 +434,10 @@ class BugzillaBase(object):
     # Fetching info about the bugzilla instance #
     #############################################
 
+    def _getbugfields(self):
+        '''IMPLEMENT ME: Get bugfields from Bugzilla.'''
+        raise NotImplementedError
+
     def getbugfields(self, force_refresh=False):
         '''
         Calls getBugFields, which returns a list of fields in each bug
@@ -714,16 +718,41 @@ class BugzillaBase(object):
         ('last_change_time', 'delta_ts'),
     )
 
+    def _getbugs(self, idlist, simple=False):
+        '''
+        Return a list of dicts of full bug info for each given bug id.
+        bug ids that couldn't be found will return None instead of a dict.
+
+        @simple: If True, don't ask for any large extra_fields.
+        '''
+        idlist = [int(i) for i in idlist]
+
+        getbugdata = {
+            "ids": idlist,
+            "permissive": 1,
+        }
+        if self.getbug_extra_fields and not simple:
+            getbugdata["extra_fields"] = self.getbug_extra_fields
+
+        r = self._proxy.Bug.get_bugs(getbugdata)
+
+        if self.bz_ver_major >= 4:
+            bugdict = dict([(b['id'], b) for b in r['bugs']])
+        else:
+            bugdict = dict([(b['id'], b['internals']) for b in r['bugs']])
+
+        return [bugdict.get(i) for i in idlist]
+
+    def _getbug(self, objid, simple=False):
+        '''Return a dict of full bug info for the given bug id'''
+        return self._getbugs([objid], simple=simple)[0]
+
 
     def getbug(self, objid):
         '''Return a Bug object with the full complement of bug data
         already loaded.'''
         log.debug("getbug(%s)" % str(objid))
         return _Bug(bugzilla=self, dict=self._getbug(objid))
-
-    def getbugsimple(self, objid):
-        '''Return a Bug object given bug id, populated with simple info'''
-        return _Bug(bugzilla=self, dict=self._getbugsimple(objid))
 
     def getbugs(self, idlist):
         '''Return a list of Bug objects with the full complement of bug data
@@ -732,13 +761,21 @@ class BugzillaBase(object):
         return [(b and _Bug(bugzilla=self, dict=b)) or None
                 for b in self._getbugs(idlist)]
 
+    # Since for so long getbugsimple was just getbug, I don't think we can
+    # remove any fields without possibly causing a slowdown for some
+    # existing users. Just have this API mean 'don't ask for the extra
+    # big stuff'
+    def getbugsimple(self, objid):
+        '''Return a Bug object given bug id, populated with simple info'''
+        return _Bug(bugzilla=self, dict=self._getbug(objid, simple=True))
+
     def getbugssimple(self, idlist):
         '''Return a list of Bug objects for the given bug ids, populated with
         simple info. As with getbugs(), if there's a problem getting the data
         for a given bug ID, the corresponding item in the returned list will
         be None.'''
         return [(b and _Bug(bugzilla=self, dict=b)) or None
-                for b in self._getbugssimple(idlist)]
+                for b in self._getbugs(idlist, simple=True)]
 
 
     #################
@@ -1107,37 +1144,6 @@ class BugzillaBase(object):
 
         log.debug("updating user permissions:\n%s", update)
         return self._proxy.User.update(update)
-
-
-    ######################################################
-    # Internal API methods, overwritten by child classes #
-    ######################################################
-
-
-    def _getbugfields(self):
-        '''IMPLEMENT ME: Get bugfields from Bugzilla.'''
-        raise NotImplementedError
-
-
-    def _getbug(self, objid, simple=False):
-        '''IMPLEMENT ME: Return a dict of full bug info for the given bug id'''
-        raise NotImplementedError
-
-    def _getbugs(self, idlist, simple=False):
-        '''IMPLEMENT ME: Return a list of full bug dicts, one for each of the
-        given bug ids'''
-        raise NotImplementedError
-
-    def _getbugsimple(self, objid):
-        '''IMPLEMENT ME: Return a short dict of simple bug info for the given
-        bug id'''
-        raise NotImplementedError
-
-    def _getbugssimple(self, idlist):
-        '''IMPLEMENT ME: Return a list of short bug dicts, one for each of the
-        given bug ids'''
-        raise NotImplementedError
-
 
 
     ######################

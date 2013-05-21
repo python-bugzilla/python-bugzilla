@@ -46,50 +46,6 @@ class Bugzilla3(BugzillaBase):
         return keylist
 
 
-    #---- Methods for reading bugs and bug info
-
-    def _getbugs(self, idlist, simple=False):
-        '''
-        Return a list of dicts of full bug info for each given bug id.
-        bug ids that couldn't be found will return None instead of a dict.
-
-        @simple: If True, don't ask for any large extra_fields.
-        '''
-        idlist = [int(i) for i in idlist]
-
-        getbugdata = {
-            "ids": idlist,
-            "permissive": 1,
-        }
-        if self.getbug_extra_fields and not simple:
-            getbugdata["extra_fields"] = self.getbug_extra_fields
-
-        r = self._proxy.Bug.get_bugs(getbugdata)
-
-        if self.bz_ver_major >= 4:
-            bugdict = dict([(b['id'], b) for b in r['bugs']])
-        else:
-            bugdict = dict([(b['id'], b['internals']) for b in r['bugs']])
-
-        return [bugdict.get(i) for i in idlist]
-
-    def _getbug(self, objid, simple=False):
-        '''Return a dict of full bug info for the given bug id'''
-        return self._getbugs([objid], simple=simple)[0]
-
-    # Since for so long getbugsimple == getbug, I don't think we can
-    # remove any fields without possibly causing a slowdown for some
-    # existing users. Just have this API mean 'don't ask for the extra
-    # big stuff'
-    def _getbugsimple(self, objid):
-        return self._getbug(objid, simple=True)
-
-    def _getbugssimple(self, idlist):
-        return self._getbugs(idlist, simple=True)
-
-
-
-
 # Bugzilla 3.2 adds some new goodies on top of Bugzilla3.
 class Bugzilla32(Bugzilla3):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
