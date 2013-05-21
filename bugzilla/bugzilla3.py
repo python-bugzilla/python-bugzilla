@@ -9,7 +9,6 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-from bugzilla import BugzillaError
 from bugzilla.base import BugzillaBase
 
 
@@ -24,15 +23,6 @@ class Bugzilla3(BugzillaBase):
     def __init__(self, **kwargs):
         BugzillaBase.__init__(self, **kwargs)
 
-    def _login(self, user, password):
-        '''Backend login method for Bugzilla3'''
-        return self._proxy.User.login({'login': user, 'password': password})
-
-    def _logout(self):
-        '''Backend login method for Bugzilla3'''
-        return self._proxy.User.logout()
-
-    #---- Methods and properties with basic bugzilla info
 
     # Connect the backend methods to the XMLRPC methods
     def _getbugfields(self):
@@ -55,12 +45,6 @@ class Bugzilla3(BugzillaBase):
 
         return keylist
 
-    def _getcomponents(self, product):
-        if type(product) == str:
-            product = self._product_name_to_id(product)
-        r = self._proxy.Bug.legal_values({'product_id': product,
-                                          'field': 'component'})
-        return r['values']
 
     #---- Methods for reading bugs and bug info
 
@@ -104,13 +88,6 @@ class Bugzilla3(BugzillaBase):
         return self._getbugs(idlist, simple=True)
 
 
-    #---- createbug - call to create a new bug
-    def _createbug(self, **data):
-        '''Raw xmlrpc call for createBug() Doesn't bother guessing defaults
-        or checking argument validity. Use with care.
-        Returns bug_id'''
-        r = self._proxy.Bug.create(data)
-        return r['id']
 
 
 # Bugzilla 3.2 adds some new goodies on top of Bugzilla3.
@@ -129,35 +106,6 @@ class Bugzilla32(Bugzilla3):
 class Bugzilla34(Bugzilla32):
     version = '0.2'
     bz_ver_minor = 4
-
-    def _getusers(self, ids=None, names=None, match=None):
-        '''Return a list of users that match criteria.
-
-        :kwarg ids: list of user ids to return data on
-        :kwarg names: list of user names to return data on
-        :kwarg match: list of patterns.  Returns users whose real name or
-            login name match the pattern.
-        :raises xmlrpclib.Fault: Code 51: if a Bad Login Name was sent to the
-                names array.
-            Code 304: if the user was not authorized to see user they
-                requested.
-            Code 505: user is logged out and can't use the match or ids
-                parameter.
-
-        Available in Bugzilla-3.4+
-        '''
-        params = {}
-        if ids:
-            params['ids'] = self._listify(ids)
-        if names:
-            params['names'] = self._listify(names)
-        if match:
-            params['match'] = self._listify(match)
-        if not params:
-            raise BugzillaError('_get() needs one of ids, '
-                                ' names, or match kwarg.')
-
-        return self._proxy.User.get(params)
 
     def build_query(self,
                     product=None,
