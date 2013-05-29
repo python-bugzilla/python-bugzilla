@@ -758,13 +758,108 @@ class BugzillaBase(object):
     # query methods #
     #################
 
-    def build_query(self, *args, **kwargs):
-        raise NotImplementedError("This version of bugzilla does not "
-                                  "support bug querying.")
+    def build_query(self,
+                    product=None,
+                    component=None,
+                    version=None,
+                    long_desc=None,
+                    bug_id=None,
+                    short_desc=None,
+                    cc=None,
+                    assigned_to=None,
+                    reporter=None,
+                    qa_contact=None,
+                    status=None,
+                    blocked=None,
+                    dependson=None,
+                    keywords=None,
+                    keywords_type=None,
+                    url=None,
+                    url_type=None,
+                    status_whiteboard=None,
+                    status_whiteboard_type=None,
+                    fixed_in=None,
+                    fixed_in_type=None,
+                    flag=None,
+                    alias=None,
+                    qa_whiteboard=None,
+                    devel_whiteboard=None,
+                    boolean_query=None,
+                    bug_severity=None,
+                    priority=None,
+                    target_milestone=None,
+                    emailtype=None,
+                    booleantype=None,
+                    include_fields=None):
+        """
+        Build a query string from passed arguments. Will handle
+        query parameter differences between various bugzilla versions.
+
+        Most of the parameters should be self explanatory. However
+        if you want to perform a complex query, and easy way is to
+        create it with the bugzilla web UI, copy the entire URL it
+        generates, and pass it to the static method
+
+        Bugzilla.url_to_query
+
+        Then pass the output to Bugzilla.query()
+        """
+        # pylint: disable=W0221
+        # Argument number differs from overridden method
+        # Base defines it with *args, **kwargs, so we don't have to maintain
+        # the master argument list in 2 places
+
+        ignore = include_fields
+        ignore = emailtype
+        ignore = booleantype
+
+        for key, val in [
+            ('fixed_in', fixed_in),
+            ('blocked', blocked),
+            ('dependson', dependson),
+            ('flag', flag),
+            ('qa_whiteboard', qa_whiteboard),
+            ('devel_whiteboard', devel_whiteboard),
+            ('alias', alias),
+            ('boolean_query', boolean_query),
+        ]:
+            if not val is None:
+                raise RuntimeError("'%s' search not supported by this "
+                                   "bugzilla" % key)
+
+        query = {
+            "product": self._listify(product),
+            "component": self._listify(component),
+            "version": version,
+            "long_desc": long_desc,
+            "id": bug_id,
+            "short_desc": short_desc,
+            "bug_status": status,
+            "keywords": keywords,
+            "keywords_type": keywords_type,
+            "bug_file_loc": url,
+            "bug_file_loc_type": url_type,
+            "status_whiteboard": status_whiteboard,
+            "status_whiteboard_type": status_whiteboard_type,
+            "fixed_in_type": fixed_in_type,
+            "bug_severity": bug_severity,
+            "priority": priority,
+            "target_milestone": target_milestone,
+            "assigned_to": assigned_to,
+            "cc": cc,
+            "qa_contact": qa_contact,
+            "reporter": reporter,
+        }
+
+        # Strip out None elements in the dict
+        for key in query.keys():
+            if query[key] is None:
+                del(query[key])
+        return query
 
     def _query(self, query):
         # This is kinda redundant now, but various scripts call
-        # _query with their own assembled dictionarys, so don't
+        # _query with their own assembled dictionaries, so don't
         # drop this lest we needlessly break those users
         return self._proxy.Bug.search(query)
 
