@@ -11,10 +11,10 @@
 
 
 from bugzilla import log
-from bugzilla.bugzilla4 import Bugzilla42
+from bugzilla.bugzilla4 import Bugzilla44 as _parent
 
 
-class RHBugzilla(Bugzilla42):
+class RHBugzilla(_parent):
     '''
     Bugzilla class for connecting Red Hat's forked bugzilla instance,
     bugzilla.redhat.com
@@ -49,17 +49,17 @@ class RHBugzilla(Bugzilla42):
         if "rhbz_back_compat" in kwargs:
             self.rhbz_back_compat = bool(kwargs.pop("rhbz_back_compat"))
 
-        Bugzilla42.__init__(self, **kwargs)
+        _parent.__init__(self, **kwargs)
 
     getbug_extra_fields = (
-        Bugzilla42.getbug_extra_fields + [
+        _parent.getbug_extra_fields + [
             "attachments", "comments", "description",
             "external_bugs", "flags",
         ]
     )
 
     field_aliases = (
-        Bugzilla42.field_aliases + (
+        _parent.field_aliases + (
             ('fixed_in', 'cf_fixed_in'),
             ('qa_whiteboard', 'cf_qa_whiteboard'),
             ('devel_whiteboard', 'cf_devel_whiteboard'),
@@ -91,7 +91,7 @@ class RHBugzilla(Bugzilla42):
         pop("devel_whiteboard", "cf_devel_whiteboard")
         pop("internal_whiteboard", "cf_internal_whiteboard")
 
-        vals = Bugzilla42.build_update(self, *args, **kwargs)
+        vals = _parent.build_update(self, *args, **kwargs)
         vals.update(adddict)
 
         return vals
@@ -305,7 +305,7 @@ class RHBugzilla(Bugzilla42):
         chart_id = add_boolean("alias", "alias", chart_id)
         chart_id = add_boolean("boolean_query", None, chart_id)
 
-        newquery = Bugzilla42.build_query(self, **kwargs)
+        newquery = _parent.build_query(self, **kwargs)
         query.update(newquery)
         self.pre_translation(query)
         return query
