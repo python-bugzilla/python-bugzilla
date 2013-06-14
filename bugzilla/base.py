@@ -1198,20 +1198,29 @@ class BugzillaBase(object):
     createbug_required = ('product', 'component', 'summary', 'version',
                           'description')
 
-    def _createbug(self, **data):
-        '''Raw xmlrpc call for createBug() Doesn't bother guessing defaults
-        or checking argument validity. Use with care.
-        Returns bug_id'''
-        r = self._proxy.Bug.create(data)
-        return r['id']
 
-    def createbug(self, **data):
+    def createbug(self, *args, **kwargs):
         '''
         Create a bug with the given info. Returns a new Bug object.
         Check bugzilla API documentation for valid values, at least
         product, component, summary, version, and description need to
         be passed.
         '''
+        # Previous API required users specifying keyword args that mapped
+        # to the XMLRPC arg names. Maintain that bad compat, but also allow
+        # receiving a single dictionary like query() does
+        if kwargs and args:
+            raise BugzillaError("createbug: cannot specify positional "
+                                "args=%s with kwargs=%s, must be one or the "
+                                "other." % (args, kwargs))
+        if args:
+            if len(args) > 1 or type(args[0]) is not dict:
+                raise BugzillaError("createbug: positional arguments only "
+                                    "accept a single dictionary.")
+            data = args[0]
+        else:
+            data = kwargs
+
         log.debug("bz.createbug(%s)", data)
 
         # If we're getting a call that uses an old fieldname, convert it to the
@@ -1226,8 +1235,8 @@ class BugzillaBase(object):
         if "check_args" in data:
             del(data["check_args"])
 
-        bug_id = self._createbug(**data)
-        return _Bug(self, bug_id=bug_id)
+        rawbug = self._proxy.Bug.create(data)
+        return _Bug(self, bug_id=rawbug["id"])
 
 
     ##############################

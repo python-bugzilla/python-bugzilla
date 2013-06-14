@@ -706,7 +706,7 @@ def _do_new(bz, opt):
 
     if opt.test_return_result:
         return data
-    b = bz.createbug(**data)
+    b = bz.createbug(data)
     b.refresh()
     return [b]
 
