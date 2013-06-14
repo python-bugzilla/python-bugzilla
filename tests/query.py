@@ -37,7 +37,7 @@ class BZ34Test(unittest.TestCase):
         return self.assertEqual(*args, **kwargs)
 
     def clicomm(self, argstr, out):
-        comm = "bugzilla query --test-return-query " + argstr
+        comm = "bugzilla query --test-return-result " + argstr
 
         if out is None:
             self.assertRaises(RuntimeError, tests.clicomm, comm, self.bz)

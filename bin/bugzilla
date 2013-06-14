@@ -113,36 +113,28 @@ def setup_action_parser(action):
 
     if action == 'new':
         p.set_description("Create a new bug report.")
-        p.add_option('-p', '--product',
-                help="REQUIRED: product name (list with 'bugzilla info -p')")
-        p.add_option('-v', '--version',
-                help="REQUIRED: product version")
-        p.add_option('-c', '--component',
-                help="REQUIRED: component name "
-                     "(list with 'bugzilla info -c PRODUCT')")
-        p.add_option('-l', '--comment', dest='description',
-                help="REQUIRED: initial bug comment")
+        p.add_option('-p', '--product', help="REQUIRED: product name")
+        p.add_option('-v', '--version', help="REQUIRED: product version")
+        p.add_option('-c', '--component', help="REQUIRED: component name")
         p.add_option('-s', '--short_desc', '--summary', dest='summary',
                 help="REQUIRED: bug summary")
-        p.add_option('-o', '--os', dest='op_sys',
-                help="OPTIONAL: operating system (default: Linux)")
+        p.add_option('-l', '--comment', dest='description',
+                help="initial bug comment")
+        p.add_option('-o', '--os', dest='op_sys', help="operating system")
         p.add_option('-a', '--arch', dest='platform',
-                help="OPTIONAL: arch this bug occurs on (default: All)")
-        p.add_option('--severity',
-                help="OPTIONAL: bug severity (default: medium)")
-        p.add_option('--priority',
-                help="OPTIONAL: bug priority (default: medium)")
+                help="arch this bug occurs on")
+        p.add_option('--severity', help="bug severity")
+        p.add_option('--priority', help="bug priority")
         p.add_option('-u', '--url', dest='bug_file_loc',
-                help="OPTIONAL: URL for further bug info")
+                help="URL for further bug info")
         p.add_option('--cc', metavar='CC[, CC, ...]',
-                help="OPTIONAL: add emails to initial CC list")
+                help="add emails to initial CC list")
         p.add_option('--blocked', metavar='BUGID[, BUGID, ...]',
-                help="OPTIONAL: add bug_ids blocked by this bug")
+                help="add bug_ids blocked by this bug")
         p.add_option('--dependson', metavar='BUGID[, BUGID, ...]',
-                help="OPTIONAL: add bug_ids that this bug depends on")
+                help="add bug_ids that this bug depends on")
         p.add_option('--groups', metavar='GROUP[, GROUP, ...]',
-                help="OPTIONAL: add groups to which bug is visible")
-        # no API to attach files during bug creation, so no --attach :/
+                help="add groups to which bug is visible")
 
     elif action == 'query':
         p.set_description("List bug reports that match the given criteria.")
@@ -213,10 +205,6 @@ def setup_action_parser(action):
         # Precomposed queries
         p.add_option('--from-url',
                 help="Use the query given by a query.cgi URL. (Use quotes!)")
-
-        # Used by unit tests, not for end user consumption
-        p.add_option('--test-return-query', action="store_true",
-                     help=optparse.SUPPRESS_HELP)
 
         # Boolean Charts
         bgrp = optparse.OptionGroup(p, "Boolean options")
@@ -316,6 +304,10 @@ def setup_action_parser(action):
         p.set_description("Log into bugzilla and save a login cookie.")
 
     if action in ['new', 'query']:
+        # Used by unit tests, not for end user consumption
+        p.add_option('--test-return-result', action="store_true",
+                     help=optparse.SUPPRESS_HELP)
+
         outg = optparse.OptionGroup(p, "Output format options")
         outg.add_option('-f', '--full', action='store_const', dest='output',
                 const='full', default='normal',
@@ -552,7 +544,7 @@ def _do_query(bz, opt, parser):
 
     if not q:
         parser.error("'query' command requires additional arguments")
-    if opt.test_return_query:
+    if opt.test_return_result:
         return q
     return bz.query(q)
 
@@ -712,6 +704,8 @@ def _do_new(bz, opt):
             continue
         data[key] = data[key].split(",")
 
+    if opt.test_return_result:
+        return data
     b = bz.createbug(**data)
     b.refresh()
     return [b]
@@ -974,14 +968,15 @@ def main(bzinstance=None):
             parser.error("Extra arguments '%s'" % args)
 
         buglist = _do_query(bz, opt, parser)
-        if opt.test_return_query:
+        if opt.test_return_result:
             return buglist
 
     elif action == 'new':
         if args:
             parser.error("Extra arguments '%s'" % args)
-        newbugs = _do_new(bz, opt)
-        buglist = newbugs
+        buglist = _do_new(bz, opt)
+        if opt.test_return_result:
+            return buglist
 
     elif action == 'attach':
         if opt.get or opt.getall:
