@@ -93,17 +93,28 @@ class ModifyTest(unittest.TestCase):
             {"cf_fixed_in": "foo-bar-1.2.3"}
         )
 
-    """
     def testDepends(self):
         self.clicomm(
-            "--dependson 100 --dependson -200 --dependson +300",
-            {}
+            "--dependson 100,200",
+            {'depends_on': {'add': [100, 200]}}
         )
         self.clicomm(
-            "--dependson =300",
-            {}
+            "--dependson +100,200",
+            {'depends_on': {'add': [100, 200]}}
         )
-    """
+        self.clicomm(
+            "--dependson -100,200",
+            {'depends_on': {'remove': [100, 200]}}
+        )
+        self.clicomm(
+            "--dependson =100,200",
+            {'depends_on': {'set': [100, 200]}}
+        )
+
+        self.clicomm(
+            "--dependson 1 --dependson -2 --dependson +3 --dependson =4",
+            {'depends_on': {'add': [1, 3], 'remove': [2], 'set': [4]}}
+        )
 
     def testCC(self):
         self.clicomm(

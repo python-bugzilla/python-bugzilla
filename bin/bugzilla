@@ -270,6 +270,7 @@ def setup_action_parser(action):
         p.add_option('--cc', action='append',
                 help='Add an email to the cc list')
         p.add_option('--dependson', metavar='BUGID[, BUGID, ...]',
+                action="append",
                 help=('Alter depends_on list.  BUGID appends, '
                      '-BUGID removes, =BUGID overwrites'))
         p.add_option('-F', '--fixed_in', metavar="VERSION",
@@ -739,14 +740,19 @@ def _do_modify(bz, parser, opt, args):
             add_val = val
         return add_val, rm_val, set_val
 
-    def parse_triset_list(val):
-        add_val, rm_val, set_val = parse_triset(val)
-        if add_val:
-            add_val = add_val.split(",")
-        if rm_val:
-            rm_val = rm_val.split(",")
-        if set_val:
-            set_val = set_val.split(",")
+    def parse_triset_list(vallist):
+        add_val = []
+        rm_val = []
+        set_val = []
+
+        for val in type(vallist) is list and vallist or [vallist]:
+            add, rm, s = parse_triset(val)
+            if add:
+                add_val += add.split(",")
+            if rm:
+                rm_val += rm.split(",")
+            if s:
+                set_val += s.split(",")
         return add_val, rm_val, set_val
 
     add_wb, rm_wb, set_wb = parse_triset(opt.whiteboard)
