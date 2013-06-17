@@ -351,6 +351,27 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug2.fixed_in, "-")
 
 
+    def test7ModifyMisc(self):
+        """
+        modify --dependson
+        """
+        bugid = "461686"
+        cmd = "bugzilla modify %s " % bugid
+        bz = self.bzclass(url=self.url, cookiefile=cf)
+        bug = bz.getbug(bugid)
+
+        # modify --dependson
+        tests.clicomm(cmd + "--dependson 123456", bz)
+        bug.refresh()
+        self.assertTrue(123456 in bug.depends_on)
+        tests.clicomm(cmd + "--dependson =111222", bz)
+        bug.refresh()
+        self.assertEquals([111222], bug.depends_on)
+        tests.clicomm(cmd + "--dependson -111222", bz)
+        bug.refresh()
+        self.assertEquals([], bug.depends_on)
+
+
     def test8Attachments(self):
         tmpdir = "__test_attach_output"
         if tmpdir in os.listdir("."):
@@ -627,3 +648,4 @@ class RHPartnerTest(BaseTest):
         bz.cookiefile = None
         bz.connect()
         self.assertFalse(bool(self._check_rh_privs(bz, "", True)))
+
