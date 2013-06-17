@@ -120,13 +120,11 @@ def setup_action_parser(action):
                 help="REQUIRED: bug summary")
         p.add_option('-l', '--comment', dest='description',
                 help="initial bug comment")
-        p.add_option('-o', '--os', dest='op_sys', help="operating system")
-        p.add_option('-a', '--arch', dest='platform',
-                help="arch this bug occurs on")
-        p.add_option('--severity', help="bug severity")
-        p.add_option('--priority', help="bug priority")
-        p.add_option('-u', '--url', dest='bug_file_loc',
-                help="URL for further bug info")
+        p.add_option('-o', '--os', help="Operating system")
+        p.add_option('-a', '--arch', help="Arch this bug occurs on")
+        p.add_option('--severity', help="Bug severity")
+        p.add_option('--priority', help="Bug priority")
+        p.add_option('-u', '--url', help="URL for further bug info")
         p.add_option('--cc', metavar='CC[, CC, ...]',
                 help="add emails to initial CC list")
         p.add_option('--blocked', metavar='BUGID[, BUGID, ...]',
@@ -774,26 +772,32 @@ def _parse_triset(vallist, checkplus=True, checkminus=True, checkequal=True,
 
 
 def _do_new(bz, opt):
-    data = {}
-    allopts = ["product", "version", "component", "description",
-               "summary", "op_sys", "platform", "severity", "priority",
-               "bug_file_loc", "cc", "blocked", "dependson", "groups"]
+    # Parse options that accept comma separated list
+    def parse_multi(val):
+        return _parse_triset(val, checkplus=False, checkminus=False,
+                             checkequal=False, splitcomma=True)[0]
 
-    # Handle options that take a list format
-    multiopts = ['cc', 'blocked', 'dependson', 'groups']
-
-    for key in allopts:
-        if not hasattr(opt, key) or getattr(opt, key) is None:
-            continue
-
-        data[key] = getattr(opt, key)
-        if key not in multiopts:
-            continue
-        data[key] = data[key].split(",")
+    ret = bz.build_createbug(
+        blocks=parse_multi(opt.blocked) or None,
+        cc=parse_multi(opt.cc) or None,
+        component=opt.component or None,
+        depends_on=parse_multi(opt.dependson) or None,
+        description=opt.description or None,
+        groups=parse_multi(opt.groups) or None,
+        op_sys=opt.os or None,
+        platform=opt.arch or None,
+        priority=opt.priority or None,
+        product=opt.product or None,
+        severity=opt.severity or None,
+        summary=opt.summary or None,
+        url=opt.url or None,
+        version=opt.version or None,
+    )
 
     if opt.test_return_result:
-        return data
-    b = bz.createbug(data)
+        return ret
+
+    b = bz.createbug(ret)
     b.refresh()
     return [b]
 

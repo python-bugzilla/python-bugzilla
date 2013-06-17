@@ -758,6 +758,7 @@ class BugzillaBase(object):
     # query methods #
     #################
 
+
     def build_query(self,
                     product=None,
                     component=None,
@@ -941,6 +942,7 @@ class BugzillaBase(object):
         '''
         d = {"ids": self._listify(idlist), "updates": flags}
         return self._proxy.Flag.update(d)
+
 
     def build_update(self,
                      alias=None,
@@ -1199,6 +1201,54 @@ class BugzillaBase(object):
 
     createbug_required = ('product', 'component', 'summary', 'version',
                           'description')
+
+    def build_createbug(self,
+        product=None,
+        component=None,
+        version=None,
+        summary=None,
+        description=None,
+        comment_private=None,
+        blocks=None,
+        cc=None,
+        depends_on=None,
+        groups=None,
+        op_sys=None,
+        platform=None,
+        priority=None,
+        qa_contact=None,
+        resolution=None,
+        severity=None,
+        status=None,
+        target_milestone=None,
+        target_release=None,
+        url=None):
+
+        localdict = {}
+        if blocks:
+            localdict["blocks"] = self._listify(blocks)
+        if cc:
+            localdict["cc"] = self._listify(cc)
+        if depends_on:
+            localdict["depends_on"] = self._listify(depends_on)
+        if groups:
+            localdict["groups"] = self._listify(groups)
+        if description:
+            localdict["description"] = description
+            if comment_private:
+                localdict["comment_is_private"] = True
+
+        # Most of the machinery and formatting here is the same as
+        # build_update, so reuse that as much as possible
+        ret = self.build_update(product=product, component=component,
+                version=version, summary=summary, op_sys=op_sys,
+                platform=platform, priority=priority, qa_contact=qa_contact,
+                resolution=resolution, severity=severity, status=status,
+                target_milestone=target_milestone,
+                target_release=target_release, url=url)
+
+        ret.update(localdict)
+        return ret
 
 
     def createbug(self, *args, **kwargs):

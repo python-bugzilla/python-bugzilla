@@ -55,7 +55,7 @@ class CreatebugTest(unittest.TestCase):
     def testSeverity(self):
         self.clicomm(
             "--severity HIGH --priority Low --url http://example.com",
-            {'bug_file_loc': 'http://example.com', 'priority': 'Low',
+            {'url': 'http://example.com', 'priority': 'Low',
              'severity': 'HIGH'}
         )
 
@@ -63,6 +63,6 @@ class CreatebugTest(unittest.TestCase):
         # Test all opts that can take lists
         self.clicomm(
             "--cc 1,2 --blocked 3,4 --dependson 5,foo --groups bar,8",
-            {'blocked': ['3', '4'], 'cc': ['1', '2'],
-             'dependson': ['5', 'foo'], 'groups': ['bar', '8']}
+            {'blocks': ['3', '4'], 'cc': ['1', '2'],
+             'depends_on': ['5', 'foo'], 'groups': ['bar', '8']}
         )
