@@ -417,16 +417,20 @@ class RHPartnerTest(BaseTest):
         # modify --os
         # modify --platform
         # modify --version
-        tests.clicomm(cmd + "--version 18 --os Windows --arch ppc", bz)
+        tests.clicomm(cmd + "--version 18 --os Windows --arch ppc "
+                            "--url http://example.com", bz)
         bug.refresh()
         self.assertEquals(bug.version, "18")
         self.assertEquals(bug.op_sys, "Windows")
         self.assertEquals(bug.platform, "ppc")
-        tests.clicomm(cmd + "--version rawhide --os Linux --arch s390", bz)
+        self.assertEquals(bug.url, "http://example.com")
+        tests.clicomm(cmd + "--version rawhide --os Linux --arch s390 "
+                            "--url http://example.com/fribby", bz)
         bug.refresh()
         self.assertEquals(bug.version, "rawhide")
         self.assertEquals(bug.op_sys, "Linux")
         self.assertEquals(bug.platform, "s390")
+        self.assertEquals(bug.url, "http://example.com/fribby")
 
 
     def test8Attachments(self):

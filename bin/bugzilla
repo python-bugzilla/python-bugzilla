@@ -261,6 +261,8 @@ def setup_action_parser(action):
                 help="Change operating system this bug occurs on")
         bgrp.add_option('-a', '--arch',
                 help="Change arch this bug occurs on")
+        bgrp.add_option('-u', '--url',
+                help="URL for further bug info")
         p.add_option_group(bgrp)
 
         sgrp = optparse.OptionGroup(p, "Bug status options")
@@ -830,6 +832,7 @@ def _do_modify(bz, parser, opt, args):
         blocks_add=add_blk or None,
         blocks_remove=rm_blk or None,
         blocks_set=set_blk,
+        url=opt.url or None,
         cc_add=add_cc or None,
         cc_remove=rm_cc or None,
         depends_on_add=add_deps or None,
