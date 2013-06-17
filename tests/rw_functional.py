@@ -252,6 +252,10 @@ class RHPartnerTest(BaseTest):
         self.assertTrue(email2 in bug.cc)
         self.assertEquals(len(bug.cc), 2)
 
+        tests.clicomm(cmd + "--cc -%s" % email1, bz)
+        bug.refresh()
+        self.assertTrue(email1 not in bug.cc)
+
         # Test assigned target
         tests.clicomm(cmd + "--assignee %s" % email1, bz)
         bug.refresh()

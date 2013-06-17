@@ -125,6 +125,7 @@ class ModifyTest(unittest.TestCase):
 
     def testCC(self):
         self.clicomm(
-            "--cc foo@example.com",
-            {'cc': {'add': ['foo@example.com']}},
+            "--cc foo@example.com --cc -minus@example.com "
+            "--cc =foo@example.com --cc +foo@example.com",
+            {'cc': {'add': ['foo@example.com', "=foo@example.com", "+foo@example.com"], 'remove': ["minus@example.com"]}},
         )

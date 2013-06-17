@@ -275,8 +275,8 @@ def setup_action_parser(action):
         egrp = optparse.OptionGroup(p, "Contact options")
         egrp.add_option('--assignee',
                 help='Assign bugzilla to assignee')
-        egrp.add_option('--cc', action='append',
-                help='Add an email to the cc list')
+        egrp.add_option('--cc', action='append', metavar="EMAIL",
+                help='Alter CC list. EMAIL appends, -EMAIL removes.')
         egrp.add_option('--qa_contact',
                 help='Change QA contact')
         egrp.add_option('--reset-assignee', action="store_true",
@@ -765,6 +765,9 @@ def _do_modify(bz, parser, opt, args):
 
     add_wb, rm_wb, set_wb = _parse_triset(opt.whiteboard)
     add_deps, rm_deps, set_deps = _parse_triset(opt.dependson, splitcomma=True)
+    add_cc, rm_cc, ignore = _parse_triset(opt.cc,
+                                          checkplus=False,
+                                          checkequal=False)
 
     status = opt.status or None
     if opt.dupeid is not None:
@@ -777,7 +780,8 @@ def _do_modify(bz, parser, opt, args):
         comment_private=opt.private or None,
         component=opt.component or None,
         product=opt.product or None,
-        cc_add=opt.cc and opt.cc[:] or None,
+        cc_add=add_cc or None,
+        cc_remove=rm_cc or None,
         depends_on_add=add_deps or None,
         depends_on_remove=rm_deps or None,
         depends_on_set=set_deps or None,
