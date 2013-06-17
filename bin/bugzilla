@@ -256,7 +256,7 @@ def setup_action_parser(action):
         p.add_option('-d', '--dupeid', metavar="ORIGINAL",
                 help='ID of original bug (implies -k DUPLICATE)')
         p.add_option('-p', '--private', action='store_true', default=False,
-                help='Mark as private')
+                help='Mark new comment as private')
         p.add_option('-s', '--status',
                 help='Change status of bug')
         p.add_option('--assignee',
@@ -278,7 +278,7 @@ def setup_action_parser(action):
                 help=('Alter status whiteboard text. TEXT appends, '
                       '-TEXT removes, =TEXT overwrites'))
         p.add_option('--product',
-                help="Reassing bug to different product")
+                help="Reassign bug to different product")
         p.add_option('-c', '--component',
                 help="Reassign bug to different component")
 
@@ -304,10 +304,6 @@ def setup_action_parser(action):
         p.set_description("Log into bugzilla and save a login cookie.")
 
     if action in ['new', 'query']:
-        # Used by unit tests, not for end user consumption
-        p.add_option('--test-return-result', action="store_true",
-                     help=optparse.SUPPRESS_HELP)
-
         outg = optparse.OptionGroup(p, "Output format options")
         outg.add_option('-f', '--full', action='store_const', dest='output',
                 const='full', default='normal',
@@ -328,6 +324,12 @@ def setup_action_parser(action):
                      "You can use RPM-style tags that match bug "
                      "fields, e.g.: '%{bug_id}: %{short_desc}'")
         p.add_option_group(outg)
+
+
+    if action in ['new', 'query', 'modify']:
+        # Used by unit tests, not for end user consumption
+        p.add_option('--test-return-result', action="store_true",
+                     help=optparse.SUPPRESS_HELP)
 
     return p
 
@@ -780,6 +782,9 @@ def _do_modify(bz, parser, opt, args):
         and rm_wb is None and add_wb is None):
         parser.error("'modify' command requires additional arguments")
 
+    if opt.test_return_result:
+        return (update, flags)
+
     if flags:
         bz.update_flags(bugid_list, flags)
     if update:
@@ -791,6 +796,7 @@ def _do_modify(bz, parser, opt, args):
     if rm_wb is None and add_wb is None:
         return
 
+    logging.debug("Adjusting whiteboard fields one by one")
     for bug in bz.getbugs(bugid_list):
         if add_wb:
             bug.addtag(add_wb)
@@ -989,8 +995,9 @@ def main(bzinstance=None):
             parser.error('No bug IDs given '
                          '(maybe you forgot an argument somewhere?)')
 
-        _do_modify(bz, parser, opt, args)
-
+        modout = _do_modify(bz, parser, opt, args)
+        if opt.test_return_result:
+            return modout
     else:
         raise RuntimeError("Unexpected action '%s'" % action)
 
