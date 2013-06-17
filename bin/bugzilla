@@ -279,6 +279,10 @@ def setup_action_parser(action):
                 help='Add an email to the cc list')
         egrp.add_option('--qa_contact',
                 help='Change QA contact')
+        egrp.add_option('--reset-assignee', action="store_true",
+                help='Reset assignee to component default')
+        egrp.add_option('--reset-qa-contact', action="store_true",
+                help='Reset QA contact to component default')
         p.add_option_group(egrp)
 
         tgrp = optparse.OptionGroup(p, "Tracking options")
@@ -783,6 +787,8 @@ def _do_modify(bz, parser, opt, args):
         qa_contact=opt.qa_contact or None,
         assigned_to=opt.assignee or None,
         status=status,
+        reset_assigned_to=opt.reset_assignee,
+        reset_qa_contact=opt.reset_qa_contact,
         resolution=opt.close or None,
         dupe_of=opt.dupeid or None,
         fixed_in=opt.fixed_in or None,

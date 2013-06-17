@@ -89,8 +89,11 @@ class ModifyTest(unittest.TestCase):
 
     def testMisc(self):
         self.clicomm(
-            "--fixed_in foo-bar-1.2.3",
-            {"cf_fixed_in": "foo-bar-1.2.3"}
+            "--fixed_in foo-bar-1.2.3 --reset-qa-contact --reset-assignee",
+            {"cf_fixed_in": "foo-bar-1.2.3",
+             'reset_assigned_to': True,
+             'reset_qa_contact': True,
+            }
         )
 
     def testDepends(self):

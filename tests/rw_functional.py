@@ -264,14 +264,12 @@ class RHPartnerTest(BaseTest):
 
         # Reset values
         bug.deletecc(bug.cc)
-        email = "wwoods@redhat.com"
-        tests.clicomm(cmd + "--assignee %s" % email, bz)
-        tests.clicomm(cmd + "--qa_contact %s" % email, bz)
+        tests.clicomm(cmd + "--reset-qa-contact --reset-assignee", bz)
 
         bug.refresh()
         self.assertEquals(bug.cc, [])
-        self.assertEquals(bug.assigned_to, email)
-        self.assertEquals(bug.qa_contact, email)
+        self.assertEquals(bug.assigned_to, "wwoods@redhat.com")
+        self.assertEquals(bug.qa_contact, "extras-qa@fedoraproject.org")
 
 
     def test7ModifyMultiFlags(self):
