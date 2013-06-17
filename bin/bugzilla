@@ -306,8 +306,20 @@ def setup_action_parser(action):
                 help="Alter bug keywords list. KEYWORD appends, "
                      "-KEYWORD removes, =KEYWORD overwrites")
         tgrp.add_option("", "--whiteboard", metavar="TEXT", action="append",
-                help=('Alter status whiteboard text. TEXT appends, '
-                      '-TEXT removes, =TEXT overwrites'))
+                help='Alter status whiteboard text. '
+                      'TEXT appends, -TEXT removes, =TEXT overwrites')
+        tgrp.add_option("--devel_whiteboard",
+                metavar="TEXT", action="append",
+                help='Alter devel whiteboard text. '
+                      'TEXT appends, -TEXT removes, =TEXT overwrites')
+        tgrp.add_option("--internal_whiteboard",
+                metavar="TEXT", action="append",
+                help='Alter internal whiteboard text. '
+                      'TEXT appends, -TEXT removes, =TEXT overwrites')
+        tgrp.add_option("--qa_whiteboard",
+                metavar="TEXT", action="append",
+                help='Alter QA whiteboard. '
+                      'TEXT appends, -TEXT removes, =TEXT overwrites')
         p.add_option_group(tgrp)
 
 
@@ -776,6 +788,10 @@ def _do_modify(bz, parser, opt, args):
                         [a.split(",") for a in args])
 
     add_wb, rm_wb, set_wb = _parse_triset(opt.whiteboard)
+    add_devwb, rm_devwb, set_devwb = _parse_triset(opt.devel_whiteboard)
+    add_intwb, rm_intwb, set_intwb = _parse_triset(opt.internal_whiteboard)
+    add_qawb, rm_qawb, set_qawb = _parse_triset(opt.qa_whiteboard)
+
     add_blk, rm_blk, set_blk = _parse_triset(opt.blocked, splitcomma=True)
     add_deps, rm_deps, set_deps = _parse_triset(opt.dependson, splitcomma=True)
     add_key, rm_key, set_key = _parse_triset(opt.keywords)
@@ -818,7 +834,11 @@ def _do_modify(bz, parser, opt, args):
         resolution=opt.close or None,
         dupe_of=opt.dupeid or None,
         fixed_in=opt.fixed_in or None,
-        whiteboard=set_wb and set_wb[0] or None)
+        whiteboard=set_wb and set_wb[0] or None,
+        devel_whiteboard=set_devwb and set_devwb[0] or None,
+        internal_whiteboard=set_intwb and set_intwb[0] or None,
+        qa_whiteboard=set_qawb and set_qawb[0] or None,
+    )
 
     flags = []
     if opt.flag:
@@ -826,33 +846,44 @@ def _do_modify(bz, parser, opt, args):
         for f in opt.flag:
             flags.append({"name": f[:-1], "status": f[-1]})
 
+    # We make this a little convoluted to facilitate unit testing
+    wbmap = {
+        "status": (add_wb, rm_wb),
+        "internal": (add_intwb, rm_intwb),
+        "qa": (add_qawb, rm_qawb),
+        "devel": (add_devwb, rm_devwb),
+    }
+    for key in wbmap.keys():
+        if not wbmap[key][0] and not wbmap[key][1]:
+            wbmap.pop(key)
+
     log.debug("update bug dict=%s", update)
     log.debug("update flags dict=%s", flags)
+    log.debug("update whiteboard dict=%s", wbmap)
 
-    if (not flags and not update
-        and rm_wb is None and add_wb is None):
+    if (not flags and not update and not wbmap):
         parser.error("'modify' command requires additional arguments")
 
     if opt.test_return_result:
-        return (update, flags)
+        return (update, flags, wbmap)
 
     if flags:
         bz.update_flags(bugid_list, flags)
     if update:
         bz.update_bugs(bugid_list, update)
 
+    if not wbmap:
+        return
 
     # Now for the things we can't blindly batch.
     # This could be improved to batch identical updates.
-    if rm_wb is None and add_wb is None:
-        return
-
     logging.debug("Adjusting whiteboard fields one by one")
     for bug in bz.getbugs(bugid_list):
-        for tag in add_wb:
-            bug.addtag(tag)
-        for tag in rm_wb:
-            bug.deltag(tag)
+        for wbtype, (add_list, rm_list) in wbmap.items():
+            for tag in add_list:
+                bug.addtag(tag, which=wbtype)
+            for tag in rm_list:
+                bug.deltag(tag, which=wbtype)
 
 
 def _do_get_attach(bz, opt, parser, args):

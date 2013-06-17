@@ -488,15 +488,17 @@ class RHPartnerTest(BaseTest):
     def test9Whiteboards(self):
         bz = self.bzclass(url=self.url, cookiefile=cf)
         bug_id = "663674"
-        bug = bz.getbug("663674")
+        cmd = "bugzilla modify %s " % bug_id
+        bug = bz.getbug(bug_id)
 
         # Set all whiteboards
         initval = str(random.randint(1, 1024))
-        bug.setwhiteboard(initval + "status", "status")
-        bug.setwhiteboard(initval + "qa", "qa")
-        bug.setwhiteboard(initval + "devel", "devel")
-        bug.setwhiteboard(initval + "internal, security, foo security1",
-                         "internal")
+        tests.clicomm(cmd +
+                "--whiteboard =%sstatus "
+                "--devel_whiteboard =%sdevel "
+                "--internal_whiteboard '=%sinternal, security, foo security1' "
+                "--qa_whiteboard =%sqa " %
+                (initval, initval, initval, initval), bz)
 
         bug.refresh()
         self.assertEquals(bug.whiteboard, initval + "status")
@@ -505,29 +507,21 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug.internal_whiteboard,
                           initval + "internal, security, foo security1")
 
-        # Via the command line
-        tests.clicomm("bugzilla modify %s --whiteboard foo" % bug_id, bz)
-        bug.refresh()
-        self.assertEquals(bug.whiteboard, initval + "status foo")
-
-        tests.clicomm("bugzilla modify %s --whiteboard =%s" %
-                      (bug_id, initval + "status"), bz)
-        bug.refresh()
-        self.assertEquals(bug.whiteboard, initval + "status")
-
         # Modify whiteboards
-        bug.appendwhiteboard("-app", "qa")
+        tests.clicomm(cmd +
+                      "--whiteboard =foobar "
+                      "--qa_whiteboard _app ", bz)
         bug.prependwhiteboard("pre-", "devel")
-        bug.setwhiteboard("foobar", "status")
 
         bug.refresh()
-        self.assertEquals(bug.qa_whiteboard, initval + "qa" + " -app")
+        self.assertEquals(bug.qa_whiteboard, initval + "qa" + " _app")
         self.assertEquals(bug.devel_whiteboard, "pre- " + initval + "devel")
         self.assertEquals(bug.status_whiteboard, "foobar")
 
         # Verify that tag manipulation is smart about separator
-        bug.deltag("-app", "qa")
-        bug.deltag("security", "internal")
+        tests.clicomm(cmd +
+                      "--qa_whiteboard -_app "
+                      "--internal_whiteboard -security", bz)
         bug.refresh()
 
         self.assertEquals(bug.qa_whiteboard, initval + "qa")

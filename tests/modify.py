@@ -29,16 +29,19 @@ class ModifyTest(unittest.TestCase):
             return unittest.TestCase.assertDictEqual(self, *args, **kwargs)
         return self.assertEqual(*args, **kwargs)
 
-    def clicomm(self, argstr, out, flagsout=None):
+    def clicomm(self, argstr, out, flagsout=None, wbout=None):
         comm = "bugzilla modify --test-return-result 123456 224466 " + argstr
 
         if out is None:
             self.assertRaises(RuntimeError, tests.clicomm, comm, self.bz)
         else:
-            (mdict, fdict) = tests.clicomm(comm, self.bz, returnmain=True)
+            (mdict, fdict, wdict) = tests.clicomm(comm,
+                                                  self.bz, returnmain=True)
+            if wbout:
+                self.assertDictEqual(wbout, wdict)
             if flagsout:
                 self.assertEqual(flagsout, fdict)
-            else:
+            if out:
                 self.assertDictEqual(out, mdict)
 
     def testBasic(self):
@@ -80,15 +83,25 @@ class ModifyTest(unittest.TestCase):
         )
 
     def testWhiteboard(self):
-        # Whiteboard +/- doesn't go through updatebugs, so this
-        # expected to be empty
         self.clicomm(
             "--whiteboard tagfoo --whiteboard -tagbar",
-            {}
+            {}, wbout={"status": (["tagfoo"], ["tagbar"])}
         )
         self.clicomm(
             "--whiteboard =foo --whiteboard =thisone",
             {'whiteboard': 'thisone'}
+        )
+
+        self.clicomm(
+            "--qa_whiteboard =yo-qa --qa_whiteboard -foo "
+            "--internal_whiteboard =internal-hey --internal_whiteboard +bar "
+            "--devel_whiteboard =devel-duh --devel_whiteboard -yay",
+            {'cf_devel_whiteboard': 'devel-duh',
+             'cf_internal_whiteboard': 'internal-hey',
+             'cf_qa_whiteboard': 'yo-qa'}, wbout={
+            "qa": ([], ["foo"]),
+            "internal": (["bar"], []),
+            "devel": ([], ["yay"])},
         )
 
     def testMisc(self):
