@@ -283,6 +283,9 @@ def setup_action_parser(action):
                 help='Reset assignee to component default')
         egrp.add_option('--reset-qa-contact', action="store_true",
                 help='Reset QA contact to component default')
+        egrp.add_option('--groups', metavar='GROUP[, GROUP, ...]',
+                action="append",
+                help="add groups to which bug is visible")
         p.add_option_group(egrp)
 
         tgrp = optparse.OptionGroup(p, "Tracking options")
@@ -768,6 +771,9 @@ def _do_modify(bz, parser, opt, args):
     add_cc, rm_cc, ignore = _parse_triset(opt.cc,
                                           checkplus=False,
                                           checkequal=False)
+    add_groups, rm_groups, ignore = _parse_triset(opt.groups,
+                                                  checkequal=False,
+                                                  splitcomma=True)
 
     status = opt.status or None
     if opt.dupeid is not None:
@@ -785,6 +791,8 @@ def _do_modify(bz, parser, opt, args):
         depends_on_add=add_deps or None,
         depends_on_remove=rm_deps or None,
         depends_on_set=set_deps or None,
+        groups_add=add_groups or None,
+        groups_remove=rm_groups or None,
         qa_contact=opt.qa_contact or None,
         assigned_to=opt.assignee or None,
         status=status,

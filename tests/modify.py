@@ -99,6 +99,10 @@ class ModifyTest(unittest.TestCase):
              'reset_qa_contact': True,
             }
         )
+        self.clicomm(
+            "--groups +foo --groups -bar,baz --groups fribby",
+            {'groups': {'add': ['foo', 'fribby'], 'remove': ['bar', 'baz']}}
+        )
 
     def testDepends(self):
         self.clicomm(
