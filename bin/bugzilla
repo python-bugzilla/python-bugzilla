@@ -125,13 +125,17 @@ def setup_action_parser(action):
         p.add_option('--severity', help="Bug severity")
         p.add_option('--priority', help="Bug priority")
         p.add_option('-u', '--url', help="URL for further bug info")
-        p.add_option('--cc', metavar='CC[, CC, ...]',
+        p.add_option('--cc',
+                metavar='CC[, CC, ...]', action="append",
                 help="add emails to initial CC list")
-        p.add_option('--blocked', metavar='BUGID[, BUGID, ...]',
+        p.add_option('--blocked',
+                metavar='BUGID[, BUGID, ...]', action="append",
                 help="add bug_ids blocked by this bug")
-        p.add_option('--dependson', metavar='BUGID[, BUGID, ...]',
+        p.add_option('--dependson',
+                metavar='BUGID[, BUGID, ...]', action="append",
                 help="add bug_ids that this bug depends on")
-        p.add_option('--groups', metavar='GROUP[, GROUP, ...]',
+        p.add_option('--groups',
+                metavar='GROUP[, GROUP, ...]', action="append",
                 help="add groups to which bug is visible")
 
     elif action == 'query':

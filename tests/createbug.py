@@ -61,8 +61,14 @@ class CreatebugTest(unittest.TestCase):
 
     def testMultiOpts(self):
         # Test all opts that can take lists
+        out = {'blocks': ['3', '4'], 'cc': ['1', '2'],
+               'depends_on': ['5', 'foo', 'wib'], 'groups': ['bar', '8']}
         self.clicomm(
-            "--cc 1,2 --blocked 3,4 --dependson 5,foo --groups bar,8",
-            {'blocks': ['3', '4'], 'cc': ['1', '2'],
-             'depends_on': ['5', 'foo'], 'groups': ['bar', '8']}
+            "--cc 1,2 --blocked 3,4 --dependson 5,foo,wib --groups bar,8",
+            out
+        )
+        self.clicomm(
+            "--cc 1 --cc 2 --blocked 3 --blocked 4 "
+            "--dependson 5,foo --dependson wib --groups bar --groups 8",
+            out
         )
