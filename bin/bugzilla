@@ -293,6 +293,8 @@ def setup_action_parser(action):
                 help='Update bugzilla flags with requested type, '
                      'ie fedora-cvs?, or needinfoX to clear '
                      '(Use a new option for each flag)')
+        tgrp.add_option('--severity', help="Change bug severity")
+        tgrp.add_option('--priority', help="Change bug priority")
         tgrp.add_option('--target_milestone', help="Set target milestone")
         tgrp.add_option('--target_release', help="Set target release")
         tgrp.add_option('--blocked',
@@ -811,6 +813,7 @@ def _do_modify(bz, parser, opt, args):
         status = "CLOSED"
 
     update = bz.build_update(
+        assigned_to=opt.assignee or None,
         comment=opt.comment or None,
         comment_private=opt.private or None,
         component=opt.component or None,
@@ -828,8 +831,9 @@ def _do_modify(bz, parser, opt, args):
         keywords_add=add_key or None,
         keywords_remove=rm_key or None,
         keywords_set=set_key,
+        priority=opt.priority or None,
         qa_contact=opt.qa_contact or None,
-        assigned_to=opt.assignee or None,
+        severity=opt.severity or None,
         status=status,
         reset_assigned_to=opt.reset_assignee,
         reset_qa_contact=opt.reset_qa_contact,

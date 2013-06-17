@@ -119,6 +119,10 @@ class ModifyTest(unittest.TestCase):
             "--target_milestone foomile --target_release relfoo",
             {"target_milestone": "foomile", "target_release": "relfoo"},
         )
+        self.clicomm(
+            "--priority medium --severity high",
+            {"priority": "medium", "severity": "high"},
+        )
 
     def testDepends(self):
         self.clicomm(

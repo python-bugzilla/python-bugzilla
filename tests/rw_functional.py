@@ -403,6 +403,17 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(targetbug.target_milestone, "rc")
         self.assertEquals(targetbug.target_release, ["6.0"])
 
+        # modify --priority
+        # modify --severity
+        tests.clicomm(cmd + "--priority low --severity high", bz)
+        bug.refresh()
+        self.assertEquals(bug.priority, "low")
+        self.assertEquals(bug.severity, "high")
+        tests.clicomm(cmd + "--priority medium --severity medium", bz)
+        bug.refresh()
+        self.assertEquals(bug.priority, "medium")
+        self.assertEquals(bug.severity, "medium")
+
 
     def test8Attachments(self):
         tmpdir = "__test_attach_output"
