@@ -356,6 +356,8 @@ class RHPartnerTest(BaseTest):
     def test7ModifyMisc(self):
         """
         modify --dependson
+        modify --blocked
+        modify --keywords
         """
         bugid = "461686"
         cmd = "bugzilla modify %s " % bugid
@@ -372,6 +374,23 @@ class RHPartnerTest(BaseTest):
         tests.clicomm(cmd + "--dependson -111222", bz)
         bug.refresh()
         self.assertEquals([], bug.depends_on)
+
+        # modify --blocked
+        tests.clicomm(cmd + "--blocked 123,456", bz)
+        bug.refresh()
+        self.assertEquals([123, 456], bug.blocks)
+        tests.clicomm(cmd + "--blocked =", bz)
+        bug.refresh()
+        self.assertEquals([], bug.blocks)
+
+        # modify --keywords
+        tests.clicomm(cmd + "--keywords +Documentation --keywords EasyFix", bz)
+        bug.refresh()
+        self.assertEquals(["Documentation", "EasyFix"], bug.keywords)
+        tests.clicomm(cmd + "--keywords -EasyFix --keywords -Documentation",
+                      bz)
+        bug.refresh()
+        self.assertEquals([], bug.keywords)
 
 
     def test8Attachments(self):
@@ -650,4 +669,3 @@ class RHPartnerTest(BaseTest):
         bz.cookiefile = None
         bz.connect()
         self.assertFalse(bool(self._check_rh_privs(bz, "", True)))
-

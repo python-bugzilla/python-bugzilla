@@ -96,8 +96,7 @@ class ModifyTest(unittest.TestCase):
             "--fixed_in foo-bar-1.2.3 --reset-qa-contact --reset-assignee",
             {"cf_fixed_in": "foo-bar-1.2.3",
              'reset_assigned_to': True,
-             'reset_qa_contact': True,
-            }
+             'reset_qa_contact': True}
         )
         self.clicomm(
             "--groups +foo --groups -bar,baz --groups fribby",
@@ -126,10 +125,23 @@ class ModifyTest(unittest.TestCase):
             "--dependson 1 --dependson -2 --dependson +3 --dependson =4",
             {'depends_on': {'add': [1, 3], 'remove': [2], 'set': [4]}}
         )
+        self.clicomm(
+            "--blocked 5 --blocked -6 --blocked +7 --blocked =8,9",
+            {'blocks': {'add': [5, 7], 'remove': [6], 'set': [8, 9]}}
+        )
+        self.clicomm(
+            "--keywords foo --keywords -bar --keywords +baz --keywords =yay",
+            {'keywords': {'add': ["foo", "baz"],
+                          'remove': ["bar"], 'set': ["yay"]}}
+        )
+        self.clicomm("--keywords =", {'keywords': {'set': []}})
+
 
     def testCC(self):
         self.clicomm(
             "--cc foo@example.com --cc -minus@example.com "
             "--cc =foo@example.com --cc +foo@example.com",
-            {'cc': {'add': ['foo@example.com', "=foo@example.com", "+foo@example.com"], 'remove': ["minus@example.com"]}},
+            {'cc': {'add': ['foo@example.com', "=foo@example.com",
+                            "+foo@example.com"],
+                    'remove': ["minus@example.com"]}},
         )

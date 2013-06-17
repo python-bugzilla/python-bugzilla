@@ -293,10 +293,18 @@ def setup_action_parser(action):
                 help='Update bugzilla flags with requested type, '
                      'ie fedora-cvs?, or needinfoX to clear '
                      '(Use a new option for each flag)')
+        tgrp.add_option('--blocked',
+                metavar='BUGID[, BUGID, ...]', action="append",
+                help="Add bug_ids blocked by this bug. BUGID appends, "
+                     "-BUGID removes, =BUGID overwrites")
         tgrp.add_option('--dependson', metavar='BUGID[, BUGID, ...]',
                 action="append",
                 help=('Alter depends_on list.  BUGID appends, '
                      '-BUGID removes, =BUGID overwrites'))
+        tgrp.add_option('--keywords',
+                metavar='KEYWORD', action="append",
+                help="Alter bug keywords list. KEYWORD appends, "
+                     "-KEYWORD removes, =KEYWORD overwrites")
         tgrp.add_option("", "--whiteboard", metavar="TEXT", action="append",
                 help=('Alter status whiteboard text. TEXT appends, '
                       '-TEXT removes, =TEXT overwrites'))
@@ -708,11 +716,12 @@ def _format_output(bz, opt, buglist):
     for b in buglist:
         print format_field_re.sub(bug_field, opt.outputformat)
 
+
 def _parse_triset(vallist, checkplus=True, checkminus=True, checkequal=True,
                   splitcomma=False):
     add_val = []
     rm_val = []
-    set_val = []
+    set_val = None
 
     def make_list(v):
         if not v:
@@ -767,7 +776,9 @@ def _do_modify(bz, parser, opt, args):
                         [a.split(",") for a in args])
 
     add_wb, rm_wb, set_wb = _parse_triset(opt.whiteboard)
+    add_blk, rm_blk, set_blk = _parse_triset(opt.blocked, splitcomma=True)
     add_deps, rm_deps, set_deps = _parse_triset(opt.dependson, splitcomma=True)
+    add_key, rm_key, set_key = _parse_triset(opt.keywords)
     add_cc, rm_cc, ignore = _parse_triset(opt.cc,
                                           checkplus=False,
                                           checkequal=False)
@@ -786,13 +797,19 @@ def _do_modify(bz, parser, opt, args):
         comment_private=opt.private or None,
         component=opt.component or None,
         product=opt.product or None,
+        blocks_add=add_blk or None,
+        blocks_remove=rm_blk or None,
+        blocks_set=set_blk,
         cc_add=add_cc or None,
         cc_remove=rm_cc or None,
         depends_on_add=add_deps or None,
         depends_on_remove=rm_deps or None,
-        depends_on_set=set_deps or None,
+        depends_on_set=set_deps,
         groups_add=add_groups or None,
         groups_remove=rm_groups or None,
+        keywords_add=add_key or None,
+        keywords_remove=rm_key or None,
+        keywords_set=set_key,
         qa_contact=opt.qa_contact or None,
         assigned_to=opt.assignee or None,
         status=status,
