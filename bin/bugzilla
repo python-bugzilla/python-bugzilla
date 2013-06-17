@@ -249,39 +249,52 @@ def setup_action_parser(action):
     elif action == 'modify':
         p.set_usage("%prog modify [options] BUGID [BUGID...]")
         p.set_description("Modify one or more bugs.")
-        p.add_option('-l', '--comment',
-                help='Add a comment')
-        p.add_option('-k', '--close', metavar="RESOLUTION",
-                help='Close with the given resolution')
-        p.add_option('-d', '--dupeid', metavar="ORIGINAL",
-                help='ID of original bug (implies -k DUPLICATE)')
-        p.add_option('-p', '--private', action='store_true', default=False,
-                help='Mark new comment as private')
-        p.add_option('-s', '--status',
-                help='Change status of bug')
-        p.add_option('--assignee',
-                help='Assign bugzilla to assignee')
-        p.add_option('--qa_contact',
-                help='Change QA contact')
-        p.add_option('-f', '--flag', action='append',
-                help='Update bugzilla flags with requested type, '
-                     'ie fedora-cvs?, or needinfoX to clear '
-                     '(Use a new option for each flag)')
-        p.add_option('--cc', action='append',
-                help='Add an email to the cc list')
-        p.add_option('--dependson', metavar='BUGID[, BUGID, ...]',
-                action="append",
-                help=('Alter depends_on list.  BUGID appends, '
-                     '-BUGID removes, =BUGID overwrites'))
-        p.add_option('-F', '--fixed_in', metavar="VERSION",
-                help='"Fixed in version" field')
-        p.add_option("", "--whiteboard", metavar="TEXT",
-                help=('Alter status whiteboard text. TEXT appends, '
-                      '-TEXT removes, =TEXT overwrites'))
         p.add_option('--product',
                 help="Reassign bug to different product")
         p.add_option('-c', '--component',
                 help="Reassign bug to different component")
+
+        sgrp = optparse.OptionGroup(p, "Bug status options")
+        sgrp.add_option('-s', '--status',
+                help='Change status of bug')
+        sgrp.add_option('-k', '--close', metavar="RESOLUTION",
+                help='Close with the given resolution')
+        sgrp.add_option('-d', '--dupeid', metavar="ORIGINAL",
+                help='ID of original bug (implies -k DUPLICATE)')
+        sgrp.add_option('-F', '--fixed_in', metavar="VERSION",
+                help='"Fixed in version" field')
+        p.add_option_group(sgrp)
+
+        cgrp = optparse.OptionGroup(p, "Comment options")
+        cgrp.add_option('-l', '--comment',
+                help='Add a comment')
+        cgrp.add_option('-p', '--private', action='store_true', default=False,
+                help='Mark new comment as private')
+        p.add_option_group(cgrp)
+
+        egrp = optparse.OptionGroup(p, "Contact options")
+        egrp.add_option('--assignee',
+                help='Assign bugzilla to assignee')
+        egrp.add_option('--cc', action='append',
+                help='Add an email to the cc list')
+        egrp.add_option('--qa_contact',
+                help='Change QA contact')
+        p.add_option_group(egrp)
+
+        tgrp = optparse.OptionGroup(p, "Tracking options")
+        tgrp.add_option('-f', '--flag', action='append',
+                help='Update bugzilla flags with requested type, '
+                     'ie fedora-cvs?, or needinfoX to clear '
+                     '(Use a new option for each flag)')
+        tgrp.add_option('--dependson', metavar='BUGID[, BUGID, ...]',
+                action="append",
+                help=('Alter depends_on list.  BUGID appends, '
+                     '-BUGID removes, =BUGID overwrites'))
+        tgrp.add_option("", "--whiteboard", metavar="TEXT",
+                help=('Alter status whiteboard text. TEXT appends, '
+                      '-TEXT removes, =TEXT overwrites'))
+        p.add_option_group(tgrp)
+
 
     elif action == 'attach':
         p.set_usage('''
@@ -327,8 +340,8 @@ def setup_action_parser(action):
         p.add_option_group(outg)
 
 
+    # Used by unit tests, not for end user consumption
     if action in ['new', 'query', 'modify']:
-        # Used by unit tests, not for end user consumption
         p.add_option('--test-return-result', action="store_true",
                      help=optparse.SUPPRESS_HELP)
 
