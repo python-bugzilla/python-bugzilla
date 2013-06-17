@@ -293,6 +293,8 @@ def setup_action_parser(action):
                 help='Update bugzilla flags with requested type, '
                      'ie fedora-cvs?, or needinfoX to clear '
                      '(Use a new option for each flag)')
+        tgrp.add_option('--target_milestone', help="Set target milestone")
+        tgrp.add_option('--target_release', help="Set target release")
         tgrp.add_option('--blocked',
                 metavar='BUGID[, BUGID, ...]', action="append",
                 help="Add bug_ids blocked by this bug. BUGID appends, "
@@ -832,6 +834,8 @@ def _do_modify(bz, parser, opt, args):
         reset_assigned_to=opt.reset_assignee,
         reset_qa_contact=opt.reset_qa_contact,
         resolution=opt.close or None,
+        target_release=opt.target_release or None,
+        target_milestone=opt.target_milestone or None,
         dupe_of=opt.dupeid or None,
         fixed_in=opt.fixed_in or None,
         whiteboard=set_wb and set_wb[0] or None,

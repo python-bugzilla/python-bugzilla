@@ -981,6 +981,7 @@ class BugzillaBase(object):
                      status=None,
                      summary=None,
                      target_milestone=None,
+                     target_release=None,
                      url=None,
                      version=None,
                      whiteboard=None,
@@ -1054,6 +1055,7 @@ class BugzillaBase(object):
         s("status", status)
         s("summary", summary)
         s("target_milestone", target_milestone)
+        s("target_release", target_release)
         s("url", url)
         s("version", version)
         s("whiteboard", whiteboard)

@@ -354,11 +354,6 @@ class RHPartnerTest(BaseTest):
 
 
     def test7ModifyMisc(self):
-        """
-        modify --dependson
-        modify --blocked
-        modify --keywords
-        """
         bugid = "461686"
         cmd = "bugzilla modify %s " % bugid
         bz = self.bzclass(url=self.url, cookiefile=cf)
@@ -391,6 +386,22 @@ class RHPartnerTest(BaseTest):
                       bz)
         bug.refresh()
         self.assertEquals([], bug.keywords)
+
+        # modify --target_release
+        # modify --target_milestone
+        targetbugid = 831888
+        targetbug = bz.getbug(targetbugid)
+        targetcmd = "bugzilla modify %s " % targetbugid
+        tests.clicomm(targetcmd +
+                      "--target_milestone beta --target_release 6.2", bz)
+        targetbug.refresh()
+        self.assertEquals(targetbug.target_milestone, "beta")
+        self.assertEquals(targetbug.target_release, ["6.2"])
+        tests.clicomm(targetcmd +
+                      "--target_milestone rc --target_release 6.0", bz)
+        targetbug.refresh()
+        self.assertEquals(targetbug.target_milestone, "rc")
+        self.assertEquals(targetbug.target_release, ["6.0"])
 
 
     def test8Attachments(self):

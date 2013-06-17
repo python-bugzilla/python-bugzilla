@@ -115,6 +115,10 @@ class ModifyTest(unittest.TestCase):
             "--groups +foo --groups -bar,baz --groups fribby",
             {'groups': {'add': ['foo', 'fribby'], 'remove': ['bar', 'baz']}}
         )
+        self.clicomm(
+            "--target_milestone foomile --target_release relfoo",
+            {"target_milestone": "foomile", "target_release": "relfoo"},
+        )
 
     def testDepends(self):
         self.clicomm(
