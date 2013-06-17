@@ -414,6 +414,20 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug.priority, "medium")
         self.assertEquals(bug.severity, "medium")
 
+        # modify --os
+        # modify --platform
+        # modify --version
+        tests.clicomm(cmd + "--version 18 --os Windows --arch ppc", bz)
+        bug.refresh()
+        self.assertEquals(bug.version, "18")
+        self.assertEquals(bug.op_sys, "Windows")
+        self.assertEquals(bug.platform, "ppc")
+        tests.clicomm(cmd + "--version rawhide --os Linux --arch s390", bz)
+        bug.refresh()
+        self.assertEquals(bug.version, "rawhide")
+        self.assertEquals(bug.op_sys, "Linux")
+        self.assertEquals(bug.platform, "s390")
+
 
     def test8Attachments(self):
         tmpdir = "__test_attach_output"

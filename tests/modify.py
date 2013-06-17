@@ -123,6 +123,10 @@ class ModifyTest(unittest.TestCase):
             "--priority medium --severity high",
             {"priority": "medium", "severity": "high"},
         )
+        self.clicomm(
+            "--os Windows --arch ia64 --version 1000",
+            {"op_sys": "Windows", "platform": "ia64", "version": "1000"},
+        )
 
     def testDepends(self):
         self.clicomm(

@@ -243,16 +243,25 @@ def setup_action_parser(action):
                 help='List the components in the given product')
         p.add_option('-o', '--component_owners', metavar="PRODUCT",
                 help='List components (and their owners)')
-        p.add_option('-v', '--versions', metavar="PRODUCT",
+        p.add_option('-v', '--versions', metavar="VERSION",
                 help='List the versions for the given product')
 
     elif action == 'modify':
         p.set_usage("%prog modify [options] BUGID [BUGID...]")
         p.set_description("Modify one or more bugs.")
-        p.add_option('--product',
+
+        bgrp = optparse.OptionGroup(p, "Bug details")
+        bgrp.add_option('--product',
                 help="Reassign bug to different product")
-        p.add_option('-c', '--component',
+        bgrp.add_option('-c', '--component',
                 help="Reassign bug to different component")
+        bgrp.add_option("-v", '--version',
+                help="Reassign bug to different version")
+        bgrp.add_option('-o', '--os',
+                help="Change operating system this bug occurs on")
+        bgrp.add_option('-a', '--arch',
+                help="Change arch this bug occurs on")
+        p.add_option_group(bgrp)
 
         sgrp = optparse.OptionGroup(p, "Bug status options")
         sgrp.add_option('-s', '--status',
@@ -831,10 +840,13 @@ def _do_modify(bz, parser, opt, args):
         keywords_add=add_key or None,
         keywords_remove=rm_key or None,
         keywords_set=set_key,
+        op_sys=opt.os or None,
+        platform=opt.arch or None,
         priority=opt.priority or None,
         qa_contact=opt.qa_contact or None,
         severity=opt.severity or None,
         status=status,
+        version=opt.version or None,
         reset_assigned_to=opt.reset_assignee,
         reset_qa_contact=opt.reset_qa_contact,
         resolution=opt.close or None,
