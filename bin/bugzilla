@@ -294,7 +294,7 @@ def setup_action_parser(action):
                 action="append",
                 help=('Alter depends_on list.  BUGID appends, '
                      '-BUGID removes, =BUGID overwrites'))
-        tgrp.add_option("", "--whiteboard", metavar="TEXT",
+        tgrp.add_option("", "--whiteboard", metavar="TEXT", action="append",
                 help=('Alter status whiteboard text. TEXT appends, '
                       '-TEXT removes, =TEXT overwrites'))
         p.add_option_group(tgrp)
@@ -705,6 +705,34 @@ def _format_output(bz, opt, buglist):
     for b in buglist:
         print format_field_re.sub(bug_field, opt.outputformat)
 
+def _parse_triset(vallist, checkplus=True, checkminus=True, checkequal=True,
+                  splitcomma=False):
+    add_val = []
+    rm_val = []
+    set_val = []
+
+    def make_list(v):
+        if not v:
+            return []
+        if splitcomma:
+            return v.split(",")
+        return [v]
+
+    for val in type(vallist) is list and vallist or [vallist]:
+        val = val or ""
+
+        if val.startswith("+") and checkplus:
+            add_val += make_list(val[1:])
+        elif val.startswith("-") and checkminus:
+            rm_val += make_list(val[1:])
+        elif val.startswith("=") and checkequal:
+            # Intentionally overwrite this
+            set_val = make_list(val[1:])
+        else:
+            add_val += make_list(val)
+
+    return add_val, rm_val, set_val
+
 
 def _do_new(bz, opt):
     data = {}
@@ -735,45 +763,14 @@ def _do_modify(bz, parser, opt, args):
     bugid_list = reduce(lambda l1, l2: l1 + l2,
                         [a.split(",") for a in args])
 
+    add_wb, rm_wb, set_wb = _parse_triset(opt.whiteboard)
+    add_deps, rm_deps, set_deps = _parse_triset(opt.dependson, splitcomma=True)
+
     status = opt.status or None
     if opt.dupeid is not None:
         opt.close = "DUPLICATE"
     if opt.close:
         status = "CLOSED"
-
-    def parse_triset(val):
-        val = val or ""
-        add_val = None
-        rm_val = None
-        set_val = None
-
-        if val.startswith("+"):
-            add_val = val[1:]
-        elif val.startswith("-"):
-            rm_val = val[1:]
-        elif val.startswith("="):
-            set_val = val[1:]
-        else:
-            add_val = val
-        return add_val, rm_val, set_val
-
-    def parse_triset_list(vallist):
-        add_val = []
-        rm_val = []
-        set_val = []
-
-        for val in type(vallist) is list and vallist or [vallist]:
-            add, rm, s = parse_triset(val)
-            if add:
-                add_val += add.split(",")
-            if rm:
-                rm_val += rm.split(",")
-            if s:
-                set_val += s.split(",")
-        return add_val, rm_val, set_val
-
-    add_wb, rm_wb, set_wb = parse_triset(opt.whiteboard)
-    add_deps, rm_deps, set_deps = parse_triset_list(opt.dependson)
 
     update = bz.build_update(
         comment=opt.comment or None,
@@ -792,7 +789,7 @@ def _do_modify(bz, parser, opt, args):
         resolution=opt.close or None,
         dupe_of=opt.dupeid or None,
         fixed_in=opt.fixed_in or None,
-        whiteboard=set_wb or None)
+        whiteboard=set_wb and set_wb[0] or None)
 
     flags = []
     if opt.flag:
@@ -823,10 +820,10 @@ def _do_modify(bz, parser, opt, args):
 
     logging.debug("Adjusting whiteboard fields one by one")
     for bug in bz.getbugs(bugid_list):
-        if add_wb:
-            bug.addtag(add_wb)
-        if rm_wb:
-            bug.deltag(rm_wb)
+        for tag in add_wb:
+            bug.addtag(tag)
+        for tag in rm_wb:
+            bug.deltag(tag)
 
 
 def _do_get_attach(bz, opt, parser, args):

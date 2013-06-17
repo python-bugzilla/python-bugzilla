@@ -80,11 +80,15 @@ class ModifyTest(unittest.TestCase):
         )
 
     def testWhiteboard(self):
-        # Whiteboard setting doesn't go through updatebugs, so this
+        # Whiteboard +/- doesn't go through updatebugs, so this
         # expected to be empty
         self.clicomm(
-            "--whiteboard tagfoo --whiteboard tagbar",
+            "--whiteboard tagfoo --whiteboard -tagbar",
             {}
+        )
+        self.clicomm(
+            "--whiteboard =foo --whiteboard =thisone",
+            {'whiteboard': 'thisone'}
         )
 
     def testMisc(self):
