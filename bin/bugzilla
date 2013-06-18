@@ -79,7 +79,7 @@ def open_without_clobber(name, *args):
 
 def setup_parser():
     u = ("%%prog [global options] COMMAND [command-options]"
-         "\nCommands: %s" % ','.join(cmdlist))
+         "\nCommands: %s" % ', '.join(cmdlist))
     p = optparse.OptionParser(usage=u, version=bugzilla.__version__)
     p.disable_interspersed_args()
     p.epilog = 'Try "bugzilla COMMAND --help" for command-specific help.'
