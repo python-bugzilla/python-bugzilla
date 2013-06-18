@@ -1,0 +1,6 @@
+# Netscape HTTP Cookie File
+# http://www.netscape.com/newsref/std/cookie_spec.html
+# This is a generated file!  Do not edit.
+
+.partner-bugzilla.redhat.com	TRUE	/	FALSE	2145916800	Bugzilla_login	notacookie
+.partner-bugzilla.redhat.com	TRUE	/	FALSE	2145916800	Bugzilla_logincookie	notacookie

@@ -9,6 +9,9 @@
 Unit tests for building query strings with bin/bugzilla
 '''
 
+import atexit
+import os
+import shutil
 import unittest
 
 import bugzilla
@@ -61,6 +64,34 @@ class MiscAPI(unittest.TestCase):
         self.assertTrue(b3.user_agent.endswith("Bugzilla3/0.1"))
         self.assertTrue(rhbz.user_agent.endswith("RHBugzilla/0.1"))
 
+    def testCookies(self):
+        cookiesbad = os.path.join(os.getcwd(), "tests/data/cookies-bad.txt")
+        cookieslwp = os.path.join(os.getcwd(), "tests/data/cookies-lwp.txt")
+        cookiesmoz = os.path.join(os.getcwd(), "tests/data/cookies-moz.txt")
+        cookiesnewmoz = os.path.join(os.getcwd(),
+                                     "tests/data/cookies-moz.txt.new")
+
+        def cleanup():
+            if os.path.exists(cookiesnewmoz):
+                os.unlink(cookiesnewmoz)
+        atexit.register(cleanup)
+        shutil.copy(cookiesmoz, cookiesnewmoz)
+
+        # Mozilla should be converted inplace to LWP
+        bugzilla.Bugzilla3(url=None, cookiefile=cookiesnewmoz)
+        self.assertEquals(file(cookieslwp).read(), file(cookiesnewmoz).read())
+
+        # Make sure bad cookies raise an error
+        try:
+            bugzilla.Bugzilla3(url=None, cookiefile=cookiesbad)
+            raise AssertionError("Expected BugzillaError from parsing %s" %
+                                 os.path.basename(cookiesbad))
+        except bugzilla.BugzillaError:
+            # Expected result
+            pass
+
+        # LWP should 'just work'
+        bugzilla.Bugzilla3(url=None, cookiefile=cookieslwp)
 
     def testPostTranslation(self):
         def _testPostCompare(bz, indict, outexpect):

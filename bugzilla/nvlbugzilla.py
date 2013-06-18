@@ -9,7 +9,6 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-import cookielib
 import os
 import re
 import time
@@ -30,8 +29,7 @@ class NovellBugzilla(Bugzilla34):
     HTTP requests,  NovellBugzilla caches the session cookies of bugzilla
     and IChain in a cookiejar to speedup a repeated connections.
     To avoid problems with cookie expiration, it set the expiration of cookie
-    to 5 minutes. This expects cookies stored in LWPCookieJar format and
-    login method warn if cookies are in MozillaCookieJar format.
+    to 5 minutes.
 
     It can also read a credentials from ~/.oscrc if exists, so it should not
     be duplicated in /etc/bugzillarc, or ~/.bugzillarc.
@@ -87,24 +85,13 @@ class NovellBugzilla(Bugzilla34):
         return len([c for c in self._iter_domain_cookies() if
                     self.__class__.ichain_cookie_re.match(c.name)]) != 0
 
-    def _is_lwp_format(self):
-        return isinstance(self._cookiejar, cookielib.LWPCookieJar)
-
     def _login(self, user, password):
         cls = self.__class__
 
         # remove /xmlrpc.cgi
         base_url = self.url[:-11]
 
-        lwp_format = self._is_lwp_format()
-        if not lwp_format:
-            log.warn("File `%s' is not in LWP format required for "
-                     "NovellBugzilla. If you want cache the cookies "
-                     "and speedup the repeated connections, remove it "
-                     "or use an another file for cookies.",
-                     self.cookiefile)
-
-        if lwp_format and not self._is_bugzilla_cookie():
+        if not self._is_bugzilla_cookie():
             login_url = urlparse.urljoin(base_url, cls.login_path)
             log.info("GET %s" % login_url)
             login_resp = self._opener.open(login_url)
@@ -122,7 +109,7 @@ class NovellBugzilla(Bugzilla34):
             'password': password,
         }
 
-        if lwp_format and not self._is_ichain_cookie():
+        if not self._is_ichain_cookie():
             auth_url = urlparse.urljoin(base_url, cls.auth_path)
             auth_params = urllib.urlencode(params)
             auth_req = urllib2.Request(auth_url, auth_params)
@@ -132,11 +119,10 @@ class NovellBugzilla(Bugzilla34):
                 raise BugzillaError("The auth failed with code %d" %
                                     auth_resp.core)
 
-        if lwp_format:
-            for cookie in self._cookiejar:
-                # expires cookie in 15 minutes
-                cookie.expires = time.time() + self._expires
-                cookie.discard = False
+        for cookie in self._cookiejar:
+            # expires cookie in 15 minutes
+            cookie.expires = time.time() + self._expires
+            cookie.discard = False
 
         return super(NovellBugzilla, self)._login(user, password)
 

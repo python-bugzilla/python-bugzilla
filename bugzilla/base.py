@@ -62,6 +62,39 @@ def _decode_rfc2231_value(val):
                    for f in header.decode_header(val))
 
 
+def _build_cookiejar(cookiefile):
+    cj = cookielib.LWPCookieJar(cookiefile)
+    if cookiefile is None:
+        return cj
+    if not os.path.exists(cookiefile):
+        # Make sure a new file has correct permissions
+        open(cookiefile, 'a').close()
+        os.chmod(cookiefile, 0600)
+        cj.save()
+        return cj
+
+    # We always want to use LWP cookies, but we previously accepted
+    # Mozilla cookies. If we see Mozilla, convert it to LWP
+    try:
+        cj.load()
+        return cj
+    except cookielib.LoadError:
+        pass
+
+    try:
+        cj = cookielib.MozillaCookieJar(cookiefile)
+        cj.load()
+    except cookielib.LoadError:
+        raise BugzillaError("cookiefile=%s not in LWP or Mozilla format" %
+                            cookiefile)
+
+    retcj = cookielib.LWPCookieJar(cookiefile)
+    for cookie in cj:
+        retcj.set_cookie(cookie)
+    retcj.save()
+    return retcj
+
+
 # CookieTransport code mostly borrowed from pybugz
 class _CookieTransport(xmlrpclib.Transport):
     def __init__(self, uri, cookiejar, use_datetime=0):
@@ -273,9 +306,11 @@ class BugzillaBase(object):
         '''
         return self._cookiejar.filename
 
+    def _delcookiefile(self):
+        self._cookiejar = None
+
     def _setcookiefile(self, cookiefile):
-        if (self._cookiejar and
-            cookiefile == self._cookiejar.filename):
+        if (self._cookiejar and cookiefile == self._cookiejar.filename):
             return
 
         if self._proxy is not None:
@@ -283,27 +318,7 @@ class BugzillaBase(object):
                                "disconnect() first.")
 
         log.debug("Using cookiefile=%s", cookiefile)
-        # It first tries to use the existing cookiejar object. If it fails, it
-        # falls back to MozillaCookieJar.
-        do_load = cookiefile is not None and os.path.exists(cookiefile)
-        try:
-            cj = cookielib.LWPCookieJar(cookiefile)
-            if do_load:
-                cj.load()
-        except cookielib.LoadError:
-            cj = cookielib.MozillaCookieJar(cookiefile)
-            if do_load:
-                cj.load()
-
-        if cookiefile is not None and not do_load:
-            open(cookiefile, 'a').close()
-            os.chmod(cookiefile, 0600)
-            cj.save()
-
-        self._cookiejar = cj
-
-    def _delcookiefile(self):
-        self._cookiejar = None
+        self._cookiejar = _build_cookiejar(cookiefile)
 
     cookiefile = property(_getcookiefile, _setcookiefile, _delcookiefile)
 
@@ -416,7 +431,7 @@ class BugzillaBase(object):
         except xmlrpclib.Fault:
             r = False
 
-        if r and self._cookiejar.filename:
+        if r and self._cookiejar.filename is not None:
             self._cookiejar.save()
         return r
 
