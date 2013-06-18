@@ -21,8 +21,12 @@ log = logging.getLogger("bugzilla")
 from bugzilla.base import BugzillaError
 from bugzilla.bugzilla3 import Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36
 from bugzilla.bugzilla4 import Bugzilla4, Bugzilla42, Bugzilla44
-from bugzilla.nvlbugzilla import NovellBugzilla
 from bugzilla.rhbugzilla import RHBugzilla, RHBugzilla3, RHBugzilla4
+
+
+# Back compat for deleted NovellBugzilla
+class NovellBugzilla(Bugzilla34):
+    pass
 
 
 def getBugzillaClassForURL(url):

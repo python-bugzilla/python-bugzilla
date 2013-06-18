@@ -164,27 +164,6 @@ class BZ42(BaseTest):
                 "3450 daniel@fooishbar.org Error")
 
 
-class NovellBugzilla(BaseTest):
-    url = "https://bugzilla.novell.com/xmlrpc.cgi"
-    bzclass = bugzilla.NovellBugzilla
-
-    test0 = BaseTest._testBZClass
-
-    test1 = lambda s: BaseTest._testQuery(s,
-            "--product \"openSUSE 11.0\" --component Basesystem",
-            15, "83209")
-
-    def testLoginFail(self):
-        # Currently gives a 404 error, so something is busted.
-        # However if I drop all the custom stuff plain ol BZ login works
-        bz = self.bzclass(url=self.url, cookiefile=None)
-        try:
-            bz.login("foouser", "barpassword")
-            raise AssertionError("Expected novell login fail")
-        except Exception, e:
-            self.assertTrue("404" in str(e))
-
-
 class RHTest(BaseTest):
     url = "https://bugzilla.redhat.com/xmlrpc.cgi"
     bzclass = bugzilla.RHBugzilla
