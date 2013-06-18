@@ -63,7 +63,7 @@ def _decode_rfc2231_value(val):
 
 
 def _build_cookiejar(cookiefile):
-    cj = cookielib.LWPCookieJar(cookiefile)
+    cj = cookielib.MozillaCookieJar(cookiefile)
     if cookiefile is None:
         return cj
     if not os.path.exists(cookiefile):
@@ -73,8 +73,8 @@ def _build_cookiejar(cookiefile):
         cj.save()
         return cj
 
-    # We always want to use LWP cookies, but we previously accepted
-    # Mozilla cookies. If we see Mozilla, convert it to LWP
+    # We always want to use Mozilla cookies, but we previously accepted
+    # LWP cookies. If we see the latter, convert it to former
     try:
         cj.load()
         return cj
@@ -82,13 +82,13 @@ def _build_cookiejar(cookiefile):
         pass
 
     try:
-        cj = cookielib.MozillaCookieJar(cookiefile)
+        cj = cookielib.LWPCookieJar(cookiefile)
         cj.load()
     except cookielib.LoadError:
         raise BugzillaError("cookiefile=%s not in LWP or Mozilla format" %
                             cookiefile)
 
-    retcj = cookielib.LWPCookieJar(cookiefile)
+    retcj = cookielib.MozillaCookieJar(cookiefile)
     for cookie in cj:
         retcj.set_cookie(cookie)
     retcj.save()

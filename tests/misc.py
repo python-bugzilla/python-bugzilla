@@ -68,18 +68,17 @@ class MiscAPI(unittest.TestCase):
         cookiesbad = os.path.join(os.getcwd(), "tests/data/cookies-bad.txt")
         cookieslwp = os.path.join(os.getcwd(), "tests/data/cookies-lwp.txt")
         cookiesmoz = os.path.join(os.getcwd(), "tests/data/cookies-moz.txt")
-        cookiesnewmoz = os.path.join(os.getcwd(),
-                                     "tests/data/cookies-moz.txt.new")
+        cookiesnew = cookieslwp + ".new"
 
         def cleanup():
-            if os.path.exists(cookiesnewmoz):
-                os.unlink(cookiesnewmoz)
+            if os.path.exists(cookiesnew):
+                os.unlink(cookiesnew)
         atexit.register(cleanup)
-        shutil.copy(cookiesmoz, cookiesnewmoz)
+        shutil.copy(cookieslwp, cookiesnew)
 
         # Mozilla should be converted inplace to LWP
-        bugzilla.Bugzilla3(url=None, cookiefile=cookiesnewmoz)
-        self.assertEquals(file(cookieslwp).read(), file(cookiesnewmoz).read())
+        bugzilla.Bugzilla3(url=None, cookiefile=cookiesnew)
+        self.assertEquals(file(cookiesmoz).read(), file(cookiesnew).read())
 
         # Make sure bad cookies raise an error
         try:
@@ -90,8 +89,8 @@ class MiscAPI(unittest.TestCase):
             # Expected result
             pass
 
-        # LWP should 'just work'
-        bugzilla.Bugzilla3(url=None, cookiefile=cookieslwp)
+        # Mozilla should 'just work'
+        bugzilla.Bugzilla3(url=None, cookiefile=cookiesmoz)
 
     def testPostTranslation(self):
         def _testPostCompare(bz, indict, outexpect):
