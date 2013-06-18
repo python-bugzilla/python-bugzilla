@@ -124,9 +124,10 @@ class ModifyTest(unittest.TestCase):
             {"priority": "medium", "severity": "high"},
         )
         self.clicomm(
-            "--os Windows --arch ia64 --version 1000 --url http://example.com",
+            "--os Windows --arch ia64 --version 1000 --url http://example.com "
+            "--summary 'foo summary'",
             {"op_sys": "Windows", "platform": "ia64", "version": "1000",
-             "url": "http://example.com"},
+             "url": "http://example.com", "summary": 'foo summary'},
         )
 
     def testDepends(self):

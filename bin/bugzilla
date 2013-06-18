@@ -283,6 +283,7 @@ def setup_action_parser(action):
                 help='Add a comment')
         cgrp.add_option('-p', '--private', action='store_true', default=False,
                 help='Mark new comment as private')
+        cgrp.add_option("--summary", help="Change bug summary")
         p.add_option_group(cgrp)
 
         egrp = optparse.OptionGroup(p, "Contact options")
@@ -857,6 +858,7 @@ def _do_modify(bz, parser, opt, args):
         qa_contact=opt.qa_contact or None,
         severity=opt.severity or None,
         status=status,
+        summary=opt.summary or None,
         version=opt.version or None,
         reset_assigned_to=opt.reset_assignee,
         reset_qa_contact=opt.reset_qa_contact,
