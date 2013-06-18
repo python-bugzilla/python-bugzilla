@@ -29,7 +29,7 @@ class BaseTest(unittest.TestCase):
 
         bz = self.bzclass(url=self.url, cookiefile=None)
         if expectexc:
-            self.assertRaises(RuntimeError, tests.clicomm, comm, bz)
+            self.assertRaises(Exception, tests.clicomm, comm, bz)
         else:
             return tests.clicomm(comm, bz)
 
