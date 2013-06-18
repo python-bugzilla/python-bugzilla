@@ -40,8 +40,11 @@ class TestCommand(Command):
     def run(self):
         os.environ["__BUGZILLA_UNITTEST"] = "1"
 
-        import coverage
-        usecov = int(coverage.__version__.split(".")[0]) >= 3
+        try:
+            import coverage
+            usecov = int(coverage.__version__.split(".")[0]) >= 3
+        except:
+            usecov = False
 
         if usecov:
             cov = coverage.coverage(omit=["/*/tests/*", "/usr/*"])
@@ -155,6 +158,24 @@ class PylintCommand(Command):
             "--ignore E303,E125,E128")
 
 
+class RPMCommand(Command):
+    description = "Build src and binary rpms."
+    user_options = []
+
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        """
+        Run sdist, then 'rpmbuild' the tar.gz
+        """
+        self.run_command('sdist')
+        os.system('rpmbuild -ta --clean dist/python-bugzilla-%s.tar.gz' %
+                  get_version())
+
+
 setup(name='python-bugzilla',
       version=get_version(),
       description='Bugzilla XMLRPC access module',
@@ -167,7 +188,8 @@ setup(name='python-bugzilla',
       data_files=[('share/man/man1', ['bugzilla.1'])],
 
       cmdclass={
-        "test" : TestCommand,
         "pylint" : PylintCommand,
+        "rpm" : RPMCommand,
+        "test" : TestCommand,
       }
 )
