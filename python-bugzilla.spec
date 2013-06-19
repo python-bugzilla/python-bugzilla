@@ -19,6 +19,7 @@ BuildRequires:  python-setuptools
 BuildRequires:  python-setuptools-devel
 %endif
 
+BuildRequires: python-pycurl
 Requires: python-pycurl
 Requires: python-magic
 
