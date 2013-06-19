@@ -1,7 +1,7 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name:           python-bugzilla
-Version:        0.8.0
+Version:        0.9.0
 Release:        1%{?dist}
 Summary:        A python library for interacting with Bugzilla
 

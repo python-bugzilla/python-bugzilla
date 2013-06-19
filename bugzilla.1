@@ -1,4 +1,4 @@
-.TH bugzilla 1  "February 15, 2013" "version 0.8.0" "User Commands"
+.TH bugzilla 1  "June 19, 2013" "version 0.9.0" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -32,6 +32,8 @@ show this help message and exit
 bugzilla XMLRPC URI. default: https://bugzilla.redhat.com/xmlrpc.cgi
 .IP "--bztype=BZTYPE"
 Bugzilla type. Autodetected if not set. Available types: Bugzilla3 Bugzilla32 Bugzilla34 Bugzilla36 Bugzilla4 Bugzilla42 Bugzilla44 RHBugzilla3 RHBugzilla4 RHBugzilla NovellBugzilla
+.IP "--nosslverify"
+Don't error on invalid bugzilla SSL certificate
 .IP "--user=USER"
 username
 .IP "--password=PASSWORD"
@@ -44,31 +46,33 @@ give more info about what's going on
 output bunches of debugging info
 .SH \[oq]NEW\[cq] OPTIONS
 .IP "--product=PRODUCT, -p PRODUCT"
-REQUIRED: product name (list with 'bugzilla info -p')
+REQUIRED: product name
 .IP "--version=VERSION, -v VERSION"
 REQUIRED: product version
 .IP "--component=COMPONENT, -c COMPONENT"
-REQUIRED: component name (list with 'bugzilla info -c PRODUCT')
-.IP "--comment=DESCRIPTION, -l DESCRIPTION"
-REQUIRED: initial bug comment
+REQUIRED: component name
 .IP "--short_desc=SUMMARY, --summary=SUMMARY, -s SUMMARY"
 REQUIRED: bug summary
-.IP "--os=OP_SYS, -o OP_SYS"
-OPTIONAL: operating system (default: Linux)
-.IP "--arch=PLATFORM, -a PLATFORM"
-OPTIONAL: arch this bug occurs on (default: All)
+.IP "--comment=DESCRIPTION, -l DESCRIPTION"
+initial bug comment
+.IP "--os=OS, -o OS"
+Operating system
+.IP "--arch=ARCH, -a ARCH"
+Arch this bug occurs on
 .IP "--severity=SEVERITY"
-OPTIONAL: bug severity (default: medium)
+Bug severity
 .IP "--priority=PRIORITY"
-OPTIONAL: bug priority (default: medium)
-.IP "--url=BUG_FILE_LOC, -u BUG_FILE_LOC"
-OPTIONAL: URL for further bug info
+Bug priority
+.IP "--url=URL, -u URL"
+URL for further bug info
 .IP "--cc=CC[, CC, ...]"
-OPTIONAL: add emails to initial CC list
+add emails to initial CC list
 .IP "--blocked=BUGID[, BUGID, ...]"
-OPTIONAL: add bug_ids blocked by this bug
+add bug_ids blocked by this bug
 .IP "--dependson=BUGID[, BUGID, ...]"
-OPTIONAL: add bug_ids that this bug depends on
+add bug_ids that this bug depends on
+.IP "--groups=GROUP[, GROUP, ...]"
+add groups to which bug is visible
 
 .SH OUTPUT FORMAT \[oq]NEW\[cq] OPTIONS
 .IP "--full, -f"
@@ -169,28 +173,78 @@ raw output of the bugzilla contents
 .IP "--outputformat=OUTPUTFORMAT"
 Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'
 .SH \[oq]MODIFY\[cq] OPTIONS
-.IP "--comment=COMMENT, -l COMMENT"
-Add a comment
+
+.SH BUG DETAILS
+.IP "--product=PRODUCT"
+Reassign bug to different product
+.IP "--component=COMPONENT, -c COMPONENT"
+Reassign bug to different component
+.IP "--version=VERSION, -v VERSION"
+Reassign bug to different version
+.IP "--os=OS, -o OS"
+Change operating system this bug occurs on
+.IP "--arch=ARCH, -a ARCH"
+Change arch this bug occurs on
+.IP "--url=URL, -u URL"
+URL for further bug info
+
+.SH BUG STATUS \[oq]MODIFY\[cq] OPTIONS
+.IP "--status=STATUS, -s STATUS"
+Change status of bug
 .IP "--close=RESOLUTION, -k RESOLUTION"
 Close with the given resolution
 .IP "--dupeid=ORIGINAL, -d ORIGINAL"
 ID of original bug (implies -k DUPLICATE)
-.IP "--private, -p"
-Mark as private
-.IP "--status=STATUS, -s STATUS"
-Change status of bug
-.IP "--assignee=ASSIGNEE"
-Assign bugzilla to assignee
-.IP "--qa_contact=QA_CONTACT"
-Change QA contact
-.IP "--flag=FLAG, -f FLAG"
-Update bugzilla flags with requested type, ie fedora-cvs?, or needinfoX to clear (Use a new option for each flag)
-.IP "--cc=CC"
-Add an email to the cc list
 .IP "--fixed_in=VERSION, -F VERSION"
 "Fixed in version" field
+
+.SH COMMENT \[oq]MODIFY\[cq] OPTIONS
+.IP "--comment=COMMENT, -l COMMENT"
+Add a comment
+.IP "--private, -p"
+Mark new comment as private
+.IP "--summary=SUMMARY"
+Change bug summary
+
+.SH CONTACT \[oq]MODIFY\[cq] OPTIONS
+.IP "--assignee=ASSIGNEE"
+Assign bugzilla to assignee
+.IP "--cc=EMAIL"
+Alter CC list. EMAIL appends, -EMAIL removes.
+.IP "--qa_contact=QA_CONTACT"
+Change QA contact
+.IP "--reset-assignee"
+Reset assignee to component default
+.IP "--reset-qa-contact"
+Reset QA contact to component default
+.IP "--groups=GROUP[, GROUP, ...]"
+add groups to which bug is visible
+
+.SH TRACKING \[oq]MODIFY\[cq] OPTIONS
+.IP "--flag=FLAG, -f FLAG"
+Update bugzilla flags with requested type, ie fedora-cvs?, or needinfoX to clear (Use a new option for each flag)
+.IP "--severity=SEVERITY"
+Change bug severity
+.IP "--priority=PRIORITY"
+Change bug priority
+.IP "--target_milestone=TARGET_MILESTONE"
+Set target milestone
+.IP "--target_release=TARGET_RELEASE"
+Set target release
+.IP "--blocked=BUGID[, BUGID, ...]"
+Add bug_ids blocked by this bug. BUGID appends, -BUGID removes, =BUGID overwrites
+.IP "--dependson=BUGID[, BUGID, ...]"
+Alter depends_on list.  BUGID appends, -BUGID removes, =BUGID overwrites
+.IP "--keywords=KEYWORD"
+Alter bug keywords list. KEYWORD appends, -KEYWORD removes, =KEYWORD overwrites
 .IP "--whiteboard=TEXT"
 Alter status whiteboard text. TEXT appends, -TEXT removes, =TEXT overwrites
+.IP "--devel_whiteboard=TEXT"
+Alter devel whiteboard text. TEXT appends, -TEXT removes, =TEXT overwrites
+.IP "--internal_whiteboard=TEXT"
+Alter internal whiteboard text. TEXT appends, -TEXT removes, =TEXT overwrites
+.IP "--qa_whiteboard=TEXT"
+Alter QA whiteboard. TEXT appends, -TEXT removes, =TEXT overwrites
 .SH \[oq]ATTACH\[cq] OPTIONS
 .IP "--file=FILENAME, -f FILENAME"
 File to attach, or filename for data provided on stdin
@@ -209,7 +263,7 @@ Get a list of products
 List the components in the given product
 .IP "--component_owners=PRODUCT, -o PRODUCT"
 List components (and their owners)
-.IP "--versions=PRODUCT, -v PRODUCT"
+.IP "--versions=VERSION, -v VERSION"
 List the versions for the given product
 .SH EXAMPLES
 .PP
