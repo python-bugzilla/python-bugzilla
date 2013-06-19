@@ -11,8 +11,12 @@
 
 import cookielib
 import os
+import StringIO
 import urllib2
+import urlparse
 import xmlrpclib
+
+import pycurl
 
 from bugzilla import __version__, log
 from bugzilla.bug import _Bug, _User
@@ -95,43 +99,73 @@ def _build_cookiejar(cookiefile):
     return retcj
 
 
-# CookieTransport code mostly borrowed from pybugz
-class _CookieTransport(xmlrpclib.Transport):
-    def __init__(self, uri, cookiejar, use_datetime=0):
-        self.verbose = 0
-
-        # python 2.4 compat
+class _CURLTransport(xmlrpclib.Transport):
+    def __init__(self, url, cookiejar,
+                 sslverify=True, sslcafile=None, debug=0):
         if hasattr(xmlrpclib.Transport, "__init__"):
-            xmlrpclib.Transport.__init__(self, use_datetime=use_datetime)
+            xmlrpclib.Transport.__init__(self, use_datetime=False)
 
-        self.uri = uri
-        self.opener = urllib2.build_opener()
-        self.opener.add_handler(urllib2.HTTPCookieProcessor(cookiejar))
+        self.verbose = debug
+
+        # transport constructor needs full url too, as xmlrpc does not pass
+        # scheme to request
+        self.scheme = urlparse.urlparse(url)[0]
+        if self.scheme not in ["http", "https"]:
+            raise Exception("Invalid URL scheme: %s (%s)" % (self.scheme, url))
+
+        self.c = pycurl.Curl()
+        self.c.setopt(pycurl.POST, 1)
+        self.c.setopt(pycurl.CONNECTTIMEOUT, 30)
+        self.c.setopt(pycurl.HTTPHEADER, [
+            "Content-Type: text/xml",
+        ])
+        self.c.setopt(pycurl.VERBOSE, debug)
+
+        self.set_cookiejar(cookiejar)
+
+        # ssl settings
+        if self.scheme == "https":
+            # override curl built-in ca file setting
+            if sslcafile is not None:
+                self.c.setopt(pycurl.CAINFO, sslcafile)
+
+            # disable ssl verification
+            if not sslverify:
+                self.c.setopt(pycurl.SSL_VERIFYPEER, 0)
+                self.c.setopt(pycurl.SSL_VERIFYHOST, 0)
+
+    def set_cookiejar(self, cj):
+        self.c.setopt(pycurl.COOKIEFILE, cj.filename or "")
+        self.c.setopt(pycurl.COOKIEJAR, cj.filename or "")
+
+    def get_cookies(self):
+        return self.c.getinfo(pycurl.INFO_COOKIELIST)
+
+    def open_helper(self, url, request_body):
+        self.c.setopt(pycurl.URL, url)
+        self.c.setopt(pycurl.POSTFIELDS, request_body)
+
+        b = StringIO.StringIO()
+        self.c.setopt(pycurl.WRITEFUNCTION, b.write)
+        try:
+            self.c.perform()
+        except pycurl.error, e:
+            raise xmlrpclib.ProtocolError(url, e[0], e[1], None)
+
+        b.seek(0)
+        return b
 
     def request(self, host, handler, request_body, verbose=0):
-        req = urllib2.Request(self.uri)
-        req.add_header('User-Agent', self.user_agent)
-        req.add_header('Content-Type', 'text/xml')
+        self.verbose = verbose
+        url = "%s://%s%s" % (self.scheme, host, handler)
 
-        if hasattr(self, 'accept_gzip_encoding') and self.accept_gzip_encoding:
-            req.add_header('Accept-Encoding', 'gzip')
+        # xmlrpclib fails to escape \r
+        request_body = request_body.replace('\r', '&#xd;')
 
-        req.add_data(request_body)
+        stringio = self.open_helper(url, request_body)
+        return self.parse_response(stringio)
 
-        resp = self.opener.open(req)
 
-        # In Python 2, resp is a urllib.addinfourl instance, which does not
-        # have the getheader method that parse_response expects.
-        if not hasattr(resp, 'getheader'):
-            resp.getheader = resp.headers.getheader
-
-        if resp.code == 200:
-            self.verbose = verbose
-            return self.parse_response(resp)
-
-        resp.close()
-        raise xmlrpclib.ProtocolError(self.uri, resp.status,
-                                      resp.reason, resp.msg)
 
 
 class BugzillaError(Exception):
@@ -186,8 +220,6 @@ class BugzillaBase(object):
         Given a big huge bugzilla query URL, returns a query dict that can
         be passed along to the Bugzilla.query() method.
         '''
-        import urlparse
-
         q = {}
         (ignore, ignore, path,
          ignore, query, ignore) = urlparse.urlparse(url)
@@ -219,13 +251,16 @@ class BugzillaBase(object):
             url = url + '/xmlrpc.cgi'
         return url
 
-    def __init__(self, url=None, user=None, password=None, cookiefile=-1):
+    def __init__(self, url=None, user=None, password=None, cookiefile=-1,
+                 sslverify=True):
         # Settings the user might want to tweak
         self.user = user or ''
         self.password = password or ''
         self.url = ''
 
+        self._transport = None
         self._cookiejar = None
+        self._sslverify = bool(sslverify)
 
         self.logged_in = False
 
@@ -371,9 +406,11 @@ class BugzillaBase(object):
             url = self.url
         url = self.fix_url(url)
 
-        transport = _CookieTransport(url, self._cookiejar)
-        transport.user_agent = self.user_agent
-        self._proxy = xmlrpclib.ServerProxy(url, transport)
+        self._transport = _CURLTransport(url, self._cookiejar,
+                                         sslverify=self._sslverify)
+        self._transport.user_agent = self.user_agent
+        self._proxy = xmlrpclib.ServerProxy(url, self._transport)
+
 
         self.url = url
         # we've changed URLs - reload config
@@ -431,8 +468,6 @@ class BugzillaBase(object):
         except xmlrpclib.Fault:
             r = False
 
-        if r and self._cookiejar.filename is not None:
-            self._cookiejar.save()
         return r
 
     def logout(self):
@@ -1178,18 +1213,32 @@ class BugzillaBase(object):
         '''Get the contents of the attachment with the given attachment ID.
         Returns a file-like object.'''
         att_uri = self._attachment_uri(attachid)
-        opener = urllib2.build_opener(
-            urllib2.HTTPCookieProcessor(self._cookiejar))
-        att = opener.open(att_uri)
 
-        # RFC 2183 defines the content-disposition header, if you're curious
-        disp = att.headers['content-disposition'].split(';')
+        headers = {}
+        ret = StringIO.StringIO()
+
+        def headers_cb(buf):
+            if not ":" in buf:
+                return
+            name, val = buf.split(":", 1)
+            headers[name.lower()] = val
+
+        c = pycurl.Curl()
+        c.setopt(pycurl.URL, att_uri)
+        c.setopt(pycurl.WRITEFUNCTION, ret.write)
+        c.setopt(pycurl.HEADERFUNCTION, headers_cb)
+        c.setopt(pycurl.COOKIEFILE, self._cookiejar.filename or "")
+        c.perform()
+        c.close()
+
+        disp = headers['content-disposition'].split(';')
         disp.pop(0)
         parms = dict([p.strip().split("=", 1) for p in disp])
-        # Parameter values can be quoted/encoded as per RFC 2231
-        att.name = _decode_rfc2231_value(parms['filename'])
+        ret.name = _decode_rfc2231_value(parms['filename'])
+
         # Hooray, now we have a file-like object with .read() and .name
-        return att
+        ret.seek(0)
+        return ret
 
     def updateattachmentflags(self, bugid, attachid, flagname, **kwargs):
         '''

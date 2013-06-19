@@ -97,7 +97,7 @@ class Bugzilla(object):
     def __init__(self, **kwargs):
         log.info("Bugzilla v%s initializing" % __version__)
         if 'url' not in kwargs:
-            raise TypeError("You must pass a valid bugzilla xmlrpc.cgi URL")
+            raise TypeError("You must pass a valid bugzilla URL")
 
         # pylint: disable=W0233
         # Use of __init__ of non parent class

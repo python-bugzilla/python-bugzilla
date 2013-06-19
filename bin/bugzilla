@@ -90,6 +90,9 @@ def setup_parser():
     p.add_option('--bztype', default='auto',
             help="Bugzilla type. Autodetected if not set. "
                  "Available types: %s" % " ".join(bugzilla.classlist))
+    p.add_option("--nosslverify", dest="sslverify",
+                 action="store_false", default=True,
+                 help="Don't error on invalid bugzilla SSL certificate")
     p.add_option('--user',
             help="username")
     p.add_option('--password',
@@ -1024,7 +1027,8 @@ def main(bzinstance=None):
         bz = bzinstance
     else:
         bz = bzclass(url=global_opt.bugzilla,
-                     cookiefile=global_opt.cookiefile or -1)
+                     cookiefile=global_opt.cookiefile or -1,
+                     sslverify=global_opt.sslverify)
 
 
     # Handle 'login' action
@@ -1126,7 +1130,7 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         log.debug("", exc_info=True)
-        print "\ninterrupted."
+        print "\nExited at user request."
         sys.exit(1)
     except socket.error, e:
         log.debug("", exc_info=True)
@@ -1139,8 +1143,19 @@ if __name__ == '__main__':
     except xmlrpclib.ProtocolError, e:
         log.debug("", exc_info=True)
         print "\nInvalid server response: %d %s" % (e.errcode, e.errmsg)
-        redir = e.headers.getheader("location", 0)
+
+        # Give SSL recommendations
+        import pycurl
+        sslerrcodes = [getattr(pycurl, ename) for ename in dir(pycurl) if
+                       ename.startswith("E_SSL")]
+        if e.errcode in sslerrcodes:
+            print ("\nIf you trust the remote server, you can work "
+                   "around this error with:\n"
+                  "  bugzilla --nosslverify ...")
+
+        # Detect redirect
+        redir = (e.headers and e.headers.getheader("location", 0) or None)
         if redir:
-            print "Server was attempting a redirect."
-            print 'Try "bugzilla --bugzilla %s ..."' % redir
+            print ("\nServer was attempting a redirect. Try: "
+                   "  bugzilla --bugzilla %s ..." % redir)
         sys.exit(4)
