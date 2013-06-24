@@ -21,12 +21,17 @@ BuildRequires:  python-setuptools-devel
 
 BuildRequires: python-pycurl
 Requires: python-pycurl
+
+%if ! 0%{?rhel} || 0%{?rhel} >= 6
 Requires: python-magic
+%endif
+
 
 %description
 python-bugzilla is a python library for interacting with bugzilla instances
 over XML-RPC. This package also includes the 'bugzilla' command-line tool
 for interacting with bugzilla from shell scripts.
+
 
 %prep
 %setup -q
