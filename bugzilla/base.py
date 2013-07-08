@@ -496,15 +496,7 @@ class BugzillaBase(object):
         '''
         if force_refresh or self._bugfields is None:
             log.debug("Refreshing bugfields")
-            try:
-                self._bugfields = self._getbugfields()
-            except xmlrpclib.Fault, f:
-                if f.faultCode == 'Client':
-                    # okay, this instance doesn't have getbugfields. fine.
-                    self._bugfields = []
-                else:
-                    # something bad actually happened on the server. blow up.
-                    raise f
+            self._bugfields = self._getbugfields()
             self._bugfields.sort()
             log.debug("bugfields = %s", self._bugfields)
 
