@@ -148,7 +148,28 @@ class _CURLTransport(xmlrpclib.Transport):
         b = StringIO.StringIO()
         self.c.setopt(pycurl.WRITEFUNCTION, b.write)
         try:
-            self.c.perform()
+            m = pycurl.CurlMulti()
+            m.add_handle(self.c)
+            while True:
+                if m.perform()[0] == -1:
+                    continue
+                num, ok, err = m.info_read()
+                ignore = num
+
+                if ok:
+                    m.remove_handle(self.c)
+                    break
+                if err:
+                    m.remove_handle(self.c)
+                    raise pycurl.error(*err[0][1:])
+                if m.select(.1) == -1:
+                    # Looks like -1 is passed straight up from select(2)
+                    # While it's not true that this will always be caused
+                    # by SIGINT, it should be the only case we hit
+                    log.debug("pycurl select failed, this likely came from "
+                              "SIGINT, raising")
+                    m.remove_handle(self.c)
+                    raise KeyboardInterrupt
         except pycurl.error, e:
             raise xmlrpclib.ProtocolError(url, e[0], e[1], None)
 
