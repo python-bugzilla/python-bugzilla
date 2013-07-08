@@ -34,7 +34,7 @@ class BaseTest(unittest.TestCase):
 
     def _testBZClass(self):
         bz = Bugzilla(url=self.url, cookiefile=None)
-        self.assertTrue(isinstance(bz, self.bzclass))
+        self.assertTrue(bz.__class__ is self.bzclass)
 
     def _testCookie(self):
         cookiefile = cf

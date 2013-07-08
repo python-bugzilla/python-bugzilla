@@ -35,7 +35,7 @@ class BaseTest(unittest.TestCase):
 
     def _testBZClass(self):
         bz = Bugzilla(url=self.url, cookiefile=None)
-        self.assertTrue(isinstance(bz, self.bzclass))
+        self.assertTrue(bz.__class__ is self.bzclass)
 
     # Since we are running these tests against bugzilla instances in
     # the wild, we can't depend on certain data like product lists
@@ -114,22 +114,7 @@ class BaseTest(unittest.TestCase):
         self.assertTrue(expectstr in out)
 
 
-class BZ32(BaseTest):
-    url = "https://bugzilla.kernel.org/xmlrpc.cgi"
-    bzclass = bugzilla.Bugzilla32
-
-    test0 = BaseTest._testBZClass
-    test1 = lambda s: BaseTest._testInfoProducts(s, 10, "Virtualization")
-    test2 = lambda s: BaseTest._testInfoComps(s, "Virtualization", 3, "kvm")
-    test3 = lambda s: BaseTest._testInfoVers(s, "Virtualization", 0, None)
-    test4 = lambda s: BaseTest._testInfoCompOwners(s, "Virtualization", "FAIL")
-
-    # Querying was only supported as of bugzilla 3.4
-    test5 = lambda s: BaseTest._testQuery(s, "--product Virtualization",
-                                          0, "FAIL")
-
-
-class BZ34(BaseTest):
+class BZGnome(BaseTest):
     url = "https://bugzilla.gnome.org/xmlrpc.cgi"
     bzclass = bugzilla.Bugzilla34
     closestatus = "RESOLVED"
@@ -144,9 +129,9 @@ class BZ34(BaseTest):
     test3 = lambda s: BaseTest._testQueryOneline(s, "321654", "Sniff")
 
 
-class BZ42(BaseTest):
+class BZFDO(BaseTest):
     url = "https://bugs.freedesktop.org/xmlrpc.cgi"
-    bzclass = bugzilla.Bugzilla4
+    bzclass = bugzilla.Bugzilla42
     closestatus = "CLOSED,RESOLVED"
 
     test0 = BaseTest._testBZClass
