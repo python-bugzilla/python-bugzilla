@@ -531,15 +531,22 @@ class BugzillaBase(object):
         Refresh a product's cached info
         Takes same arguments as _getproductinfo
         """
+        if self._products is None:
+            self._products = []
+
         for product in self._getproductinfo(**kwargs):
-            for current in self.products[:]:
+            added = False
+            for current in self._products[:]:
                 if (current.get("id", -1) != product.get("id", -2) and
                     current.get("name", -1) != product.get("name", -2)):
                     continue
 
-                self.products.remove(current)
-                self.products.append(product)
+                self._products.remove(current)
+                self._products.append(product)
+                added = True
                 break
+            if not added:
+                self._products.append(product)
 
     def getproducts(self, force_refresh=False, **kwargs):
         '''Get product data: names, descriptions, etc.
@@ -700,12 +707,22 @@ class BugzillaBase(object):
                                "fetching component details.")
 
         comps = None
-        for p in self.products:
-            if p["name"] != product:
-                continue
-            comps = p["components"]
+        if self._products is None:
+            self._products = []
 
-        if not comps:
+        def _find_comps():
+            for p in self._products:
+                if p["name"] != product:
+                    continue
+                return p.get("components", None)
+
+        comps = _find_comps()
+        if comps is None:
+            self.refresh_products(names=[product],
+                                  include_fields=["name", "id", "components"])
+            comps = _find_comps()
+
+        if comps is None:
             raise ValueError("Unknown product '%s'" % product)
 
         # Convert to old style dictionary to maintain back compat

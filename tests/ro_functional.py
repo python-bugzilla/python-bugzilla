@@ -201,3 +201,11 @@ class RHTest(BaseTest):
         out = self.clicomm("query --fixed_in anaconda-15.29-1")
         self.assertEquals(len(out.splitlines()), 6)
         self.assertTrue("#629311 CLOSED" in out)
+
+    def testComponentsDetails(self):
+        """
+        Fresh call to getcomponentsdetails should properly refresh
+        """
+        bz = Bugzilla(url=self.url, cookiefile=None)
+        self.assertTrue(
+                bool(bz.getcomponentsdetails("Red Hat Developer Toolset")))
