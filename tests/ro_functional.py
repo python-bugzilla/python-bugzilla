@@ -206,6 +206,6 @@ class RHTest(BaseTest):
         """
         Fresh call to getcomponentsdetails should properly refresh
         """
-        bz = Bugzilla(url=self.url, cookiefile=None)
+        bz = self.bzclass(url=self.url, cookiefile=None)
         self.assertTrue(
-                bool(bz.getcomponentsdetails("Red Hat Developer Toolset")))
+            bool(bz.getcomponentsdetails("Red Hat Developer Toolset")))
