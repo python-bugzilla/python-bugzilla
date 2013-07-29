@@ -636,6 +636,7 @@ class BugzillaBase(object):
         '''
         data = data.copy()
         self._component_data_convert(data)
+        log.debug("Calling Component.create with: %s", data)
         return self._proxy.Component.create(data)
 
     def editcomponent(self, data):
@@ -647,6 +648,7 @@ class BugzillaBase(object):
         '''
         data = data.copy()
         self._component_data_convert(data, update=True)
+        log.debug("Calling Component.update with: %s", data)
         return self._proxy.Component.update(data)
 
 
@@ -684,6 +686,7 @@ class BugzillaBase(object):
 
         # The bugzilla4 name is Product.get(), but Bugzilla3 only had
         # Product.get_product, and bz4 kept an alias.
+        log.debug("Calling Product.get_products with: %s", kwargs)
         ret = self._proxy.Product.get_products(kwargs)
         return ret['products']
 
@@ -791,6 +794,7 @@ class BugzillaBase(object):
         if self.getbug_extra_fields and not simple:
             getbugdata["extra_fields"] = self.getbug_extra_fields
 
+        log.debug("Calling Bug.get_bugs with: %s", getbugdata)
         r = self._proxy.Bug.get_bugs(getbugdata)
 
         if self.bz_ver_major >= 4:
@@ -807,7 +811,6 @@ class BugzillaBase(object):
     def getbug(self, objid):
         '''Return a Bug object with the full complement of bug data
         already loaded.'''
-        log.debug("getbug(%s)" % str(objid))
         return _Bug(bugzilla=self, dict=self._getbug(objid))
 
     def getbugs(self, idlist):
@@ -942,6 +945,7 @@ class BugzillaBase(object):
         # This is kinda redundant now, but various scripts call
         # _query with their own assembled dictionaries, so don't
         # drop this lest we needlessly break those users
+        log.debug("Calling Bug.search with: %s", query)
         return self._proxy.Bug.search(query)
 
     def query(self, query):
@@ -951,7 +955,6 @@ class BugzillaBase(object):
         Also see the _query() method for details about the underlying
         implementation.
         '''
-        log.debug("Calling query with: %s", query)
         r = self._query(query)
         log.debug("Query returned %s bugs", len(r['bugs']))
         return [_Bug(bugzilla=self, dict=b) for b in r['bugs']]
@@ -1011,6 +1014,7 @@ class BugzillaBase(object):
         tmp = updates.copy()
         tmp["ids"] = self._listify(ids)
 
+        log.debug("Calling Bug.update with: %s", tmp)
         return self._proxy.Bug.update(tmp)
 
     def update_flags(self, idlist, flags):
@@ -1021,6 +1025,7 @@ class BugzillaBase(object):
          {"name": "devel_ack", "status": "-"}, ...]
         '''
         d = {"ids": self._listify(idlist), "updates": flags}
+        log.debug("Calling Flag.update with: %s", d)
         return self._proxy.Flag.update(d)
 
 
@@ -1367,8 +1372,6 @@ class BugzillaBase(object):
         else:
             data = kwargs
 
-        log.debug("bz.createbug(%s)", data)
-
         # If we're getting a call that uses an old fieldname, convert it to the
         # new fieldname instead.
         for newfield, oldfield in self.field_aliases:
@@ -1381,6 +1384,7 @@ class BugzillaBase(object):
         if "check_args" in data:
             del(data["check_args"])
 
+        log.debug("Calling Bug.create with: %s", data)
         rawbug = self._proxy.Bug.create(data)
         return _Bug(self, bug_id=rawbug["id"])
 
@@ -1416,6 +1420,7 @@ class BugzillaBase(object):
             raise BugzillaError('_get() needs one of ids, '
                                 ' names, or match kwarg.')
 
+        log.debug("Calling User.get with: %s", params)
         return self._proxy.User.get(params)
 
     def getuser(self, username):
@@ -1496,7 +1501,7 @@ class BugzillaBase(object):
             }
         }
 
-        log.debug("updating user permissions:\n%s", update)
+        log.debug("Call User.update with: %s", update)
         return self._proxy.User.update(update)
 
 
