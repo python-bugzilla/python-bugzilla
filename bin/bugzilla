@@ -638,7 +638,11 @@ def _do_info(bz, opt):
         # since there are so many components. So delay getting this
         # info until as late as possible
         bz.refresh_products(names=[opt.component_owners],
-                            include_fields=include_fields + ["components"])
+                            include_fields=include_fields + [
+                                "components.default_assigned_to",
+                                "components.default_qa_contact",
+                                "components.name",
+                                "components.description"])
 
         component_details = bz.getcomponentsdetails(opt.component_owners)
         for c in sorted(component_details):
