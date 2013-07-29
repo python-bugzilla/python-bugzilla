@@ -20,6 +20,7 @@ import re
 import socket
 import sys
 import tempfile
+import urllib2
 import xmlrpclib
 
 import bugzilla
@@ -1136,7 +1137,7 @@ if __name__ == '__main__':
         log.debug("", exc_info=True)
         print "\nConnection lost/failed: %s" % str(e)
         sys.exit(2)
-    except xmlrpclib.Fault, e:
+    except (xmlrpclib.Fault, urllib2.HTTPError), e:
         log.debug("", exc_info=True)
         print "\nServer error: %s" % str(e)
         sys.exit(3)

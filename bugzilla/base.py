@@ -99,6 +99,39 @@ def _build_cookiejar(cookiefile):
     return retcj
 
 
+def _check_http_error(uri, request_body, response_data):
+    # This pulls some of the guts from urllib to give us HTTP error
+    # code checking. Wrap it all in try/except incase this breaks in
+    # the future, it's only for error handling.
+    try:
+        import httplib
+        import urllib
+
+        class FakeSocket(StringIO.StringIO):
+            def makefile(self, *args, **kwarg):
+                ignore = args
+                ignore = kwarg
+                return self
+
+        httpresp = httplib.HTTPResponse(FakeSocket(response_data))
+        httpresp.begin()
+        resp = urllib.addinfourl(FakeSocket(response_data), httpresp.msg, uri)
+        resp.code = httpresp.status
+        resp.msg = httpresp.reason
+
+        req = urllib2.Request(uri)
+        req.add_data(request_body)
+        opener = urllib2.build_opener()
+
+        for handler in opener.handlers:
+            if hasattr(handler, "http_response"):
+                handler.http_response(req, resp)
+    except urllib2.HTTPError:
+        raise
+    except:
+        pass
+
+
 class _CURLTransport(xmlrpclib.Transport):
     def __init__(self, url, cookiejar,
                  sslverify=True, sslcafile=None, debug=0):
@@ -141,12 +174,15 @@ class _CURLTransport(xmlrpclib.Transport):
     def get_cookies(self):
         return self.c.getinfo(pycurl.INFO_COOKIELIST)
 
-    def open_helper(self, url, request_body):
+    def _open_helper(self, url, request_body):
         self.c.setopt(pycurl.URL, url)
         self.c.setopt(pycurl.POSTFIELDS, request_body)
 
         b = StringIO.StringIO()
+        headers = StringIO.StringIO()
         self.c.setopt(pycurl.WRITEFUNCTION, b.write)
+        self.c.setopt(pycurl.HEADERFUNCTION, headers.write)
+
         try:
             m = pycurl.CurlMulti()
             m.add_handle(self.c)
@@ -174,7 +210,8 @@ class _CURLTransport(xmlrpclib.Transport):
             raise xmlrpclib.ProtocolError(url, e[0], e[1], None)
 
         b.seek(0)
-        return b
+        headers.seek(0)
+        return b, headers
 
     def request(self, host, handler, request_body, verbose=0):
         self.verbose = verbose
@@ -183,8 +220,10 @@ class _CURLTransport(xmlrpclib.Transport):
         # xmlrpclib fails to escape \r
         request_body = request_body.replace('\r', '&#xd;')
 
-        stringio = self.open_helper(url, request_body)
-        return self.parse_response(stringio)
+        body, headers = self._open_helper(url, request_body)
+        _check_http_error(url, body.getvalue(), headers.getvalue())
+
+        return self.parse_response(body)
 
 
 
