@@ -462,7 +462,7 @@ bugzilla query --blocked "123456 | 224466"
 
 bugzilla login
 
-bugzilla create -p Fedora -v rawhide -c python-bugzilla \\\\
+bugzilla new -p Fedora -v rawhide -c python-bugzilla \\\\
          --summary "python-bugzilla causes headaches" \\\\
          --comment "python-bugzilla made my brain hurt when I used it."
 
