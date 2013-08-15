@@ -469,6 +469,8 @@ The keys (like 'id', 'component', etc.) are the names of the values returned
 by bugzilla's XMLRPC interface. To see a list of all keys, check the API
 documentation in the 'SEE ALSO' section. Alternatively, run a 'bugzilla
 --debug query' and look at the key names returned in the query results.
+Also, in most cases, using the name of the associated command line switch
+should work, like --bug_status becomes %{bug_status}, etc.
 
 .SH EXAMPLES
 .PP
