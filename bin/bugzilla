@@ -407,6 +407,9 @@ def generate_man_page():
 
     today = datetime.date.today()
     datestr = today.strftime("%B %d, %Y")
+
+    # pylint: disable=W1401
+    # Anomalous backslash in string, man format confuses pylint
     manpage = \
 '''.TH bugzilla 1  "%s" "version %s" "User Commands"
 .SH NAME
@@ -689,7 +692,7 @@ def _convert_to_outputformat(output):
         fmt += "[%{target_milestone}] %{flags} %{cve}"
 
     else:
-        raise RuntimeError("Unknown output type '%s'" % opt.output)
+        raise RuntimeError("Unknown output type '%s'" % output)
 
     return fmt
 

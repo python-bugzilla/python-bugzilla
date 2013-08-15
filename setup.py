@@ -148,10 +148,10 @@ class PylintCommand(Command):
             # W0212: Access to a protected member of a client class
             "--disable W0212 "
 
-            "bugzilla/ bin/bugzilla tests/*.py ")
+            "bugzilla/ bugzilla-cli tests/*.py ")
 
         os.system("pep8 --format=pylint "
-            "bugzilla/ bin/bugzilla tests/ "
+            "bugzilla/ bugzilla-cli tests/ "
             # E303: Too many blank lines
             # E125: Continuation indent isn't different from next block
             # E128: Not indented for visual style

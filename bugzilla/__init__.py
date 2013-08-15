@@ -18,6 +18,7 @@ import xmlrpclib
 log = logging.getLogger("bugzilla")
 
 
+from bugzilla.base import BugzillaBase as _BugzillaBase
 from bugzilla.base import BugzillaError
 from bugzilla.bugzilla3 import Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36
 from bugzilla.bugzilla4 import Bugzilla4, Bugzilla42, Bugzilla44
@@ -88,12 +89,15 @@ def getBugzillaClassForURL(url):
     return c
 
 
-class Bugzilla(object):
+class Bugzilla(_BugzillaBase):
     '''
     Magical Bugzilla class that figures out which Bugzilla implementation
     to use and uses that. Requires 'url' parameter so we can check available
     XMLRPC methods to determine the Bugzilla version.
     '''
+    # pylint: disable=W0231
+    # __init__ method of base class not called
+
     def __init__(self, **kwargs):
         log.info("Bugzilla v%s initializing" % __version__)
         if 'url' not in kwargs:
@@ -101,16 +105,17 @@ class Bugzilla(object):
 
         # pylint: disable=W0233
         # Use of __init__ of non parent class
+        # We base of _BugzillaBase to help pylint figure things out
 
         c = getBugzillaClassForURL(kwargs['url'])
         if not c:
             raise ValueError("Couldn't determine Bugzilla version for %s" %
                              kwargs['url'])
 
-        if c:
-            self.__class__ = c
-            c.__init__(self, **kwargs)
-            log.info("Chose subclass %s v%s" % (c.__name__, c.version))
+        self.__class__ = c
+        c.__init__(self, **kwargs)
+        log.info("Chose subclass %s v%s" % (c.__name__, c.version))
+
 
 # This is the list of possible Bugzilla instances an app can use,
 # bin/bugzilla uses it for the --bztype field
