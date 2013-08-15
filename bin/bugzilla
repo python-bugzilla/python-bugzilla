@@ -578,6 +578,7 @@ def _do_query(bz, opt, parser):
         reporter=getattr(opt, "reporter", None),
         bug_id=getattr(opt, "bug_id", None),
         short_desc=getattr(opt, "short_desc", None),
+        long_desc=getattr(opt, "long_desc", None),
         cc=getattr(opt, "cc", None),
         assigned_to=getattr(opt, "assigned_to", None),
         qa_contact=getattr(opt, "qa_contact", None),

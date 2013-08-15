@@ -927,11 +927,6 @@ class BugzillaBase(object):
 
         Then pass the output to Bugzilla.query()
         """
-        # pylint: disable=W0221
-        # Argument number differs from overridden method
-        # Base defines it with *args, **kwargs, so we don't have to maintain
-        # the master argument list in 2 places
-
         ignore = include_fields
         ignore = emailtype
         ignore = booleantype
@@ -945,6 +940,7 @@ class BugzillaBase(object):
             ('devel_whiteboard', devel_whiteboard),
             ('alias', alias),
             ('boolean_query', boolean_query),
+            ('long_desc', long_desc),
         ]:
             if not val is None:
                 raise RuntimeError("'%s' search not supported by this "
@@ -954,7 +950,6 @@ class BugzillaBase(object):
             "product": self._listify(product),
             "component": self._listify(component),
             "version": version,
-            "long_desc": long_desc,
             "id": bug_id,
             "short_desc": short_desc,
             "bug_status": status,

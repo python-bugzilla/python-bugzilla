@@ -195,6 +195,15 @@ class RHBugzilla(_parent):
     def build_query(self, **kwargs):
         query = {}
 
+        def add_longdesc():
+            val = kwargs.pop("long_desc", None)
+            if val is None:
+                return
+
+            query["query_format"] = "advanced"
+            query["longdesc"] = val
+            query["longdesc_type"] = "allwordssubstr"
+
         def add_email(key, count):
             if not key in kwargs:
                 return count
@@ -304,6 +313,8 @@ class RHBugzilla(_parent):
                                chart_id)
         chart_id = add_boolean("alias", "alias", chart_id)
         chart_id = add_boolean("boolean_query", None, chart_id)
+
+        add_longdesc()
 
         newquery = _parent.build_query(self, **kwargs)
         query.update(newquery)

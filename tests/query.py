@@ -106,6 +106,8 @@ class BZ34Test(unittest.TestCase):
                     "--boolean_query '! foo-bar-yargh'",
                     self._booleans_chart_out)
 
+    def testLongDesc(self):
+        self.clicomm("--long_desc 'foobar'", self._longdesc_out)
 
     # Test data. This is what subclasses need to fill in
     bz = bz34
@@ -133,6 +135,7 @@ class BZ34Test(unittest.TestCase):
         'http://example.com', 'bug_file_loc_type': 'foo'}
     _booleans_out = None
     _booleans_chart_out = None
+    _longdesc_out = None
 
 
 class BZ4Test(BZ34Test):
@@ -212,4 +215,7 @@ class RHBZTest(BZ4Test):
         'keywords', 'type1-0-0': 'bar', 'type1-0-1': 'bar', 'negate2': 1,
         'type0-1-0': 'notsubstring', 'value0-1-0': 'OtherQA',
         'include_fields': BZ4Test._default_includes,
+        'query_format': 'advanced'}
+    _longdesc_out = {'include_fields': BZ4Test._default_includes,
+        'longdesc': 'foobar', 'longdesc_type': 'allwordssubstr',
         'query_format': 'advanced'}
