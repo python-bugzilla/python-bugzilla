@@ -1,4 +1,4 @@
-.TH bugzilla 1  "June 19, 2013" "version 0.9.0" "User Commands"
+.TH bugzilla 1  "August 15, 2013" "version 0.9.0" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -31,7 +31,7 @@ show this help message and exit
 .IP "--bugzilla=BUGZILLA"
 bugzilla XMLRPC URI. default: https://bugzilla.redhat.com/xmlrpc.cgi
 .IP "--bztype=BZTYPE"
-Bugzilla type. Autodetected if not set. Available types: Bugzilla3 Bugzilla32 Bugzilla34 Bugzilla36 Bugzilla4 Bugzilla42 Bugzilla44 RHBugzilla3 RHBugzilla4 RHBugzilla NovellBugzilla
+Bugzilla type. Autodetected if not set. Available types: Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36, Bugzilla4, Bugzilla42, Bugzilla44, RHBugzilla3, RHBugzilla4, RHBugzilla, NovellBugzilla
 .IP "--nosslverify"
 Don't error on invalid bugzilla SSL certificate
 .IP "--user=USER"
@@ -86,7 +86,7 @@ one line summary of the bug (useful for scripts)
 .IP "--raw"
 raw output of the bugzilla contents
 .IP "--outputformat=OUTPUTFORMAT"
-Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'
+Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{id}: %{summary}'. See the man page section 'OUTPUT FORMAT' for more details.
 .SH \[oq]QUERY\[cq] OPTIONS
 .IP "--bug_id=BUG_ID, -b BUG_ID"
 specify individual bugs by IDs, separated with commas
@@ -171,7 +171,7 @@ one line summary of the bug (useful for scripts)
 .IP "--raw"
 raw output of the bugzilla contents
 .IP "--outputformat=OUTPUTFORMAT"
-Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{bug_id}: %{short_desc}'
+Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{id}: %{summary}'. See the man page section 'OUTPUT FORMAT' for more details.
 .SH \[oq]MODIFY\[cq] OPTIONS
 
 .SH BUG DETAILS
@@ -265,6 +265,23 @@ List the components in the given product
 List components (and their owners)
 .IP "--versions=VERSION, -v VERSION"
 List the versions for the given product
+.SH OUTPUT FORMAT
+
+The output of the bugzilla tool should NEVER BE PARSED unless you are using a
+custom --outputformat. For everything else, just don't parse it, the formats
+are not stable and are subject to change.
+
+--outputformat allows printing arbitrary bug data in a user preferred format.
+For example, to print a returned bug ID, component, and product, separated
+with ::, do:
+
+--outputformat "%{id}::%{component}::%{product}"
+
+The keys (like 'id', 'component', etc.) are the names of the values returned
+by bugzilla's XMLRPC interface. To see a list of all keys, check the API
+documentation in the 'SEE ALSO' section. Alternatively, run a 'bugzilla
+--debug query' and look at the key names returned in the query results.
+
 .SH EXAMPLES
 .PP
 .RS 0
@@ -303,5 +320,7 @@ Please report any bugs to bugzilla.redhat.com
 Product=Fedora component=python-bugzilla or to the mailing list at
 .br
 https://fedorahosted.org/mailman/listinfo/python-bugzilla
-.SH AUTHOR
-Will Woods <wwoods@redhat.com>
+.SH SEE ALSO
+.nf
+https://www.bugzilla.org/docs/tip/en/html/api/Bugzilla/WebService/Bug.html
+https://bugzilla.redhat.com/docs/en/html/api/Bugzilla/WebService/Bug.html
