@@ -671,6 +671,7 @@ def _convert_to_outputformat(output):
 
     elif output == 'full':
         fmt += "%{__unicode__}\n"
+        fmt += "Component: %{component}\n"
         fmt += "CC: %{cc}\n"
         fmt += "Blocked: %{blocks}\n"
         fmt += "Depends: %{depends_on}\n"
