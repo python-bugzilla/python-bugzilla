@@ -698,7 +698,8 @@ class RHPartnerTest(BaseTest):
             bz.cookiefile = None
             raise AssertionError("Setting cookiefile for active connection "
                                  "should fail.")
-        except RuntimeError, e:
+        except RuntimeError:
+            e = sys.exc_info()[1]
             self.assertTrue("disconnect()" in str(e))
 
         bz.disconnect()

@@ -36,7 +36,8 @@ class MiscCLI(unittest.TestCase):
 
             from logilab.common.optik_ext import ManHelpFormatter
             ignore = ManHelpFormatter
-        except Exception, e:
+        except Exception:
+            e = sys.exc_info()[1]
             print("Skipping man page test: %s" % e)
             return
 

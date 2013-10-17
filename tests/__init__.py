@@ -77,7 +77,8 @@ def clicomm(argv, bzinstance, returnmain=False, printcliout=False,
             print()
 
             mainout = bugzillascript.main(bzinstance)
-        except SystemExit, sys_e:
+        except SystemExit:
+            sys_e = sys.exc_info()[1]
             ret = sys_e.code
 
         outt = ""

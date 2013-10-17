@@ -64,12 +64,13 @@ def open_without_clobber(name, *args):
     while fd is None:
         try:
             fd = os.open(name, os.O_CREAT | os.O_EXCL, 0666)
-        except OSError, e:
-            if e.errno == os.errno.EEXIST:
+        except OSError:
+            err = sys.exc_info()[1]
+            if err.errno == os.errno.EEXIST:
                 name = "%s.%i" % (orig_name, count)
                 count += 1
             else:
-                raise IOError(e.errno, e.strerror, e.filename)
+                raise IOError(err.errno, err.strerror, err.filename)
     fobj = open(name, *args)
     if fd != fobj.fileno():
         os.close(fd)
@@ -1166,15 +1167,18 @@ if __name__ == '__main__':
         log.debug("", exc_info=True)
         print("\nExited at user request.")
         sys.exit(1)
-    except socket.error, e:
+    except socket.error:
+        e = sys.exc_info()[1]
         log.debug("", exc_info=True)
         print("\nConnection lost/failed: %s" % str(e))
         sys.exit(2)
-    except (xmlrpclib.Fault, urllib2.HTTPError), e:
+    except (xmlrpclib.Fault, urllib2.HTTPError):
+        e = sys.exc_info()[1]
         log.debug("", exc_info=True)
         print("\nServer error: %s" % str(e))
         sys.exit(3)
-    except xmlrpclib.ProtocolError, e:
+    except xmlrpclib.ProtocolError:
+        e = sys.exc_info()[1]
         log.debug("", exc_info=True)
         print("\nInvalid server response: %d %s" % (e.errcode, e.errmsg))
 

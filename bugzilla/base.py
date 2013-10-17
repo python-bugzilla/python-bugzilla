@@ -12,6 +12,7 @@
 import cookielib
 import os
 import StringIO
+import sys
 import urllib2
 import urlparse
 import xmlrpclib
@@ -36,7 +37,8 @@ def _detect_filetype(fname):
             import magic
             mimemagic = magic.open(magic.MAGIC_MIME_TYPE)
             mimemagic.load()
-        except ImportError, e:
+        except ImportError:
+            e = sys.exc_info()[1]
             log.debug("Could not load python-magic: %s", e)
             mimemagic = False
     if mimemagic is False:
@@ -47,7 +49,8 @@ def _detect_filetype(fname):
 
     try:
         return mimemagic.file(fname)
-    except Exception, e:
+    except Exception:
+        e = sys.exc_info()[1]
         log.debug("Could not detect content_type: %s", e)
     return None
 
@@ -206,7 +209,8 @@ class _CURLTransport(xmlrpclib.Transport):
                               "SIGINT, raising")
                     m.remove_handle(self.c)
                     raise KeyboardInterrupt
-        except pycurl.error, e:
+        except pycurl.error:
+            e = sys.exc_info()[1]
             raise xmlrpclib.ProtocolError(url, e[0], e[1], None)
 
         b.seek(0)
