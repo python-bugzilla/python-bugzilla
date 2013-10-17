@@ -51,7 +51,8 @@ class _Bug(object):
         'print(bug)' is not recommended because of potential encoding issues.
         Please use unicode(bug) where possible.
         '''
-        return unicode(self).encode(locale.getpreferredencoding(), 'replace')
+        return self.__unicode__().encode(
+            locale.getpreferredencoding(), 'replace')
 
     def __unicode__(self):
         '''Return a simple unicode string representation of this bug'''
