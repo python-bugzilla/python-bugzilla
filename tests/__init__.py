@@ -1,4 +1,6 @@
 
+from __future__ import print_function
+
 import atexit
 import commands
 import difflib
@@ -71,8 +73,8 @@ def clicomm(argv, bzinstance, returnmain=False, printcliout=False,
         ret = 0
         mainout = None
         try:
-            print " ".join(argv)
-            print
+            print(" ".join(argv))
+            print()
 
             mainout = bugzillascript.main(bzinstance)
         except SystemExit, sys_e:

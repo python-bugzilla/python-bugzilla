@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+from __future__ import print_function
+
 import glob
 import os
 import sys
@@ -70,7 +72,7 @@ class TestCommand(Command):
             try:
                 unittest.installHandler()
             except:
-                print "installHandler hack failed"
+                print("installHandler hack failed")
 
         tests = unittest.TestLoader().loadTestsFromNames(testfiles)
         if self.only:
@@ -82,14 +84,14 @@ class TestCommand(Command):
                             newtests.append(testcase)
 
             if not newtests:
-                print "--only didn't find any tests"
+                print("--only didn't find any tests")
                 sys.exit(1)
 
             tests = unittest.TestSuite(newtests)
-            print "Running only:"
+            print("Running only:")
             for test in newtests:
-                print "%s" % test
-            print
+                print("%s" % test)
+            print()
 
 
         t = unittest.TextTestRunner(verbosity=1)

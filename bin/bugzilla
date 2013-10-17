@@ -11,6 +11,8 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
+from __future__ import print_function
+
 import getpass
 import locale
 import logging
@@ -515,7 +517,7 @@ https://fedorahosted.org/mailman/listinfo/python-bugzilla
 http://www.bugzilla.org/docs/tip/en/html/api/Bugzilla/WebService/Bug.html
 https://bugzilla.redhat.com/docs/en/html/api/Bugzilla/WebService/Bug.html'''
 
-    print manpage
+    print(manpage)
 
 
 def _do_query(bz, opt, parser):
@@ -653,11 +655,11 @@ def _do_info(bz, opt):
 
     if opt.products:
         for name in sorted([p["name"] for p in products]):
-            print name
+            print(name)
 
     if opt.components:
         for name in sorted(bz.getcomponents(opt.components)):
-            print name
+            print(name)
 
     if opt.component_owners:
         # Looking up this info for rhbz 'Fedora' product is sloooow
@@ -672,8 +674,8 @@ def _do_info(bz, opt):
 
         component_details = bz.getcomponentsdetails(opt.component_owners)
         for c in sorted(component_details):
-            print to_encoding(u"%s: %s" %
-                              (c, component_details[c]['initialowner']))
+            print(to_encoding(u"%s: %s" %
+                              (c, component_details[c]['initialowner'])))
 
     if opt.versions:
         for p in products:
@@ -681,7 +683,7 @@ def _do_info(bz, opt):
                 continue
             if "versions" in p:
                 for v in p['versions']:
-                    print to_encoding(v["name"])
+                    print(to_encoding(v["name"]))
             break
 
 
@@ -723,12 +725,12 @@ def _format_output(bz, opt, buglist):
     if opt.output == 'raw':
         buglist = bz.getbugs([b.bug_id for b in buglist])
         for b in buglist:
-            print "Bugzilla %s: " % b.bug_id
+            print("Bugzilla %s: " % b.bug_id)
             for a in dir(b):
                 if a.startswith("__") and a.endswith("__"):
                     continue
-                print to_encoding(u"ATTRIBUTE[%s]: %s" % (a, getattr(b, a)))
-            print "\n\n"
+                print(to_encoding(u"ATTRIBUTE[%s]: %s" % (a, getattr(b, a))))
+            print("\n\n")
         return
 
     def bug_field(matchobj):
@@ -779,7 +781,7 @@ def _format_output(bz, opt, buglist):
         return to_encoding(val)
 
     for b in buglist:
-        print format_field_re.sub(bug_field, opt.outputformat)
+        print(format_field_re.sub(bug_field, opt.outputformat))
 
 
 def _parse_triset(vallist, checkplus=True, checkminus=True, checkequal=True,
@@ -969,7 +971,7 @@ def _do_get_attach(bz, opt, parser, args):
         while data:
             outfile.write(data)
             data = att.read(4096)
-        print "Wrote %s" % outfile.name
+        print("Wrote %s" % outfile.name)
 
     return
 
@@ -1008,7 +1010,7 @@ def _do_set_attach(bz, opt, parser, args):
     # Upload attachments
     for bugid in args:
         attid = bz.attachfile(bugid, fileobj, desc, **kwargs)
-        print "Created attachment %i on bug %s" % (attid, bugid)
+        print("Created attachment %i on bug %s" % (attid, bugid))
 
 
 #################
@@ -1080,10 +1082,10 @@ def main(bzinstance=None):
         sys.stdout.write('Logging in... ')
         sys.stdout.flush()
         if bz.login(global_opt.user, global_opt.password):
-            print 'Authorization cookie received.'
+            print('Authorization cookie received.')
             sys.exit(0)
         else:
-            print 'failed.'
+            print('failed.')
             sys.exit(1)
 
     # Set up authentication
@@ -1162,32 +1164,32 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         log.debug("", exc_info=True)
-        print "\nExited at user request."
+        print("\nExited at user request.")
         sys.exit(1)
     except socket.error, e:
         log.debug("", exc_info=True)
-        print "\nConnection lost/failed: %s" % str(e)
+        print("\nConnection lost/failed: %s" % str(e))
         sys.exit(2)
     except (xmlrpclib.Fault, urllib2.HTTPError), e:
         log.debug("", exc_info=True)
-        print "\nServer error: %s" % str(e)
+        print("\nServer error: %s" % str(e))
         sys.exit(3)
     except xmlrpclib.ProtocolError, e:
         log.debug("", exc_info=True)
-        print "\nInvalid server response: %d %s" % (e.errcode, e.errmsg)
+        print("\nInvalid server response: %d %s" % (e.errcode, e.errmsg))
 
         # Give SSL recommendations
         import pycurl
         sslerrcodes = [getattr(pycurl, ename) for ename in dir(pycurl) if
                        ename.startswith("E_SSL")]
         if e.errcode in sslerrcodes:
-            print ("\nIf you trust the remote server, you can work "
-                   "around this error with:\n"
+            print("\nIf you trust the remote server, you can work "
+                  "around this error with:\n"
                   "  bugzilla --nosslverify ...")
 
         # Detect redirect
         redir = (e.headers and e.headers.getheader("location", 0) or None)
         if redir:
-            print ("\nServer was attempting a redirect. Try: "
-                   "  bugzilla --bugzilla %s ..." % redir)
+            print("\nServer was attempting a redirect. Try: "
+                  "  bugzilla --bugzilla %s ..." % redir)
         sys.exit(4)

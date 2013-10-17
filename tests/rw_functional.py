@@ -9,6 +9,8 @@
 Unit tests that do permanent functional against a real bugzilla instances.
 '''
 
+from __future__ import print_function
+
 import datetime
 import os
 import random
@@ -63,13 +65,13 @@ class RHPartnerTest(BaseTest):
         # Check a known account that likely won't ever go away
         ret = bool(bz.getuser("anaconda-maint-list@redhat.com").groupnames)
         if not ret:
-            print "\nNo admin privs, skipping %s" % funcname
+            print("\nNo admin privs, skipping %s" % funcname)
         return ret
 
     def _check_rh_privs(self, bz, funcname, quiet=False):
         noprivs = bool(bz.getbugs([184858]) == [None])
         if noprivs and not quiet:
-            print "\nNo RH privs, skipping %s" % funcname
+            print("\nNo RH privs, skipping %s" % funcname)
         return not noprivs
 
 
@@ -97,7 +99,7 @@ class RHPartnerTest(BaseTest):
 
         bugid = int(newout.splitlines()[2])
         bug = bz.getbug(bugid)
-        print "\nCreated bugid: %s" % bugid
+        print("\nCreated bugid: %s" % bugid)
 
         # Verify hasattr works
         self.assertTrue(hasattr(bug, "id"))
@@ -142,7 +144,7 @@ class RHPartnerTest(BaseTest):
 
         bugid = int(newout.splitlines()[2])
         bug = bz.getbug(bugid)
-        print "\nCreated bugid: %s" % bugid
+        print("\nCreated bugid: %s" % bugid)
 
         self.assertEquals(bug.summary, summary)
         self.assertEquals(bug.bug_file_loc, url)

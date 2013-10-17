@@ -48,7 +48,7 @@ class _Bug(object):
         '''Return a simple string representation of this bug
 
         This is available only for compatibility. Using 'str(bug)' and
-        'print bug' is not recommended because of potential encoding issues.
+        'print(bug)' is not recommended because of potential encoding issues.
         Please use unicode(bug) where possible.
         '''
         return unicode(self).encode(locale.getpreferredencoding(), 'replace')

@@ -9,6 +9,8 @@
 Unit tests for building query strings with bin/bugzilla
 '''
 
+from __future__ import print_function
+
 import atexit
 import os
 import shutil
@@ -35,7 +37,7 @@ class MiscCLI(unittest.TestCase):
             from logilab.common.optik_ext import ManHelpFormatter
             ignore = ManHelpFormatter
         except Exception, e:
-            print "Skipping man page test: %s" % e
+            print("Skipping man page test: %s" % e)
             return
 
         out = tests.clicomm("bugzilla --generate-man", None)
@@ -68,7 +70,7 @@ class MiscAPI(unittest.TestCase):
     def testCookies(self):
         if (sys.version_info[0] < 2 or
             (sys.version_info[0] == 2 and sys.version_info[1] < 6)):
-            print "\npython too old, skipping cookie test"
+            print("\npython too old, skipping cookie test")
             return
 
         cookiesbad = os.path.join(os.getcwd(), "tests/data/cookies-bad.txt")
