@@ -87,7 +87,7 @@ class MiscAPI(unittest.TestCase):
 
         # Mozilla should be converted inplace to LWP
         bugzilla.Bugzilla3(url=None, cookiefile=cookiesnew)
-        self.assertEquals(file(cookiesmoz).read(), file(cookiesnew).read())
+        self.assertEquals(open(cookiesmoz).read(), open(cookiesnew).read())
 
         # Make sure bad cookies raise an error
         try:

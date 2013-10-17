@@ -42,7 +42,7 @@ class BaseTest(unittest.TestCase):
         cookiefile = cf
         domain = urllib2.urlparse.urlparse(self.url)[1]
         if os.path.exists(cookiefile):
-            out = file(cookiefile).read(1024)
+            out = open(cookiefile).read(1024)
             if domain in out:
                 return
 
@@ -509,8 +509,8 @@ class RHPartnerTest(BaseTest):
 
         self.assertEquals(len(out), 3)
         self.assertEquals(fname, "bz-attach-get1.txt")
-        self.assertEquals(file(fname).read(),
-                          file(testfile).read())
+        self.assertEquals(open(fname).read(),
+                          open(testfile).read())
         os.unlink(fname)
 
         # Get all attachments

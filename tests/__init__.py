@@ -43,8 +43,8 @@ def diff(orig, new):
 def difffile(expect, filename):
     expect += '\n'
     if not os.path.exists(filename) or os.getenv("__BUGZILLA_UNITTEST_REGEN"):
-        file(filename, "w").write(expect)
-    ret = diff(file(filename).read(), expect)
+        open(filename, "w").write(expect)
+    ret = diff(open(filename).read(), expect)
     if ret:
         raise AssertionError("Output was different:\n%s" % ret)
 
