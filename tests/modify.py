@@ -99,9 +99,9 @@ class ModifyTest(unittest.TestCase):
             {'cf_devel_whiteboard': 'devel-duh',
              'cf_internal_whiteboard': 'internal-hey',
              'cf_qa_whiteboard': 'yo-qa'}, wbout={
-            "qa": ([], ["foo"]),
-            "internal": (["bar"], []),
-            "devel": ([], ["yay"])},
+                "qa": ([], ["foo"]),
+                "internal": (["bar"], []),
+                "devel": ([], ["yay"])},
         )
 
     def testMisc(self):

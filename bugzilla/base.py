@@ -447,13 +447,13 @@ class BugzillaBase(object):
         for s in sorted(c.sections(),
                         lambda a, b: cmp(len(a), len(b)) or cmp(a, b)):
             if s in self.url:
-                log.debug("Found matching section: %s" % s)
+                log.debug("Found matching section: %s", s)
                 section = s
         if not section:
             return
         for k, v in c.items(section):
             if k in ('user', 'password'):
-                log.debug("Setting '%s' from configfile" % k)
+                log.debug("Setting '%s' from configfile", k)
                 setattr(self, k, v)
 
     def connect(self, url=None):

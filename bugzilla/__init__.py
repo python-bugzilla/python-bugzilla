@@ -32,7 +32,7 @@ class NovellBugzilla(Bugzilla34):
 
 def getBugzillaClassForURL(url):
     url = Bugzilla3.fix_url(url)
-    log.debug("Detecting subclass for %s" % url)
+    log.debug("Detecting subclass for %s", url)
     s = xmlrpclib.ServerProxy(url)
     rhbz = False
     bzversion = ''
@@ -53,7 +53,7 @@ def getBugzillaClassForURL(url):
             rhbz = True
     except xmlrpclib.Fault:
         pass
-    log.debug("rhbz=%s" % str(rhbz))
+    log.debug("rhbz=%s", str(rhbz))
 
     # Try to get the bugzilla version string
     try:
@@ -62,7 +62,7 @@ def getBugzillaClassForURL(url):
         bzversion = r['version']
     except xmlrpclib.Fault:
         pass
-    log.debug("bzversion='%s'" % str(bzversion))
+    log.debug("bzversion='%s'", str(bzversion))
 
     # note preference order: RHBugzilla* wins if available
     if rhbz:
@@ -73,7 +73,7 @@ def getBugzillaClassForURL(url):
         elif bzversion.startswith("4.2"):
             c = Bugzilla42
         else:
-            log.debug("No explicit match for %s, using latest bz4" % bzversion)
+            log.debug("No explicit match for %s, using latest bz4", bzversion)
             c = Bugzilla44
     else:
         if bzversion.startswith('3.6'):
@@ -99,7 +99,7 @@ class Bugzilla(_BugzillaBase):
     # __init__ method of base class not called
 
     def __init__(self, **kwargs):
-        log.info("Bugzilla v%s initializing" % __version__)
+        log.info("Bugzilla v%s initializing", __version__)
         if 'url' not in kwargs:
             raise TypeError("You must pass a valid bugzilla URL")
 
@@ -114,7 +114,7 @@ class Bugzilla(_BugzillaBase):
 
         self.__class__ = c
         c.__init__(self, **kwargs)
-        log.info("Chose subclass %s v%s" % (c.__name__, c.version))
+        log.info("Chose subclass %s v%s", c.__name__, c.version)
 
 
 # This is the list of possible Bugzilla instances an app can use,

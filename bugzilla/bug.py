@@ -27,11 +27,11 @@ class _Bug(object):
         self.bugzilla = bugzilla
 
         if 'dict' in kwargs and kwargs['dict']:
-            log.debug("Bug(%s)" % sorted(kwargs['dict'].keys()))
+            log.debug("Bug(%s)", sorted(kwargs['dict'].keys()))
             self._update_dict(kwargs['dict'])
 
         if 'bug_id' in kwargs:
-            log.debug("Bug(%i)" % kwargs['bug_id'])
+            log.debug("Bug(%i)", kwargs['bug_id'])
             setattr(self, 'id', kwargs['bug_id'])
 
         # Back compat for a previously handled param

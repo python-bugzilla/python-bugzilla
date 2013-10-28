@@ -1053,7 +1053,7 @@ def main(bzinstance=None):
         log.info('Autodetecting Bugzilla type')
         bzclass = bugzilla.Bugzilla
     elif global_opt.bztype in bugzilla.classlist:
-        log.info('Using Bugzilla class %s' % global_opt.bztype)
+        log.info('Using Bugzilla class %s', global_opt.bztype)
         bzclass = getattr(bugzilla, global_opt.bztype)
     else:
         parser.error("bztype must be one of: %s" % str(bugzilla.classlist))
