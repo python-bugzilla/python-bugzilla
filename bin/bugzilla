@@ -922,9 +922,8 @@ def _do_modify(bz, parser, opt, args):
         "qa": (add_qawb, rm_qawb),
         "devel": (add_devwb, rm_devwb),
     }
-    for key in wbmap.keys():
-        if not wbmap[key][0] and not wbmap[key][1]:
-            wbmap.pop(key)
+
+    wbmap = {k: v for k, v in wbmap.items() if wbmap[k][0] or wbmap[k][1]}
 
     log.debug("update bug dict=%s", update)
     log.debug("update flags dict=%s", flags)

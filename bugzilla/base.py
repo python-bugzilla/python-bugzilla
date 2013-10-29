@@ -973,9 +973,7 @@ class BugzillaBase(object):
         }
 
         # Strip out None elements in the dict
-        for key in query.keys():
-            if query[key] is None:
-                del(query[key])
+        query = {k: v for k, v in query.items() if v is not None}
         return query
 
     def _query(self, query):
