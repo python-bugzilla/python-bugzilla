@@ -15,12 +15,11 @@ import sys
 
 from ConfigParser import SafeConfigParser
 from cookielib import LoadError, LWPCookieJar, MozillaCookieJar
-from urllib2 import Request, HTTPError, build_opener
+from io import BytesIO
 from urlparse import urlparse, parse_qsl
-from StringIO import StringIO
 from xmlrpclib import Binary, Fault, ProtocolError, ServerProxy, Transport
 
-import pycurl
+import requests
 
 from bugzilla import __version__, log
 from bugzilla.bug import _Bug, _User
@@ -63,20 +62,6 @@ def _detect_filetype(fname):
     return None
 
 
-def _decode_rfc2231_value(val):
-    # BUG WORKAROUND: decode_header doesn't work unless there's whitespace
-    # around the encoded string (see http://bugs.python.org/issue1079)
-    from email import utils
-    from email import header
-
-    # pylint: disable=W1401
-    # Anomolous backslash in string
-    val = utils.ecre.sub(' \g<0> ', val)
-    val = val.strip('"')
-    return ''.join(f[0].decode(f[1] or 'us-ascii')
-                   for f in header.decode_header(val))
-
-
 def _build_cookiejar(cookiefile):
     cj = MozillaCookieJar(cookiefile)
     if cookiefile is None:
@@ -110,46 +95,18 @@ def _build_cookiejar(cookiefile):
     return retcj
 
 
-def _check_http_error(uri, request_body, response_data):
-    # This pulls some of the guts from urllib to give us HTTP error
-    # code checking. Wrap it all in try/except incase this breaks in
-    # the future, it's only for error handling.
-    try:
-        import httplib
-        import urllib
+class RequestsTransport(Transport):
+    user_agent = 'Python/Bugzilla'
 
-        class FakeSocket(StringIO):
-            def makefile(self, *args, **kwarg):
-                ignore = args
-                ignore = kwarg
-                return self
-
-        httpresp = httplib.HTTPResponse(FakeSocket(response_data))
-        httpresp.begin()
-        resp = urllib.addinfourl(FakeSocket(response_data), httpresp.msg, uri)
-        resp.code = httpresp.status
-        resp.msg = httpresp.reason
-
-        req = Request(uri)
-        req.add_data(request_body)
-        opener = build_opener()
-
-        for handler in opener.handlers:
-            if hasattr(handler, "http_response"):
-                handler.http_response(req, resp)
-    except HTTPError:
-        raise
-    except:
-        pass
-
-
-class _CURLTransport(Transport):
     def __init__(self, url, cookiejar,
                  sslverify=True, sslcafile=None, debug=0):
+        # pylint: disable=W0231
+        # pylint does not handle multiple import of Transport well
         if hasattr(Transport, "__init__"):
             Transport.__init__(self, use_datetime=False)
 
         self.verbose = debug
+        self._cookiejar = cookiejar
 
         # transport constructor needs full url too, as xmlrpc does not pass
         # scheme to request
@@ -157,87 +114,67 @@ class _CURLTransport(Transport):
         if self.scheme not in ["http", "https"]:
             raise Exception("Invalid URL scheme: %s (%s)" % (self.scheme, url))
 
-        self.c = pycurl.Curl()
-        self.c.setopt(pycurl.POST, 1)
-        self.c.setopt(pycurl.CONNECTTIMEOUT, 30)
-        self.c.setopt(pycurl.HTTPHEADER, [
-            "Content-Type: text/xml",
-        ])
-        self.c.setopt(pycurl.VERBOSE, debug)
+        self.use_https = self.scheme == 'https'
 
-        self.set_cookiejar(cookiejar)
+        self.request_defaults = {
+            'cert': sslcafile if self.use_https else None,
+            'cookies': cookiejar,
+            'verify': sslverify,
+            'headers': {
+                'Content-Type': 'text/xml',
+                'User-Agent': self.user_agent,
+            }
+        }
 
-        # ssl settings
-        if self.scheme == "https":
-            # override curl built-in ca file setting
-            if sslcafile is not None:
-                self.c.setopt(pycurl.CAINFO, sslcafile)
+    def parse_response(self, response):
+        """ Parse XMLRPC response """
+        parser, unmarshaller = self.getparser()
+        parser.feed(response.text.encode('utf-8'))
+        parser.close()
+        return unmarshaller.close()
 
-            # disable ssl verification
-            if not sslverify:
-                self.c.setopt(pycurl.SSL_VERIFYPEER, 0)
-                self.c.setopt(pycurl.SSL_VERIFYHOST, 0)
-
-    def set_cookiejar(self, cj):
-        self.c.setopt(pycurl.COOKIEFILE, cj.filename or "")
-        self.c.setopt(pycurl.COOKIEJAR, cj.filename or "")
-
-    def get_cookies(self):
-        return self.c.getinfo(pycurl.INFO_COOKIELIST)
-
-    def _open_helper(self, url, request_body):
-        self.c.setopt(pycurl.URL, url)
-        self.c.setopt(pycurl.POSTFIELDS, request_body)
-
-        b = StringIO()
-        headers = StringIO()
-        self.c.setopt(pycurl.WRITEFUNCTION, b.write)
-        self.c.setopt(pycurl.HEADERFUNCTION, headers.write)
-
+    def _request_helper(self, url, request_body):
+        """
+        A helper method to assist in making a request and provide a parsed
+        response.
+        """
         try:
-            m = pycurl.CurlMulti()
-            m.add_handle(self.c)
-            while True:
-                if m.perform()[0] == -1:
-                    continue
-                num, ok, err = m.info_read()
-                ignore = num
+            response = requests.post(
+                url, data=request_body, **self.request_defaults)
 
-                if ok:
-                    m.remove_handle(self.c)
-                    break
-                if err:
-                    m.remove_handle(self.c)
-                    raise pycurl.error(*err[0][1:])
-                if m.select(.1) == -1:
-                    # Looks like -1 is passed straight up from select(2)
-                    # While it's not true that this will always be caused
-                    # by SIGINT, it should be the only case we hit
-                    log.debug("pycurl select failed, this likely came from "
-                              "SIGINT, raising")
-                    m.remove_handle(self.c)
-                    raise KeyboardInterrupt
-        except pycurl.error:
+            # We expect utf-8 from the server
+            response.encoding = 'UTF-8'
+
+            # update/set any cookies
+            for cookie in response.cookies:
+                self._cookiejar.set_cookie(cookie)
+
+            if self._cookiejar.filename is not None:
+                # Save is required only if we have a filename
+                self._cookiejar.save()
+
+            response.raise_for_status()
+            return self.parse_response(response)
+        except requests.RequestException:
             e = sys.exc_info()[1]
-            raise ProtocolError(url, e[0], e[1], None)
-
-        b.seek(0)
-        headers.seek(0)
-        return b, headers
+            raise ProtocolError(
+                url, response.status_code, str(e), response.headers)
+        except Fault:
+            raise sys.exc_info()[1]
+        except Exception:
+            # pylint: disable=W0201
+            e = BugzillaError(str(sys.exc_info()[1]))
+            e.__traceback__ = sys.exc_info()[2]
+            raise e
 
     def request(self, host, handler, request_body, verbose=0):
         self.verbose = verbose
         url = "%s://%s%s" % (self.scheme, host, handler)
 
         # xmlrpclib fails to escape \r
-        request_body = request_body.replace('\r', '&#xd;')
+        request_body = request_body.replace(b'\r', b'&#xd;')
 
-        body, headers = self._open_helper(url, request_body)
-        _check_http_error(url, body.getvalue(), headers.getvalue())
-
-        return self.parse_response(body)
-
-
+        return self._request_helper(url, request_body)
 
 
 class BugzillaError(Exception):
@@ -475,8 +412,8 @@ class BugzillaBase(object):
             url = self.url
         url = self.fix_url(url)
 
-        self._transport = _CURLTransport(url, self._cookiejar,
-                                         sslverify=self._sslverify)
+        self._transport = RequestsTransport(
+            url, self._cookiejar, sslverify=self._sslverify)
         self._transport.user_agent = self.user_agent
         self._proxy = ServerProxy(url, self._transport)
 
@@ -1293,29 +1230,27 @@ class BugzillaBase(object):
     def openattachment(self, attachid):
         '''Get the contents of the attachment with the given attachment ID.
         Returns a file-like object.'''
+
+        def get_filename(headers):
+            import re
+
+            match = re.search(
+                r'^.*filename="?(.*)"$',
+                headers.get('content-disposition', '')
+            )
+
+            # default to attchid if no match was found
+            return match.group(1) if match else attachid
+
         att_uri = self._attachment_uri(attachid)
 
-        headers = {}
-        ret = StringIO()
+        response = requests.get(att_uri, cookies=self._cookiejar, stream=True)
 
-        def headers_cb(buf):
-            if not ":" in buf:
-                return
-            name, val = buf.split(":", 1)
-            headers[name.lower()] = val
-
-        c = pycurl.Curl()
-        c.setopt(pycurl.URL, att_uri)
-        c.setopt(pycurl.WRITEFUNCTION, ret.write)
-        c.setopt(pycurl.HEADERFUNCTION, headers_cb)
-        c.setopt(pycurl.COOKIEFILE, self._cookiejar.filename or "")
-        c.perform()
-        c.close()
-
-        disp = headers['content-disposition'].split(';')
-        disp.pop(0)
-        parms = dict([p.strip().split("=", 1) for p in disp])
-        ret.name = _decode_rfc2231_value(parms['filename'])
+        ret = BytesIO()
+        for chunk in response.iter_content(chunk_size=1024):
+            if chunk:
+                ret.write(chunk)
+        ret.name = get_filename(response.headers)
 
         # Hooray, now we have a file-like object with .read() and .name
         ret.seek(0)

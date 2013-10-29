@@ -19,8 +19,8 @@ BuildRequires:  python-setuptools
 BuildRequires:  python-setuptools-devel
 %endif
 
-BuildRequires: python-pycurl
-Requires: python-pycurl
+BuildRequires: python-requests
+Requires: python-requests
 
 %if ! 0%{?rhel} || 0%{?rhel} >= 6
 Requires: python-magic

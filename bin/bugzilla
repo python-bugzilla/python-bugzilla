@@ -23,8 +23,8 @@ import socket
 import sys
 import tempfile
 
-from urllib2 import HTTPError
 from xmlrpclib import Fault, ProtocolError
+from requests.exceptions import SSLError
 
 import bugzilla
 
@@ -1173,7 +1173,7 @@ if __name__ == '__main__':
         log.debug("", exc_info=True)
         print("\nConnection lost/failed: %s" % str(e))
         sys.exit(2)
-    except (Fault, HTTPError):
+    except (Fault, bugzilla.BugzillaError):
         e = sys.exc_info()[1]
         log.debug("", exc_info=True)
         print("\nServer error: %s" % str(e))
@@ -1184,16 +1184,13 @@ if __name__ == '__main__':
         print("\nInvalid server response: %d %s" % (e.errcode, e.errmsg))
 
         # Give SSL recommendations
-        import pycurl
-        sslerrcodes = [getattr(pycurl, ename) for ename in dir(pycurl) if
-                       ename.startswith("E_SSL")]
-        if e.errcode in sslerrcodes:
+        if isinstance(e, SSLError):
             print("\nIf you trust the remote server, you can work "
                   "around this error with:\n"
                   "  bugzilla --nosslverify ...")
 
         # Detect redirect
-        redir = (e.headers and e.headers.getheader("location", 0) or None)
+        redir = (e.headers and 'location' in e.headers)
         if redir:
             print("\nServer was attempting a redirect. Try: "
                   "  bugzilla --bugzilla %s ..." % redir)
