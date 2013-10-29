@@ -47,13 +47,16 @@ log.addHandler(handler)
 ################
 
 def to_encoding(ustring):
+    string = ''
     if isinstance(ustring, basestring):
-        if isinstance(ustring, unicode):
-            return ustring.encode(locale.getpreferredencoding(), 'replace')
-        return ustring
-    if ustring is None:
-        return u''
-    return str(ustring)
+        string = ustring
+    elif ustring is not None:
+        string = str(ustring)
+
+    if sys.version_info.major >= 3:
+        return string
+    else:
+        return string.encode(locale.getpreferredencoding(), 'replace')
 
 
 def open_without_clobber(name, *args):
@@ -779,7 +782,7 @@ def _format_output(bz, opt, buglist):
         vallist = type(val) is list and val or [val]
         val = ','.join([to_encoding(v) for v in vallist])
 
-        return to_encoding(val)
+        return val
 
     for b in buglist:
         print(format_field_re.sub(bug_field, opt.outputformat))
