@@ -8,7 +8,8 @@ import imp
 import os
 import shlex
 import sys
-import StringIO
+
+from StringIO import StringIO
 
 
 _cleanup = []
@@ -63,7 +64,7 @@ def clicomm(argv, bzinstance, returnmain=False, printcliout=False,
     oldargv = sys.argv
     try:
         if not printcliout:
-            out = StringIO.StringIO()
+            out = StringIO()
             sys.stdout = out
             sys.stderr = out
             if stdin:

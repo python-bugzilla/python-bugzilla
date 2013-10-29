@@ -22,8 +22,9 @@ import re
 import socket
 import sys
 import tempfile
-import urllib2
-import xmlrpclib
+
+from urllib2 import HTTPError
+from xmlrpclib import Fault, ProtocolError
 
 import bugzilla
 
@@ -1169,12 +1170,12 @@ if __name__ == '__main__':
         log.debug("", exc_info=True)
         print("\nConnection lost/failed: %s" % str(e))
         sys.exit(2)
-    except (xmlrpclib.Fault, urllib2.HTTPError):
+    except (Fault, HTTPError):
         e = sys.exc_info()[1]
         log.debug("", exc_info=True)
         print("\nServer error: %s" % str(e))
         sys.exit(3)
-    except xmlrpclib.ProtocolError:
+    except ProtocolError:
         e = sys.exc_info()[1]
         log.debug("", exc_info=True)
         print("\nInvalid server response: %d %s" % (e.errcode, e.errmsg))

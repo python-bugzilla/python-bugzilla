@@ -13,7 +13,7 @@ __version__ = "0.9.0"
 version = __version__
 
 import logging
-import xmlrpclib
+from xmlrpclib import Fault, ServerProxy
 
 log = logging.getLogger("bugzilla")
 
@@ -33,7 +33,7 @@ class NovellBugzilla(Bugzilla34):
 def getBugzillaClassForURL(url):
     url = Bugzilla3.fix_url(url)
     log.debug("Detecting subclass for %s", url)
-    s = xmlrpclib.ServerProxy(url)
+    s = ServerProxy(url)
     rhbz = False
     bzversion = ''
     c = None
@@ -51,7 +51,7 @@ def getBugzillaClassForURL(url):
         extensions = s.Bugzilla.extensions()
         if extensions.get('extensions', {}).get('RedHat', False):
             rhbz = True
-    except xmlrpclib.Fault:
+    except Fault:
         pass
     log.debug("rhbz=%s", str(rhbz))
 
@@ -60,7 +60,7 @@ def getBugzillaClassForURL(url):
         log.debug("Checking return value of Bugzilla.version()")
         r = s.Bugzilla.version()
         bzversion = r['version']
-    except xmlrpclib.Fault:
+    except Fault:
         pass
     log.debug("bzversion='%s'", str(bzversion))
 

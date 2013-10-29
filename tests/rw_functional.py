@@ -16,7 +16,8 @@ import os
 import random
 import sys
 import unittest
-import urllib2
+
+from urlparse import urlparse
 
 import bugzilla
 from bugzilla import Bugzilla
@@ -40,7 +41,7 @@ class BaseTest(unittest.TestCase):
 
     def _testCookie(self):
         cookiefile = cf
-        domain = urllib2.urlparse.urlparse(self.url)[1]
+        domain = urlparse(self.url)[1]
         if os.path.exists(cookiefile):
             out = open(cookiefile).read(1024)
             if domain in out:

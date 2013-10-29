@@ -9,13 +9,15 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-import cookielib
 import os
-import StringIO
 import sys
-import urllib2
-import urlparse
-import xmlrpclib
+
+from ConfigParser import SafeConfigParser
+from cookielib import LoadError, LWPCookieJar, MozillaCookieJar
+from urllib2 import Request, HTTPError, build_opener
+from urlparse import urlparse, parse_qsl
+from StringIO import StringIO
+from xmlrpclib import Binary, Fault, ProtocolError, ServerProxy, Transport
 
 import pycurl
 
@@ -75,7 +77,7 @@ def _decode_rfc2231_value(val):
 
 
 def _build_cookiejar(cookiefile):
-    cj = cookielib.MozillaCookieJar(cookiefile)
+    cj = MozillaCookieJar(cookiefile)
     if cookiefile is None:
         return cj
     if not os.path.exists(cookiefile):
@@ -90,17 +92,17 @@ def _build_cookiejar(cookiefile):
     try:
         cj.load()
         return cj
-    except cookielib.LoadError:
+    except LoadError:
         pass
 
     try:
-        cj = cookielib.LWPCookieJar(cookiefile)
+        cj = LWPCookieJar(cookiefile)
         cj.load()
-    except cookielib.LoadError:
+    except LoadError:
         raise BugzillaError("cookiefile=%s not in LWP or Mozilla format" %
                             cookiefile)
 
-    retcj = cookielib.MozillaCookieJar(cookiefile)
+    retcj = MozillaCookieJar(cookiefile)
     for cookie in cj:
         retcj.set_cookie(cookie)
     retcj.save()
@@ -115,7 +117,7 @@ def _check_http_error(uri, request_body, response_data):
         import httplib
         import urllib
 
-        class FakeSocket(StringIO.StringIO):
+        class FakeSocket(StringIO):
             def makefile(self, *args, **kwarg):
                 ignore = args
                 ignore = kwarg
@@ -127,30 +129,30 @@ def _check_http_error(uri, request_body, response_data):
         resp.code = httpresp.status
         resp.msg = httpresp.reason
 
-        req = urllib2.Request(uri)
+        req = Request(uri)
         req.add_data(request_body)
-        opener = urllib2.build_opener()
+        opener = build_opener()
 
         for handler in opener.handlers:
             if hasattr(handler, "http_response"):
                 handler.http_response(req, resp)
-    except urllib2.HTTPError:
+    except HTTPError:
         raise
     except:
         pass
 
 
-class _CURLTransport(xmlrpclib.Transport):
+class _CURLTransport(Transport):
     def __init__(self, url, cookiejar,
                  sslverify=True, sslcafile=None, debug=0):
-        if hasattr(xmlrpclib.Transport, "__init__"):
-            xmlrpclib.Transport.__init__(self, use_datetime=False)
+        if hasattr(Transport, "__init__"):
+            Transport.__init__(self, use_datetime=False)
 
         self.verbose = debug
 
         # transport constructor needs full url too, as xmlrpc does not pass
         # scheme to request
-        self.scheme = urlparse.urlparse(url)[0]
+        self.scheme = urlparse(url)[0]
         if self.scheme not in ["http", "https"]:
             raise Exception("Invalid URL scheme: %s (%s)" % (self.scheme, url))
 
@@ -186,8 +188,8 @@ class _CURLTransport(xmlrpclib.Transport):
         self.c.setopt(pycurl.URL, url)
         self.c.setopt(pycurl.POSTFIELDS, request_body)
 
-        b = StringIO.StringIO()
-        headers = StringIO.StringIO()
+        b = StringIO()
+        headers = StringIO()
         self.c.setopt(pycurl.WRITEFUNCTION, b.write)
         self.c.setopt(pycurl.HEADERFUNCTION, headers.write)
 
@@ -216,7 +218,7 @@ class _CURLTransport(xmlrpclib.Transport):
                     raise KeyboardInterrupt
         except pycurl.error:
             e = sys.exc_info()[1]
-            raise xmlrpclib.ProtocolError(url, e[0], e[1], None)
+            raise ProtocolError(url, e[0], e[1], None)
 
         b.seek(0)
         headers.seek(0)
@@ -291,12 +293,12 @@ class BugzillaBase(object):
         '''
         q = {}
         (ignore, ignore, path,
-         ignore, query, ignore) = urlparse.urlparse(url)
+         ignore, query, ignore) = urlparse(url)
 
         if os.path.basename(path) not in ('buglist.cgi', 'query.cgi'):
             return {}
 
-        for (k, v) in urlparse.parse_qsl(query):
+        for (k, v) in parse_qsl(query):
             if k not in q:
                 q[k] = v
             elif isinstance(q[k], list):
@@ -357,9 +359,8 @@ class BugzillaBase(object):
         self._components_details = {}
 
     def _get_user_agent(self):
-        ret = ('Python-urllib2/%s bugzilla.py/%s %s/%s' %
-               (urllib2.__version__, __version__,
-                str(self.__class__.__name__), self.version))
+        ret = ('Python-urllib bugzilla.py/%s %s/%s' %
+               (__version__, str(self.__class__.__name__), self.version))
         return ret
     user_agent = property(_get_user_agent)
 
@@ -437,11 +438,10 @@ class BugzillaBase(object):
         '''
         Read bugzillarc file(s) into memory.
         '''
-        import ConfigParser
         if not configpath:
             configpath = self.configpath
         configpath = [os.path.expanduser(p) for p in configpath]
-        c = ConfigParser.SafeConfigParser()
+        c = SafeConfigParser()
         r = c.read(configpath)
         if not r:
             return
@@ -477,7 +477,7 @@ class BugzillaBase(object):
         self._transport = _CURLTransport(url, self._cookiejar,
                                          sslverify=self._sslverify)
         self._transport.user_agent = self.user_agent
-        self._proxy = xmlrpclib.ServerProxy(url, self._transport)
+        self._proxy = ServerProxy(url, self._transport)
 
 
         self.url = url
@@ -533,7 +533,7 @@ class BugzillaBase(object):
             self.logged_in = True
             log.info("login successful - dropping password from memory")
             self.password = ''
-        except xmlrpclib.Fault:
+        except Fault:
             r = False
 
         return r
@@ -1218,7 +1218,7 @@ class BugzillaBase(object):
     def attachfile(self, idlist, attachfile, description, **kwargs):
         '''
         Attach a file to the given bug IDs. Returns the ID of the attachment
-        or raises xmlrpclib.Fault if something goes wrong.
+        or raises XMLRPC Fault if something goes wrong.
 
         attachfile may be a filename (which will be opened) or a file-like
         object, which must provide a 'read' method. If it's not one of these,
@@ -1259,7 +1259,7 @@ class BugzillaBase(object):
             kwargs["file_name"] = kwargs.pop("filename")
 
         kwargs['summary'] = description
-        kwargs['data'] = xmlrpclib.Binary(f.read())
+        kwargs['data'] = Binary(f.read())
         kwargs['ids'] = self._listify(idlist)
 
         if 'file_name' not in kwargs and hasattr(f, "name"):
@@ -1290,7 +1290,7 @@ class BugzillaBase(object):
         att_uri = self._attachment_uri(attachid)
 
         headers = {}
-        ret = StringIO.StringIO()
+        ret = StringIO()
 
         def headers_cb(buf):
             if not ":" in buf:
@@ -1440,7 +1440,7 @@ class BugzillaBase(object):
         :kwarg names: list of user names to return data on
         :kwarg match: list of patterns.  Returns users whose real name or
             login name match the pattern.
-        :raises xmlrpclib.Fault: Code 51: if a Bad Login Name was sent to the
+        :raises XMLRPC Fault: Code 51: if a Bad Login Name was sent to the
                 names array.
             Code 304: if the user was not authorized to see user they
                 requested.
@@ -1467,7 +1467,7 @@ class BugzillaBase(object):
         '''Return a bugzilla User for the given username
 
         :arg username: The username used in bugzilla.
-        :raises xmlrpclib.Fault: Code 51 if the username does not exist
+        :raises XMLRPC Fault: Code 51 if the username does not exist
         :returns: User record for the username
         '''
         ret = self.getusers(username)
@@ -1509,7 +1509,7 @@ class BugzillaBase(object):
         :arg email: The email address to use in bugzilla
         :kwarg name: Real name to associate with the account
         :kwarg password: Password to set for the bugzilla account
-        :raises xmlrpclib.Fault: Code 501 if the username already exists
+        :raises XMLRPC Fault: Code 501 if the username already exists
             Code 500 if the email address isn't valid
             Code 502 if the password is too short
             Code 503 if the password is too long
