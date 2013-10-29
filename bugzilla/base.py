@@ -30,10 +30,15 @@ mimemagic = None
 
 
 def _detect_filetype(fname):
+    # pylint: disable=E1103
+    # E1103: Instance of 'bool' has no '%s' member
+    # pylint confuses mimemagic to be of type 'bool'
     global mimemagic
 
     if mimemagic is None:
         try:
+            # pylint: disable=F0401
+            # F0401: Unable to import 'magic' (import-error)
             import magic
             mimemagic = magic.open(magic.MAGIC_MIME_TYPE)
             mimemagic.load()
