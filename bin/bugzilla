@@ -771,7 +771,7 @@ def _format_output(bz, opt, buglist):
                         (c['time'], c['author'], c['text']))
 
         elif fieldname == "__unicode__":
-            val = unicode(b)
+            val = b.__unicode__()
         else:
             val = getattr(b, fieldname, "")
 
