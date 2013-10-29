@@ -12,10 +12,10 @@
 __version__ = "0.9.0"
 version = __version__
 
-import logging
+from logging import getLogger
 from xmlrpclib import Fault, ServerProxy
 
-log = logging.getLogger("bugzilla")
+log = getLogger("bugzilla")
 
 
 from bugzilla.base import BugzillaBase as _BugzillaBase
@@ -42,7 +42,7 @@ def getBugzillaClassForURL(url):
         log.info("Using RHBugzilla for URL containing bugzilla.redhat.com")
         return RHBugzilla
     if "bugzilla.novell.com" in url:
-        logging.info("Using NovellBugzilla for URL containing novell.com")
+        log.info("Using NovellBugzilla for URL containing novell.com")
         return NovellBugzilla
 
     # Check for a Red Hat extension
