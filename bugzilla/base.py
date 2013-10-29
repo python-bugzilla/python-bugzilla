@@ -444,8 +444,7 @@ class BugzillaBase(object):
         section = ""
         # Substring match - prefer the longest match found
         log.debug("Searching for config section matching %s", self.url)
-        for s in sorted(c.sections(),
-                        lambda a, b: cmp(len(a), len(b)) or cmp(a, b)):
+        for s in sorted(c.sections()):
             if s in self.url:
                 log.debug("Found matching section: %s", s)
                 section = s
