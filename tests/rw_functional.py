@@ -17,7 +17,11 @@ import random
 import sys
 import unittest
 
-from urlparse import urlparse
+if sys.version_info.major >= 3:
+    # pylint: disable=F0401,E0611
+    from urllib.parse import urlparse
+else:
+    from urlparse import urlparse
 
 import bugzilla
 from bugzilla import Bugzilla

@@ -2,14 +2,16 @@
 from __future__ import print_function
 
 import atexit
-import commands
 import difflib
 import imp
 import os
 import shlex
 import sys
 
-from StringIO import StringIO
+if sys.version_info.major >= 3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 
 _cleanup = []

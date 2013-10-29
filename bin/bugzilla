@@ -23,7 +23,13 @@ import socket
 import sys
 import tempfile
 
-from xmlrpclib import Fault, ProtocolError
+if sys.version_info.major >= 3:
+    # pylint: disable=F0401,W0622
+    from xmlrpc.client import Fault, ProtocolError
+    basestring = (str, bytes)
+else:
+    from xmlrpclib import Fault, ProtocolError
+
 from requests.exceptions import SSLError
 
 import bugzilla

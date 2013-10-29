@@ -13,11 +13,21 @@ import locale
 import os
 import sys
 
-from ConfigParser import SafeConfigParser
-from cookielib import LoadError, LWPCookieJar, MozillaCookieJar
 from io import BytesIO
-from urlparse import urlparse, parse_qsl
-from xmlrpclib import Binary, Fault, ProtocolError, ServerProxy, Transport
+
+if sys.version_info.major >= 3:
+    # pylint: disable=F0401,E0611
+    from configparser import SafeConfigParser
+    from http.cookiejar import LoadError, LWPCookieJar, MozillaCookieJar
+    from urllib.parse import urlparse, parse_qsl
+    from xmlrpc.client import (
+        Binary, Fault, ProtocolError, ServerProxy, Transport)
+else:
+    from ConfigParser import SafeConfigParser
+    from cookielib import LoadError, LWPCookieJar, MozillaCookieJar
+    from urlparse import urlparse, parse_qsl
+    from xmlrpclib import (
+        Binary, Fault, ProtocolError, ServerProxy, Transport)
 
 import requests
 

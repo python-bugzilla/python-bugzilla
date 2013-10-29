@@ -12,8 +12,14 @@
 __version__ = "0.9.0"
 version = __version__
 
+import sys
 from logging import getLogger
-from xmlrpclib import Fault, ServerProxy
+
+if sys.version_info.major >= 3:
+    # pylint: disable=F0401
+    from xmlrpc.client import Fault, ServerProxy
+else:
+    from xmlrpclib import Fault, ServerProxy
 
 log = getLogger("bugzilla")
 
