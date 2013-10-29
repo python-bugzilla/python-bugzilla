@@ -63,7 +63,7 @@ def open_without_clobber(name, *args):
     orig_name = name
     while fd is None:
         try:
-            fd = os.open(name, os.O_CREAT | os.O_EXCL, 0666)
+            fd = os.open(name, os.O_CREAT | os.O_EXCL, 0o666)
         except OSError:
             err = sys.exc_info()[1]
             if err.errno == os.errno.EEXIST:

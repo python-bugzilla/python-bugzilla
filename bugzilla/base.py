@@ -76,7 +76,7 @@ def _build_cookiejar(cookiefile):
     if not os.path.exists(cookiefile):
         # Make sure a new file has correct permissions
         open(cookiefile, 'a').close()
-        os.chmod(cookiefile, 0600)
+        os.chmod(cookiefile, 0o600)
         cj.save()
         return cj
 
