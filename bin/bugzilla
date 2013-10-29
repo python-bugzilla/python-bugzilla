@@ -993,7 +993,7 @@ def _do_set_attach(bz, opt, parser, args):
         data = sys.stdin.read(4096)
 
         while data:
-            fileobj.write(data)
+            fileobj.write(data.encode(locale.getpreferredencoding()))
             data = sys.stdin.read(4096)
         fileobj.seek(0)
 

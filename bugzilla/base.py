@@ -9,6 +9,7 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
+import locale
 import os
 import sys
 
@@ -1259,7 +1260,12 @@ class BugzillaBase(object):
             kwargs["file_name"] = kwargs.pop("filename")
 
         kwargs['summary'] = description
-        kwargs['data'] = Binary(f.read())
+
+        data = f.read()
+        if not isinstance(data, bytes):
+            data = data.encode(locale.getpreferredencoding())
+        kwargs['data'] = Binary(data)
+
         kwargs['ids'] = self._listify(idlist)
 
         if 'file_name' not in kwargs and hasattr(f, "name"):
