@@ -148,6 +148,7 @@ class RequestsTransport(Transport):
         A helper method to assist in making a request and provide a parsed
         response.
         """
+        response = None
         try:
             response = requests.post(
                 url, data=request_body, **self.request_defaults)
@@ -167,6 +168,8 @@ class RequestsTransport(Transport):
             return self.parse_response(response)
         except requests.RequestException:
             e = sys.exc_info()[1]
+            if not response:
+                raise
             raise ProtocolError(
                 url, response.status_code, str(e), response.headers)
         except Fault:

@@ -1188,16 +1188,17 @@ if __name__ == '__main__':
         e = sys.exc_info()[1]
         log.debug("", exc_info=True)
         print("\nInvalid server response: %d %s" % (e.errcode, e.errmsg))
-
-        # Give SSL recommendations
-        if isinstance(e, SSLError):
-            print("\nIf you trust the remote server, you can work "
-                  "around this error with:\n"
-                  "  bugzilla --nosslverify ...")
-
         # Detect redirect
         redir = (e.headers and 'location' in e.headers)
         if redir:
             print("\nServer was attempting a redirect. Try: "
                   "  bugzilla --bugzilla %s ..." % redir)
+        sys.exit(4)
+    except SSLError:
+        e = sys.exc_info()[1]
+        # Give SSL recommendations
+        print(e)
+        print("\nIf you trust the remote server, you can work "
+              "around this error with:\n"
+              "  bugzilla --nosslverify ...")
         sys.exit(4)
