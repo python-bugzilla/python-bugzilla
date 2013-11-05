@@ -14,11 +14,9 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires: python-devel
 BuildRequires: python-requests
-Requires: python-requests
 
-%if ! 0%{?rhel} || 0%{?rhel} >= 6
+Requires: python-requests
 Requires: python-magic
-%endif
 
 
 %description
