@@ -12,13 +12,7 @@ Source0:        https://fedorahosted.org/releases/p/y/%{name}/%{name}-%{version}
 BuildArch:      noarch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:  python-devel
-%if 0%{?rhel} == 5
-BuildRequires:  python-setuptools
-%else
-BuildRequires:  python-setuptools-devel
-%endif
-
+BuildRequires: python-devel
 BuildRequires: python-requests
 Requires: python-requests
 
