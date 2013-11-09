@@ -4,3 +4,6 @@ MANIFEST
 dist
 build
 .coverage
+
+#python-bugzilla venvs
+dev-env*

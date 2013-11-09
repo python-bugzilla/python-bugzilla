@@ -1,23 +1,56 @@
-If submitting any patch, please verify that no new pylint or pep8 violations
-are introduced:
+Hackers Guide
+=============
 
-  python setup.py pylint
+1. Setting up the environment
+-----------------------------
+To start development, you can set-up/activate a virtual environment by using the 
+following command:
+    source contrib/activate-dev-env [python2|python3]
 
-And ensure that the basic unit test suite does not regress
+Note: Providing no arguments will attempt to use python2.
 
-  python setup.py test
+# Manually activating an environment
+    source dev-env-${NAME}/bin/activate
 
+2. Running tests
+----------------
+Once you have already activated an environment, you can use the following.
+
+# Basic unit test suite
+    python setup.py test
+
+# Functional tests
 There are more comprehensive tests that are disabled by default. Readonly
 functional tests that run against several public bugzilla instances. No
 login account is required:
 
-  python setup.py test --ro-functional
+    python setup.py test --ro-functional
 
 And read/write functional tests. These currently run against the test
 bugzilla instance at partner-bugzilla.redhat.com, and requires a valid
 login there:
 
-  python setup.py test --rw-functional
+    python setup.py test --rw-functional
+
+Note: Before running rw-functional tests, make sure you have logged using:
+    python bugzilla-cli \
+        --bugzilla="https://partner-bugzilla.redhat.com/xmlrpc.cgi" \
+        --user=$USER login
+
+3. pylint and pep8
+------------------
+To test for pylint or pep8 violations, you can run:
+    python setup.py pylint
+
+Note: This expects that you already have pylint and pep8 (installed when setting
+up virtualenv) isntalled.
+
+4. Patch Submission
+-------------------
+If you are submitting a patch, ensure the following:
+    [REQ] verify that no new pylint or pep8 violations
+    [REQ] run basic unit test suite across all python versions:
+            bash contrib/run-tests
 
 Running any of the functional tests is not a requirement for patch submission,
 but please give them a go if you are interested.

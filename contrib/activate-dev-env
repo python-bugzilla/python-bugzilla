@@ -1,0 +1,60 @@
+# Helper script to create (if required) and activate a virtual environment for 
+# a specified PYTHON_BINARY (python|python2|python3) and install dependencies 
+# required for testing and development.
+#
+# Usage: source $0 [PYTHON_BINARY]
+
+# use env python by default
+PYTHON_BIN=python2
+VIRTIALENV_CMD=virtualenv
+SETUP_PY="setup.py"
+DEV_MODULE_DIR="bugzilla"
+DIR_PREFIX="dev-env"
+
+if [ $# -ne 0 ]; then
+    PYTHON_BIN=$1
+fi
+
+function activate()
+{
+    DIR_NAME=$1
+    echo "INFO: Activating virtualenv at ${DIR_NAME}"
+    source ${DIR_NAME}/bin/activate
+}
+
+function virtualize()
+{
+    PROMPT=$(basename ${PYTHON_BIN})
+    DIR_NAME="${DIR_PREFIX}-${PROMPT}"
+    
+    if [ ! -d ${DIR_NAME} ]; then
+        echo "INFO: Creating virtualenv ${DIR_NAME}"
+        ${VIRTIALENV_CMD} -p $(which ${PYTHON_BIN}) --prompt "${PROMPT}" ${DIR_NAME}
+    fi
+
+    if [ -d ${DIR_NAME} ]; then
+        activate $DIR_NAME
+        
+        for REQ in $(find ./ -maxdepth 1 -type f -name "*requirements.txt"); do
+            pip install -qr "${REQ}"
+        done
+    else
+        echo >&2 "ERROR: Failed to activate virtualenv."
+    fi
+}
+
+
+if ! command -v ${VIRTIALENV_CMD} >/dev/null 2>&1; then
+    # We require virtuaenv to be available
+    echo >&2 "ERROR: virtualenv command not found"
+elif ! command -v $PYTHON_BIN >/dev/null 2>&1; then
+    # Ensure PYTHON_BIN is valid
+    echo >&2 "ERROR: ${PYTHON_BIN} command not found"
+elif ! ${PYTHON_BIN} --version 2>&1 | grep -q '^Python'; then
+    # Ensure PYTHON_BIN is python
+    echo >&2 "ERROR: '${PYTHON_BIN} --version' returned an invalid response. Is ${PYTHON_BIN} really python?"
+elif [ ! -f ${SETUP_PY} ]; then
+    echo >&2 "ERROR: ${SETUP_PY} not found"
+else
+    virtualize
+fi
