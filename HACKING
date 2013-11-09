@@ -3,8 +3,8 @@ Hackers Guide
 
 1. Setting up the environment
 -----------------------------
-To start development, you can set-up/activate a virtual environment by using the 
-following command:
+To start development, you can set-up/activate a virtual environment by using
+the following command:
     source contrib/activate-dev-env [python2|python3]
 
 Note: Providing no arguments will attempt to use python2.
@@ -34,7 +34,7 @@ login there:
 
 Note: Before running rw-functional tests, make sure you have logged using:
     python bugzilla-cli \
-        --bugzilla="https://partner-bugzilla.redhat.com/xmlrpc.cgi" \
+        --bugzilla=partner-bugzilla.redhat.com \
         --user=$USER login
 
 3. pylint and pep8
@@ -43,7 +43,7 @@ To test for pylint or pep8 violations, you can run:
     python setup.py pylint
 
 Note: This expects that you already have pylint and pep8 (installed when setting
-up virtualenv) isntalled.
+up virtualenv) installed.
 
 4. Patch Submission
 -------------------

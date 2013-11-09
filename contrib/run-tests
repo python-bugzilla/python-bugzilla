@@ -16,6 +16,6 @@ for BIN in python2 python3; do
         python setup.py test ${ARGS}
         echo "INFO: Tests completed for ${BIN}"
     else
-        echo "INFO: ${BIN} not found, skipping tests." 
+        echo "INFO: ${BIN} not found, skipping tests."
     fi
 done

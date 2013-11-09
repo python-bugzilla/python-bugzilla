@@ -1,5 +1,7 @@
-# Helper script to create (if required) and activate a virtual environment for 
-# a specified PYTHON_BINARY (python|python2|python3) and install dependencies 
+#!/usr/bin/env bash
+
+# Helper script to create (if required) and activate a virtual environment for
+# a specified PYTHON_BINARY (python|python2|python3) and install dependencies
 # required for testing and development.
 #
 # Usage: source $0 [PYTHON_BINARY]
@@ -26,17 +28,17 @@ function virtualize()
 {
     PROMPT=$(basename ${PYTHON_BIN})
     DIR_NAME="${DIR_PREFIX}-${PROMPT}"
-    
+
     if [ ! -d ${DIR_NAME} ]; then
         echo "INFO: Creating virtualenv ${DIR_NAME}"
-        ${VIRTIALENV_CMD} -p $(which ${PYTHON_BIN}) --prompt "${PROMPT}" ${DIR_NAME}
+        ${VIRTIALENV_CMD} -p $(which ${PYTHON_BIN}) \
+            --prompt "${PROMPT}" ${DIR_NAME}
     fi
 
     if [ -d ${DIR_NAME} ]; then
-        activate $DIR_NAME
-        
+        activate $DIR_NAME || exit 1
         for REQ in $(find ./ -maxdepth 1 -type f -name "*requirements.txt"); do
-            pip install -qr "${REQ}"
+            pip install -qr "${REQ}" || exit 1
         done
     else
         echo >&2 "ERROR: Failed to activate virtualenv."
