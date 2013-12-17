@@ -49,7 +49,8 @@ class TestCommand(Command):
             usecov = False
 
         if usecov:
-            cov = coverage.coverage(omit=["/*/tests/*", "/usr/*", "*dev-env*"])
+            cov = coverage.coverage(omit=[
+                "/*/tests/*", "/usr/*", "*dev-env*", "*.tox/*"])
             cov.erase()
             cov.start()
 
