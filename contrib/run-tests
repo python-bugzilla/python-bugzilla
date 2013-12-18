@@ -11,10 +11,15 @@ ARGS="$@"
 
 for BIN in python2 python3; do
     if command -v ${BIN} >/dev/null 2>&1; then
-        echo "INFO: Running tests for ${BIN}"
+        echo "INFO: Activating environment for ${BIN}"
         . ./contrib/activate-dev-env ${BIN}
-        python setup.py test ${ARGS}
-        echo "INFO: Tests completed for ${BIN}"
+        if [ -z ${VIRTUAL_ENV} ]; then
+            echo "WARN: Virtual Environment not active, skipping tests."
+        else
+            echo "INFO: Running tests for ${BIN}"
+            python setup.py test ${ARGS}
+            echo "INFO: Tests completed for ${BIN}"
+        fi
     else
         echo "INFO: ${BIN} not found, skipping tests."
     fi
