@@ -38,7 +38,7 @@ function virtualize()
     if [ -d ${DIR_NAME} ]; then
         activate $DIR_NAME || exit 1
         for REQ in $(find ./ -maxdepth 1 -type f -name "*requirements.txt"); do
-            pip install -qr "${REQ}" || exit 1
+            pip install -qr "${REQ}"
         done
     else
         echo >&2 "ERROR: Failed to activate virtualenv."
