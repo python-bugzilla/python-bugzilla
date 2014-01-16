@@ -154,6 +154,13 @@ def setup_action_parser(action):
         p.add_option('--groups',
                 metavar='GROUP[, GROUP, ...]', action="append",
                 help="add groups to which bug is visible")
+        p.add_option('--assigned_to',
+                help='Assign bugzilla to specified email address')
+        p.add_option('--qa_contact',
+                help='Set QA contact to specified email address')
+        p.add_option('--keywords',
+                metavar='KEYWORD[, KEYWORD, ...]', action="append",
+                help="Set specified keywords on new bugzilla")
 
     elif action == 'query':
         p.set_description("List bug reports that match the given criteria.")
@@ -836,6 +843,7 @@ def _do_new(bz, opt):
         depends_on=parse_multi(opt.dependson) or None,
         description=opt.description or None,
         groups=parse_multi(opt.groups) or None,
+        keywords=parse_multi(opt.keywords) or None,
         op_sys=opt.os or None,
         platform=opt.arch or None,
         priority=opt.priority or None,
@@ -844,6 +852,8 @@ def _do_new(bz, opt):
         summary=opt.summary or None,
         url=opt.url or None,
         version=opt.version or None,
+        assigned_to=opt.assigned_to or None,
+        qa_contact=opt.qa_contact or None,
     )
 
     if opt.test_return_result:

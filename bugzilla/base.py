@@ -1304,6 +1304,8 @@ class BugzillaBase(object):
         comment_private=None,
         blocks=None,
         cc=None,
+        assigned_to=None,
+        keywords=None,
         depends_on=None,
         groups=None,
         op_sys=None,
@@ -1326,6 +1328,8 @@ class BugzillaBase(object):
             localdict["depends_on"] = self._listify(depends_on)
         if groups:
             localdict["groups"] = self._listify(groups)
+        if keywords:
+            localdict["keywords"] = self._listify(keywords)
         if description:
             localdict["description"] = description
             if comment_private:
@@ -1338,7 +1342,8 @@ class BugzillaBase(object):
                 platform=platform, priority=priority, qa_contact=qa_contact,
                 resolution=resolution, severity=severity, status=status,
                 target_milestone=target_milestone,
-                target_release=target_release, url=url)
+                target_release=target_release, url=url,
+                assigned_to=assigned_to)
 
         ret.update(localdict)
         return ret
