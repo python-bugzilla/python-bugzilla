@@ -193,7 +193,7 @@ class RHTest(BaseTest):
     test13 = lambda s: BaseTest._testQueryFormat(s,
              "--bug_id 522796 --outputformat \"%{summary}\"",
              "V34 — system")
-    # CVE bug
+    # CVE bug output
     test14 = lambda s: BaseTest._testQueryOneline(s, "720784",
             " CVE-2011-2527")
 
@@ -209,3 +209,11 @@ class RHTest(BaseTest):
         bz = self.bzclass(url=self.url, cookiefile=None)
         self.assertTrue(
             bool(bz.getcomponentsdetails("Red Hat Developer Toolset")))
+
+    def testGetBugAlias(self):
+        """
+        getbug() works if passed an alias
+        """
+        bz = self.bzclass(url=self.url, cookiefile=None)
+        bug = bz.getbug("CVE-2011-2527")
+        self.assertTrue(bug.bug_id == 720773)

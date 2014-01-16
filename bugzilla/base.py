@@ -784,7 +784,14 @@ class BugzillaBase(object):
 
         @simple: If True, don't ask for any large extra_fields.
         '''
-        idlist = [int(i) for i in idlist]
+        oldidlist = idlist
+        idlist = []
+        for i in oldidlist:
+            try:
+                idlist.append(int(i))
+            except ValueError:
+                # String aliases can be passed as well
+                idlist.append(i)
 
         getbugdata = {"ids": idlist}
         if permissive:
@@ -800,7 +807,21 @@ class BugzillaBase(object):
         else:
             bugdict = dict([(b['id'], b['internals']) for b in r['bugs']])
 
-        return [bugdict.get(i) for i in idlist]
+        ret = []
+        for i in idlist:
+            found = None
+            if i in bugdict:
+                found = bugdict[i]
+            else:
+                # Need to map an alias
+                for valdict in bugdict.values():
+                    if i in valdict.get("alias", []):
+                        found = valdict
+                        break
+
+            ret.append(found)
+
+        return ret
 
     def _getbug(self, objid, simple=False):
         '''Return a dict of full bug info for the given bug id'''
