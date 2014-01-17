@@ -762,9 +762,14 @@ def _format_output(bz, opt, buglist):
         if fieldname == "flag" and rest:
             val = b.get_flag_status(rest)
 
-        elif fieldname == "flags":
-            val = ",".join([f["name"] + f["status"]
-                            for f in getattr(b, "flags", [])])
+        elif fieldname == "flags" or fieldname == "flags_requestee":
+            tmpstr = []
+            for f in getattr(b, "flags", []):
+                requestee = f.get('requestee', "");
+                if fieldname == "flags":
+                    requestee = ""
+                tmpstr.append("%s%s%s" % (f['name'], f['status'], requestee))
+            val = ",".join(tmpstr)
 
         elif fieldname == "cve":
             cves = []
