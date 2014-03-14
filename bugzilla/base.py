@@ -108,7 +108,7 @@ def _build_cookiejar(cookiefile):
 class RequestsTransport(Transport):
     user_agent = 'Python/Bugzilla'
 
-    def __init__(self, url, cookiejar,
+    def __init__(self, url, cookiejar=None,
                  sslverify=True, sslcafile=None, debug=0):
         # pylint: disable=W0231
         # pylint does not handle multiple import of Transport well
@@ -128,7 +128,7 @@ class RequestsTransport(Transport):
 
         self.request_defaults = {
             'cert': sslcafile if self.use_https else None,
-            'cookies': cookiejar,
+            'cookies': cookiejar if cookiejar else None,
             'verify': sslverify,
             'headers': {
                 'Content-Type': 'text/xml',
@@ -157,12 +157,13 @@ class RequestsTransport(Transport):
             response.encoding = 'UTF-8'
 
             # update/set any cookies
-            for cookie in response.cookies:
-                self._cookiejar.set_cookie(cookie)
+            if self._cookiejar is not None:
+                for cookie in response.cookies:
+                    self._cookiejar.set_cookie(cookie)
 
-            if self._cookiejar.filename is not None:
-                # Save is required only if we have a filename
-                self._cookiejar.save()
+                if self._cookiejar.filename is not None:
+                    # Save is required only if we have a filename
+                    self._cookiejar.save()
 
             response.raise_for_status()
             return self.parse_response(response)

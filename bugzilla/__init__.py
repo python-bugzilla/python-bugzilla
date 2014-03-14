@@ -26,6 +26,7 @@ log = getLogger("bugzilla")
 
 from bugzilla.base import BugzillaBase as _BugzillaBase
 from bugzilla.base import BugzillaError
+from bugzilla.base import RequestsTransport
 from bugzilla.bugzilla3 import Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36
 from bugzilla.bugzilla4 import Bugzilla4, Bugzilla42, Bugzilla44
 from bugzilla.rhbugzilla import RHBugzilla, RHBugzilla3, RHBugzilla4
@@ -39,7 +40,7 @@ class NovellBugzilla(Bugzilla34):
 def getBugzillaClassForURL(url):
     url = Bugzilla3.fix_url(url)
     log.debug("Detecting subclass for %s", url)
-    s = ServerProxy(url)
+    s = ServerProxy(url, RequestsTransport(url))
     rhbz = False
     bzversion = ''
     c = None
