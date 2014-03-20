@@ -396,7 +396,7 @@ class RHPartnerTest(BaseTest):
 
         # modify --target_release
         # modify --target_milestone
-        targetbugid = 831888
+        targetbugid = 492463
         targetbug = bz.getbug(targetbugid)
         targetcmd = "bugzilla modify %s " % targetbugid
         tests.clicomm(targetcmd +
@@ -424,10 +424,10 @@ class RHPartnerTest(BaseTest):
         # modify --os
         # modify --platform
         # modify --version
-        tests.clicomm(cmd + "--version 18 --os Windows --arch ppc "
+        tests.clicomm(cmd + "--version rawhide --os Windows --arch ppc "
                             "--url http://example.com", bz)
         bug.refresh()
-        self.assertEquals(bug.version, "18")
+        self.assertEquals(bug.version, "rawhide")
         self.assertEquals(bug.op_sys, "Windows")
         self.assertEquals(bug.platform, "ppc")
         self.assertEquals(bug.url, "http://example.com")
