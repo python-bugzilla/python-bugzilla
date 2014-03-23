@@ -3,14 +3,21 @@ Hackers Guide
 
 1. Setting up the environment
 -----------------------------
-To start development, you can set-up/activate a virtual environment by using
-the following command:
+
+If you already have system installed versions of python-bugzilla
+dependencies, running the command line from git is as simple as doing:
+    cd python-bugzilla.git
+    ./bugzilla-cli [arguments]
+
+If you'd like to use pip and virtualenv to install a local development
+environment, use the following command.
     source contrib/activate-dev-env [python2|python3]
 
 Note: Providing no arguments will attempt to use python2.
 
 # Manually activating an environment
     source dev-env-${NAME}/bin/activate
+
 
 2. Running tests
 ----------------
@@ -45,6 +52,7 @@ bugzilla using:
         --bugzilla=partner-bugzilla.redhat.com \
         --user=$USER login
 
+
 3. pylint and pep8
 ------------------
 To test for pylint or pep8 violations, you can run:
@@ -53,12 +61,13 @@ To test for pylint or pep8 violations, you can run:
 Note: This expects that you already have pylint and pep8 (installed when setting
 up virtualenv) installed.
 
+
 4. Patch Submission
 -------------------
 If you are submitting a patch, ensure the following:
     [REQ] verify that no new pylint or pep8 violations
-    [REQ] run basic unit test suite across all python versions:
-            tox
+    [REQ] run basic unit test suite across all python versions as described
+        above.
 
 Running any of the functional tests is not a requirement for patch submission,
 but please give them a go if you are interested.
