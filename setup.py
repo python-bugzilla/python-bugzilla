@@ -118,7 +118,7 @@ class PylintCommand(Command):
     def finalize_options(self):
         pass
 
-    def run(self):
+    def _run(self):
         os.system("pylint "
             "--reports=n "
             "--output-format=colorized "
@@ -151,14 +151,24 @@ class PylintCommand(Command):
             # W0212: Access to a protected member of a client class
             "--disable W0212 "
 
-            "bugzilla/ bugzilla-cli tests/*.py ")
+            "bugzilla/ bin-bugzilla tests/*.py ")
 
         os.system("pep8 --format=pylint "
-            "bugzilla/ bugzilla-cli tests/ "
+            "bugzilla/ bin-bugzilla tests/ "
             # E303: Too many blank lines
             # E125: Continuation indent isn't different from next block
             # E128: Not indented for visual style
             "--ignore E303,E125,E128")
+
+    def run(self):
+        os.link("bin/bugzilla", "bin-bugzilla")
+        try:
+            self._run()
+        finally:
+            try:
+                os.unlink("bin-bugzilla")
+            except:
+                pass
 
 
 class RPMCommand(Command):

@@ -1,1 +1,3 @@
-bin/bugzilla
+#!/bin/sh
+
+PYTHONPATH=. exec bin/bugzilla "$@"
