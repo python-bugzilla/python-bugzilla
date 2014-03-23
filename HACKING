@@ -39,7 +39,8 @@ To test all supported python versions, run tox using any of the following.
     tox -- --ro-functional
     tox -- --rw-functional
 
-Note: Before running rw-functional tests, make sure you have logged using:
+Note: Before running rw-functional tests, make sure you have logged into
+bugzilla using:
     python bugzilla-cli \
         --bugzilla=partner-bugzilla.redhat.com \
         --user=$USER login
