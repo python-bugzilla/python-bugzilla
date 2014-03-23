@@ -58,7 +58,7 @@ up virtualenv) installed.
 If you are submitting a patch, ensure the following:
     [REQ] verify that no new pylint or pep8 violations
     [REQ] run basic unit test suite across all python versions:
-            bash contrib/run-tests
+            tox
 
 Running any of the functional tests is not a requirement for patch submission,
 but please give them a go if you are interested.
