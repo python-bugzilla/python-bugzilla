@@ -4,6 +4,7 @@ MANIFEST
 dist
 build
 .coverage
+.tox
 
 #python-bugzilla venvs
 dev-env*
