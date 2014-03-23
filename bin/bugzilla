@@ -765,7 +765,7 @@ def _format_output(bz, opt, buglist):
         elif fieldname == "flags" or fieldname == "flags_requestee":
             tmpstr = []
             for f in getattr(b, "flags", []):
-                requestee = f.get('requestee', "");
+                requestee = f.get('requestee', "")
                 if fieldname == "flags":
                     requestee = ""
                 tmpstr.append("%s%s%s" % (f['name'], f['status'], requestee))

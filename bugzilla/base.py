@@ -244,6 +244,8 @@ class BugzillaBase(object):
         be passed along to the Bugzilla.query() method.
         '''
         q = {}
+
+        # pylint: disable=unpacking-non-sequence
         (ignore, ignore, path,
          ignore, query, ignore) = urlparse(url)
 

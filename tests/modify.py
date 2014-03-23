@@ -31,12 +31,14 @@ class ModifyTest(unittest.TestCase):
 
     def clicomm(self, argstr, out, flagsout=None, wbout=None):
         comm = "bugzilla modify --test-return-result 123456 224466 " + argstr
+        # pylint: disable=unpacking-non-sequence
 
         if out is None:
             self.assertRaises(RuntimeError, tests.clicomm, comm, self.bz)
         else:
-            (mdict, fdict, wdict) = tests.clicomm(comm,
-                                                  self.bz, returnmain=True)
+            (mdict, fdict, wdict) = tests.clicomm(comm, self.bz,
+                                                  returnmain=True)
+
             if wbout:
                 self.assertDictEqual(wbout, wdict)
             if flagsout:
