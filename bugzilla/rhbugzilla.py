@@ -54,7 +54,7 @@ class RHBugzilla(_parent):
     getbug_extra_fields = (
         _parent.getbug_extra_fields + [
             "attachments", "comments", "description",
-            "external_bugs", "flags"
+            "external_bugs", "flags", "sub_components",
         ]
     )
 
