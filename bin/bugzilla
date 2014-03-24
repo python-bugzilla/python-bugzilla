@@ -230,7 +230,9 @@ def setup_action_parser(action):
 
         # Precomposed queries
         p.add_option('--from-url',
-                help="Use the query given by a query.cgi URL. (Use quotes!)")
+            help="Use the query given by a query.cgi URL. (Use quotes!)")
+        p.add_option('--quicksearch',
+            help="Search using bugzilla's quicksearch functionality.")
 
         # Boolean Charts
         bgrp = optparse.OptionGroup(p, "Boolean options")
@@ -648,7 +650,8 @@ def _do_query(bz, opt, parser):
         target_milestone=getattr(opt, "target_milestone", None),
         emailtype=opt.emailtype,
         booleantype=opt.booleantype,
-        include_fields=include_fields)
+        include_fields=include_fields,
+        quicksearch=getattr(opt, "quicksearch", None))
 
     built_query.update(q)
     q = built_query

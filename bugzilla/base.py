@@ -896,7 +896,8 @@ class BugzillaBase(object):
                     target_milestone=None,
                     emailtype=None,
                     booleantype=None,
-                    include_fields=None):
+                    include_fields=None,
+                    quicksearch=None):
         """
         Build a query string from passed arguments. Will handle
         query parameter differences between various bugzilla versions.
@@ -924,6 +925,7 @@ class BugzillaBase(object):
             ('alias', alias),
             ('boolean_query', boolean_query),
             ('long_desc', long_desc),
+            ('quicksearch', quicksearch),
         ]:
             if not val is None:
                 raise RuntimeError("'%s' search not supported by this "

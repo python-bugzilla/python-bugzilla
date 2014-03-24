@@ -109,6 +109,10 @@ class BZ34Test(unittest.TestCase):
     def testLongDesc(self):
         self.clicomm("--long_desc 'foobar'", self._longdesc_out)
 
+    def testQuicksearch(self):
+        self.clicomm("--quicksearch 'foo bar baz'", self._quicksearch_out)
+
+
     # Test data. This is what subclasses need to fill in
     bz = bz34
 
@@ -136,6 +140,7 @@ class BZ34Test(unittest.TestCase):
     _booleans_out = None
     _booleans_chart_out = None
     _longdesc_out = None
+    _quicksearch_out = None
 
 
 class BZ4Test(BZ34Test):
@@ -219,3 +224,5 @@ class RHBZTest(BZ4Test):
     _longdesc_out = {'include_fields': BZ4Test._default_includes,
         'longdesc': 'foobar', 'longdesc_type': 'allwordssubstr',
         'query_format': 'advanced'}
+    _quicksearch_out = {'include_fields': BZ4Test._default_includes,
+        'quicksearch': 'foo bar baz'}
