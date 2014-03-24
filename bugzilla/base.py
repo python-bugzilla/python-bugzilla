@@ -249,7 +249,8 @@ class BugzillaBase(object):
         (ignore, ignore, path,
          ignore, query, ignore) = urlparse(url)
 
-        if os.path.basename(path) not in ('buglist.cgi', 'query.cgi'):
+        base = os.path.basename(path)
+        if base not in ('buglist.cgi', 'query.cgi'):
             return {}
 
         for (k, v) in parse_qsl(query):
@@ -260,6 +261,13 @@ class BugzillaBase(object):
             else:
                 oldv = q[k]
                 q[k] = [oldv, v]
+
+        # Handle saved searches
+        if base == "buglist.cgi" and "namedcmd" in q and "sharer_id" in q:
+            q = {
+                "sharer_id": q["sharer_id"],
+                "savedsearch": q["namedcmd"],
+            }
 
         return q
 
@@ -929,7 +937,7 @@ class BugzillaBase(object):
             ('long_desc', long_desc),
             ('quicksearch', quicksearch),
             ('savedsearch', savedsearch),
-            ('savedsearch_sharer_id', savedsearch_sharer_id),
+            ('sharer_id', savedsearch_sharer_id),
         ]:
             if not val is None:
                 raise RuntimeError("'%s' search not supported by this "

@@ -233,3 +233,37 @@ class RHBZTest(BZ4Test):
         'quicksearch': 'foo bar baz'}
     _savedsearch_out = {'include_fields': BZ4Test._default_includes,
         'savedsearch': "my saved search", 'sharer_id': "123456"}
+
+
+class TestURLToQuery(unittest.TestCase):
+    def _check(self, url, query):
+        self.assertDictEqual(bz4.url_to_query(url), query)
+
+    def testSavedSearch(self):
+        url = ("https://bugzilla.redhat.com/buglist.cgi?"
+            "cmdtype=dorem&list_id=2342312&namedcmd="
+            "RHEL7%20new%20assigned%20virt-maint&remaction=run&"
+            "sharer_id=321167")
+        query = {
+            'sharer_id': '321167',
+            'savedsearch': 'RHEL7 new assigned virt-maint'
+        }
+        self._check(url, query)
+
+    def testStandardQuery(self):
+        url = ("https://bugzilla.redhat.com/buglist.cgi?"
+            "component=virt-manager&query_format=advanced&classification="
+            "Fedora&product=Fedora&bug_status=NEW&bug_status=ASSIGNED&"
+            "bug_status=MODIFIED&bug_status=ON_DEV&bug_status=ON_QA&"
+            "bug_status=VERIFIED&bug_status=FAILS_QA&bug_status="
+            "RELEASE_PENDING&bug_status=POST&order=bug_status%2Cbug_id")
+        query = {
+            'product': 'Fedora',
+            'query_format': 'advanced',
+            'bug_status': ['NEW', 'ASSIGNED', 'MODIFIED', 'ON_DEV',
+                'ON_QA', 'VERIFIED', 'FAILS_QA', 'RELEASE_PENDING', 'POST'],
+            'classification': 'Fedora',
+            'component': 'virt-manager',
+            'order': 'bug_status,bug_id'
+        }
+        self._check(url, query)
