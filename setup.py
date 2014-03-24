@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from __future__ import print_function
 
@@ -184,9 +184,14 @@ class RPMCommand(Command):
         """
         Run sdist, then 'rpmbuild' the tar.gz
         """
-        self.run_command('sdist')
-        os.system('rpmbuild -ta --clean dist/python-bugzilla-%s.tar.gz' %
-                  get_version())
+        os.system("cp python-bugzilla.spec /tmp")
+        try:
+            os.system("rm -rf python-bugzilla-%s" % get_version())
+            self.run_command('sdist')
+            os.system('rpmbuild -ta --clean dist/python-bugzilla-%s.tar.gz' %
+                      get_version())
+        finally:
+            os.system("mv /tmp/python-bugzilla.spec .")
 
 
 setup(name='python-bugzilla',
