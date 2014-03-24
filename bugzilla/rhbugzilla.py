@@ -195,6 +195,12 @@ class RHBugzilla(_parent):
     def build_query(self, **kwargs):
         query = {}
 
+        def _add_key(paramname, keyname):
+            val = kwargs.pop(paramname, None)
+            if val is None:
+                return
+            query[keyname] = val
+
         def add_longdesc():
             val = kwargs.pop("long_desc", None)
             if val is None:
@@ -203,12 +209,6 @@ class RHBugzilla(_parent):
             query["query_format"] = "advanced"
             query["longdesc"] = val
             query["longdesc_type"] = "allwordssubstr"
-
-        def add_quicksearch():
-            val = kwargs.pop("quicksearch", None)
-            if val is None:
-                return
-            query["quicksearch"] = val
 
         def add_email(key, count):
             if not key in kwargs:
@@ -321,7 +321,10 @@ class RHBugzilla(_parent):
         chart_id = add_boolean("boolean_query", None, chart_id)
 
         add_longdesc()
-        add_quicksearch()
+
+        _add_key("quicksearch", "quicksearch")
+        _add_key("savedsearch", "savedsearch")
+        _add_key("savedsearch_sharer_id", "sharer_id")
 
         newquery = _parent.build_query(self, **kwargs)
         query.update(newquery)

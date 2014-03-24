@@ -233,6 +233,13 @@ def setup_action_parser(action):
             help="Use the query given by a query.cgi URL. (Use quotes!)")
         p.add_option('--quicksearch',
             help="Search using bugzilla's quicksearch functionality.")
+        p.add_option('--savedsearch',
+            help="Name of a bugzilla saved search. If you don't own this "
+                "saved search, you must passed --savedsearch_sharer_id.")
+        p.add_option('--savedsearch-sharer-id',
+            help="Owner ID of the --savedsearch. You can get this ID from "
+                "the URL bugzilla generates when running the saved search "
+                "from the web UI.")
 
         # Boolean Charts
         bgrp = optparse.OptionGroup(p, "Boolean options")
@@ -651,7 +658,9 @@ def _do_query(bz, opt, parser):
         emailtype=opt.emailtype,
         booleantype=opt.booleantype,
         include_fields=include_fields,
-        quicksearch=getattr(opt, "quicksearch", None))
+        quicksearch=getattr(opt, "quicksearch", None),
+        savedsearch=getattr(opt, "savedsearch", None),
+        savedsearch_sharer_id=getattr(opt, "savedsearch_sharer_id", None))
 
     built_query.update(q)
     q = built_query

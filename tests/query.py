@@ -112,6 +112,10 @@ class BZ34Test(unittest.TestCase):
     def testQuicksearch(self):
         self.clicomm("--quicksearch 'foo bar baz'", self._quicksearch_out)
 
+    def testSavedsearch(self):
+        self.clicomm("--savedsearch 'my saved search' "
+            "--savedsearch-sharer-id 123456", self._savedsearch_out)
+
 
     # Test data. This is what subclasses need to fill in
     bz = bz34
@@ -141,6 +145,7 @@ class BZ34Test(unittest.TestCase):
     _booleans_chart_out = None
     _longdesc_out = None
     _quicksearch_out = None
+    _savedsearch_out = None
 
 
 class BZ4Test(BZ34Test):
@@ -226,3 +231,5 @@ class RHBZTest(BZ4Test):
         'query_format': 'advanced'}
     _quicksearch_out = {'include_fields': BZ4Test._default_includes,
         'quicksearch': 'foo bar baz'}
+    _savedsearch_out = {'include_fields': BZ4Test._default_includes,
+        'savedsearch': "my saved search", 'sharer_id': "123456"}
