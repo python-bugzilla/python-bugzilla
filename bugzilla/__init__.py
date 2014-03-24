@@ -37,10 +37,10 @@ class NovellBugzilla(Bugzilla34):
     pass
 
 
-def getBugzillaClassForURL(url):
+def getBugzillaClassForURL(url, sslverify):
     url = Bugzilla3.fix_url(url)
     log.debug("Detecting subclass for %s", url)
-    s = ServerProxy(url, RequestsTransport(url))
+    s = ServerProxy(url, RequestsTransport(url, sslverify=sslverify))
     rhbz = False
     bzversion = ''
     c = None
@@ -114,7 +114,8 @@ class Bugzilla(_BugzillaBase):
         # Use of __init__ of non parent class
         # We base of _BugzillaBase to help pylint figure things out
 
-        c = getBugzillaClassForURL(kwargs['url'])
+        c = getBugzillaClassForURL(kwargs['url'],
+                                   kwargs.get('sslverify', True))
         if not c:
             raise ValueError("Couldn't determine Bugzilla version for %s" %
                              kwargs['url'])
