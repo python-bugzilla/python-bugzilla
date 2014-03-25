@@ -243,7 +243,7 @@ class RHBZTest(BZ4Test):
         'sub_components': ["Command-line tools (RHEL5)"]}
 
 
-class TestURLToQuery(unittest.TestCase):
+class TestURLToQuery(BZ34Test):
     def _check(self, url, query):
         self.assertDictEqual(bz4.url_to_query(url), query)
 

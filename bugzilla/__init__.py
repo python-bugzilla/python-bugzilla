@@ -15,7 +15,7 @@ version = __version__
 import sys
 from logging import getLogger
 
-if sys.version_info.major >= 3:
+if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
     # pylint: disable=F0401
     from xmlrpc.client import Fault, ServerProxy
 else:

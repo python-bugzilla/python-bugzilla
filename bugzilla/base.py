@@ -15,7 +15,7 @@ import sys
 
 from io import BytesIO
 
-if sys.version_info.major >= 3:
+if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
     # pylint: disable=F0401,E0611
     from configparser import SafeConfigParser
     from http.cookiejar import LoadError, LWPCookieJar, MozillaCookieJar
@@ -969,7 +969,9 @@ class BugzillaBase(object):
         }
 
         # Strip out None elements in the dict
-        query = {k: v for k, v in query.items() if v is not None}
+        for k, v in query.copy().items():
+            if v is None:
+                del(query[k])
         return query
 
     def _query(self, query):
