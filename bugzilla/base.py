@@ -1357,7 +1357,8 @@ class BugzillaBase(object):
         status=None,
         target_milestone=None,
         target_release=None,
-        url=None):
+        url=None,
+        sub_component=None):
 
         localdict = {}
         if blocks:
@@ -1383,7 +1384,7 @@ class BugzillaBase(object):
                 resolution=resolution, severity=severity, status=status,
                 target_milestone=target_milestone,
                 target_release=target_release, url=url,
-                assigned_to=assigned_to)
+                assigned_to=assigned_to, sub_component=sub_component)
 
         ret.update(localdict)
         return ret

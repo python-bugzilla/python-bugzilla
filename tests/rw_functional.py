@@ -136,14 +136,17 @@ class RHPartnerTest(BaseTest):
         blocked = "461686,461687"
         dependson = "427301"
         comment = "Test bug from python-bugzilla test suite"
+        sub_component = "Command-line tools (RHEL6)"
         newout = tests.clicomm("bugzilla new "
-            "--product Fedora --component python-bugzilla --version rawhide "
+            "--product 'Red Hat Enterprise Linux 6' --version 6.0 "
+            "--component lvm2 --sub-component '%s' "
             "--summary \"%s\" "
             "--comment \"%s\" "
             "--url %s --severity Urgent --priority Low --os %s "
             "--arch ppc --cc %s --blocked %s --dependson %s "
             "--outputformat \"%%{bug_id}\"" %
-            (summary, comment, url, osval, cc, blocked, dependson), bz)
+            (sub_component, summary, comment, url,
+             osval, cc, blocked, dependson), bz)
 
         self.assertTrue(len(newout.splitlines()) == 3)
 
@@ -158,6 +161,7 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug.depends_on, _split_int(dependson))
         self.assertTrue(all([e in bug.cc for e in cc.split(",")]))
         self.assertEquals(bug.longdescs[0]["text"], comment)
+        self.assertEquals(bug.sub_components, {"lvm2": [sub_component]})
 
         # Close the bug
         tests.clicomm("bugzilla modify --close WONTFIX %s" % bugid,

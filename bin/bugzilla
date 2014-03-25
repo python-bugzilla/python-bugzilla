@@ -133,6 +133,7 @@ def setup_action_parser(action):
         p.add_option('-p', '--product', help="REQUIRED: product name")
         p.add_option('-v', '--version', help="REQUIRED: product version")
         p.add_option('-c', '--component', help="REQUIRED: component name")
+        p.add_option("--sub-component", help="Optional sub component name")
         p.add_option('-s', '--short_desc', '--summary', dest='summary',
                 help="REQUIRED: bug summary")
         p.add_option('-l', '--comment', dest='description',
@@ -873,6 +874,7 @@ def _do_new(bz, opt):
         version=opt.version or None,
         assigned_to=opt.assigned_to or None,
         qa_contact=opt.qa_contact or None,
+        sub_component=opt.sub_component or None,
     )
 
     if opt.test_return_result:
