@@ -83,18 +83,17 @@ class RHBugzilla(_parent):
                 return
             adddict[destkey] = val
 
-        def set_sub_components():
-            val = kwargs.pop("sub_components")
+        def get_sub_component():
+            val = kwargs.pop("sub_component", None)
             if val is None:
                 return
 
             if type(val) is not dict:
-                component = kwargs.get("component")
-                if component is None:
+                component = self._listify(kwargs.get("component"))
+                if component is []:
                     raise ValueError("component must be specified if "
                         "specifying sub_component")
-                val = {component: val}
-
+                val = {component[0]: val}
             adddict["sub_components"] = val
 
         pop("fixed_in", "cf_fixed_in")
@@ -102,7 +101,7 @@ class RHBugzilla(_parent):
         pop("devel_whiteboard", "cf_devel_whiteboard")
         pop("internal_whiteboard", "cf_internal_whiteboard")
 
-        set_sub_components()
+        get_sub_component()
 
         vals = _parent.build_update(self, **kwargs)
         vals.update(adddict)
@@ -138,8 +137,14 @@ class RHBugzilla(_parent):
                 query['include_fields'] = query['column_list']
                 del query['column_list']
 
+        include_aliases = (
+            ("component", "components"),
+            ("version", "versions"),
+            ("sub_components", "sub_component"),
+        )
+
         include_fields = query['include_fields']
-        for newname, oldname in self.field_aliases:
+        for newname, oldname in (self.field_aliases + include_aliases):
             if oldname in include_fields:
                 include_fields.remove(oldname)
                 if newname not in include_fields:
@@ -167,6 +172,17 @@ class RHBugzilla(_parent):
             val = bug['version']
             bug['versions'] = type(val) is list and val or [val]
             bug['version'] = bug['versions'][0]
+
+        # sub_components isn't too friendly of a format, add a simpler
+        # sub_component value
+        if 'sub_components' in bug and 'sub_component' not in bug:
+            val = bug['sub_components']
+            bug['sub_component'] = ""
+            if type(val) is dict:
+                values = []
+                for vallist in val.values():
+                    values += vallist
+                bug['sub_component'] = " ".join(values)
 
         if not self.rhbz_back_compat:
             return
@@ -208,10 +224,12 @@ class RHBugzilla(_parent):
     def build_query(self, **kwargs):
         query = {}
 
-        def _add_key(paramname, keyname):
+        def _add_key(paramname, keyname, listify=False):
             val = kwargs.pop(paramname, None)
             if val is None:
                 return
+            if listify:
+                val = self._listify(val)
             query[keyname] = val
 
         def add_longdesc():
@@ -338,6 +356,7 @@ class RHBugzilla(_parent):
         _add_key("quicksearch", "quicksearch")
         _add_key("savedsearch", "savedsearch")
         _add_key("savedsearch_sharer_id", "sharer_id")
+        _add_key("sub_component", "sub_components", listify=True)
 
         newquery = _parent.build_query(self, **kwargs)
         query.update(newquery)

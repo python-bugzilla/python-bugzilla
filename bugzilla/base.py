@@ -907,7 +907,8 @@ class BugzillaBase(object):
                     include_fields=None,
                     quicksearch=None,
                     savedsearch=None,
-                    savedsearch_sharer_id=None):
+                    savedsearch_sharer_id=None,
+                    sub_component=None):
         """
         Build a query string from passed arguments. Will handle
         query parameter differences between various bugzilla versions.
@@ -938,6 +939,7 @@ class BugzillaBase(object):
             ('quicksearch', quicksearch),
             ('savedsearch', savedsearch),
             ('sharer_id', savedsearch_sharer_id),
+            ('sub_component', sub_component),
         ]:
             if not val is None:
                 raise RuntimeError("'%s' search not supported by this "
@@ -1119,7 +1121,7 @@ class BugzillaBase(object):
             ("devel_whiteboard", devel_whiteboard),
             ("qa_whiteboard", qa_whiteboard),
             ("internal_whiteboard", internal_whiteboard),
-            ("sub_components", sub_components),
+            ("sub_component", sub_component),
         ]:
             if val is not None:
                 raise ValueError("bugzilla instance does not support "

@@ -170,12 +170,14 @@ def setup_action_parser(action):
                 help="specify individual bugs by IDs, separated with commas")
         p.add_option('-p', '--product',
                 help="product name, comma-separated "
-                     "(list with 'bugzilla info -p')")
+                     "(list with 'bugzilla info --products')")
         p.add_option('-v', '--version',
                 help="product version, comma-separated")
         p.add_option('-c', '--component',
                 help="component name(s), comma-separated "
-                     "(list with 'bugzilla info -c PRODUCT')")
+                     "(list with 'bugzilla info --components PRODUCT')")
+        p.add_option("--sub-component", action="append",
+            help="Sub component. Can be specified multiple times")
         p.add_option('--components_file', default=None,
                 help="list of component names from a file, one component "
                      "per line (list with 'bugzilla info -c PRODUCT')")
@@ -631,6 +633,7 @@ def _do_query(bz, opt, parser):
     built_query = bz.build_query(
         product=getattr(opt, "product", None),
         component=getattr(opt, "component", None),
+        sub_component=getattr(opt, "sub_component", None),
         version=getattr(opt, "version", None),
         reporter=getattr(opt, "reporter", None),
         bug_id=getattr(opt, "bug_id", None),

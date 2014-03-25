@@ -217,3 +217,16 @@ class RHTest(BaseTest):
         bz = self.bzclass(url=self.url, cookiefile=None)
         bug = bz.getbug("CVE-2011-2527")
         self.assertTrue(bug.bug_id == 720773)
+
+    def testQuerySubComponent(self):
+        # As of this writing, the feature is quite new and
+        # partner-bugzilla doesn't seem to have any actual bugs
+        # with sub components set. After a few months and a
+        # partner-bugzilla refresh we should be able to find something
+        # to check
+
+        #out = self.clicomm("query --product 'Red Hat Enterprise Linux 5' "
+        #    "--component lvm2 --sub-component 'Command-line tools (RHEL5)'")
+        #self.assertEquals(len(out.splitlines()), 3)
+        #self.assertTrue("#186437 CLOSED" in out)
+        pass

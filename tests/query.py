@@ -116,6 +116,10 @@ class BZ34Test(unittest.TestCase):
         self.clicomm("--savedsearch 'my saved search' "
             "--savedsearch-sharer-id 123456", self._savedsearch_out)
 
+    def testSubComponent(self):
+        self.clicomm("--component lvm2,kernel "
+            "--sub-component 'Command-line tools (RHEL5)'",
+            self._sub_component_out)
 
     # Test data. This is what subclasses need to fill in
     bz = bz34
@@ -146,6 +150,7 @@ class BZ34Test(unittest.TestCase):
     _longdesc_out = None
     _quicksearch_out = None
     _savedsearch_out = None
+    _sub_component_out = None
 
 
 class BZ4Test(BZ34Test):
@@ -233,6 +238,9 @@ class RHBZTest(BZ4Test):
         'quicksearch': 'foo bar baz'}
     _savedsearch_out = {'include_fields': BZ4Test._default_includes,
         'savedsearch': "my saved search", 'sharer_id': "123456"}
+    _sub_component_out = {'include_fields': BZ4Test._default_includes,
+        'component': ["lvm2", "kernel"],
+        'sub_components': ["Command-line tools (RHEL5)"]}
 
 
 class TestURLToQuery(unittest.TestCase):
