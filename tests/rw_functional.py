@@ -725,9 +725,9 @@ class RHPartnerTest(BaseTest):
         bz.update_bugs(bug.id, bz.build_update(
             component="lvm2", sub_component="Command-line tools (RHEL5)"))
         bug.refresh()
-        self.assertDictEqual(bug.sub_components,
+        self.assertEqual(bug.sub_components,
             {"lvm2": ["Command-line tools (RHEL5)"]})
 
         bz.update_bugs(bug.id, bz.build_update(sub_component={}))
         bug.refresh()
-        self.assertDictEqual(bug.sub_components, {})
+        self.assertEqual(bug.sub_components, {})

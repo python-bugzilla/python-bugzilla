@@ -52,7 +52,7 @@ def _detect_filetype(fname):
             # pylint: disable=F0401
             # F0401: Unable to import 'magic' (import-error)
             import magic
-            mimemagic = magic.open(magic.MAGIC_MIME_TYPE)
+            mimemagic = magic.open(getattr(magic, "MAGIC_MIME_TYPE", 16))
             mimemagic.load()
         except ImportError:
             e = sys.exc_info()[1]
