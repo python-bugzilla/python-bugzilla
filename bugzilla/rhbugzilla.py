@@ -74,24 +74,37 @@ class RHBugzilla(_parent):
     # Bug update methods #
     ######################
 
-    def build_update(self, *args, **kwargs):
+    def build_update(self, **kwargs):
         adddict = {}
 
         def pop(key, destkey):
-            if key not in kwargs:
-                return
-
-            val = kwargs.pop(key)
+            val = kwargs.pop(key, None)
             if val is None:
                 return
             adddict[destkey] = val
+
+        def set_sub_components():
+            val = kwargs.pop("sub_components")
+            if val is None:
+                return
+
+            if type(val) is not dict:
+                component = kwargs.get("component")
+                if component is None:
+                    raise ValueError("component must be specified if "
+                        "specifying sub_component")
+                val = {component: val}
+
+            adddict["sub_components"] = val
 
         pop("fixed_in", "cf_fixed_in")
         pop("qa_whiteboard", "cf_qa_whiteboard")
         pop("devel_whiteboard", "cf_devel_whiteboard")
         pop("internal_whiteboard", "cf_internal_whiteboard")
 
-        vals = _parent.build_update(self, *args, **kwargs)
+        set_sub_components()
+
+        vals = _parent.build_update(self, **kwargs)
         vals.update(adddict)
 
         return vals

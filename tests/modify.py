@@ -174,3 +174,7 @@ class ModifyTest(unittest.TestCase):
                             "+foo@example.com"],
                     'remove': ["minus@example.com"]}},
         )
+
+    def testSubComponents(self):
+        self.clicomm("--component foo --sub-component 'bar baz'",
+            {"component": "foo", "sub_components": {"foo": "bar baz"}})

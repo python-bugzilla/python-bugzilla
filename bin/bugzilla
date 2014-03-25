@@ -290,6 +290,8 @@ def setup_action_parser(action):
                 help="Reassign bug to different product")
         bgrp.add_option('-c', '--component',
                 help="Reassign bug to different component")
+        bgrp.add_option("--sub-component",
+            help="Reassign bug to different sub-component (rhbz extension)")
         bgrp.add_option("-v", '--version',
                 help="Reassign bug to different version")
         bgrp.add_option('-o', '--os',
@@ -944,6 +946,7 @@ def _do_modify(bz, parser, opt, args):
         devel_whiteboard=set_devwb and set_devwb[0] or None,
         internal_whiteboard=set_intwb and set_intwb[0] or None,
         qa_whiteboard=set_qawb and set_qawb[0] or None,
+        sub_component=opt.sub_component or None,
     )
 
     flags = []

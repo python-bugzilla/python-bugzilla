@@ -1105,7 +1105,8 @@ class BugzillaBase(object):
                      fixed_in=None,
                      qa_whiteboard=None,
                      devel_whiteboard=None,
-                     internal_whiteboard=None):
+                     internal_whiteboard=None,
+                     sub_component=None):
         # pylint: disable=W0221
         # Argument number differs from overridden method
         # Base defines it with *args, **kwargs, so we don't have to maintain
@@ -1118,6 +1119,7 @@ class BugzillaBase(object):
             ("devel_whiteboard", devel_whiteboard),
             ("qa_whiteboard", qa_whiteboard),
             ("internal_whiteboard", internal_whiteboard),
+            ("sub_components", sub_components),
         ]:
             if val is not None:
                 raise ValueError("bugzilla instance does not support "
