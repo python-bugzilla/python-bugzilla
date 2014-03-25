@@ -1,4 +1,4 @@
-.TH bugzilla 1  "January 16, 2014" "version 0.9.0" "User Commands"
+.TH bugzilla 1  "March 25, 2014" "version 1.0.0" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -51,6 +51,8 @@ REQUIRED: product name
 REQUIRED: product version
 .IP "--component=COMPONENT, -c COMPONENT"
 REQUIRED: component name
+.IP "--sub-component=SUB_COMPONENT"
+Optional sub component name
 .IP "--short_desc=SUMMARY, --summary=SUMMARY, -s SUMMARY"
 REQUIRED: bug summary
 .IP "--comment=DESCRIPTION, -l DESCRIPTION"
@@ -97,11 +99,13 @@ Print output in the form given. You can use RPM-style tags that match bug fields
 .IP "--bug_id=BUG_ID, -b BUG_ID"
 specify individual bugs by IDs, separated with commas
 .IP "--product=PRODUCT, -p PRODUCT"
-product name, comma-separated (list with 'bugzilla info -p')
+product name, comma-separated (list with 'bugzilla info --products')
 .IP "--version=VERSION, -v VERSION"
 product version, comma-separated
 .IP "--component=COMPONENT, -c COMPONENT"
-component name(s), comma-separated (list with 'bugzilla info -c PRODUCT')
+component name(s), comma-separated (list with 'bugzilla info --components PRODUCT')
+.IP "--sub-component=SUB_COMPONENT"
+Sub component. Can be specified multiple times
 .IP "--components_file=COMPONENTS_FILE"
 list of component names from a file, one component per line (list with 'bugzilla info -c PRODUCT')
 .IP "--long_desc=LONG_DESC, -l LONG_DESC"
@@ -118,6 +122,12 @@ search severities, comma-separated
 search priorities, comma-separated
 .IP "--from-url=FROM_URL"
 Use the query given by a query.cgi URL. (Use quotes!)
+.IP "--quicksearch=QUICKSEARCH"
+Search using bugzilla's quicksearch functionality.
+.IP "--savedsearch=SAVEDSEARCH"
+Name of a bugzilla saved search. If you don't own this saved search, you must passed --savedsearch_sharer_id.
+.IP "--savedsearch-sharer-id=SAVEDSEARCH_SHARER_ID"
+Owner ID of the --savedsearch. You can get this ID from the URL bugzilla generates when running the saved search from the web UI.
 
 .SH EMAIL \[oq]QUERY\[cq] OPTIONS
 .IP "--emailtype=EMAILTYPE, -E EMAILTYPE"
@@ -185,6 +195,8 @@ Print output in the form given. You can use RPM-style tags that match bug fields
 Reassign bug to different product
 .IP "--component=COMPONENT, -c COMPONENT"
 Reassign bug to different component
+.IP "--sub-component=SUB_COMPONENT"
+Reassign bug to different sub-component (rhbz extension)
 .IP "--version=VERSION, -v VERSION"
 Reassign bug to different version
 .IP "--os=OS, -o OS"

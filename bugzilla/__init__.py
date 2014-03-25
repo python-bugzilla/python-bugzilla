@@ -9,7 +9,7 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-__version__ = "0.9.0"
+__version__ = "1.0.0"
 version = __version__
 
 import sys

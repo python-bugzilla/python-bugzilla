@@ -6,7 +6,7 @@
 %endif
 
 Name:           python-bugzilla
-Version:        0.9.0
+Version:        1.0.0
 Release:        1%{?dist}
 Summary:        A python library and tool for interacting with Bugzilla
 
