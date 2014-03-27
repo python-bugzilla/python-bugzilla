@@ -27,11 +27,6 @@ BuildRequires: python3-requests
 Requires: python-requests
 Requires: python-magic
 
-%if 0%{?with_python3}
-Requires: python3-requests
-Requires: python3-magic
-%endif # if with_python3
-
 
 %description
 python-bugzilla is a python 2 library for interacting with bugzilla instances
@@ -42,6 +37,8 @@ for interacting with bugzilla from shell scripts.
 %if 0%{?with_python3}
 %package -n python3-bugzilla
 Summary: A python 3 library for interacting with Bugzilla
+Requires: python3-requests
+Requires: python3-magic
 
 %description -n python3-bugzilla
 python3-bugzilla is a python 3 library for interacting with bugzilla instances
@@ -69,12 +66,10 @@ popd
 
 
 %install
-# Must do the python3 install first because the scripts in /usr/bin are
-# overwritten with every setup.py install (and we want the python2 version
-# to be the default for now).
 %if 0%{?with_python3}
 pushd %{py3dir}
 %{__python3} setup.py install -O1 --skip-build --root %{buildroot}
+rm %{buildroot}/usr/bin/bugzilla
 popd
 %endif # with_python3
 
