@@ -908,7 +908,8 @@ class BugzillaBase(object):
                     quicksearch=None,
                     savedsearch=None,
                     savedsearch_sharer_id=None,
-                    sub_component=None):
+                    sub_component=None,
+                    tags=None):
         """
         Build a query string from passed arguments. Will handle
         query parameter differences between various bugzilla versions.
@@ -966,6 +967,7 @@ class BugzillaBase(object):
             "cc": cc,
             "qa_contact": qa_contact,
             "reporter": reporter,
+            "tag": self._listify(tags),
         }
 
         # Strip out None elements in the dict
@@ -1060,6 +1062,24 @@ class BugzillaBase(object):
         d = {"ids": self._listify(idlist), "updates": flags}
         log.debug("Calling Flag.update with: %s", d)
         return self._proxy.Flag.update(d)
+
+    def update_tags(self, idlist, tags_add=None, tags_remove=None):
+        '''
+        Updates the 'tags' field for a bug.
+        '''
+        tags = {}
+        if tags_add:
+            tags["add"] = self._listify(tags_add)
+        if tags_remove:
+            tags["remove"] = self._listify(tags_remove)
+
+        d = {
+            "ids": self._listify(idlist),
+            "tags": tags,
+        }
+
+        log.debug("Calling Bug.update_tags with: %s", d)
+        return self._proxy.Bug.update_tags(d)
 
 
     def build_update(self,
