@@ -66,7 +66,9 @@ class _Bug(object):
     def __getattr__(self, name):
         refreshed = False
         while True:
-            if name in self.__dict__:
+            if refreshed and name in self.__dict__:
+                # If name was in __dict__ to begin with, __getattr__ would
+                # have never been called.
                 return self.__dict__[name]
 
             # Check field aliases
@@ -93,15 +95,6 @@ class _Bug(object):
             refreshed = True
 
         raise AttributeError("Bug object has no attribute '%s'" % name)
-
-    def __hasattr__(self, name):
-        if name in self.__dict__:
-            return True
-
-        for newname, oldname in self.bugzilla.field_aliases:
-            if name == oldname and newname in self.__dict__:
-                return True
-        return False
 
     def __getstate__(self):
         sd = self.__dict__
