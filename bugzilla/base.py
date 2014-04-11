@@ -474,7 +474,8 @@ class BugzillaBase(object):
         logged_in attribute to True, if successful.
 
         If user is not set, the value of Bugzilla.user will be used. If *that*
-        is not set, ValueError will be raised.
+        is not set, ValueError will be raised. If login fails, BugzillaError
+        will be raised.
 
         This method will be called implicitly at the end of connect() if user
         and password are both set. So under most circumstances you won't need
@@ -491,14 +492,14 @@ class BugzillaBase(object):
             raise ValueError("missing password")
 
         try:
-            r = self._login(self.user, self.password)
+            ret = self._login(self.user, self.password)
             self.logged_in = True
-            log.info("login successful - dropping password from memory")
             self.password = ''
+            log.info("login successful for user=%s", self.user)
+            return ret
         except Fault:
-            r = False
-
-        return r
+            e = sys.exc_info()[1]
+            raise BugzillaError("Login failed: %s" % str(e.faultString))
 
     def logout(self):
         '''Log out of bugzilla. Drops server connection and user info, and

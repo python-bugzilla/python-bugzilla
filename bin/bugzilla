@@ -1138,11 +1138,12 @@ def main(bzinstance=None):
             global_opt.password = getpass.getpass()
         sys.stdout.write('Logging in... ')
         sys.stdout.flush()
-        if bz.login(global_opt.user, global_opt.password):
+        try:
+            bz.login(global_opt.user, global_opt.password)
             print('Authorization cookie received.')
             sys.exit(0)
-        else:
-            print('failed.')
+        except bugzilla.BugzillaError:
+            print(str(sys.exc_info()[1]))
             sys.exit(1)
 
     # Set up authentication
