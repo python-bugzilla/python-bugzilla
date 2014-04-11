@@ -1414,14 +1414,7 @@ class BugzillaBase(object):
         ret.update(localdict)
         return ret
 
-
-    def createbug(self, *args, **kwargs):
-        '''
-        Create a bug with the given info. Returns a new Bug object.
-        Check bugzilla API documentation for valid values, at least
-        product, component, summary, version, and description need to
-        be passed.
-        '''
+    def _validate_createbug(self, *args, **kwargs):
         # Previous API required users specifying keyword args that mapped
         # to the XMLRPC arg names. Maintain that bad compat, but also allow
         # receiving a single dictionary like query() does
@@ -1449,6 +1442,16 @@ class BugzillaBase(object):
         if "check_args" in data:
             del(data["check_args"])
 
+        return data
+
+    def createbug(self, *args, **kwargs):
+        '''
+        Create a bug with the given info. Returns a new Bug object.
+        Check bugzilla API documentation for valid values, at least
+        product, component, summary, version, and description need to
+        be passed.
+        '''
+        data = self._validate_createbug(*args, **kwargs)
         log.debug("Calling Bug.create with: %s", data)
         rawbug = self._proxy.Bug.create(data)
         return _Bug(self, bug_id=rawbug["id"])

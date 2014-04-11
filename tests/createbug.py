@@ -75,3 +75,11 @@ class CreatebugTest(unittest.TestCase):
             "--keywords TestOnly --keywords ZStream",
             out
         )
+
+    def testFieldConversion(self):
+        out = self.bz._validate_createbug(product="foo", component="bar",
+            version="12", description="foo", short_desc="bar",
+            check_args=False)
+        self.assertDictEqual(out,
+            {'component': 'bar', 'description': 'foo', 'product': 'foo',
+             'summary': 'bar', 'version': '12'})
