@@ -89,8 +89,10 @@ class _Bug(object):
                 # Can happen if a messed up include_fields is passed to query
                 raise AttributeError("No bug ID cached for bug object")
 
-            log.debug("Bug %i missing attribute '%s' - doing refresh()",
-                      self.bug_id, name)
+            log.info("Bug %i missing attribute '%s' - doing implicit "
+                "refresh(). This will be slow, if you want to avoid "
+                "this, properly use query/getbug include_fields.",
+                self.bug_id, name)
             self.refresh(fields=[name])
             refreshed = True
 
