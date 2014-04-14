@@ -91,7 +91,7 @@ class _Bug(object):
 
             log.debug("Bug %i missing attribute '%s' - doing refresh()",
                       self.bug_id, name)
-            self.refresh()
+            self.refresh(fields=[name])
             refreshed = True
 
         raise AttributeError("Bug object has no attribute '%s'" % name)
@@ -110,9 +110,9 @@ class _Bug(object):
         self._update_dict(d)
         self.bugzilla = None
 
-    def refresh(self):
+    def refresh(self, fields=None):
         '''Refresh all the data in this Bug.'''
-        r = self.bugzilla._getbug(self.bug_id)
+        r = self.bugzilla._getbug(self.bug_id, extra_fields=fields)
 
         self._update_dict(r)
 

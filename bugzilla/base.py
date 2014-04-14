@@ -820,7 +820,8 @@ class BugzillaBase(object):
     getbug_extra_fields = []
 
 
-    def _getbugs(self, idlist, simple=False, permissive=True):
+    def _getbugs(self, idlist, simple=False, permissive=True,
+            extra_fields=None):
         '''
         Return a list of dicts of full bug info for each given bug id.
         bug ids that couldn't be found will return None instead of a dict.
@@ -840,7 +841,10 @@ class BugzillaBase(object):
         if permissive:
             getbugdata["permissive"] = 1
         if self.getbug_extra_fields and not simple:
+            # This means bugzilla actually supports extra_fields
             getbugdata["extra_fields"] = self.getbug_extra_fields
+            if extra_fields:
+                getbugdata["extra_fields"] += extra_fields
 
         log.debug("Calling Bug.get_bugs with: %s", getbugdata)
         r = self._proxy.Bug.get_bugs(getbugdata)
@@ -866,9 +870,10 @@ class BugzillaBase(object):
 
         return ret
 
-    def _getbug(self, objid, simple=False):
+    def _getbug(self, objid, simple=False, extra_fields=None):
         '''Return a dict of full bug info for the given bug id'''
-        return self._getbugs([objid], simple=simple, permissive=False)[0]
+        return self._getbugs([objid], simple=simple, permissive=False,
+            extra_fields=extra_fields)[0]
 
     def getbug(self, objid):
         '''Return a Bug object with the full complement of bug data
