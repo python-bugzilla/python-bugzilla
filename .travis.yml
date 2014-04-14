@@ -1,8 +1,0 @@
-language: python
-install:
-  - pip install tox
-script:
-    - tox -- --ro-functional
-branches:
-notifications:
-  email: false
