@@ -93,6 +93,10 @@ class _Bug(object):
                 "refresh(). This will be slow, if you want to avoid "
                 "this, properly use query/getbug include_fields.",
                 self.bug_id, name)
+
+            # We pass the attribute name to getbug, since for something like
+            # 'attachments' which downloads lots of data we really want the
+            # user to opt in.
             self.refresh(fields=[name])
             refreshed = True
 
