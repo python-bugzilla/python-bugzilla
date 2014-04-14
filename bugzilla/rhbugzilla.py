@@ -49,6 +49,9 @@ class RHBugzilla(_parent):
         if "rhbz_back_compat" in kwargs:
             self.rhbz_back_compat = bool(kwargs.pop("rhbz_back_compat"))
 
+        if self.rhbz_back_compat:
+            log.warn("rhbz_back_compat will be removed in a future release.")
+
         _parent.__init__(self, **kwargs)
 
         def _add_both_alias(newname, origname):
