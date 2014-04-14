@@ -9,6 +9,7 @@
 Unit tests for building query strings with bin/bugzilla
 '''
 
+import copy
 import os
 import unittest
 
@@ -241,6 +242,21 @@ class RHBZTest(BZ4Test):
     _sub_component_out = {'include_fields': BZ4Test._default_includes,
         'component': ["lvm2", "kernel"],
         'sub_components': ["Command-line tools (RHEL5)"]}
+
+    def testTranslation(self):
+        in_query = {
+            "fixed_in": "foo.bar",
+            "product": "some-product",
+            "cf_devel_whiteboard": "some_devel_whiteboard",
+            "include_fields": ["fixed_in",
+                "components", "cf_devel_whiteboard"],
+        }
+        out_query = copy.deepcopy(in_query)
+        self.bz.pre_translation(out_query)
+
+        in_query["include_fields"] = [
+            "cf_devel_whiteboard", "cf_fixed_in", "component"]
+        self.assertDictEqual(in_query, out_query)
 
 
 class TestURLToQuery(BZ34Test):

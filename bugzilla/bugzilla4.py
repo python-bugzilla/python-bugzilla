@@ -33,11 +33,8 @@ class Bugzilla4(Bugzilla36):
 
         # 'include_fields' only available for Bugzilla4+
         include_fields = kwargs.get('include_fields', None)
-        if not include_fields is None:
-            query["include_fields"] = include_fields
-
-            # Translate old style fields
-            for newname, oldname in self.field_aliases:
+        if include_fields is not None:
+            for newname, oldname in self._get_api_aliases():
                 if oldname in include_fields:
                     include_fields.remove(oldname)
                     if newname not in include_fields:
@@ -46,6 +43,7 @@ class Bugzilla4(Bugzilla36):
             # We always need the id
             if 'id' not in include_fields:
                 include_fields.append('id')
+            query["include_fields"] = include_fields
 
         return query
 

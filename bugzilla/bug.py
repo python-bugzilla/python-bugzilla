@@ -72,7 +72,7 @@ class _Bug(object):
                 return self.__dict__[name]
 
             # Check field aliases
-            for newname, oldname in self.bugzilla.field_aliases:
+            for newname, oldname in self.bugzilla._get_bug_aliases():
                 if name == oldname and newname in self.__dict__:
                     return self.__dict__[newname]
 
@@ -123,7 +123,7 @@ class _Bug(object):
         '''
         self.bugzilla.post_translation({}, newdict)
 
-        for newname, oldname in self.bugzilla.field_aliases:
+        for newname, oldname in self.bugzilla._get_bug_aliases():
             if not oldname in newdict:
                 continue
 

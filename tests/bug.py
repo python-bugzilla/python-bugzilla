@@ -14,8 +14,6 @@ import unittest
 from bugzilla import RHBugzilla
 from bugzilla.bug import _Bug
 
-import tests
-
 
 rhbz = RHBugzilla(cookiefile=None)
 

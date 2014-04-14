@@ -196,6 +196,28 @@ class BugzillaError(Exception):
     pass
 
 
+class _FieldAlias(object):
+    """
+    Track API attribute names that differ from what we expose in users.
+
+    For example, originally 'short_desc' was the name of the property that
+    maps to 'summary' on modern bugzilla. We want pre-existing API users
+    to be able to continue to use Bug.short_desc, and
+    query({"short_desc": "foo"}). This class tracks that mapping.
+
+    @oldname: The old attribute name
+    @newname: The modern attribute name
+    @is_api: If True, use this mapping for values sent to the xmlrpc API
+        (like the query example)
+    @is_bug: If True, use this mapping for Bug attribute names.
+    """
+    def __init__(self, newname, oldname, is_api=True, is_bug=True):
+        self.newname = newname
+        self.oldname = oldname
+        self.is_api = is_api
+        self.is_bug = is_bug
+
+
 class BugzillaBase(object):
     '''An object which represents the data and methods exported by a Bugzilla
     instance. Uses xmlrpclib to do its thing. You'll want to create one thusly:
@@ -309,6 +331,29 @@ class BugzillaBase(object):
             cookiefile = os.path.expanduser('~/.bugzillacookies')
         self.cookiefile = cookiefile
 
+        # List of field aliases. Maps old style RHBZ parameter
+        # names to actual upstream values. Used for createbug() and
+        # query include_fields at least.
+        self._field_aliases = []
+        self._add_field_alias('summary', 'short_desc')
+        self._add_field_alias('description', 'comment')
+        self._add_field_alias('platform', 'rep_platform')
+        self._add_field_alias('severity', 'bug_severity')
+        self._add_field_alias('status', 'bug_status')
+        self._add_field_alias('id', 'bug_id')
+        self._add_field_alias('blocks', 'blockedby')
+        self._add_field_alias('blocks', 'blocked')
+        self._add_field_alias('depends_on', 'dependson')
+        self._add_field_alias('creator', 'reporter')
+        self._add_field_alias('url', 'bug_file_loc')
+        self._add_field_alias('dupe_of', 'dupe_id')
+        self._add_field_alias('dupe_of', 'dup_id')
+        self._add_field_alias('comments', 'longdescs')
+        self._add_field_alias('creation_time', 'opendate')
+        self._add_field_alias('creation_time', 'creation_ts')
+        self._add_field_alias('whiteboard', 'status_whiteboard')
+        self._add_field_alias('last_change_time', 'delta_ts')
+
         if url:
             self.connect(url)
 
@@ -361,6 +406,17 @@ class BugzillaBase(object):
             if p['name'] == product:
                 return p['id']
         raise ValueError('No product named "%s"' % product)
+
+    def _add_field_alias(self, *args, **kwargs):
+        self._field_aliases.append(_FieldAlias(*args, **kwargs))
+
+    def _get_bug_aliases(self):
+        return [(f.newname, f.oldname)
+                for f in self._field_aliases if f.is_bug]
+
+    def _get_api_aliases(self):
+        return [(f.newname, f.oldname)
+                for f in self._field_aliases if f.is_api]
 
 
     ###################
@@ -763,31 +819,6 @@ class BugzillaBase(object):
     # like this, for upstream bz it returns all info for every Bug.get()
     getbug_extra_fields = []
 
-    # List of field aliases. Maps old style RHBZ parameter names to actual
-    # upstream values. Used for createbug() and query include_fields at
-    # least.
-    #
-    # Format is (currentname, oldname)
-    field_aliases = (
-        ('summary', 'short_desc'),
-        ('description', 'comment'),
-        ('platform', 'rep_platform'),
-        ('severity', 'bug_severity'),
-        ('status', 'bug_status'),
-        ('id', 'bug_id'),
-        ('blocks', 'blockedby'),
-        ('blocks', 'blocked'),
-        ('depends_on', 'dependson'),
-        ('creator', 'reporter'),
-        ('url', 'bug_file_loc'),
-        ('dupe_of', 'dupe_id'),
-        ('dupe_of', 'dup_id'),
-        ('comments', 'longdescs'),
-        ('creation_time', 'opendate'),
-        ('creation_time', 'creation_ts'),
-        ('whiteboard', 'status_whiteboard'),
-        ('last_change_time', 'delta_ts'),
-    )
 
     def _getbugs(self, idlist, simple=False, permissive=True):
         '''
@@ -1432,11 +1463,11 @@ class BugzillaBase(object):
 
         # If we're getting a call that uses an old fieldname, convert it to the
         # new fieldname instead.
-        for newfield, oldfield in self.field_aliases:
-            if (newfield in self.createbug_required and
-                newfield not in data and
-                oldfield in data):
-                data[newfield] = data.pop(oldfield)
+        for newname, oldname in self._get_api_aliases():
+            if (newname in self.createbug_required and
+                newname not in data and
+                oldname in data):
+                data[newname] = data.pop(oldname)
 
         # Back compat handling for check_args
         if "check_args" in data:

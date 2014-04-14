@@ -51,23 +51,29 @@ class RHBugzilla(_parent):
 
         _parent.__init__(self, **kwargs)
 
+        def _add_both_alias(newname, origname):
+            self._add_field_alias(newname, origname, is_api=False)
+            self._add_field_alias(origname, newname, is_bug=False)
+
+        _add_both_alias('fixed_in', 'cf_fixed_in')
+        _add_both_alias('qa_whiteboard', 'cf_qa_whiteboard')
+        _add_both_alias('devel_whiteboard', 'cf_devel_whiteboard')
+        _add_both_alias('internal_whiteboard', 'cf_internal_whiteboard')
+
+        self._add_field_alias('component', 'components', is_bug=False)
+        self._add_field_alias('version', 'versions', is_bug=False)
+        self._add_field_alias('sub_component', 'sub_components', is_bug=False)
+
+        # flags format isn't exactly the same but it's the closest approx
+        self._add_field_alias('flags', 'flag_types')
+
+
     getbug_extra_fields = (
         _parent.getbug_extra_fields + [
             "attachments", "comments", "description",
             "external_bugs", "flags", "sub_components",
             "tags",
         ]
-    )
-
-    field_aliases = (
-        _parent.field_aliases + (
-            ('fixed_in', 'cf_fixed_in'),
-            ('qa_whiteboard', 'cf_qa_whiteboard'),
-            ('devel_whiteboard', 'cf_devel_whiteboard'),
-            ('internal_whiteboard', 'cf_internal_whiteboard'),
-            # Format isn't exactly the same but it's the closest approximation
-            ('flags', 'flag_types'),
-        )
     )
 
 
@@ -138,14 +144,8 @@ class RHBugzilla(_parent):
                 query['include_fields'] = query['column_list']
                 del query['column_list']
 
-        include_aliases = (
-            ("component", "components"),
-            ("version", "versions"),
-            ("sub_components", "sub_component"),
-        )
-
         include_fields = query['include_fields']
-        for newname, oldname in (self.field_aliases + include_aliases):
+        for newname, oldname in self._get_api_aliases():
             if oldname in include_fields:
                 include_fields.remove(oldname)
                 if newname not in include_fields:
