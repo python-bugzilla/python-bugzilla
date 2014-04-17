@@ -34,7 +34,7 @@ class BaseTest(unittest.TestCase):
             return tests.clicomm(comm, bz)
 
     def _testBZClass(self):
-        bz = Bugzilla(url=self.url, cookiefile=None)
+        bz = Bugzilla(self.url, cookiefile=None)
         self.assertTrue(bz.__class__ is self.bzclass)
 
     # Since we are running these tests against bugzilla instances in

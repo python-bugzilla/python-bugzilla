@@ -29,30 +29,23 @@ class RHBugzilla(_parent):
     This class was written using bugzilla.redhat.com's API docs:
     https://bugzilla.redhat.com/docs/en/html/api/
     '''
-
     version = '0.1'
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
-        @multicall: No longer used
         @rhbz_back_compat: If True, convert parameters to the format they were
-                           in prior RHBZ upgrade in June 2012. Mostly this
-                           replaces lists with comma separated strings,
-                           and alters groups and flags. Default is False
+            in prior RHBZ upgrade in June 2012. Mostly this replaces lists
+            with comma separated strings, and alters groups and flags.
+            Default is False
         """
-        # 'multicall' is no longer used, keep it here for back compat
-        self.multicall = True
-        self.rhbz_back_compat = False
-
-        if "multicall" in kwargs:
-            self.multicall = kwargs.pop("multicall")
-        if "rhbz_back_compat" in kwargs:
-            self.rhbz_back_compat = bool(kwargs.pop("rhbz_back_compat"))
+        # 'multicall' is no longer used, just ignore it
+        kwargs.pop("multicall", None)
+        self.rhbz_back_compat = bool(kwargs.pop("rhbz_back_compat", False))
 
         if self.rhbz_back_compat:
             log.warn("rhbz_back_compat will be removed in a future release.")
 
-        _parent.__init__(self, **kwargs)
+        _parent.__init__(self, *args, **kwargs)
 
         def _add_both_alias(newname, origname):
             self._add_field_alias(newname, origname, is_api=False)

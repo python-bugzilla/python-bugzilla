@@ -15,13 +15,9 @@ from bugzilla.base import BugzillaBase
 class Bugzilla3(BugzillaBase):
     '''Concrete implementation of the Bugzilla protocol. This one uses the
     methods provided by standard Bugzilla 3.0.x releases.'''
-
     version = '0.1'
     bz_ver_major = 3
     bz_ver_minor = 0
-
-    def __init__(self, **kwargs):
-        BugzillaBase.__init__(self, **kwargs)
 
 
     # Connect the backend methods to the XMLRPC methods
