@@ -308,6 +308,10 @@ class BugzillaBase(object):
 
     def __init__(self, url=None, user=None, password=None, cookiefile=-1,
                  sslverify=True):
+        # Hook to allow Bugzilla autodetection without weirdly overriding
+        # __init__
+        self._init_class_from_url(url, sslverify)
+
         # Settings the user might want to tweak
         self.user = user or ''
         self.password = password or ''
@@ -356,6 +360,10 @@ class BugzillaBase(object):
 
         if url:
             self.connect(url)
+
+    def _init_class_from_url(self, url, sslverify):
+        ignore = url
+        ignore = sslverify
 
     def _init_private_data(self):
         '''initialize private variables used by this bugzilla instance.'''

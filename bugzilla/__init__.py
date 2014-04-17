@@ -37,7 +37,7 @@ class NovellBugzilla(Bugzilla34):
     pass
 
 
-def getBugzillaClassForURL(url, sslverify):
+def _getBugzillaClassForURL(url, sslverify):
     url = Bugzilla3.fix_url(url)
     log.debug("Detecting subclass for %s", url)
     s = ServerProxy(url, _RequestsTransport(url, sslverify=sslverify))
@@ -99,29 +99,18 @@ def getBugzillaClassForURL(url, sslverify):
 class Bugzilla(_BugzillaBase):
     '''
     Magical Bugzilla class that figures out which Bugzilla implementation
-    to use and uses that. Requires 'url' parameter so we can check available
-    XMLRPC methods to determine the Bugzilla version.
+    to use and uses that.
     '''
-    # pylint: disable=W0231
-    # __init__ method of base class not called
-
-    def __init__(self, **kwargs):
-        log.info("Bugzilla v%s initializing", __version__)
-        if 'url' not in kwargs:
+    def _init_class_from_url(self, url, sslverify):
+        if url is None:
             raise TypeError("You must pass a valid bugzilla URL")
 
-        # pylint: disable=W0233
-        # Use of __init__ of non parent class
-        # We base of _BugzillaBase to help pylint figure things out
-
-        c = getBugzillaClassForURL(kwargs['url'],
-                                   kwargs.get('sslverify', True))
+        c = _getBugzillaClassForURL(url, sslverify)
         if not c:
             raise ValueError("Couldn't determine Bugzilla version for %s" %
-                             kwargs['url'])
+                             url)
 
         self.__class__ = c
-        c.__init__(self, **kwargs)
         log.info("Chose subclass %s v%s", c.__name__, c.version)
 
 
