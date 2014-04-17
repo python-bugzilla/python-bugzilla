@@ -606,7 +606,7 @@ class RHPartnerTest(BaseTest):
                             "--user foobar@example.com "
                             "--password foobar login" % self.url, None,
                             expectfail=True)
-        self.assertTrue("Logging in... failed." in ret)
+        self.assertTrue("Logging in... Login failed:" in ret)
 
 
     def test11UserUpdate(self):
