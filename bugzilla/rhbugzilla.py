@@ -62,14 +62,12 @@ class RHBugzilla(_parent):
         # flags format isn't exactly the same but it's the closest approx
         self._add_field_alias('flags', 'flag_types')
 
-
-    getbug_extra_fields = (
-        _parent.getbug_extra_fields + [
+        self._getbug_extra_fields += [
             "comments", "description",
             "external_bugs", "flags", "sub_components",
             "tags",
         ]
-    )
+        self._supports_getbug_extra_fields = True
 
 
     ######################

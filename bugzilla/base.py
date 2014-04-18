@@ -829,8 +829,8 @@ class BugzillaBase(object):
     #
     # As of Dec 2012 it seems like only RH bugzilla actually has behavior
     # like this, for upstream bz it returns all info for every Bug.get()
-    getbug_extra_fields = []
-
+    _getbug_extra_fields = []
+    _supports_getbug_extra_fields = False
 
     def _getbugs(self, idlist, simple=False, permissive=True,
             extra_fields=None):
@@ -849,14 +849,15 @@ class BugzillaBase(object):
                 # String aliases can be passed as well
                 idlist.append(i)
 
+        extra_fields = self._listify(extra_fields or [])
+        if not simple:
+            extra_fields += self._getbug_extra_fields
+
         getbugdata = {"ids": idlist}
         if permissive:
             getbugdata["permissive"] = 1
-        if self.getbug_extra_fields and not simple:
-            # This means bugzilla actually supports extra_fields
-            getbugdata["extra_fields"] = self.getbug_extra_fields
-            if extra_fields:
-                getbugdata["extra_fields"] += extra_fields
+        if self._supports_getbug_extra_fields:
+            getbugdata["extra_fields"] = extra_fields
 
         log.debug("Calling Bug.get_bugs with: %s", getbugdata)
         r = self._proxy.Bug.get_bugs(getbugdata)
