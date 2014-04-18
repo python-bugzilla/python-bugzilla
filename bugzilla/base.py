@@ -253,10 +253,14 @@ class BugzillaBase(object):
         to ~/.bugzillacookies.  If set to None, the library won't save the
         cookies persistently.
     '''
+
+    # bugzilla version that the class is targetting. filled in by
+    # subclasses
     bz_ver_major = 0
     bz_ver_minor = 0
 
-    # This is the class API version
+    # Intended to be the API version of the class, but historically is
+    # unused and basically worthless since we don't plan on breaking API.
     version = "0.1"
 
     @staticmethod
@@ -374,8 +378,8 @@ class BugzillaBase(object):
         self._components_details = {}
 
     def _get_user_agent(self):
-        ret = ('Python-urllib bugzilla.py/%s %s/%s' %
-               (__version__, str(self.__class__.__name__), self.version))
+        ret = ('Python-urllib bugzilla.py/%s %s' %
+               (__version__, str(self.__class__.__name__)))
         return ret
     user_agent = property(_get_user_agent)
 

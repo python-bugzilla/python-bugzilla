@@ -65,8 +65,8 @@ class MiscAPI(unittest.TestCase):
         b3 = bugzilla.Bugzilla3(url=None, cookiefile=None)
         rhbz = bugzilla.RHBugzilla(url=None, cookiefile=None)
 
-        self.assertTrue(b3.user_agent.endswith("Bugzilla3/0.1"))
-        self.assertTrue(rhbz.user_agent.endswith("RHBugzilla/0.1"))
+        self.assertTrue(b3.user_agent.endswith("Bugzilla3"))
+        self.assertTrue(rhbz.user_agent.endswith("RHBugzilla"))
 
     def testCookies(self):
         if (sys.version_info[0] < 2 or

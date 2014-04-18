@@ -29,7 +29,6 @@ class RHBugzilla(_parent):
     This class was written using bugzilla.redhat.com's API docs:
     https://bugzilla.redhat.com/docs/en/html/api/
     '''
-    version = '0.1'
 
     def __init__(self, *args, **kwargs):
         """

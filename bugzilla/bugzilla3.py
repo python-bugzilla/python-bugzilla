@@ -13,23 +13,19 @@ from bugzilla.base import BugzillaBase
 
 
 class Bugzilla3(BugzillaBase):
-    version = '0.1'
     bz_ver_major = 3
     bz_ver_minor = 0
 
 
 class Bugzilla32(Bugzilla3):
-    version = '0.1'
     bz_ver_minor = 2
 
 
 class Bugzilla34(Bugzilla32):
-    version = '0.2'
     bz_ver_minor = 4
 
 
 class Bugzilla36(Bugzilla34):
-    version = '0.1'
     bz_ver_minor = 6
 
     def _getbugfields(self):

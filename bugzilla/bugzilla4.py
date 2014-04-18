@@ -12,9 +12,6 @@ from bugzilla.bugzilla3 import Bugzilla36
 
 
 class Bugzilla4(Bugzilla36):
-    '''Concrete implementation of the Bugzilla protocol. This one uses the
-    methods provided by standard Bugzilla 4.0.x releases.'''
-    version = '0.1'
     bz_ver_major = 4
     bz_ver_minor = 0
 
