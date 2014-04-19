@@ -9,7 +9,10 @@
 Unit tests for testing some bug.py magic
 '''
 
+import pickle
 import unittest
+
+from tests import StringIO
 
 from bugzilla import RHBugzilla
 from bugzilla.bug import _Bug
@@ -35,15 +38,28 @@ class BugTest(unittest.TestCase):
 
         bug = _Bug(bugzilla=self.bz, dict=data)
 
-        self.assertEqual(hasattr(bug, "component"), True)
-        self.assertEqual(getattr(bug, "components"), ["foo"])
-        self.assertEqual(getattr(bug, "product"), "bar")
-        self.assertEqual(hasattr(bug, "short_desc"), True)
-        self.assertEqual(getattr(bug, "summary"), "some short desc")
-        self.assertEqual(bool(getattr(bug, "cf_fixed_in")), True)
-        self.assertEqual(getattr(bug, "fixed_in"), "1.2.3.4")
-        self.assertEqual(bool(getattr(bug, "cf_devel_whiteboard")), True)
-        self.assertEqual(getattr(bug, "devel_whiteboard"), "some status value")
+        def _assert_bug():
+            self.assertEqual(hasattr(bug, "component"), True)
+            self.assertEqual(getattr(bug, "components"), ["foo"])
+            self.assertEqual(getattr(bug, "product"), "bar")
+            self.assertEqual(hasattr(bug, "short_desc"), True)
+            self.assertEqual(getattr(bug, "summary"), "some short desc")
+            self.assertEqual(bool(getattr(bug, "cf_fixed_in")), True)
+            self.assertEqual(getattr(bug, "fixed_in"), "1.2.3.4")
+            self.assertEqual(bool(getattr(bug, "cf_devel_whiteboard")), True)
+            self.assertEqual(getattr(bug, "devel_whiteboard"),
+                "some status value")
+
+        _assert_bug()
 
         # This triggers some code in __getattr__
         dir(bug)
+
+        # Test special pickle support
+        fd = StringIO()
+        pickle.dump(bug, fd)
+        fd.seek(0)
+        bug = pickle.load(fd)
+        self.assertEqual(getattr(bug, "bugzilla"), None)
+        bug.bugzilla = self.bz
+        _assert_bug()

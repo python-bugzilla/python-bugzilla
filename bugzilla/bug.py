@@ -23,20 +23,22 @@ class _Bug(object):
                       you can read any attributes or make modifications to this
                       bug.
     '''
-    def __init__(self, bugzilla, **kwargs):
+    def __init__(self, bugzilla, bug_id=None, dict=None, autorefresh=True):
+        # pylint: disable=redefined-builtin
+        # API had pre-existing issue that we can't change ('dict' usage)
+
         self.bugzilla = bugzilla
+        self._bug_fields = []
+        ignore = autorefresh
 
-        if 'dict' in kwargs and kwargs['dict']:
-            log.debug("Bug(%s)", sorted(kwargs['dict'].keys()))
-            self._update_dict(kwargs['dict'])
+        if bug_id:
+            if not dict:
+                dict = {}
+            dict["id"] = bug_id
 
-        if 'bug_id' in kwargs:
-            log.debug("Bug(%i)", kwargs['bug_id'])
-            setattr(self, 'id', kwargs['bug_id'])
-
-        # Back compat for a previously handled param
-        if 'autorefresh' in kwargs:
-            del(kwargs["autorefresh"])
+        if dict:
+            log.debug("Bug(%s)", sorted(dict.keys()))
+            self._update_dict(dict)
 
         if not hasattr(self, 'id'):
             raise TypeError("Bug object needs a bug_id")
@@ -97,57 +99,60 @@ class _Bug(object):
             # We pass the attribute name to getbug, since for something like
             # 'attachments' which downloads lots of data we really want the
             # user to opt in.
-            self.refresh(fields=[name])
+            self.refresh(extra_fields=[name])
             refreshed = True
 
         raise AttributeError("Bug object has no attribute '%s'" % name)
 
-    def __getstate__(self):
-        sd = self.__dict__
-        if self.bugzilla:
-            fields = self.bugzilla.bugfields
-        else:
-            fields = self.bugfields
-        vals = [(k, sd[k]) for k in sd.keys() if k in fields]
-        vals.append(('bugfields', fields))
-        return dict(vals)
-
-    def __setstate__(self, d):
-        self._update_dict(d)
-        self.bugzilla = None
-
-    def refresh(self, fields=None):
-        '''Refresh all the data in this Bug.'''
-        r = self.bugzilla._getbug(self.bug_id, extra_fields=fields)
-
+    def refresh(self, extra_fields=None):
+        '''
+        Refresh the bug with the latest data from bugzilla
+        '''
+        r = self.bugzilla._getbug(self.bug_id, extra_fields=extra_fields)
         self._update_dict(r)
+    reload = refresh
 
     def _update_dict(self, newdict):
         '''
         Update internal dictionary, in a way that ensures no duplicate
         entries are stored WRT field aliases
         '''
-        self.bugzilla.post_translation({}, newdict)
+        if self.bugzilla:
+            self.bugzilla.post_translation({}, newdict)
 
-        for newname, oldname in self.bugzilla._get_bug_aliases():
-            if not oldname in newdict:
-                continue
+            for newname, oldname in self.bugzilla._get_bug_aliases():
+                if not oldname in newdict:
+                    continue
 
-            if newname not in newdict:
-                newdict[newname] = newdict[oldname]
-            elif newdict[newname] != newdict[oldname]:
-                log.debug("Update dict contained differing alias values "
-                          "d[%s]=%s and d[%s]=%s , dropping the value "
-                          "d[%s]", newname, newdict[newname], oldname,
-                          newdict[oldname], oldname)
-            del(newdict[oldname])
+                if newname not in newdict:
+                    newdict[newname] = newdict[oldname]
+                elif newdict[newname] != newdict[oldname]:
+                    log.debug("Update dict contained differing alias values "
+                              "d[%s]=%s and d[%s]=%s , dropping the value "
+                              "d[%s]", newname, newdict[newname], oldname,
+                            newdict[oldname], oldname)
+                del(newdict[oldname])
 
+        for key in newdict.keys():
+            if key not in self._bug_fields:
+                self._bug_fields.append(key)
         self.__dict__.update(newdict)
 
 
-    def reload(self):
-        '''An alias for refresh()'''
-        self.refresh()
+    ##################
+    # pickle helpers #
+    ##################
+
+    def __getstate__(self):
+        ret = {}
+        for key in self._bug_fields:
+            ret[key] = self.__dict__[key]
+        return ret
+
+    def __setstate__(self, vals):
+        self._bug_fields = []
+        self.bugzilla = None
+        self._update_dict(vals)
 
 
     #####################
