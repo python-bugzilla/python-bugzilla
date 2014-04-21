@@ -108,7 +108,8 @@ class _Bug(object):
         '''
         Refresh the bug with the latest data from bugzilla
         '''
-        r = self.bugzilla._getbug(self.bug_id, extra_fields=extra_fields)
+        r = self.bugzilla._getbug(self.bug_id,
+            extra_fields=self._bug_fields + (extra_fields or []))
         self._update_dict(r)
     reload = refresh
 
