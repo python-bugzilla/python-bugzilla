@@ -12,6 +12,7 @@ Unit tests for building query strings with bin/bugzilla
 from __future__ import print_function
 
 import atexit
+import logging
 import os
 import shutil
 import sys
@@ -156,3 +157,16 @@ class MiscAPI(unittest.TestCase):
 
         rhbz.rhbz_back_compat = True
         _testPostCompare(rhbz, test1, out_complex)
+
+    def testRHBZInit(self):
+        # Just get us coverage when the extra values are specified
+        level = bugzilla.log.level
+        bugzilla.log.setLevel(logging.ERROR)
+        bugzilla.RHBugzilla(None, cookiefile=None, multicall=True,
+            rhbz_back_compat=True)
+        bugzilla.log.setLevel(level)
+
+    def testUnimplementedAPI(self):
+        bz3 = bugzilla.Bugzilla3(None, cookiefile=None)
+        self.assertRaises(RuntimeError, bz3.getbugfields)
+        self.assertRaises(RuntimeError, bz3.getqueryinfo)

@@ -28,6 +28,8 @@ class BugTest(unittest.TestCase):
     def testBasic(self):
         data = {
             "bug_id": 123456,
+            "status": "NEW",
+            "assigned_to": "foo@bar.com",
             "component": "foo",
             "product": "bar",
             "short_desc": "some short desc",
@@ -51,6 +53,10 @@ class BugTest(unittest.TestCase):
                 "some status value")
 
         _assert_bug()
+
+        self.assertEqual(str(bug),
+            "#123456 NEW        - foo@bar.com - some short desc")
+        self.assertTrue(repr(bug).startswith("<Bug #123456"))
 
         # This triggers some code in __getattr__
         dir(bug)

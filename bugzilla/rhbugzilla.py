@@ -35,11 +35,17 @@ class RHBugzilla(_parent):
         @rhbz_back_compat: If True, convert parameters to the format they were
             in prior RHBZ upgrade in June 2012. Mostly this replaces lists
             with comma separated strings, and alters groups and flags.
-            Default is False
+            Default is False. Please don't use this in new code, just update
+            your scripts.
+        @multicall: Unused nowadays, will be removed in the future
         """
         # 'multicall' is no longer used, just ignore it
-        kwargs.pop("multicall", None)
+        multicall = kwargs.pop("multicall", None)
         self.rhbz_back_compat = bool(kwargs.pop("rhbz_back_compat", False))
+
+        if multicall is not None:
+            log.warn("multicall is unused and will be removed in a "
+                "future release.")
 
         if self.rhbz_back_compat:
             log.warn("rhbz_back_compat will be removed in a future release.")
@@ -90,7 +96,7 @@ class RHBugzilla(_parent):
 
             if type(val) is not dict:
                 component = self._listify(kwargs.get("component"))
-                if component is []:
+                if not component:
                     raise ValueError("component must be specified if "
                         "specifying sub_component")
                 val = {component[0]: val}

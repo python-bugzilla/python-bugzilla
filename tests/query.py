@@ -244,6 +244,11 @@ class RHBZTest(BZ4Test):
         'sub_components': ["Command-line tools (RHEL5)"]}
 
     def testTranslation(self):
+        def translate(_in):
+            _out = copy.deepcopy(_in)
+            self.bz.pre_translation(_out)
+            return _out
+
         in_query = {
             "fixed_in": "foo.bar",
             "product": "some-product",
@@ -251,12 +256,25 @@ class RHBZTest(BZ4Test):
             "include_fields": ["fixed_in",
                 "components", "cf_devel_whiteboard"],
         }
-        out_query = copy.deepcopy(in_query)
-        self.bz.pre_translation(out_query)
+        out_query = translate(in_query)
 
         in_query["include_fields"] = [
             "cf_devel_whiteboard", "cf_fixed_in", "component"]
         self.assertDictEqual(in_query, out_query)
+
+        in_query = {"bug_id": "123,456", "component": "foo,bar"}
+        out_query = translate(in_query)
+        self.assertEqual(out_query["id"], ["123", "456"])
+        self.assertEqual(out_query["component"], ["foo", "bar"])
+
+        in_query = {"bug_id": [123, 124], "column_list": ["id"]}
+        out_query = translate(in_query)
+        self.assertEqual(out_query["id"], [123, 124])
+        self.assertEqual(out_query["include_fields"], in_query["column_list"])
+
+    def testInvalidBoolean(self):
+        self.assertRaises(RuntimeError, self.bz.build_query,
+            boolean_query="foobar")
 
 
 class TestURLToQuery(BZ34Test):
