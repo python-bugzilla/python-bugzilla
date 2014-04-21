@@ -238,3 +238,16 @@ class RHTest(BaseTest):
         self.assertTrue(bool([f for f in fields1 if
             f.startswith("attachments")]))
         self.assertEqual(fields1, fields2)
+
+    def testBugAutoRefresh(self):
+        bz = self.bzclass(self.url, cookiefile=None)
+
+        bug = bz.query(bz.build_query(bug_id=720773,
+            include_fields=["summary"]))[0]
+        self.assertTrue(hasattr(bug, "component"))
+
+        bz.bug_autorefresh = False
+
+        bug = bz.query(bz.build_query(bug_id=720773,
+            include_fields=["summary"]))[0]
+        self.assertFalse(hasattr(bug, "component"))

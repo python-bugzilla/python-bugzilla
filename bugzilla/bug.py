@@ -30,7 +30,7 @@ class _Bug(object):
 
         self.bugzilla = bugzilla
         self._bug_fields = []
-        ignore = autorefresh
+        self.autorefresh = autorefresh
 
         if bug_id:
             if not dict:
@@ -87,12 +87,13 @@ class _Bug(object):
             if name.startswith("__") and name.endswith("__"):
                 break
 
-            if refreshed:
+            if refreshed or not self.autorefresh:
                 break
 
             log.info("Bug %i missing attribute '%s' - doing implicit "
                 "refresh(). This will be slow, if you want to avoid "
-                "this, properly use query/getbug include_fields.",
+                "this, properly use query/getbug include_fields, and "
+                "set bugzilla.bug_autorefresh = False to force failure.",
                 self.bug_id, name)
 
             # We pass the attribute name to getbug, since for something like
