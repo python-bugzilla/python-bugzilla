@@ -314,7 +314,13 @@ class BugzillaBase(object):
                  sslverify=True):
         # Hook to allow Bugzilla autodetection without weirdly overriding
         # __init__
-        self._init_class_from_url(url, sslverify)
+        if self._init_class_from_url(url, sslverify):
+            kwargs = locals()
+            del(kwargs["self"])
+
+            # pylint: disable=non-parent-init-called
+            self.__class__.__init__(self, **kwargs)
+            return
 
         # Settings the user might want to tweak
         self.user = user or ''

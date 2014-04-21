@@ -112,6 +112,7 @@ class Bugzilla(_BugzillaBase):
 
         self.__class__ = c
         log.info("Chose subclass %s v%s", c.__name__, c.version)
+        return True
 
 
 # This is the list of possible Bugzilla instances an app can use,
