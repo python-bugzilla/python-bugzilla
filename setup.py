@@ -119,39 +119,18 @@ class PylintCommand(Command):
         pass
 
     def _run(self):
-        os.system("pylint "
-            "--reports=n "
-            "--output-format=colorized "
-            "--dummy-variables-rgx=\"dummy|ignore*|.*ignore\" "
-            # Lines in modules, function size, ...
-            "--disable Design "
-            # Line length, spacing, ...
-            "--disable Format "
-            # Duplicate code
-            "--disable Similarities "
-            # Use of * or **
-            "--disable W0142 "
-            # Name doesn't match some style regex
-            "--disable C0103 "
-            # C0111: No docstring
-            "--disable C0111 "
-            # W0603: Using the global statement
-            "--disable W0603 "
-            # W0703: Catching too general exception:
-            "--disable W0703 "
-            # I0012: Warn about pylint messages disabled in comments
-            "--disable I0011 "
-            # R0201: Method could be a function
-            "--disable R0201 "
+        files = ["bugzilla/", "bin-bugzilla", "tests/*.py"]
+        output_format = sys.stdout.isatty() and "colorized" or "text"
 
-            "bugzilla/ bin-bugzilla tests/*.py ")
+        cmd = "pylint "
+        cmd += "--output-format=%s " % output_format
+        cmd += " ".join(files)
+        os.system(cmd + " --rcfile tests/pylint.cfg")
 
-        os.system("pep8 --format=pylint "
-            "bugzilla/ bin-bugzilla tests/ "
-            # E303: Too many blank lines
-            # E125: Continuation indent isn't different from next block
-            # E128: Not indented for visual style
-            "--ignore E303,E125,E128")
+        print("running pep8")
+        cmd = "pep8 "
+        cmd += " ".join(files)
+        os.system(cmd + " --config tests/pep8.cfg")
 
     def run(self):
         os.link("bin/bugzilla", "bin-bugzilla")

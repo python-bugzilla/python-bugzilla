@@ -3,4 +3,4 @@ include bugzilla.1
 include bz-api-notes.txt
 include python-bugzilla.spec
 include *requirements.txt
-recursive-include tests *.py *.txt
+recursive-include tests *.py *.txt *.cfg
