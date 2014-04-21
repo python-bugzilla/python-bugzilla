@@ -236,11 +236,7 @@ class RHBugzilla(_parent):
             query["longdesc_type"] = "allwordssubstr"
 
         def add_email(key, count):
-            if not key in kwargs:
-                return count
-
-            value = kwargs.get(key)
-            del(kwargs[key])
+            value = kwargs.pop(key, None)
             if value is None:
                 return count
 
@@ -275,10 +271,7 @@ class RHBugzilla(_parent):
             return retlist
 
         def add_boolean(kwkey, key, bool_id):
-            if not kwkey in kwargs:
-                return bool_id
-
-            value = self._listify(kwargs.pop(kwkey))
+            value = self._listify(kwargs.pop(kwkey, None))
             if value is None:
                 return bool_id
 
