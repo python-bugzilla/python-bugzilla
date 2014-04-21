@@ -40,9 +40,6 @@ class _Bug(object):
             log.debug("Bug(%s)", sorted(dict.keys()))
             self._update_dict(dict)
 
-        if not hasattr(self, 'id'):
-            raise TypeError("Bug object needs a bug_id")
-
         self.weburl = bugzilla.url.replace('xmlrpc.cgi',
                                            'show_bug.cgi?id=%i' % self.bug_id)
 
@@ -85,11 +82,6 @@ class _Bug(object):
 
             if refreshed:
                 break
-
-            if 'id' not in self.__dict__:
-                # This is fatal, since we have no ID to pass to refresh()
-                # Can happen if a messed up include_fields is passed to query
-                raise AttributeError("No bug ID cached for bug object")
 
             log.info("Bug %i missing attribute '%s' - doing implicit "
                 "refresh(). This will be slow, if you want to avoid "
@@ -138,6 +130,9 @@ class _Bug(object):
             if key not in self._bug_fields:
                 self._bug_fields.append(key)
         self.__dict__.update(newdict)
+
+        if 'id' not in self.__dict__ and 'bug_id' not in self.__dict__:
+            raise TypeError("Bug object needs a bug_id")
 
 
     ##################

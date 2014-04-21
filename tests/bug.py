@@ -63,3 +63,10 @@ class BugTest(unittest.TestCase):
         self.assertEqual(getattr(bug, "bugzilla"), None)
         bug.bugzilla = self.bz
         _assert_bug()
+
+    def testBugNoID(self):
+        try:
+            _Bug(bugzilla=self.bz, dict={"component": "foo"})
+            raise AssertionError("Expected lack of ID failure.")
+        except TypeError:
+            pass
