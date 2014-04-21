@@ -10,6 +10,7 @@ Unit tests for testing some bug.py magic
 '''
 
 import pickle
+import sys
 import unittest
 
 from tests import StringIO
@@ -62,7 +63,12 @@ class BugTest(unittest.TestCase):
         dir(bug)
 
         # Test special pickle support
-        fd = StringIO()
+        if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
+            from io import BytesIO
+            fd = BytesIO()
+        else:
+            fd = StringIO()
+
         pickle.dump(bug, fd)
         fd.seek(0)
         bug = pickle.load(fd)

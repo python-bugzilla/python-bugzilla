@@ -10,6 +10,7 @@
 # the full text of the license.
 
 import locale
+import sys
 
 from bugzilla import log
 
@@ -50,8 +51,11 @@ class _Bug(object):
         'print(bug)' is not recommended because of potential encoding issues.
         Please use unicode(bug) where possible.
         '''
-        return self.__unicode__().encode(
-            locale.getpreferredencoding(), 'replace')
+        if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
+            return self.__unicode__()
+        else:
+            return self.__unicode__().encode(
+                locale.getpreferredencoding(), 'replace')
 
     def __unicode__(self):
         '''Return a simple unicode string representation of this bug'''
