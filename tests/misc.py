@@ -70,11 +70,6 @@ class MiscAPI(unittest.TestCase):
         self.assertTrue(rhbz.user_agent.endswith("RHBugzilla"))
 
     def testCookies(self):
-        if (sys.version_info[0] < 2 or
-            (sys.version_info[0] == 2 and sys.version_info[1] < 6)):
-            print("\npython too old, skipping cookie test")
-            return
-
         cookiesbad = os.path.join(os.getcwd(), "tests/data/cookies-bad.txt")
         cookieslwp = os.path.join(os.getcwd(), "tests/data/cookies-lwp.txt")
         cookiesmoz = os.path.join(os.getcwd(), "tests/data/cookies-moz.txt")
