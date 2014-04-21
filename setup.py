@@ -146,8 +146,6 @@ class PylintCommand(Command):
 
             # Would be nice to disable these 2 but it just
             # ain't work reorganizing the code to not trigger them
-            # W0223: Abstract method not overwritten in
-            "--disable W0223 "
             # W0212: Access to a protected member of a client class
             "--disable W0212 "
 

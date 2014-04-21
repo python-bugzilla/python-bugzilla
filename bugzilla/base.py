@@ -584,8 +584,8 @@ class BugzillaBase(object):
     #############################################
 
     def _getbugfields(self):
-        '''IMPLEMENT ME: Get bugfields from Bugzilla.'''
-        raise NotImplementedError
+        raise RuntimeError("This bugzilla version does not support listing "
+            "bug fields.")
 
     def getbugfields(self, force_refresh=False):
         '''
@@ -1646,7 +1646,8 @@ class BugzillaBase(object):
         self.createuser(user, name)
 
     def getqueryinfo(self, force_refresh=False):
-        raise NotImplementedError("getqueryinfo is deprecated and the "
-                "information is not provided by any modern bugzilla.")
+        ignore = force_refresh
+        raise RuntimeError("getqueryinfo is deprecated and the "
+            "information is not provided by any modern bugzilla.")
     querydata = property(getqueryinfo)
     querydefaults = property(getqueryinfo)
