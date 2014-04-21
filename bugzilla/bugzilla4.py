@@ -24,18 +24,17 @@ class Bugzilla4(Bugzilla36):
         query = Bugzilla36.build_query(self, **kwargs)
 
         # 'include_fields' only available for Bugzilla4+
-        include_fields = kwargs.get('include_fields', None)
-        if include_fields is not None:
-            for newname, oldname in self._get_api_aliases():
-                if oldname in include_fields:
-                    include_fields.remove(oldname)
-                    if newname not in include_fields:
-                        include_fields.append(newname)
-
-            # We always need the id
+        include_fields = self._convert_include_field_list(
+            kwargs.pop('include_fields', None))
+        if include_fields:
             if 'id' not in include_fields:
                 include_fields.append('id')
             query["include_fields"] = include_fields
+
+        exclude_fields = self._convert_include_field_list(
+            kwargs.pop('exclude_fields', None))
+        if exclude_fields:
+            query["exclude_fields"] = exclude_fields
 
         return query
 

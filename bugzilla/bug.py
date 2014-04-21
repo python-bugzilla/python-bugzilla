@@ -99,12 +99,14 @@ class _Bug(object):
 
         raise AttributeError("Bug object has no attribute '%s'" % name)
 
-    def refresh(self, extra_fields=None):
+    def refresh(self, include_fields=None, exclude_fields=None,
+        extra_fields=None):
         '''
         Refresh the bug with the latest data from bugzilla
         '''
         # pylint: disable=protected-access
         r = self.bugzilla._getbug(self.bug_id,
+            include_fields=include_fields, exclude_fields=exclude_fields,
             extra_fields=self._bug_fields + (extra_fields or []))
         # pylint: enable=protected-access
         self._update_dict(r)

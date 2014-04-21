@@ -833,7 +833,7 @@ class BugzillaBase(object):
     _supports_getbug_extra_fields = False
 
     def _getbugs(self, idlist, simple=False, permissive=True,
-            extra_fields=None):
+            include_fields=None, exclude_fields=None, extra_fields=None):
         '''
         Return a list of dicts of full bug info for each given bug id.
         bug ids that couldn't be found will return None instead of a dict.
@@ -856,6 +856,11 @@ class BugzillaBase(object):
         getbugdata = {"ids": idlist}
         if permissive:
             getbugdata["permissive"] = 1
+        if self.bz_ver_major >= 4:
+            if include_fields:
+                getbugdata["include_fields"] = self._listify(include_fields)
+            if exclude_fields:
+                getbugdata["exclude_fields"] = self._listify(exclude_fields)
         if self._supports_getbug_extra_fields:
             getbugdata["extra_fields"] = extra_fields
 
@@ -883,22 +888,30 @@ class BugzillaBase(object):
 
         return ret
 
-    def _getbug(self, objid, simple=False, extra_fields=None):
+    def _getbug(self, objid, simple=False,
+            include_fields=None, exclude_fields=None, extra_fields=None):
         '''Return a dict of full bug info for the given bug id'''
         return self._getbugs([objid], simple=simple, permissive=False,
+            include_fields=include_fields, exclude_fields=exclude_fields,
             extra_fields=extra_fields)[0]
 
-    def getbug(self, objid):
+    def getbug(self, objid,
+            include_fields=None, exclude_fields=None, extra_fields=None):
         '''Return a Bug object with the full complement of bug data
         already loaded.'''
-        return _Bug(bugzilla=self, dict=self._getbug(objid))
+        data = self._getbug(objid, include_fields=include_fields,
+            exclude_fields=exclude_fields, extra_fields=extra_fields)
+        return _Bug(bugzilla=self, dict=data)
 
-    def getbugs(self, idlist):
+    def getbugs(self, idlist,
+        include_fields=None, exclude_fields=None, extra_fields=None):
         '''Return a list of Bug objects with the full complement of bug data
         already loaded. If there's a problem getting the data for a given id,
         the corresponding item in the returned list will be None.'''
+        data = self._getbugs(idlist, include_fields=include_fields,
+            exclude_fields=exclude_fields, extra_fields=extra_fields)
         return [(b and _Bug(bugzilla=self, dict=b)) or None
-                for b in self._getbugs(idlist)]
+                for b in data]
 
     # Since for so long getbugsimple was just getbug, I don't think we can
     # remove any fields without possibly causing a slowdown for some
@@ -921,6 +934,16 @@ class BugzillaBase(object):
     # query methods #
     #################
 
+    def _convert_include_field_list(self, _in):
+        if not _in:
+            return _in
+
+        for newname, oldname in self._get_api_aliases():
+            if oldname in _in:
+                _in.remove(oldname)
+                if newname not in _in:
+                    _in.append(newname)
+        return _in
 
     def build_query(self,
                     product=None,
@@ -973,9 +996,9 @@ class BugzillaBase(object):
 
         Then pass the output to Bugzilla.query()
         """
-        ignore = include_fields
         ignore = emailtype
         ignore = booleantype
+        ignore = include_fields
 
         for key, val in [
             ('fixed_in', fixed_in),
