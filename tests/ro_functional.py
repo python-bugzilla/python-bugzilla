@@ -230,3 +230,11 @@ class RHTest(BaseTest):
         #self.assertEquals(len(out.splitlines()), 3)
         #self.assertTrue("#186437 CLOSED" in out)
         pass
+
+    def testBugFields(self):
+        bz = self.bzclass(url=self.url, cookiefile=None)
+        fields1 = bz.getbugfields()[:]
+        fields2 = bz.getbugfields(force_refresh=True)[:]
+        self.assertTrue(bool([f for f in fields1 if
+            f.startswith("attachments")]))
+        self.assertEqual(fields1, fields2)
