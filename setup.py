@@ -144,11 +144,6 @@ class PylintCommand(Command):
             # R0201: Method could be a function
             "--disable R0201 "
 
-            # Would be nice to disable these 2 but it just
-            # ain't work reorganizing the code to not trigger them
-            # W0212: Access to a protected member of a client class
-            "--disable W0212 "
-
             "bugzilla/ bin-bugzilla tests/*.py ")
 
         os.system("pep8 --format=pylint "

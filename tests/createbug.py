@@ -77,7 +77,8 @@ class CreatebugTest(unittest.TestCase):
         )
 
     def testFieldConversion(self):
-        out = self.bz._validate_createbug(product="foo", component="bar",
+        vc = self.bz._validate_createbug  # pylint: disable=protected-access
+        out = vc(product="foo", component="bar",
             version="12", description="foo", short_desc="bar",
             check_args=False)
         self.assertDictEqual(out,

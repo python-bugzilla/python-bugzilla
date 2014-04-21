@@ -70,8 +70,11 @@ class _Bug(object):
                 # have never been called.
                 return self.__dict__[name]
 
-            # Check field aliases
-            for newname, oldname in self.bugzilla._get_bug_aliases():
+            # pylint: disable=protected-access
+            aliases = self.bugzilla._get_bug_aliases()
+            # pylint: enable=protected-access
+
+            for newname, oldname in aliases:
                 if name == oldname and newname in self.__dict__:
                     return self.__dict__[newname]
 
@@ -100,8 +103,10 @@ class _Bug(object):
         '''
         Refresh the bug with the latest data from bugzilla
         '''
+        # pylint: disable=protected-access
         r = self.bugzilla._getbug(self.bug_id,
             extra_fields=self._bug_fields + (extra_fields or []))
+        # pylint: enable=protected-access
         self._update_dict(r)
     reload = refresh
 
@@ -113,7 +118,11 @@ class _Bug(object):
         if self.bugzilla:
             self.bugzilla.post_translation({}, newdict)
 
-            for newname, oldname in self.bugzilla._get_bug_aliases():
+            # pylint: disable=protected-access
+            aliases = self.bugzilla._get_bug_aliases()
+            # pylint: enable=protected-access
+
+            for newname, oldname in aliases:
                 if not oldname in newdict:
                     continue
 

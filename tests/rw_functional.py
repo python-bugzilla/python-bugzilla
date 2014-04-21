@@ -615,7 +615,8 @@ class RHPartnerTest(BaseTest):
         email = "anaconda-maint-list@redhat.com"
         group = "fedora_contrib"
 
-        if not self._check_have_admin(bz, sys._getframe().f_code.co_name):
+        fn = sys._getframe().f_code.co_name  # pylint: disable=protected-access
+        if not self._check_have_admin(bz, fn):
             return
 
         user = bz.getuser(email)
@@ -654,12 +655,14 @@ class RHPartnerTest(BaseTest):
             "component": component,
         }
 
-        if not self._check_have_admin(bz, sys._getframe().f_code.co_name):
+        fn = sys._getframe().f_code.co_name  # pylint: disable=protected-access
+        if not self._check_have_admin(bz, fn):
             return
 
 
         def compare(data, newid):
-            products = bz._proxy.Product.get({"names": [basedata["product"]]})
+            proxy = bz._proxy  # pylint: disable=protected-access
+            products = proxy.Product.get({"names": [basedata["product"]]})
             compdata = None
             for c in products["products"][0]["components"]:
                 if int(c["id"]) == int(newid):
@@ -700,7 +703,9 @@ class RHPartnerTest(BaseTest):
 
     def test12SetCookie(self):
         bz = self.bzclass(url=self.url, cookiefile=cf)
-        if not self._check_rh_privs(bz, sys._getframe().f_code.co_name):
+
+        fn = sys._getframe().f_code.co_name  # pylint: disable=protected-access
+        if not self._check_rh_privs(bz, fn):
             return
 
         try:
