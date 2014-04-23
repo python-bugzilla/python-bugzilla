@@ -19,7 +19,7 @@ from bugzilla import RHBugzilla
 from bugzilla.bug import _Bug
 
 
-rhbz = RHBugzilla(cookiefile=None)
+rhbz = RHBugzilla(cookiefile=None, tokenfile=None)
 
 
 class BugTest(unittest.TestCase):

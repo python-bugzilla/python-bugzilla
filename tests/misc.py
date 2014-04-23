@@ -63,8 +63,8 @@ class MiscAPI(unittest.TestCase):
     Test miscellaneous API bits
     """
     def testUserAgent(self):
-        b3 = bugzilla.Bugzilla3(url=None, cookiefile=None)
-        rhbz = bugzilla.RHBugzilla(url=None, cookiefile=None)
+        b3 = bugzilla.Bugzilla3(url=None, cookiefile=None, tokenfile=None)
+        rhbz = bugzilla.RHBugzilla(url=None, cookiefile=None, tokenfile=None)
 
         self.assertTrue(b3.user_agent.endswith("Bugzilla3"))
         self.assertTrue(rhbz.user_agent.endswith("RHBugzilla"))
@@ -107,8 +107,8 @@ class MiscAPI(unittest.TestCase):
             bz.post_translation({}, outdict)
             self.assertTrue(outdict == outexpect)
 
-        bug3 = bugzilla.Bugzilla3(url=None, cookiefile=None)
-        rhbz = bugzilla.RHBugzilla(url=None, cookiefile=None)
+        bug3 = bugzilla.Bugzilla3(url=None, cookiefile=None, tokenfile=None)
+        rhbz = bugzilla.RHBugzilla(url=None, cookiefile=None, tokenfile=None)
 
         test1 = {
             "component": ["comp1"],
@@ -162,6 +162,6 @@ class MiscAPI(unittest.TestCase):
         bugzilla.log.setLevel(level)
 
     def testUnimplementedAPI(self):
-        bz3 = bugzilla.Bugzilla3(None, cookiefile=None)
+        bz3 = bugzilla.Bugzilla3(None, cookiefile=None, tokenfile=None)
         self.assertRaises(RuntimeError, bz3.getbugfields)
         self.assertRaises(RuntimeError, bz3.getqueryinfo)

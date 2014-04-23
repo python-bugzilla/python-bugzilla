@@ -20,9 +20,9 @@ from bugzilla.rhbugzilla import RHBugzilla4
 
 import tests
 
-bz34 = Bugzilla34(cookiefile=None)
-bz4 = Bugzilla4(cookiefile=None)
-rhbz4 = RHBugzilla4(cookiefile=None)
+bz34 = Bugzilla34(cookiefile=None, tokenfile=None)
+bz4 = Bugzilla4(cookiefile=None, tokenfile=None)
+rhbz4 = RHBugzilla4(cookiefile=None, tokenfile=None)
 
 
 class BZ34Test(unittest.TestCase):

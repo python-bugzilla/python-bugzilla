@@ -27,14 +27,14 @@ class BaseTest(unittest.TestCase):
     def clicomm(self, argstr, expectexc=False):
         comm = "bugzilla " + argstr
 
-        bz = self.bzclass(url=self.url, cookiefile=None)
+        bz = self.bzclass(url=self.url, cookiefile=None, tokenfile=None)
         if expectexc:
             self.assertRaises(Exception, tests.clicomm, comm, bz)
         else:
             return tests.clicomm(comm, bz)
 
     def _testBZClass(self):
-        bz = Bugzilla(self.url, cookiefile=None)
+        bz = Bugzilla(self.url, cookiefile=None, tokenfile=None)
         self.assertTrue(bz.__class__ is self.bzclass)
 
     # Since we are running these tests against bugzilla instances in
@@ -206,7 +206,7 @@ class RHTest(BaseTest):
         """
         Fresh call to getcomponentsdetails should properly refresh
         """
-        bz = self.bzclass(url=self.url, cookiefile=None)
+        bz = self.bzclass(url=self.url, cookiefile=None, tokenfile=None)
         self.assertTrue(
             bool(bz.getcomponentsdetails("Red Hat Developer Toolset")))
 
@@ -214,7 +214,7 @@ class RHTest(BaseTest):
         """
         getbug() works if passed an alias
         """
-        bz = self.bzclass(url=self.url, cookiefile=None)
+        bz = self.bzclass(url=self.url, cookiefile=None, tokenfile=None)
         bug = bz.getbug("CVE-2011-2527")
         self.assertTrue(bug.bug_id == 720773)
 
@@ -232,7 +232,7 @@ class RHTest(BaseTest):
         pass
 
     def testBugFields(self):
-        bz = self.bzclass(url=self.url, cookiefile=None)
+        bz = self.bzclass(url=self.url, cookiefile=None, tokenfile=None)
         fields1 = bz.getbugfields()[:]
         fields2 = bz.getbugfields(force_refresh=True)[:]
         self.assertTrue(bool([f for f in fields1 if
@@ -240,7 +240,7 @@ class RHTest(BaseTest):
         self.assertEqual(fields1, fields2)
 
     def testBugAutoRefresh(self):
-        bz = self.bzclass(self.url, cookiefile=None)
+        bz = self.bzclass(self.url, cookiefile=None, tokenfile=None)
 
         bug = bz.query(bz.build_query(bug_id=720773,
             include_fields=["summary"]))[0]

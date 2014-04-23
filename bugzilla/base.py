@@ -106,13 +106,14 @@ def _build_cookiejar(cookiefile):
 
 
 class _BugzillaToken(object):
-    def __init__(self, uri, tokenfile=None):
-        self.tokenfilename = (tokenfile if tokenfile is not None else
-            os.path.expanduser('~/.bugzillatoken'))
+    def __init__(self, uri, tokenfilename):
+        self.tokenfilename = tokenfilename
         self.tokenfile = SafeConfigParser()
-        self.tokenfile.read(self.tokenfilename)
-
         self.domain = urlparse(uri)[1]
+
+        if self.tokenfilename:
+            self.tokenfile.read(self.tokenfilename)
+
         if self.domain not in self.tokenfile.sections():
             self.tokenfile.add_section(self.domain)
 
@@ -133,19 +134,20 @@ class _BugzillaToken(object):
         else:
             self.tokenfile.set(self.domain, 'token', value)
 
-        with open(self.tokenfilename, 'wb') as tokenfile:
-            self.tokenfile.write(tokenfile)
+        if self.tokenfilename:
+            with open(self.tokenfilename, 'wb') as tokenfile:
+                self.tokenfile.write(tokenfile)
 
     def __repr__(self):
         return '<Bugzilla Token :: %s>' % (self.value)
 
 
 class _BugzillaServerProxy(ServerProxy):
-    def __init__(self, uri, *args, **kwargs):
+    def __init__(self, uri, tokenfile, *args, **kwargs):
         # pylint: disable=super-init-not-called
         # No idea why pylint complains here, must be a bug
         ServerProxy.__init__(self, uri, *args, **kwargs)
-        self.token = _BugzillaToken(uri)
+        self.token = _BugzillaToken(uri, tokenfile)
 
     def clear_token(self):
         self.token.value = None
@@ -370,7 +372,7 @@ class BugzillaBase(object):
         return url
 
     def __init__(self, url=None, user=None, password=None, cookiefile=-1,
-                 sslverify=True):
+                 sslverify=True, tokenfile=-1):
         # Hook to allow Bugzilla autodetection without weirdly overriding
         # __init__
         if self._init_class_from_url(url, sslverify):
@@ -403,7 +405,10 @@ class BugzillaBase(object):
 
         if cookiefile == -1:
             cookiefile = os.path.expanduser('~/.bugzillacookies')
+        if tokenfile == -1:
+            tokenfile = os.path.expanduser("~/.bugzillatoken")
         self.cookiefile = cookiefile
+        self.tokenfile = tokenfile
 
         # List of field aliases. Maps old style RHBZ parameter
         # names to actual upstream values. Used for createbug() and
@@ -573,8 +578,8 @@ class BugzillaBase(object):
         self._transport = RequestsTransport(
             url, self._cookiejar, sslverify=self._sslverify)
         self._transport.user_agent = self.user_agent
-        self._proxy = _BugzillaServerProxy(url, self._transport)
-
+        self._proxy = _BugzillaServerProxy(url, self.tokenfile,
+            self._transport)
 
         self.url = url
         # we've changed URLs - reload config

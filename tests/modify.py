@@ -16,7 +16,7 @@ from bugzilla.rhbugzilla import RHBugzilla
 import tests
 
 
-rhbz = RHBugzilla(cookiefile=None)
+rhbz = RHBugzilla(cookiefile=None, tokenfile=None)
 
 
 class ModifyTest(unittest.TestCase):

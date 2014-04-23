@@ -16,7 +16,7 @@ from bugzilla.bugzilla4 import Bugzilla4
 import tests
 
 
-bz4 = Bugzilla4(cookiefile=None)
+bz4 = Bugzilla4(cookiefile=None, tokenfile=None)
 
 
 class CreatebugTest(unittest.TestCase):

@@ -42,25 +42,23 @@ class BaseTest(unittest.TestCase):
     bzclass = None
 
     def _testBZClass(self):
-        bz = Bugzilla(url=self.url, cookiefile=None)
+        bz = Bugzilla(url=self.url, cookiefile=None, tokenfile=None)
         self.assertTrue(bz.__class__ is self.bzclass)
 
     def _testCookieOrToken(self):
-        cookiefile = cf
         domain = urlparse(self.url)[1]
-        if os.path.exists(cookiefile):
-            out = open(cookiefile).read(1024)
+        if os.path.exists(cf):
+            out = open(cf).read(1024)
             if domain in out:
                 return
 
-        tokenfile = tf
-        if os.path.exists(tokenfile):
-            token = _BugzillaToken(self.url)
+        if os.path.exists(tf):
+            token = _BugzillaToken(self.url, tokenfilename=tf)
             if token.value is not None:
                 return
 
         raise RuntimeError("%s or %s must exist and contain domain '%s'" %
-                           (cookiefile, tokenfile, domain))
+                           (cf, tf, domain))
 
 
 class RHPartnerTest(BaseTest):
@@ -96,7 +94,7 @@ class RHPartnerTest(BaseTest):
         """
         Create a bug with minimal amount of fields, then close it
         """
-        bz = self.bzclass(url=self.url, cookiefile=cf)
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
         component = "python-bugzilla"
         version = "rawhide"
         summary = ("python-bugzilla test basic bug %s" %
@@ -134,7 +132,7 @@ class RHPartnerTest(BaseTest):
         """
         Create a bug using all 'new' fields, check some values, close it
         """
-        bz = self.bzclass(url=self.url, cookiefile=cf)
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
 
         summary = ("python-bugzilla test manyfields bug %s" %
                    datetime.datetime.today())
@@ -183,7 +181,7 @@ class RHPartnerTest(BaseTest):
         """
         Modify status and comment fields for an existing bug
         """
-        bz = self.bzclass(url=self.url, cookiefile=cf)
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
         bugid = "663674"
         cmd = "bugzilla modify %s " % bugid
 
@@ -252,7 +250,7 @@ class RHPartnerTest(BaseTest):
         """
         Modify cc, assignee, qa_contact for existing bug
         """
-        bz = self.bzclass(url=self.url, cookiefile=cf)
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
         bugid = "663674"
         cmd = "bugzilla modify %s " % bugid
 
@@ -299,7 +297,7 @@ class RHPartnerTest(BaseTest):
         """
         Modify flags and fixed_in for 2 bugs
         """
-        bz = self.bzclass(url=self.url, cookiefile=cf)
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
         bugid1 = "461686"
         bugid2 = "461687"
         cmd = "bugzilla modify %s %s " % (bugid1, bugid2)
@@ -375,7 +373,7 @@ class RHPartnerTest(BaseTest):
     def test7ModifyMisc(self):
         bugid = "461686"
         cmd = "bugzilla modify %s " % bugid
-        bz = self.bzclass(url=self.url, cookiefile=cf)
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
         bug = bz.getbug(bugid)
 
         # modify --dependson
@@ -469,7 +467,7 @@ class RHPartnerTest(BaseTest):
         """
         Get and set attachments for a bug
         """
-        bz = self.bzclass(url=self.url, cookiefile=cf)
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
         getallbugid = "663674"
         setbugid = "461686"
         cmd = "bugzilla attach "
@@ -545,7 +543,7 @@ class RHPartnerTest(BaseTest):
 
 
     def test9Whiteboards(self):
-        bz = self.bzclass(url=self.url, cookiefile=cf)
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
         bug_id = "663674"
         cmd = "bugzilla modify %s " % bug_id
         bug = bz.getbug(bug_id)
@@ -619,7 +617,7 @@ class RHPartnerTest(BaseTest):
 
     def test11UserUpdate(self):
         # This won't work if run by the same user we are using
-        bz = self.bzclass(url=self.url, cookiefile=cf)
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
         email = "anaconda-maint-list@redhat.com"
         group = "fedora_contrib"
 
@@ -655,7 +653,7 @@ class RHPartnerTest(BaseTest):
 
 
     def test11ComponentEditing(self):
-        bz = self.bzclass(url=self.url, cookiefile=cf)
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
         component = ("python-bugzilla-testcomponent-%s" %
                      str(random.randint(1, 1024 * 1024 * 1024)))
         basedata = {
@@ -710,7 +708,7 @@ class RHPartnerTest(BaseTest):
         compare(data, newid)
 
     def test12SetCookie(self):
-        bz = self.bzclass(url=self.url, cookiefile=cf)
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=None)
 
         fn = sys._getframe().f_code.co_name  # pylint: disable=protected-access
         if not self._check_rh_privs(bz, fn):
@@ -730,7 +728,7 @@ class RHPartnerTest(BaseTest):
         self.assertFalse(bool(self._check_rh_privs(bz, "", True)))
 
     def test13SubComponents(self):
-        bz = self.bzclass(url=self.url, cookiefile=cf)
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
         # Long closed RHEL5 lvm2 bug. This component has sub_components
         bug = bz.getbug("185526")
         self.assertEquals(bug.component, "lvm2")
