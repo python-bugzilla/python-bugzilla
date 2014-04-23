@@ -25,10 +25,12 @@ else:
 
 import bugzilla
 from bugzilla import Bugzilla
+from bugzilla.base import BugzillaToken
 
 import tests
 
 cf = os.path.expanduser("~/.bugzillacookies")
+tf = os.path.expanduser("~/.bugzillatoken")
 
 
 def _split_int(s):
@@ -43,7 +45,7 @@ class BaseTest(unittest.TestCase):
         bz = Bugzilla(url=self.url, cookiefile=None)
         self.assertTrue(bz.__class__ is self.bzclass)
 
-    def _testCookie(self):
+    def _testCookieOrToken(self):
         cookiefile = cf
         domain = urlparse(self.url)[1]
         if os.path.exists(cookiefile):
@@ -51,8 +53,14 @@ class BaseTest(unittest.TestCase):
             if domain in out:
                 return
 
-        raise RuntimeError("%s must exist and contain domain '%s'" %
-                           (cookiefile, domain))
+        tokenfile = tf
+        if os.path.exists(tokenfile):
+            token = BugzillaToken(self.url)
+            if token.value is not None:
+                return
+
+        raise RuntimeError("%s or %s must exist and contain domain '%s'" %
+                           (cookiefile, tokenfile, domain))
 
 
 class RHPartnerTest(BaseTest):
@@ -80,7 +88,7 @@ class RHPartnerTest(BaseTest):
         return not noprivs
 
 
-    test1 = BaseTest._testCookie
+    test1 = BaseTest._testCookieOrToken
     test2 = BaseTest._testBZClass
 
 

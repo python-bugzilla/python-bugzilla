@@ -105,6 +105,64 @@ def _build_cookiejar(cookiefile):
     return retcj
 
 
+class BugzillaToken(object):
+
+    def __init__(self, uri, tokenfile=None):
+        self.tokenfilename = tokenfile if tokenfile is not None else \
+            os.path.expanduser('~/.bugzillatoken')
+        self.tokenfile = SafeConfigParser()
+        self.tokenfile.read(self.tokenfilename)
+
+        self.domain = urlparse(uri)[1]
+        if self.domain not in self.tokenfile.sections():
+            self.tokenfile.add_section(self.domain)
+
+    @property
+    def value(self):
+        if self.tokenfile.has_option(self.domain, 'token'):
+            return self.tokenfile.get(self.domain, 'token')
+        else:
+            return None
+
+    @value.setter
+    def value(self, value):
+        if self.value != value:
+            if value is None:
+                self.tokenfile.remove_option(self.domain, 'token')
+            else:
+                self.tokenfile.set(self.domain, 'token', value)
+
+            with open(self.tokenfilename, 'wb') as tokenfile:
+                self.tokenfile.write(tokenfile)
+
+    def __eq__(self, other):
+        if isinstance(BugzillaToken, other):
+            return self.value == other.value
+        return self.value == other
+
+    def __repr__(self):
+        return '<Bugzilla Token :: %s>' % (self.value)
+
+
+class BugzillaServerProxy(ServerProxy):
+
+    def __init__(self, uri, *args, **kwargs):
+        ServerProxy.__init__(self, uri, *args, **kwargs)
+        self.token = BugzillaToken(uri)
+
+    def clear_token(self):
+        self.token.value = None
+
+    def _ServerProxy__request(self, methodname, params):
+        if self.token.value is not None \
+                and len(params) == 1 and 'Bugzilla_token' not in params[0]:
+            params[0]['Bugzilla_token'] = self.token.value
+        ret = ServerProxy._ServerProxy__request(self, methodname, params)
+        if isinstance(ret, dict) and 'token' in ret.keys():
+            self.token.value = ret.get('token')
+        return ret
+
+
 class RequestsTransport(Transport):
     user_agent = 'Python/Bugzilla'
 
@@ -514,7 +572,7 @@ class BugzillaBase(object):
         self._transport = RequestsTransport(
             url, self._cookiejar, sslverify=self._sslverify)
         self._transport.user_agent = self.user_agent
-        self._proxy = ServerProxy(url, self._transport)
+        self._proxy = BugzillaServerProxy(url, self._transport)
 
 
         self.url = url
