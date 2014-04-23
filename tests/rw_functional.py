@@ -25,7 +25,7 @@ else:
 
 import bugzilla
 from bugzilla import Bugzilla
-from bugzilla.base import BugzillaToken
+from bugzilla.base import _BugzillaToken
 
 import tests
 
@@ -55,7 +55,7 @@ class BaseTest(unittest.TestCase):
 
         tokenfile = tf
         if os.path.exists(tokenfile):
-            token = BugzillaToken(self.url)
+            token = _BugzillaToken(self.url)
             if token.value is not None:
                 return
 

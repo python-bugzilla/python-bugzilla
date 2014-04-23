@@ -105,11 +105,10 @@ def _build_cookiejar(cookiefile):
     return retcj
 
 
-class BugzillaToken(object):
-
+class _BugzillaToken(object):
     def __init__(self, uri, tokenfile=None):
-        self.tokenfilename = tokenfile if tokenfile is not None else \
-            os.path.expanduser('~/.bugzillatoken')
+        self.tokenfilename = (tokenfile if tokenfile is not None else
+            os.path.expanduser('~/.bugzillatoken'))
         self.tokenfile = SafeConfigParser()
         self.tokenfile.read(self.tokenfilename)
 
@@ -126,38 +125,40 @@ class BugzillaToken(object):
 
     @value.setter
     def value(self, value):
-        if self.value != value:
-            if value is None:
-                self.tokenfile.remove_option(self.domain, 'token')
-            else:
-                self.tokenfile.set(self.domain, 'token', value)
+        if self.value == value:
+            return
 
-            with open(self.tokenfilename, 'wb') as tokenfile:
-                self.tokenfile.write(tokenfile)
+        if value is None:
+            self.tokenfile.remove_option(self.domain, 'token')
+        else:
+            self.tokenfile.set(self.domain, 'token', value)
 
-    def __eq__(self, other):
-        if isinstance(BugzillaToken, other):
-            return self.value == other.value
-        return self.value == other
+        with open(self.tokenfilename, 'wb') as tokenfile:
+            self.tokenfile.write(tokenfile)
 
     def __repr__(self):
         return '<Bugzilla Token :: %s>' % (self.value)
 
 
-class BugzillaServerProxy(ServerProxy):
-
+class _BugzillaServerProxy(ServerProxy):
     def __init__(self, uri, *args, **kwargs):
+        # pylint: disable=super-init-not-called
+        # No idea why pylint complains here, must be a bug
         ServerProxy.__init__(self, uri, *args, **kwargs)
-        self.token = BugzillaToken(uri)
+        self.token = _BugzillaToken(uri)
 
     def clear_token(self):
         self.token.value = None
 
     def _ServerProxy__request(self, methodname, params):
-        if self.token.value is not None \
-                and len(params) == 1 and 'Bugzilla_token' not in params[0]:
+        if (self.token.value is not None and len(params) == 1
+            and 'Bugzilla_token' not in params[0]):
             params[0]['Bugzilla_token'] = self.token.value
+
+        # pylint: disable=maybe-no-member
         ret = ServerProxy._ServerProxy__request(self, methodname, params)
+        # pylint: enable=maybe-no-member
+
         if isinstance(ret, dict) and 'token' in ret.keys():
             self.token.value = ret.get('token')
         return ret
@@ -572,7 +573,7 @@ class BugzillaBase(object):
         self._transport = RequestsTransport(
             url, self._cookiejar, sslverify=self._sslverify)
         self._transport.user_agent = self.user_agent
-        self._proxy = BugzillaServerProxy(url, self._transport)
+        self._proxy = _BugzillaServerProxy(url, self._transport)
 
 
         self.url = url
