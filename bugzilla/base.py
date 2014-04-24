@@ -153,9 +153,12 @@ class _BugzillaServerProxy(ServerProxy):
         self.token.value = None
 
     def _ServerProxy__request(self, methodname, params):
-        if (self.token.value is not None and len(params) == 1
-            and 'Bugzilla_token' not in params[0]):
-            params[0]['Bugzilla_token'] = self.token.value
+        if self.token.value is not None:
+            if len(params) == 0:
+                params = ({}, )
+
+            if 'Bugzilla_token' not in params[0]:
+                params[0]['Bugzilla_token'] = self.token.value
 
         # pylint: disable=maybe-no-member
         ret = ServerProxy._ServerProxy__request(self, methodname, params)
