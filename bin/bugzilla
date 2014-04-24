@@ -1161,7 +1161,7 @@ def main(bzinstance=None):
                 log.info('Using cookies in %s for authentication',
                     bz.cookiefile)
             if os.path.exists(bz.tokenfile):
-               log.info('Using token in %s for authentication',
+                log.info('Using token in %s for authentication',
                     bz.tokenfile)
         else:
             log.info('No authentication info provided.')
