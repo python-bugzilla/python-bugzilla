@@ -379,7 +379,7 @@ class BugzillaBase(object):
         # Hook to allow Bugzilla autodetection without weirdly overriding
         # __init__
         if self._init_class_from_url(url, sslverify):
-            kwargs = locals()
+            kwargs = locals().copy()
             del(kwargs["self"])
 
             # pylint: disable=non-parent-init-called
