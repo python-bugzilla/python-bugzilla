@@ -79,10 +79,10 @@ class RHPartnerTest(BaseTest):
             print("\nNo admin privs, skipping %s" % funcname)
         return ret
 
-    def _check_rh_privs(self, bz, funcname, quiet=False):
+    def _check_rh_privs(self, bz, funcname, authtype, quiet=False):
         noprivs = bool(bz.getbugs([184858]) == [None])
         if noprivs and not quiet:
-            print("\nNo RH cookie privs, skipping %s" % funcname)
+            print("\nNo RH %s privs, skipping %s" % (authtype, funcname))
         return not noprivs
 
 
@@ -712,7 +712,7 @@ class RHPartnerTest(BaseTest):
             cookiefile=cf, tokenfile=None)
 
         fn = sys._getframe().f_code.co_name  # pylint: disable=protected-access
-        if not self._check_rh_privs(bz, fn):
+        if not self._check_rh_privs(bz, "cookie", fn):
             return
 
         try:
@@ -726,7 +726,8 @@ class RHPartnerTest(BaseTest):
         bz.disconnect()
         bz.cookiefile = None
         bz.connect()
-        self.assertFalse(bool(self._check_rh_privs(bz, "", True)))
+        self.assertFalse(bool(self._check_rh_privs(
+            bz, "", "cookie", quiet=True)))
 
     def test13SubComponents(self):
         bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
