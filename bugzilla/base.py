@@ -136,6 +136,7 @@ class _BugzillaToken(object):
 
         if self.tokenfilename:
             with open(self.tokenfilename, 'wb') as tokenfile:
+                log.debug("Saving to tokenfile")
                 self.tokenfile.write(tokenfile)
 
     def __repr__(self):
@@ -410,6 +411,7 @@ class BugzillaBase(object):
             cookiefile = os.path.expanduser('~/.bugzillacookies')
         if tokenfile == -1:
             tokenfile = os.path.expanduser("~/.bugzillatoken")
+        log.debug("Using tokenfile=%s", tokenfile)
         self.cookiefile = cookiefile
         self.tokenfile = tokenfile
 
