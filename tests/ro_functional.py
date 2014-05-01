@@ -225,11 +225,10 @@ class RHTest(BaseTest):
         # partner-bugzilla refresh we should be able to find something
         # to check
 
-        #out = self.clicomm("query --product 'Red Hat Enterprise Linux 5' "
-        #    "--component lvm2 --sub-component 'Command-line tools (RHEL5)'")
-        #self.assertEquals(len(out.splitlines()), 3)
-        #self.assertTrue("#186437 CLOSED" in out)
-        pass
+        out = self.clicomm("query --product 'Red Hat Enterprise Linux 7' "
+            "--component snapper --sub-component btrfs")
+        self.assertTrue(len(out.splitlines()) >= 3)
+        self.assertTrue("#1060806 " in out)
 
     def testBugFields(self):
         bz = self.bzclass(url=self.url, cookiefile=None, tokenfile=None)
