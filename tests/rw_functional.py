@@ -82,7 +82,7 @@ class RHPartnerTest(BaseTest):
     def _check_rh_privs(self, bz, funcname, quiet=False):
         noprivs = bool(bz.getbugs([184858]) == [None])
         if noprivs and not quiet:
-            print("\nNo RH privs, skipping %s" % funcname)
+            print("\nNo RH cookie privs, skipping %s" % funcname)
         return not noprivs
 
 
@@ -708,9 +708,8 @@ class RHPartnerTest(BaseTest):
         compare(data, newid)
 
     def test12SetCookie(self):
-        # partner-bugzilla doesn't support cookies anymore, use
-        # bugzilla.redhat.com until that drops support as well
-        bz = self.bzclass("bugzilla.redhat.com", cookiefile=cf, tokenfile=None)
+        bz = self.bzclass("partner-bugzilla.redhat.com",
+            cookiefile=cf, tokenfile=None)
 
         fn = sys._getframe().f_code.co_name  # pylint: disable=protected-access
         if not self._check_rh_privs(bz, fn):
