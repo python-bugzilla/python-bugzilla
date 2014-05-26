@@ -135,7 +135,7 @@ class _BugzillaToken(object):
             self.tokenfile.set(self.domain, 'token', value)
 
         if self.tokenfilename:
-            with open(self.tokenfilename, 'wb') as tokenfile:
+            with open(self.tokenfilename, 'w') as tokenfile:
                 log.debug("Saving to tokenfile")
                 self.tokenfile.write(tokenfile)
 
