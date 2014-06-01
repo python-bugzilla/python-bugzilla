@@ -160,12 +160,12 @@ class RHBugzilla(_parent):
         # RHBZ _still_ returns component and version as lists, which
         # deviates from upstream. Copy the list values to components
         # and versions respectively.
-        if 'component' in bug and not "components" in bug:
+        if 'component' in bug and "components" not in bug:
             val = bug['component']
             bug['components'] = type(val) is list and val or [val]
             bug['component'] = bug['components'][0]
 
-        if 'version' in bug and not "versions" in bug:
+        if 'version' in bug and "versions" not in bug:
             val = bug['version']
             bug['versions'] = type(val) is list and val or [val]
             bug['version'] = bug['versions'][0]

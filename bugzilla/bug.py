@@ -130,7 +130,7 @@ class _Bug(object):
             # pylint: enable=protected-access
 
             for newname, oldname in aliases:
-                if not oldname in newdict:
+                if oldname not in newdict:
                     continue
 
                 if newname not in newdict:
@@ -475,7 +475,9 @@ class _User(object):
         self.groupnames.sort()
 
 
-    ### Read-only attributes ###
+    ########################
+    # Read-only attributes #
+    ########################
 
     # We make these properties so that the user cannot set them.  They are
     # unaffected by the update() method so it would be misleading to let them
@@ -492,7 +494,7 @@ class _User(object):
     def can_login(self):
         return self.__can_login
 
-    ### name is a key in some methods.  Mark it dirty when we change it ###
+    # name is a key in some methods.  Mark it dirty when we change it #
     @property
     def name(self):
         return self.__name

@@ -66,7 +66,7 @@ class RHPartnerTest(BaseTest):
     # doesn't send out emails and is blown away occasionally. The front
     # page has some info.
     url = "https://partner-bugzilla.redhat.com/xmlrpc.cgi"
-    #url = "https://bzweb01-devel.app.eng.rdu.redhat.com/"
+    # url = "https://bzweb01-devel.app.eng.rdu.redhat.com/"
     bzclass = bugzilla.RHBugzilla
 
 

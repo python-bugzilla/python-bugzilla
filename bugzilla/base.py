@@ -367,7 +367,7 @@ class BugzillaBase(object):
         """
         Turn passed url into a bugzilla XMLRPC web url
         """
-        if not '://' in url:
+        if '://' not in url:
             log.debug('No scheme given for url, assuming https')
             url = 'https://' + url
         if url.count('/') < 3:
@@ -1095,7 +1095,7 @@ class BugzillaBase(object):
             ('sharer_id', savedsearch_sharer_id),
             ('sub_component', sub_component),
         ]:
-            if not val is None:
+            if val is not None:
                 raise RuntimeError("'%s' search not supported by this "
                                    "bugzilla" % key)
 
