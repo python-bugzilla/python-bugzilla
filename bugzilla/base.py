@@ -193,7 +193,7 @@ class RequestsTransport(Transport):
 
         self.request_defaults = {
             'cert': sslcafile if self.use_https else None,
-            'cookies': cookiejar if cookiejar else None,
+            'cookies': cookiejar,
             'verify': sslverify,
             'headers': {
                 'Content-Type': 'text/xml',
