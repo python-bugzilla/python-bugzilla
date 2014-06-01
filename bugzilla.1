@@ -1,4 +1,4 @@
-.TH bugzilla 1  "March 25, 2014" "version 1.0.0" "User Commands"
+.TH bugzilla 1  "June 01, 2014" "version 1.1.0" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -38,8 +38,14 @@ Don't error on invalid bugzilla SSL certificate
 username
 .IP "--password=PASSWORD"
 password
+.IP "--login"
+Run "login" before performing the specified command.
+.IP "--no-cache-credentials"
+Don't save any bugzilla cookies or tokens to disk, and don't use any pre-existing credentials.
 .IP "--cookiefile=COOKIEFILE"
 cookie file to use for bugzilla authentication
+.IP "--tokenfile=TOKENFILE"
+token file to use for bugzilla authentication
 .IP "--verbose"
 give more info about what's going on
 .IP "--debug"
@@ -154,6 +160,8 @@ specify searching option for keywords, ie. anywords, allwords, nowords
 search Status Whiteboard field for specified words
 .IP "--status_whiteboard_type=STATUS_WHITEBOARD_TYPE, -W STATUS_WHITEBOARD_TYPE"
 specify searching option for Status Whiteboard, ie. anywords, allwords, nowords
+.IP "--tags=TAGS"
+Search bug 'tags' field
 
 .SH BOOLEAN \[oq]QUERY\[cq] OPTIONS
 .IP "--booleantype=BOOLEANTYPE, -B BOOLEANTYPE"
@@ -263,6 +271,8 @@ Alter devel whiteboard text. TEXT appends, -TEXT removes, =TEXT overwrites
 Alter internal whiteboard text. TEXT appends, -TEXT removes, =TEXT overwrites
 .IP "--qa_whiteboard=TEXT"
 Alter QA whiteboard. TEXT appends, -TEXT removes, =TEXT overwrites
+.IP "--tags=TEXT"
+Alter bug 'tags' fieldTEXT appends, -TEXT removes
 .SH \[oq]ATTACH\[cq] OPTIONS
 .IP "--file=FILENAME, -f FILENAME"
 File to attach, or filename for data provided on stdin
