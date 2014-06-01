@@ -107,14 +107,17 @@ def setup_parser():
     p.add_option("--nosslverify", dest="sslverify",
                  action="store_false", default=True,
                  help="Don't error on invalid bugzilla SSL certificate")
-    p.add_option('--user',
-            help="username")
-    p.add_option('--password',
-            help="password")
+
+    p.add_option('--user', help="username")
+    p.add_option('--password', help="password")
+    p.add_option('--login', action="store_true",
+        help='Run "login" before performing the specified command.')
+
     p.add_option('--cookiefile', default=None,
             help="cookie file to use for bugzilla authentication")
     p.add_option('--tokenfile', default=None,
             help="token file to use for bugzilla authentication")
+
     p.add_option('--verbose', action='store_true',
             help="give more info about what's going on")
     p.add_option('--debug', action='store_true',
@@ -1126,13 +1129,16 @@ def main(bzinstance=None):
 
 
     # Handle 'login' action
-    if action == 'login':
-        if len(args) == 2:
-            (global_opt.user, global_opt.password) = args
-        elif len(args) == 1:
-            (global_opt.user, ) = args
-        elif len(args) > 2:
-            parser.error("Too many arguments for login")
+    is_login_command = (action == 'login')
+    if is_login_command or global_opt.login:
+        if is_login_command:
+            if len(args) == 2:
+                (global_opt.user, global_opt.password) = args
+            elif len(args) == 1:
+                (global_opt.user, ) = args
+            elif len(args) > 2:
+                parser.error("Too many arguments for login")
+
         if not global_opt.user:
             sys.stdout.write('Username: ')
             user = sys.stdin.readline()
@@ -1141,13 +1147,16 @@ def main(bzinstance=None):
             global_opt.password = getpass.getpass()
         sys.stdout.write('Logging in... ')
         sys.stdout.flush()
+
         try:
             bz.login(global_opt.user, global_opt.password)
             print('Authorization cookie received.')
-            sys.exit(0)
         except bugzilla.BugzillaError:
             print(str(sys.exc_info()[1]))
             sys.exit(1)
+
+        if is_login_command:
+            sys.exit(0)
 
     # Set up authentication
     if global_opt.user:
