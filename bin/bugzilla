@@ -112,6 +112,10 @@ def setup_parser():
     p.add_option('--password', help="password")
     p.add_option('--login', action="store_true",
         help='Run "login" before performing the specified command.')
+    p.add_option('--no-cache-credentials',
+        action='store_false', default=True, dest='cache_credentials',
+        help="Don't save any bugzilla cookies or tokens to disk, and "
+             "don't use any pre-existing credentials.")
 
     p.add_option('--cookiefile', default=None,
             help="cookie file to use for bugzilla authentication")
@@ -1122,9 +1126,15 @@ def main(bzinstance=None):
     if bzinstance:
         bz = bzinstance
     else:
+        if global_opt.cache_credentials:
+            cookiefile = global_opt.cookiefile or -1
+            tokenfile = global_opt.tokenfile or -1
+        else:
+            cookiefile = None
+            tokenfile = None
         bz = bzclass(url=global_opt.bugzilla,
-                     cookiefile=global_opt.cookiefile or -1,
-                     tokenfile=global_opt.tokenfile or -1,
+                     cookiefile=cookiefile,
+                     tokenfile=tokenfile,
                      sslverify=global_opt.sslverify)
 
 
@@ -1165,11 +1175,12 @@ def main(bzinstance=None):
         log.info('Using username/password for authentication')
         bz.login(global_opt.user, global_opt.password)
     elif not _is_unittest:
-        if os.path.exists(bz.cookiefile) or os.path.exists(bz.tokenfile):
-            if os.path.exists(bz.cookiefile):
+        if ((bz.cookiefile and os.path.exists(bz.cookiefile)) or
+            (bz.tokenfile and os.path.exists(bz.tokenfile))):
+            if bz.cookiefile and os.path.exists(bz.cookiefile):
                 log.info('Using cookies in %s for authentication',
                     bz.cookiefile)
-            if os.path.exists(bz.tokenfile):
+            if bz.tokenfile and os.path.exists(bz.tokenfile):
                 log.info('Using token in %s for authentication',
                     bz.tokenfile)
         else:
