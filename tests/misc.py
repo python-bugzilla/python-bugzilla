@@ -83,7 +83,12 @@ class MiscAPI(unittest.TestCase):
 
         # Mozilla should be converted inplace to LWP
         bugzilla.Bugzilla3(url=None, cookiefile=cookiesnew)
-        self.assertEquals(open(cookiesmoz).read(), open(cookiesnew).read())
+
+        def strip_comments(content):
+            return [l for l in content.split("\n") if not l.startswith("#")]
+        self.assertEquals(
+            strip_comments(open(cookiesmoz).read()),
+            strip_comments(open(cookiesnew).read()))
 
         # Make sure bad cookies raise an error
         try:
