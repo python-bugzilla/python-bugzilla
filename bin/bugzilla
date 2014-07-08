@@ -298,6 +298,13 @@ def setup_action_parser(action):
         p.set_usage("%prog modify [options] BUGID [BUGID...]")
         p.set_description("Modify one or more bugs.")
 
+        p.add_option('--field',
+                     help="Modify a specified field. FIELD is expected to be \
+                     the raw name used by the bugzilla instance. No safety \
+                     checks are perfomed when using this option.",
+                     action="append", type="str", dest="fields",
+                     metavar="FIELD=VALUE")
+
         bgrp = optparse.OptionGroup(p, "Bug details")
         bgrp.add_option('--product',
                 help="Reassign bug to different product")
@@ -986,6 +993,15 @@ def _do_modify(bz, parser, opt, args):
     for k, v in wbmap.copy().items():
         if not v[0] and not v[1]:
             del(wbmap[k])
+
+    # Add any custom fields if specified
+    if opt.fields is not None:
+        for f in opt.fields:
+            try:
+                f, v = f.split('=', 1)
+                update[f] = v
+            except:
+                parser.error("Invalid field argument provided: %s" % (f))
 
     log.debug("update bug dict=%s", update)
     log.debug("update flags dict=%s", flags)
