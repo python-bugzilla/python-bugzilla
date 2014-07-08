@@ -139,6 +139,20 @@ class ModifyTest(unittest.TestCase):
              "url": "http://example.com", "summary": 'foo summary'},
         )
 
+
+    def testField(self):
+        self.clicomm(
+            "--field cf_fixed_in=foo-bar-1.2.4",
+            {"cf_fixed_in": "foo-bar-1.2.4"}
+        )
+
+        self.clicomm(
+            "--field cf_fixed_in=foo-bar-1.2.5 --field=cf_release_notes=blah",
+            {"cf_fixed_in": "foo-bar-1.2.5",
+             "cf_release_notes": "blah"}
+        )
+
+
     def testDepends(self):
         self.clicomm(
             "--dependson 100,200",

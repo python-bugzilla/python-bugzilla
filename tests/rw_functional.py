@@ -449,6 +449,14 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug.platform, "s390")
         self.assertEquals(bug.url, "http://example.com/fribby")
 
+        # modify --field
+        tests.clicomm(cmd + "--field cf_fixed_in=foo-bar-1.2.3 \
+                      --field=cf_release_notes=baz", bz)
+
+        bug.refresh()
+        self.assertEquals(bug.fixed_in, "foo-bar-1.2.3")
+        self.assertEquals(bug.cf_release_notes, "baz")
+
 
     def test8Attachments(self):
         tmpdir = "__test_attach_output"
