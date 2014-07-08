@@ -226,9 +226,9 @@ class RHTest(BaseTest):
         # to check
 
         out = self.clicomm("query --product 'Red Hat Enterprise Linux 7' "
-            "--component snapper --sub-component btrfs")
-        self.assertTrue(len(out.splitlines()) >= 3)
-        self.assertTrue("#1060806 " in out)
+            "--component lvm2 --sub-component 'Thin Provisioning'")
+        self.assertTrue(len(out.splitlines()) >= 5)
+        self.assertTrue("#1060931 " in out)
 
     def testBugFields(self):
         bz = self.bzclass(url=self.url, cookiefile=None, tokenfile=None)
