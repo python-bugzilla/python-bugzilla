@@ -1479,7 +1479,11 @@ class BugzillaBase(object):
 
         att_uri = self._attachment_uri(attachid)
 
-        response = requests.get(att_uri, cookies=self._cookiejar, stream=True)
+        defaults = self._transport.request_defaults.copy()
+        defaults["headers"] = defaults["headers"].copy()
+        del(defaults["headers"]["Content-Type"])
+
+        response = requests.get(att_uri, stream=True, **defaults)
 
         ret = BytesIO()
         for chunk in response.iter_content(chunk_size=1024):
