@@ -1290,8 +1290,10 @@ if __name__ == '__main__':
         sys.exit(4)
     except SSLError:
         e = sys.exc_info()[1]
+        log.debug("", exc_info=True)
+
         # Give SSL recommendations
-        print(e)
+        print("SSL error: %s" % e)
         print("\nIf you trust the remote server, you can work "
               "around this error with:\n"
               "  bugzilla --nosslverify ...")
