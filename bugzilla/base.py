@@ -1101,7 +1101,7 @@ class BugzillaBase(object):
         ]:
             if val is not None:
                 raise RuntimeError("'%s' search not supported by this "
-                                   "bugzilla" % key)
+                                   "bugzilla's XMLRPC interface" % key)
 
         query = {
             "product": self._listify(product),
