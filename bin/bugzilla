@@ -1044,7 +1044,7 @@ def _do_get_attach(bz, opt, parser, args):
                      args)
 
     for bug in bz.getbugs(opt.getall):
-        opt.get += [a['id'] for a in bug.attachments]
+        opt.get += bug.get_attachment_ids()
 
     for attid in set(opt.get):
         att = bz.openattachment(attid)

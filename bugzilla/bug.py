@@ -424,6 +424,20 @@ class _Bug(object):
     # Experimental methods #
     ########################
 
+    def get_attachment_ids(self):
+        # pylint: disable=protected-access
+        proxy = self.bugzilla._proxy
+        # pylint: enable=protected-access
+
+        if "attachments" in self.__dict__:
+            attachments = self.attachments
+        else:
+            rawret = proxy.Bug.attachments(
+                {"ids": [self.bug_id], "exclude_fields": ["data"]})
+            attachments = rawret["bugs"][str(self.bug_id)]
+
+        return [a["id"] for a in attachments]
+
     def get_history(self):
         '''
         Experimental. Get the history of changes for this bug.
