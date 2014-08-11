@@ -298,13 +298,6 @@ def setup_action_parser(action):
         p.set_usage("%prog modify [options] BUGID [BUGID...]")
         p.set_description("Modify one or more bugs.")
 
-        p.add_option('--field',
-                     help="Modify a specified field. FIELD is expected to be \
-                     the raw name used by the bugzilla instance. No safety \
-                     checks are perfomed when using this option.",
-                     action="append", type="str", dest="fields",
-                     metavar="FIELD=VALUE")
-
         bgrp = optparse.OptionGroup(p, "Bug details")
         bgrp.add_option('--product',
                 help="Reassign bug to different product")
@@ -443,6 +436,18 @@ def setup_action_parser(action):
                      "section 'OUTPUT FORMAT' for more details.")
         p.add_option_group(outg)
 
+    if action in ['new', 'query', 'modify']:
+        message = {
+            'new': 'Set a specified field.',
+            'query': 'Query a specified field.',
+            'modify': 'Modify a specified field.'
+        }.get(action)
+        p.add_option('--field', help="%s FIELD is expected to be \
+                     the raw name used by the bugzilla instance. No safety \
+                     checks are perfomed when using this option." % (message),
+                     action="append", type="str", dest="fields",
+                     metavar="FIELD=VALUE")
+
 
     # Used by unit tests, not for end user consumption
     if action in ['new', 'query', 'modify']:
@@ -572,6 +577,17 @@ https://bugzilla.redhat.com/docs/en/html/api/Bugzilla/WebService/Bug.html'''
     print(manpage)
 
 
+def _merge_field_opts(query, opt, parser):
+    # Add any custom fields if specified
+    if opt.fields is not None:
+        for f in opt.fields:
+            try:
+                f, v = f.split('=', 1)
+                query[f] = v
+            except:
+                parser.error("Invalid field argument provided: %s" % (f))
+
+
 def _do_query(bz, opt, parser):
     # Construct the query from the list of queryable options
     q = dict()
@@ -688,6 +704,8 @@ def _do_query(bz, opt, parser):
         savedsearch=getattr(opt, "savedsearch", None),
         savedsearch_sharer_id=getattr(opt, "savedsearch_sharer_id", None),
         tags=getattr(opt, "tags", None))
+
+    _merge_field_opts(built_query, opt, parser)
 
     built_query.update(q)
     q = built_query
@@ -874,7 +892,7 @@ def _parse_triset(vallist, checkplus=True, checkminus=True, checkequal=True,
     return add_val, rm_val, set_val
 
 
-def _do_new(bz, opt):
+def _do_new(bz, opt, parser):
     # Parse options that accept comma separated list
     def parse_multi(val):
         return _parse_triset(val, checkplus=False, checkminus=False,
@@ -900,6 +918,8 @@ def _do_new(bz, opt):
         qa_contact=opt.qa_contact or None,
         sub_component=opt.sub_component or None,
     )
+
+    _merge_field_opts(ret, opt, parser)
 
     if opt.test_return_result:
         return ret
@@ -994,14 +1014,7 @@ def _do_modify(bz, parser, opt, args):
         if not v[0] and not v[1]:
             del(wbmap[k])
 
-    # Add any custom fields if specified
-    if opt.fields is not None:
-        for f in opt.fields:
-            try:
-                f, v = f.split('=', 1)
-                update[f] = v
-            except:
-                parser.error("Invalid field argument provided: %s" % (f))
+    _merge_field_opts(update, opt, parser)
 
     log.debug("update bug dict=%s", update)
     log.debug("update flags dict=%s", flags)
@@ -1235,7 +1248,7 @@ def main(bzinstance=None):
     elif action == 'new':
         if args:
             parser.error("Extra arguments '%s'" % args)
-        buglist = _do_new(bz, opt)
+        buglist = _do_new(bz, opt, parser)
         if opt.test_return_result:
             return buglist
 
