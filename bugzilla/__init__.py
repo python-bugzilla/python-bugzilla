@@ -9,11 +9,7 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-__version__ = "1.1.0"
-version = __version__
-
 import sys
-from logging import getLogger
 
 if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
     # pylint: disable=F0401
@@ -21,14 +17,13 @@ if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
 else:
     from xmlrpclib import Fault, ServerProxy
 
-log = getLogger("bugzilla")
-
-
+from .apiversion import version, __version__
 from .base import BugzillaBase as _BugzillaBase
 from .base import BugzillaError
 from .base import RequestsTransport as _RequestsTransport
 from .bugzilla3 import Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36
 from .bugzilla4 import Bugzilla4, Bugzilla42, Bugzilla44
+from .logsetup import log
 from .rhbugzilla import RHBugzilla, RHBugzilla3, RHBugzilla4
 
 

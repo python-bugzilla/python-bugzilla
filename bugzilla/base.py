@@ -31,8 +31,9 @@ else:
 
 import requests
 
-from . import __version__, log
+from .apiversion import __version__
 from .bug import _Bug, _User
+from .logsetup import log
 
 
 # Backwards compatibility

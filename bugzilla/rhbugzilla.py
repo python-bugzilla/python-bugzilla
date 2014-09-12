@@ -10,8 +10,8 @@
 # the full text of the license.
 
 
-from . import log
 from .bugzilla4 import Bugzilla44 as _parent
+from .logsetup import log
 
 
 class RHBugzilla(_parent):

@@ -12,7 +12,7 @@
 import locale
 import sys
 
-from . import log
+from .logsetup import log
 
 
 class _Bug(object):

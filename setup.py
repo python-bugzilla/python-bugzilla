@@ -11,9 +11,9 @@ from distutils.core import setup, Command
 
 
 def get_version():
-    f = open("bugzilla/__init__.py")
+    f = open("bugzilla/apiversion.py")
     for line in f:
-        if line.startswith('__version__'):
+        if line.startswith('version = '):
             return eval(line.split('=')[-1])
 
 
