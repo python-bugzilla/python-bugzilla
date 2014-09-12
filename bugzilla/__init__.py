@@ -24,12 +24,12 @@ else:
 log = getLogger("bugzilla")
 
 
-from bugzilla.base import BugzillaBase as _BugzillaBase
-from bugzilla.base import BugzillaError
-from bugzilla.base import RequestsTransport as _RequestsTransport
-from bugzilla.bugzilla3 import Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36
-from bugzilla.bugzilla4 import Bugzilla4, Bugzilla42, Bugzilla44
-from bugzilla.rhbugzilla import RHBugzilla, RHBugzilla3, RHBugzilla4
+from .base import BugzillaBase as _BugzillaBase
+from .base import BugzillaError
+from .base import RequestsTransport as _RequestsTransport
+from .bugzilla3 import Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36
+from .bugzilla4 import Bugzilla4, Bugzilla42, Bugzilla44
+from .rhbugzilla import RHBugzilla, RHBugzilla3, RHBugzilla4
 
 
 # Back compat for deleted NovellBugzilla

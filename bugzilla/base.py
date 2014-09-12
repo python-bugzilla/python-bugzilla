@@ -31,8 +31,8 @@ else:
 
 import requests
 
-from bugzilla import __version__, log
-from bugzilla.bug import _Bug, _User
+from . import __version__, log
+from .bug import _Bug, _User
 
 
 # Backwards compatibility
@@ -1664,7 +1664,7 @@ class BugzillaBase(object):
         return ret and ret[0]
 
     def getusers(self, userlist):
-        '''Return a list of Users from bugzilla.
+        '''Return a list of Users from .
 
         :userlist: List of usernames to lookup
         :returns: List of User records

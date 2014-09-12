@@ -8,7 +8,7 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-from bugzilla.bugzilla3 import Bugzilla36
+from .bugzilla3 import Bugzilla36
 
 
 class Bugzilla4(Bugzilla36):

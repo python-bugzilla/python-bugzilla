@@ -12,7 +12,7 @@
 import locale
 import sys
 
-from bugzilla import log
+from . import log
 
 
 class _Bug(object):

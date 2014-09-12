@@ -9,7 +9,7 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-from bugzilla.base import BugzillaBase
+from .base import BugzillaBase
 
 
 class Bugzilla3(BugzillaBase):
