@@ -9,6 +9,7 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
+from logging import getLogger
 import sys
 
 if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
@@ -23,8 +24,9 @@ from .base import BugzillaError
 from .base import RequestsTransport as _RequestsTransport
 from .bugzilla3 import Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36
 from .bugzilla4 import Bugzilla4, Bugzilla42, Bugzilla44
-from .logsetup import log
 from .rhbugzilla import RHBugzilla, RHBugzilla3, RHBugzilla4
+
+log = getLogger(__name__)
 
 
 # Back compat for deleted NovellBugzilla

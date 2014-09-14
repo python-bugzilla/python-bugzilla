@@ -10,9 +10,10 @@
 # the full text of the license.
 
 import locale
+from logging import getLogger
 import sys
 
-from .logsetup import log
+log = getLogger(__name__)
 
 
 class _Bug(object):

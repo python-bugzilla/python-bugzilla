@@ -10,6 +10,7 @@
 # the full text of the license.
 
 import locale
+from logging import getLogger
 import os
 import sys
 
@@ -33,8 +34,8 @@ import requests
 
 from .apiversion import __version__
 from .bug import _Bug, _User
-from .logsetup import log
 
+log = getLogger(__name__)
 
 # Backwards compatibility
 Bug = _Bug

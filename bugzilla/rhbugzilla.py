@@ -9,9 +9,11 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
+from logging import getLogger
 
 from .bugzilla4 import Bugzilla44 as _parent
-from .logsetup import log
+
+log = getLogger(__name__)
 
 
 class RHBugzilla(_parent):
