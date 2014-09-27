@@ -13,7 +13,6 @@
 
 from __future__ import print_function
 
-import getpass
 import locale
 import logging
 import optparse
@@ -1169,7 +1168,9 @@ def main(bzinstance=None):
 
     # Handle 'login' action
     is_login_command = (action == 'login')
-    if is_login_command or global_opt.login:
+    force_login = is_login_command or global_opt.login
+
+    if force_login:
         if is_login_command:
             if len(args) == 2:
                 (global_opt.user, global_opt.password) = args
@@ -1178,42 +1179,15 @@ def main(bzinstance=None):
             elif len(args) > 2:
                 parser.error("Too many arguments for login")
 
-        if not global_opt.user:
-            sys.stdout.write('Username: ')
-            user = sys.stdin.readline()
-            global_opt.user = user.strip()
-        if not global_opt.password:
-            global_opt.password = getpass.getpass()
-        sys.stdout.write('Logging in... ')
-        sys.stdout.flush()
-
-        try:
-            bz.login(global_opt.user, global_opt.password)
-            print('Authorization cookie received.')
-        except bugzilla.BugzillaError:
-            print(str(sys.exc_info()[1]))
-            sys.exit(1)
-
+    try:
+        if not _is_unittest or force_login:
+            bz.interactive_login(
+                global_opt.user, global_opt.password, force_login)
         if is_login_command:
             sys.exit(0)
-
-    # Set up authentication
-    if global_opt.user:
-        if not global_opt.password:
-            global_opt.password = getpass.getpass()
-        log.info('Using username/password for authentication')
-        bz.login(global_opt.user, global_opt.password)
-    elif not _is_unittest:
-        if ((bz.cookiefile and os.path.exists(bz.cookiefile)) or
-            (bz.tokenfile and os.path.exists(bz.tokenfile))):
-            if bz.cookiefile and os.path.exists(bz.cookiefile):
-                log.info('Using cookies in %s for authentication',
-                    bz.cookiefile)
-            if bz.tokenfile and os.path.exists(bz.tokenfile):
-                log.info('Using token in %s for authentication',
-                    bz.tokenfile)
-        else:
-            log.info('No authentication info provided.')
+    except bugzilla.BugzillaError:
+        print(str(sys.exc_info()[1]))
+        sys.exit(1)
 
 
     ###########################

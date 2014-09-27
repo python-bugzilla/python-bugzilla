@@ -14,6 +14,7 @@ from logging import getLogger
 import os
 import sys
 
+from getpass import getpass
 from io import BytesIO
 
 if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
@@ -650,6 +651,42 @@ class BugzillaBase(object):
         except Fault:
             e = sys.exc_info()[1]
             raise BugzillaError("Login failed: %s" % str(e.faultString))
+
+    def interactive_login(self, user=None, password=None, force=False):
+        """
+        Helper method to handle login for this bugzilla instance.
+
+        If a 'user' is provided or 'force' is set to True; or no cookie/token
+        file exists, a username/password authentication is attempted requesting
+        any information that is not available from the user.
+
+        If a cookie/token file exists, the call to the instance login method is
+        skipped.
+        """
+        if not force and user is None:
+            auths = {
+                'cookies': self.cookiefile,
+                'token': self.tokenfile,
+            }
+            for (method, source) in auths.items():
+                if source and os.path.exists(source):
+                    log.info(
+                        'Using %s in %s for authentication', method, source)
+                    return
+        elif not force:
+            log.error('No authentication information provided for login')
+
+        log.info('Using username/password for authentication')
+
+        if not user:
+            sys.stdout.write('Bugzilla Username: ')
+            user = sys.stdin.readline().strip()
+        if not password:
+            password = getpass('Bugzilla Password: ')
+
+        log.info('Logging in... ')
+        self.login(user, password)
+        log.info('Authorization cookie received.')
 
     def logout(self):
         '''Log out of bugzilla. Drops server connection and user info, and
