@@ -286,6 +286,7 @@ class RHBugzilla(_parent):
                 or_count = 0
 
                 def make_bool_str(prefix):
+                    # pylint: disable=cell-var-from-loop
                     return "%s%i-%i-%i" % (prefix, bool_id,
                                            and_count, or_count)
 
