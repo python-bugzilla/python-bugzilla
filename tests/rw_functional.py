@@ -752,3 +752,36 @@ class RHPartnerTest(BaseTest):
         bz.update_bugs(bug.id, bz.build_update(sub_component={}))
         bug.refresh()
         self.assertEqual(bug.sub_components, {})
+
+    def _test14ExternalTrackersQuery(self, bz, ext_type_desc, ext_bug_id):
+        boolean_query = bz.build_external_tracker_boolean_query(
+            ext_type_desc, ext_bug_id)
+        query = bz.build_query(
+            boolean_query=boolean_query, include_fields=['id'])
+        return [bug.bug_id for bug in bz.query(query)]
+
+    def test14ExternalTrackersQuery(self):
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        ext_type_desc = "Mozilla Foundation"
+        ext_bug_id = 913904
+
+        # Closed RH Bugzilla bug with external tracker
+        bugid = 1007135
+        assert bugid in \
+            self._test14ExternalTrackersQuery(bz, ext_type_desc, ext_bug_id)
+
+    def test14ExternalTrackersAddRemove(self):
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        ext_type_desc = "Mozilla Foundation"
+        ext_bug_id = 380489
+        bugid = 461686
+
+        # test adding tracker
+        bz.add_external_tracker(bugid, ext_type_desc, ext_bug_id)
+        assert bugid in \
+            self._test14ExternalTrackersQuery(bz, ext_type_desc, ext_bug_id)
+
+        # test removing tracker
+        bz.remove_external_tracker(bugid, ext_type_desc, ext_bug_id)
+        assert bugid not in \
+            self._test14ExternalTrackersQuery(bz, ext_type_desc, ext_bug_id)
