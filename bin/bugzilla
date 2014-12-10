@@ -170,6 +170,8 @@ def setup_action_parser(action):
         p.add_option('--keywords',
                 metavar='KEYWORD[, KEYWORD, ...]', action="append",
                 help="Set specified keywords on new bugzilla")
+        p.add_option('--alias',
+                help='An alias (name) for the bug (must be unique)')
 
     elif action == 'query':
         p.set_description("List bug reports that match the given criteria.")
@@ -312,6 +314,8 @@ def setup_action_parser(action):
                 help="Change arch this bug occurs on")
         bgrp.add_option('-u', '--url',
                 help="URL for further bug info")
+        bgrp.add_option('--alias',
+                help='An alias (name) for the bug (must be unique)')
         p.add_option_group(bgrp)
 
         sgrp = optparse.OptionGroup(p, "Bug status options")
@@ -916,6 +920,7 @@ def _do_new(bz, opt, parser):
         assigned_to=opt.assigned_to or None,
         qa_contact=opt.qa_contact or None,
         sub_component=opt.sub_component or None,
+        alias=opt.alias or None,
     )
 
     _merge_field_opts(ret, opt, parser)
@@ -993,6 +998,7 @@ def _do_modify(bz, parser, opt, args):
         internal_whiteboard=set_intwb and set_intwb[0] or None,
         qa_whiteboard=set_qawb and set_qawb[0] or None,
         sub_component=opt.sub_component or None,
+        alias=opt.alias or None,
     )
 
     flags = []

@@ -143,6 +143,7 @@ class RHPartnerTest(BaseTest):
         dependson = "427301"
         comment = "Test bug from python-bugzilla test suite"
         sub_component = "Command-line tools (RHEL6)"
+        alias = "pybz-%s" % datetime.datetime.today().strftime("%s")
         newout = tests.clicomm("bugzilla new "
             "--product 'Red Hat Enterprise Linux 6' --version 6.0 "
             "--component lvm2 --sub-component '%s' "
@@ -150,9 +151,10 @@ class RHPartnerTest(BaseTest):
             "--comment \"%s\" "
             "--url %s --severity Urgent --priority Low --os %s "
             "--arch ppc --cc %s --blocked %s --dependson %s "
+            "--alias %s "
             "--outputformat \"%%{bug_id}\"" %
             (sub_component, summary, comment, url,
-             osval, cc, blocked, dependson), bz)
+             osval, cc, blocked, dependson, alias), bz)
 
         self.assertTrue(len(newout.splitlines()) == 3)
 
@@ -168,13 +170,20 @@ class RHPartnerTest(BaseTest):
         self.assertTrue(all([e in bug.cc for e in cc.split(",")]))
         self.assertEquals(bug.longdescs[0]["text"], comment)
         self.assertEquals(bug.sub_components, {"lvm2": [sub_component]})
+        self.assertEquals(bug.alias, [alias])
 
         # Close the bug
-        tests.clicomm("bugzilla modify --close WONTFIX %s" % bugid,
-                      bz)
+
+        # modify alias is busted on the bugzilla side
+        # https://bugzilla.redhat.com/show_bug.cgi?id=1172855
+        # alias += "-closed"
+        tests.clicomm("bugzilla modify "
+            "--close WONTFIX %s " %
+            bugid, bz)
         bug.refresh()
         self.assertEquals(bug.status, "CLOSED")
         self.assertEquals(bug.resolution, "WONTFIX")
+        self.assertEquals(bug.alias, [alias])
 
 
     def test5ModifyStatus(self):

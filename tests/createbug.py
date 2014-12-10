@@ -59,6 +59,12 @@ class CreatebugTest(unittest.TestCase):
              'severity': 'HIGH'}
         )
 
+    def testMisc(self):
+        self.clicomm(
+            "--alias some-alias",
+            {"alias": "some-alias"}
+        )
+
     def testMultiOpts(self):
         # Test all opts that can take lists
         out = {'blocks': ['3', '4'], 'cc': ['1', '2'],

@@ -138,6 +138,10 @@ class ModifyTest(unittest.TestCase):
             {"op_sys": "Windows", "platform": "ia64", "version": "1000",
              "url": "http://example.com", "summary": 'foo summary'},
         )
+        self.clicomm(
+            "--alias some-alias",
+            {"alias": "some-alias"}
+        )
 
 
     def testField(self):
