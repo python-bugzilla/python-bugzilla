@@ -131,7 +131,7 @@ class BZGnome(BaseTest):
 
 class BZFDO(BaseTest):
     url = "https://bugs.freedesktop.org/xmlrpc.cgi"
-    bzclass = bugzilla.Bugzilla42
+    bzclass = bugzilla.Bugzilla44
     closestatus = "CLOSED,RESOLVED"
 
     test0 = BaseTest._testBZClass

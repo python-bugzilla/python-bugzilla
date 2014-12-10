@@ -298,7 +298,7 @@ class RHPartnerTest(BaseTest):
 
         bug.refresh()
         self.assertEquals(bug.cc, [])
-        self.assertEquals(bug.assigned_to, "wwoods@redhat.com")
+        self.assertEquals(bug.assigned_to, "crobinso@redhat.com")
         self.assertEquals(bug.qa_contact, "extras-qa@fedoraproject.org")
 
 
@@ -629,7 +629,7 @@ class RHPartnerTest(BaseTest):
                             "--user foobar@example.com "
                             "--password foobar login" % self.url, None,
                             expectfail=True)
-        self.assertTrue("Logging in... Login failed:" in ret)
+        self.assertTrue("Login failed: " in ret)
 
 
     def test11UserUpdate(self):
@@ -771,11 +771,11 @@ class RHPartnerTest(BaseTest):
 
     def test14ExternalTrackersQuery(self):
         bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
-        ext_type_desc = "Mozilla Foundation"
-        ext_bug_id = 913904
+        ext_type_desc = "FreeDesktop.org"
+        ext_bug_id = 64714
 
         # Closed RH Bugzilla bug with external tracker
-        bugid = 1007135
+        bugid = 973374
         assert bugid in \
             self._test14ExternalTrackersQuery(bz, ext_type_desc, ext_bug_id)
 
