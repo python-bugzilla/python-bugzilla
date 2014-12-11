@@ -174,8 +174,9 @@ class RHPartnerTest(BaseTest):
 
         # Close the bug
 
-        # modify alias is busted on the bugzilla side
-        # https://bugzilla.redhat.com/show_bug.cgi?id=1172855
+        # RHBZ makes it difficult to provide consistent semantics for
+        # 'alias' update:
+        # https://bugzilla.redhat.com/show_bug.cgi?id=1173114
         # alias += "-closed"
         tests.clicomm("bugzilla modify "
             "--close WONTFIX %s " %

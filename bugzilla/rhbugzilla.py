@@ -104,6 +104,22 @@ class RHBugzilla(_parent):
                 val = {component[0]: val}
             adddict["sub_components"] = val
 
+        def get_alias():
+            # RHBZ has a custom extension to allow a bug to have multiple
+            # aliases, so the format of aliases is
+            #    {"add": [...], "remove": [...]}
+            # But that means in order to approximate upstream, behavior
+            # which just overwrites the existing alias, we need to read
+            # the bug's state first to know what string to remove. Which
+            # we can't do, since we don't know the bug numbers at this point.
+            # So fail for now.
+            #
+            # The API should provide {"set": [...]}
+            # https://bugzilla.redhat.com/show_bug.cgi?id=1173114
+            if "alias" in kwargs:
+                raise RuntimeError("modify 'alias' not supported for "
+                    "RHBZ")
+
         pop("fixed_in", "cf_fixed_in")
         pop("qa_whiteboard", "cf_qa_whiteboard")
         pop("devel_whiteboard", "cf_devel_whiteboard")
