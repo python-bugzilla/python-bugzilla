@@ -702,6 +702,14 @@ class BugzillaBase(object):
         We test if this session is authenticated by calling the User.get()
         XMLRPC method with ids set. Logged-out users cannot pass the 'ids'
         parameter and will result in a 505 error.
+
+        For Bugzilla 5 and later, a new method, User.valid_login is available
+        to test the validity of the token. However, this will require that the
+        username be cached along with the token in order to work effectively in
+        all scenarios and is not currently used. For more information, refer to
+        the following url.
+
+        http://bugzilla.readthedocs.org/en/latest/api/core/v1/user.html#valid-login
         """
         try:
             self._proxy.User.get({'ids': []})
