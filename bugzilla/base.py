@@ -403,7 +403,6 @@ class BugzillaBase(object):
         self._cookiejar = None
         self._sslverify = bool(sslverify)
 
-        self.logged_in = False
         self.bug_autorefresh = True
 
         # Bugzilla object state info that users shouldn't mess with
@@ -644,7 +643,6 @@ class BugzillaBase(object):
 
         try:
             ret = self._login(self.user, self.password)
-            self.logged_in = True
             self.password = ''
             log.info("login successful for user=%s", self.user)
             return ret
@@ -695,7 +693,24 @@ class BugzillaBase(object):
         self.disconnect()
         self.user = ''
         self.password = ''
-        self.logged_in = False
+
+    @property
+    def logged_in(self):
+        """
+        This is True if this instance is logged in else False.
+
+        We test if this session is authenticated by calling the User.get()
+        XMLRPC method with ids set. Logged-out users cannot pass the 'ids'
+        parameter and will result in a 505 error.
+        """
+        try:
+            self._proxy.User.get({'ids': []})
+            return True
+        except Fault:
+            e = sys.exc_info()[1]
+            if e.faultCode == 505:
+                return False
+            raise e
 
 
     #############################################

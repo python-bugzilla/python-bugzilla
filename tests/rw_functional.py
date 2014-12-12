@@ -633,6 +633,16 @@ class RHPartnerTest(BaseTest):
         self.assertTrue("Login failed: " in ret)
 
 
+    def test10LoginState(self):
+        bz = self.bzclass(url=self.url, cookiefile=None, tokenfile=None)
+        self.assertFalse(bz.logged_in,
+            "Login state check failed for logged out user.")
+
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        self.assertTrue(bz.logged_in,
+            "Login state check failed for logged in user.")
+
+
     def test11UserUpdate(self):
         # This won't work if run by the same user we are using
         bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
