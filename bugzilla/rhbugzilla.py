@@ -116,9 +116,9 @@ class RHBugzilla(_parent):
             #
             # The API should provide {"set": [...]}
             # https://bugzilla.redhat.com/show_bug.cgi?id=1173114
-            if "alias" in kwargs:
-                raise RuntimeError("modify 'alias' not supported for "
-                    "RHBZ")
+            #
+            # Implementation will go here when it's available
+            pass
 
         pop("fixed_in", "cf_fixed_in")
         pop("qa_whiteboard", "cf_qa_whiteboard")
@@ -126,6 +126,7 @@ class RHBugzilla(_parent):
         pop("internal_whiteboard", "cf_internal_whiteboard")
 
         get_sub_component()
+        get_alias()
 
         vals = _parent.build_update(self, **kwargs)
         vals.update(adddict)
