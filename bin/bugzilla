@@ -1190,6 +1190,7 @@ def main(bzinstance=None):
             bz.interactive_login(
                 global_opt.user, global_opt.password, force_login)
         if is_login_command:
+            print("Login successful.")
             sys.exit(0)
     except bugzilla.BugzillaError:
         print(str(sys.exc_info()[1]))
