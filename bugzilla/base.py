@@ -1006,8 +1006,8 @@ class BugzillaBase(object):
         if self._supports_getbug_extra_fields:
             getbugdata["extra_fields"] = extra_fields
 
-        log.debug("Calling Bug.get_bugs with: %s", getbugdata)
-        r = self._proxy.Bug.get_bugs(getbugdata)
+        log.debug("Calling Bug.get with: %s", getbugdata)
+        r = self._proxy.Bug.get(getbugdata)
 
         if self.bz_ver_major >= 4:
             bugdict = dict([(b['id'], b) for b in r['bugs']])
