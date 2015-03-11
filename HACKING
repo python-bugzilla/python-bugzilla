@@ -71,3 +71,12 @@ If you are submitting a patch, ensure the following:
 
 Running any of the functional tests is not a requirement for patch submission,
 but please give them a go if you are interested.
+
+Submitting a patch is straight forward; you need to submit it to
+python-bugzilla@lists.fedorahosted.org using the git-send-email command.
+
+For example, assuming you have configured smtp and is working on a feature branch, the following will submit all commits you have on top of master.
+
+$ git send-email --from <your email id> --to python-bugzilla@lists.fedorahosted.org master
+
+For more information about git-send-email refer to http://git-scm.com/docs/git-send-email
