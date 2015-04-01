@@ -116,7 +116,7 @@ class BaseTest(unittest.TestCase):
 
 class BZGnome(BaseTest):
     url = "https://bugzilla.gnome.org/xmlrpc.cgi"
-    bzclass = bugzilla.Bugzilla34
+    bzclass = bugzilla.Bugzilla44
     closestatus = "RESOLVED"
 
     test0 = BaseTest._testBZClass
