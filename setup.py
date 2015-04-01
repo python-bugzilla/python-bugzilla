@@ -166,24 +166,13 @@ class RPMCommand(Command):
             os.system("mv /tmp/python-bugzilla.spec .")
 
 
-requirements = {}
-
-try:
-    from pip.req import parse_requirements
-
-    requirement_files = {
-        'install_requires': 'requirements.txt',
-        'tests_require': 'test-requirements.txt',
-    }
-
-    for name, fname in requirement_files.items():
-        requirements[name] = [
-            str(ir.req) for ir in parse_requirements(fname)
-        ]
-except ImportError:
-    # ignore as this is not useful without pip anyway
-    pass
-
+def _parse_requirements(fname):
+    ret = []
+    for line in open(fname).readlines():
+        if not line or line.startswith("#"):
+            continue
+        ret.append(line)
+    return ret
 
 setup(name='python-bugzilla',
       version=get_version(),
@@ -196,10 +185,12 @@ setup(name='python-bugzilla',
       scripts=['bin/bugzilla'],
       data_files=[('share/man/man1', ['bugzilla.1'])],
 
+      install_requires=_parse_requirements("requirements.txt"),
+      tests_require=_parse_requirements("test-requirements.txt"),
+
       cmdclass={
         "pylint" : PylintCommand,
         "rpm" : RPMCommand,
         "test" : TestCommand,
       },
-      **requirements
 )
