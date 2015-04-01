@@ -773,35 +773,104 @@ class RHPartnerTest(BaseTest):
         bug.refresh()
         self.assertEqual(bug.sub_components, {})
 
-    def _test14ExternalTrackersQuery(self, bz, ext_type_desc, ext_bug_id):
-        boolean_query = bz.build_external_tracker_boolean_query(
-            ext_type_desc, ext_bug_id)
-        query = bz.build_query(
-            boolean_query=boolean_query, include_fields=['id'])
-        return [bug.bug_id for bug in bz.query(query)]
+    def _deleteAllExistingExternalTrackers(self, bugid):
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        ids = [bug['id'] for bug in bz.getbug(bugid).external_bugs]
+        if ids != []:
+            bz.remove_external_tracker(ids=ids)
 
     def test14ExternalTrackersQuery(self):
         bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
-        ext_type_desc = "FreeDesktop.org"
-        ext_bug_id = 64714
-
-        # Closed RH Bugzilla bug with external tracker
-        bugid = 973374
-        assert bugid in \
-            self._test14ExternalTrackersQuery(bz, ext_type_desc, ext_bug_id)
-
-    def test14ExternalTrackersAddRemove(self):
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
-        ext_type_desc = "Mozilla Foundation"
-        ext_bug_id = 380489
         bugid = 461686
+        ext_bug_id = 1234659
+
+        # Delete any existing external trackers to get to a known state
+        self._deleteAllExistingExternalTrackers(bugid)
 
         # test adding tracker
-        bz.add_external_tracker(bugid, ext_type_desc, ext_bug_id)
-        assert bugid in \
-            self._test14ExternalTrackersQuery(bz, ext_type_desc, ext_bug_id)
+        kwargs = {
+            'ext_type_url': 'http://bugzilla.mozilla.org',
+            'ext_type_description': 'Mozilla Foundation',
+            'ext_status': 'Original Status',
+        }
+
+        # Add a tracker that we can query for
+        bz.add_external_tracker(bugid, ext_bug_id, **kwargs)
+
+        kwargs['ext_bz_bug_id'] = ext_bug_id
+
+        boolean_query = bz.build_external_tracker_boolean_query(
+            ext_bz_bug_id=ext_bug_id)
+        query_results = bz.query(bz.build_query(boolean_query=boolean_query))
+        if len(query_results) != 1:
+            raise AssertionError(
+                'external tracker query by bug id should return 1 result.')
+        for key, value in kwargs.iteritems():
+            assert kwargs[key] == value
+
+        boolean_query = bz.build_external_tracker_boolean_query(
+            ext_type_description=kwargs['ext_type_description'])
+        query_results = bz.query(bz.build_query(boolean_query=boolean_query))
+        assert bugid in [qr.id for qr in query_results]
+
+        boolean_query = bz.build_external_tracker_boolean_query(
+            ext_status=kwargs['ext_status'])
+        query_results = bz.query(bz.build_query(boolean_query=boolean_query))
+        if len(query_results) != 1:
+            raise AssertionError(
+                'external tracker query by status should return 1 result.')
+        for key, value in kwargs.iteritems():
+            assert kwargs[key] == value
+
+        boolean_query = bz.build_external_tracker_boolean_query(
+            ext_type_url=kwargs['ext_type_url'])
+        query_results = bz.query(bz.build_query(boolean_query=boolean_query))
+        assert bugid in [qr.id for qr in query_results]
+
+    def test14ExternalTrackersAddUpdateRemoveQuery(self):
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bugid = 461686
+        ext_bug_id = 380489
+
+        # Delete any existing external trackers to get to a known state
+        self._deleteAllExistingExternalTrackers(bugid)
+
+        # test adding tracker
+        kwargs = {
+            'ext_type_id': 6,
+            'ext_type_url': 'http://bugzilla.mozilla.org',
+            'ext_type_description': 'Mozilla Foundation',
+            'ext_status': 'Original Status',
+            'ext_description': 'the description',
+            'ext_priority': 'the priority'
+        }
+        bz.add_external_tracker(bugid, ext_bug_id, **kwargs)
+        added_bug = bz.getbug(bugid).external_bugs[0]
+        assert added_bug['type']['id'] == kwargs['ext_type_id']
+        assert added_bug['type']['url'] == kwargs['ext_type_url']
+        assert (added_bug['type']['description'] ==
+            kwargs['ext_type_description'])
+        assert added_bug['ext_status'] == kwargs['ext_status']
+        assert added_bug['ext_description'] == kwargs['ext_description']
+        assert added_bug['ext_priority'] == kwargs['ext_priority']
+
+        # test updating status, description, and priority by id
+        kwargs = {
+            'ids': bz.getbug(bugid).external_bugs[0]['id'],
+            'ext_status': 'New Status',
+            'ext_description': 'New Description',
+            'ext_priority': 'New Priority'
+        }
+        bz.update_external_tracker(**kwargs)
+        updated_bug = bz.getbug(bugid).external_bugs[0]
+        assert updated_bug['ext_bz_bug_id'] == str(ext_bug_id)
+        assert updated_bug['ext_status'] == kwargs['ext_status']
+        assert updated_bug['ext_description'] == kwargs['ext_description']
+        assert updated_bug['ext_priority'] == kwargs['ext_priority']
 
         # test removing tracker
-        bz.remove_external_tracker(bugid, ext_type_desc, ext_bug_id)
-        assert bugid not in \
-            self._test14ExternalTrackersQuery(bz, ext_type_desc, ext_bug_id)
+        ids = [bug['id'] for bug in bz.getbug(bugid).external_bugs]
+        assert len(ids) == 1
+        bz.remove_external_tracker(ids=ids)
+        ids = [bug['id'] for bug in bz.getbug(bugid).external_bugs]
+        assert len(ids) == 0

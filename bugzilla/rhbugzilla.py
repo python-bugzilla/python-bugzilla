@@ -133,7 +133,10 @@ class RHBugzilla(_parent):
 
         return vals
 
-    def add_external_tracker(self, bug_ids, type_desc, external_id):
+    def add_external_tracker(self, bug_ids, ext_bz_bug_id, ext_type_id=None,
+                             ext_type_description=None, ext_type_url=None,
+                             ext_status=None, ext_description=None,
+                             ext_priority=None):
         """
         Wrapper method to allow adding of external tracking bugs using the
         ExternalBugs::WebService::add_external_bug method.
@@ -141,23 +144,87 @@ class RHBugzilla(_parent):
         This is documented at
         https://bugzilla.redhat.com/docs/en/html/api/extensions/ExternalBugs/lib/WebService.html#add_external_bug
 
-        bug_ids: A single bug id or list if bug ids to add the tracker to.
-        type_desc: The external tracker description as used by Bugzilla. This
-            value maps to the ext_type_description parameter of the XMLRPC
-            method.
-        external_id: The id as used by the external tracker. This value maps to
-            the ext_bz_bug_id parameter of the XMLRPC method.
+        bug_ids: A single bug id or list of bug ids to have external trackers
+            added.
+        ext_bz_bug_id: The external bug id (ie: the bug number in the
+            external tracker).
+        ext_type_id: The external tracker id as used by Bugzilla.
+        ext_type_description: The external tracker description as used by
+            Bugzilla.
+        ext_type_url: The external tracker url as used by Bugzilla.
+        ext_status: The status of the external bug.
+        ext_description: The description of the external bug.
+        ext_priority: The priority of the external bug.
         """
-        kwargs = {
+        param_dict = {'ext_bz_bug_id': ext_bz_bug_id}
+        if ext_type_id is not None:
+            param_dict['ext_type_id'] = ext_type_id
+        if ext_type_description is not None:
+            param_dict['ext_type_description'] = ext_type_description
+        if ext_type_url is not None:
+            param_dict['ext_type_url'] = ext_type_url
+        if ext_status is not None:
+            param_dict['ext_status'] = ext_status
+        if ext_description is not None:
+            param_dict['ext_description'] = ext_description
+        if ext_priority is not None:
+            param_dict['ext_priority'] = ext_priority
+        params = {
             'bug_ids': self._listify(bug_ids),
-            'external_bugs': [{
-                'ext_type_description': type_desc,
-                'ext_bz_bug_id': external_id,
-            }],
+            'external_bugs': [param_dict],
         }
-        return self._proxy.ExternalBugs.add_external_bug(kwargs)
+        return self._proxy.ExternalBugs.add_external_bug(params)
 
-    def remove_external_tracker(self, bug_ids, type_desc, external_ids):
+    def update_external_tracker(self, ids=None, ext_type_id=None,
+                                ext_type_description=None, ext_type_url=None,
+                                ext_bz_bug_id=None, bug_ids=None,
+                                ext_status=None, ext_description=None,
+                                ext_priority=None):
+        """
+        Wrapper method to allow adding of external tracking bugs using the
+        ExternalBugs::WebService::update_external_bug method.
+
+        This is documented at
+        https://bugzilla.redhat.com/docs/en/html/api/extensions/ExternalBugs/lib/WebService.html#update_external_bug
+
+        ids: A single external tracker bug id or list of external tracker bug
+            ids.
+        ext_type_id: The external tracker id as used by Bugzilla.
+        ext_type_description: The external tracker description as used by
+            Bugzilla.
+        ext_type_url: The external tracker url as used by Bugzilla.
+        ext_bz_bug_id: A single external bug id or list of external bug ids
+            (ie: the bug number in the external tracker).
+        bug_ids: A single bug id or list of bug ids to have external tracker
+            info updated.
+        ext_status: The status of the external bug.
+        ext_description: The description of the external bug.
+        ext_priority: The priority of the external bug.
+        """
+        params = {}
+        if ids is not None:
+            params['ids'] = self._listify(ids)
+        if ext_type_id is not None:
+            params['ext_type_id'] = ext_type_id
+        if ext_type_description is not None:
+            params['ext_type_description'] = ext_type_description
+        if ext_type_url is not None:
+            params['ext_type_url'] = ext_type_url
+        if ext_bz_bug_id is not None:
+            params['ext_bz_bug_id'] = self._listify(ext_bz_bug_id)
+        if bug_ids is not None:
+            params['bug_ids'] = self._listify(bug_ids)
+        if ext_status is not None:
+            params['ext_status'] = ext_status
+        if ext_description is not None:
+            params['ext_description'] = ext_description
+        if ext_priority is not None:
+            params['ext_priority'] = ext_priority
+        return self._proxy.ExternalBugs.update_external_bug(params)
+
+    def remove_external_tracker(self, ids=None, ext_type_id=None,
+                                ext_type_description=None, ext_type_url=None,
+                                ext_bz_bug_id=None, bug_ids=None):
         """
         Wrapper method to allow removal of external tracking bugs using the
         ExternalBugs::WebService::remove_external_bug method.
@@ -165,20 +232,31 @@ class RHBugzilla(_parent):
         This is documented at
         https://bugzilla.redhat.com/docs/en/html/api/extensions/ExternalBugs/lib/WebService.html#remove_external_bug
 
-        bug_ids: A single bug id or list if bug ids to remove the tracker from.
-        type_desc: The external tracker description as used by Bugzilla. This
-            value maps to the ext_type_description parameter of the XMLRPC
-            method.
-        external_ids: The id or list of ids as used by the external tracker.
-            This value maps to the ext_bz_bug_id parameter of the XMLRPC
-            method.
+        ids: A single external tracker bug id or list of external tracker bug
+            ids.
+        ext_type_id: The external tracker id as used by Bugzilla.
+        ext_type_description: The external tracker description as used by
+            Bugzilla.
+        ext_type_url: The external tracker url as used by Bugzilla.
+        ext_bz_bug_id: A single external bug id or list of external bug ids
+            (ie: the bug number in the external tracker).
+        bug_ids: A single bug id or list of bug ids to have external tracker
+            info updated.
         """
-        kwargs = {
-            'bug_ids': self._listify(bug_ids),
-            'ext_type_description': type_desc,
-            'ext_bz_bug_id': self._listify(external_ids),
-        }
-        return self._proxy.ExternalBugs.remove_external_bug(kwargs)
+        params = {}
+        if ids is not None:
+            params['ids'] = self._listify(ids)
+        if ext_type_id is not None:
+            params['ext_type_id'] = ext_type_id
+        if ext_type_description is not None:
+            params['ext_type_description'] = ext_type_description
+        if ext_type_url is not None:
+            params['ext_type_url'] = ext_type_url
+        if ext_bz_bug_id is not None:
+            params['ext_bz_bug_id'] = self._listify(ext_bz_bug_id)
+        if bug_ids is not None:
+            params['bug_ids'] = self._listify(bug_ids)
+        return self._proxy.ExternalBugs.remove_external_bug(params)
 
 
     #################
@@ -285,28 +363,40 @@ class RHBugzilla(_parent):
             bug['groups'] = tmp
 
     def build_external_tracker_boolean_query(
-            self, type_desc=None, external_id=None):
+            self, ext_type_description=None, ext_type_url=None,
+            ext_bz_bug_id=None, ext_status=None):
         """
         Helper method to build a boolean query to find bugs that contain an
-        external tracker with the 'type_desc' and 'external_id' combination.
+        external tracker.
 
         All parameters that are None will be ignored when building the query.
 
-        type_desc: The external tracker description as used by Bugzilla. This
-            value maps to the external_bugzilla.description field.
-        external_ids: The id as used by the external tracker. This value maps
-            to the ext_bz_bug_map.ext_bz_bug_id field.
+        ext_type_description: The external tracker description as used by
+            Bugzilla.
+        ext_type_url: The external tracker url as used by Bugzilla.
+        ext_bz_bug_id: The external bug id (ie: the bug number in the
+            external tracker).
+        ext_status: The status of the external bug.
         """
         parts = []
 
-        if type_desc is not None:
+        if ext_type_description is not None:
             parts.append(
-                'external_bugzilla.description-equals-{0:s}'.format(type_desc))
+                'external_bugzilla.description-equals-{0:s}'.format(
+                    ext_type_description))
 
-        if external_id is not None:
-            id_str = str(external_id)
+        if ext_type_url is not None:
+            parts.append(
+                'external_bugzilla.url-equals-{0:s}'.format(ext_type_url))
+
+        if ext_bz_bug_id is not None:
+            id_str = str(ext_bz_bug_id)
             parts.append(
                 'ext_bz_bug_map.ext_bz_bug_id-equals-{0:s}'.format(id_str))
+
+        if ext_status is not None:
+            parts.append(
+                'ext_bz_bug_map.ext_status-equals-{0:s}'.format(ext_status))
 
         return ' & '.join(parts)
 

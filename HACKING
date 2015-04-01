@@ -26,17 +26,20 @@ Once you have already activated an environment, you can use the following.
 # Basic unit test suite
     python setup.py test
 
-# Functional tests
+# Read-Only Functional tests
 There are more comprehensive tests that are disabled by default. Readonly
 functional tests that run against several public bugzilla instances. No
 login account is required:
 
     python setup.py test --ro-functional
 
-And read/write functional tests. These currently run against the test
-bugzilla instance at partner-bugzilla.redhat.com, and requires a valid
-login there:
+# Read/Write Functional Tests.
 
+Before running rw-functional tests, make sure you have logged into bugzilla
+using. These currently run against the test bugzilla instance at
+partner-bugzilla.redhat.com, and requires a valid login there:
+
+    bugzilla-cli --bugzilla=partner-bugzilla.redhat.com --user=$USER login
     python setup.py test --rw-functional
 
 # Testing across python versions
@@ -45,12 +48,6 @@ To test all supported python versions, run tox using any of the following.
     tox
     tox -- --ro-functional
     tox -- --rw-functional
-
-Note: Before running rw-functional tests, make sure you have logged into
-bugzilla using:
-    python bugzilla-cli \
-        --bugzilla=partner-bugzilla.redhat.com \
-        --user=$USER login
 
 
 3. pylint and pep8
