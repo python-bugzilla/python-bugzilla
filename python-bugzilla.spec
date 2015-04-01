@@ -18,10 +18,12 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires: python2-devel
 BuildRequires: python-requests
+BuildRequires: python-setuptools
 
 %if 0%{?with_python3}
 BuildRequires: python3-devel
 BuildRequires: python3-requests
+BuildRequires: python3-setuptools
 %endif # if with_python3
 
 Requires: python-requests

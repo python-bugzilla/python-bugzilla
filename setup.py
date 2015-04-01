@@ -7,7 +7,8 @@ import os
 import sys
 import unittest
 
-from distutils.core import setup, Command
+from distutils.core import Command
+from setuptools import setup
 
 
 def get_version():
