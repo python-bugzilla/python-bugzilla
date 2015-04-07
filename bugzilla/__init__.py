@@ -46,8 +46,11 @@ def _getBugzillaClassForURL(url, sslverify):
         log.info("Using RHBugzilla for URL containing bugzilla.redhat.com")
         return RHBugzilla
     if "bugzilla.novell.com" in url:
-        log.info("Using NovellBugzilla for URL containing novell.com")
+        log.info("Using NovellBugzilla for URL containing bugzilla.novell.com")
         return NovellBugzilla
+    if "bugzilla.mozilla.org" in url:
+        log.info("Using Bugzilla42 for URL containing bugzilla.mozilla.org")
+        return Bugzilla42
 
     # Check for a Red Hat extension
     try:
