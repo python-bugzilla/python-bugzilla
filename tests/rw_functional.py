@@ -805,7 +805,7 @@ class RHPartnerTest(BaseTest):
         if len(query_results) != 1:
             raise AssertionError(
                 'external tracker query by bug id should return 1 result.')
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             assert kwargs[key] == value
 
         boolean_query = bz.build_external_tracker_boolean_query(
@@ -819,7 +819,7 @@ class RHPartnerTest(BaseTest):
         if len(query_results) != 1:
             raise AssertionError(
                 'external tracker query by status should return 1 result.')
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             assert kwargs[key] == value
 
         boolean_query = bz.build_external_tracker_boolean_query(
