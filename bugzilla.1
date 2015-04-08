@@ -1,4 +1,4 @@
-.TH bugzilla 1  "June 01, 2014" "version 1.1.0" "User Commands"
+.TH bugzilla 1  "April 08, 2015" "version 1.2.0" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -87,6 +87,10 @@ Assign bugzilla to specified email address
 Set QA contact to specified email address
 .IP "--keywords=KEYWORD[, KEYWORD, ...]"
 Set specified keywords on new bugzilla
+.IP "--alias=ALIAS"
+An alias (name) for the bug (must be unique)
+.IP "--field=FIELD=VALUE"
+Set a specified field. FIELD is expected to be                      the raw name used by the bugzilla instance. No safety                      checks are perfomed when using this option.
 
 .SH OUTPUT FORMAT \[oq]NEW\[cq] OPTIONS
 .IP "--full, -f"
@@ -134,6 +138,8 @@ Search using bugzilla's quicksearch functionality.
 Name of a bugzilla saved search. If you don't own this saved search, you must passed --savedsearch_sharer_id.
 .IP "--savedsearch-sharer-id=SAVEDSEARCH_SHARER_ID"
 Owner ID of the --savedsearch. You can get this ID from the URL bugzilla generates when running the saved search from the web UI.
+.IP "--field=FIELD=VALUE"
+Query a specified field. FIELD is expected to be                      the raw name used by the bugzilla instance. No safety                      checks are perfomed when using this option.
 
 .SH EMAIL \[oq]QUERY\[cq] OPTIONS
 .IP "--emailtype=EMAILTYPE, -E EMAILTYPE"
@@ -197,6 +203,8 @@ raw output of the bugzilla contents
 .IP "--outputformat=OUTPUTFORMAT"
 Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{id}: %{summary}'. See the man page section 'OUTPUT FORMAT' for more details.
 .SH \[oq]MODIFY\[cq] OPTIONS
+.IP "--field=FIELD=VALUE"
+Modify a specified field. FIELD is expected to be                      the raw name used by the bugzilla instance. No safety                      checks are perfomed when using this option.
 
 .SH BUG DETAILS
 .IP "--product=PRODUCT"
@@ -213,6 +221,8 @@ Change operating system this bug occurs on
 Change arch this bug occurs on
 .IP "--url=URL, -u URL"
 URL for further bug info
+.IP "--alias=ALIAS"
+An alias (name) for the bug (must be unique)
 
 .SH BUG STATUS \[oq]MODIFY\[cq] OPTIONS
 .IP "--status=STATUS, -s STATUS"
