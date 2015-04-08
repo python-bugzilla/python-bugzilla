@@ -1,4 +1,4 @@
-%if 0%{?fedora} || 0%{?rhel} >= 7
+%if 0%{?fedora} || 0%{?rhel} >= 8
 %global with_python3 1
 %else
 %{!?__python2: %global __python2 /usr/bin/python2}
