@@ -1,4 +1,4 @@
-%if 0%{?fedora} ||0%{?rhel} >= 7
+%if 0%{?fedora} || 0%{?rhel} >= 7
 %global with_python3 1
 %else
 %{!?__python2: %global __python2 /usr/bin/python2}
@@ -14,7 +14,6 @@ License:        GPLv2+
 URL:            https://fedorahosted.org/python-bugzilla
 Source0:        https://fedorahosted.org/releases/p/y/%{name}/%{name}-%{version}.tar.gz
 BuildArch:      noarch
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires: python2-devel
 BuildRequires: python-requests
