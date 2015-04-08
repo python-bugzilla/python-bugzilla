@@ -114,6 +114,12 @@ class BaseTest(unittest.TestCase):
         self.assertTrue(expectstr in out)
 
 
+class BZMozilla(BaseTest):
+    url = "https://bugzilla.mozilla.org"
+    bzclass = bugzilla.Bugzilla42
+    test0 = BaseTest._testBZClass
+
+
 class BZGnome(BaseTest):
     url = "https://bugzilla.gnome.org/xmlrpc.cgi"
     bzclass = bugzilla.Bugzilla44
