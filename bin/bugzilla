@@ -92,7 +92,7 @@ def open_without_clobber(name, *args):
 
 def setup_parser():
     u = ("%%prog [global options] COMMAND [command-options]"
-         "\nCommands: %s" % ', '.join(cmdlist))
+         "\n\nCommands: %s" % ', '.join(sorted(cmdlist)))
     p = optparse.OptionParser(usage=u, version=bugzilla.__version__)
     p.disable_interspersed_args()
     p.epilog = 'Try "bugzilla COMMAND --help" for command-specific help.'
@@ -100,22 +100,20 @@ def setup_parser():
     # General bugzilla connection options
     p.add_option('--bugzilla', default=default_bz,
             help="bugzilla XMLRPC URI. default: %s" % default_bz)
-    p.add_option('--bztype', default='auto',
-            help="Bugzilla type. Autodetected if not set. "
-                 "Available types: %s" % ", ".join(bugzilla.classlist))
     p.add_option("--nosslverify", dest="sslverify",
                  action="store_false", default=True,
                  help="Don't error on invalid bugzilla SSL certificate")
 
-    p.add_option('--user', help="username")
-    p.add_option('--password', help="password")
+    p.add_option('--user', help="Optional bugzilla login username")
+    p.add_option('--password', help="Optional bugzilla login password")
     p.add_option('--login', action="store_true",
-        help='Run "login" before performing the specified command.')
+        help='Run interactive "login" before performing the '
+             'specified command.')
     p.add_option('--ensure-logged-in', action="store_true",
         help="Raise an error if we aren't logged in to bugzilla. "
-             "Consider using this if you are implicitly depending on "
+             "Consider using this if you are depending on "
              "cached credentials, to ensure that when they expire the "
-             "command output doesn't change.")
+             "tool errors, rather than subtly change output.")
     p.add_option('--no-cache-credentials',
         action='store_false', default=True, dest='cache_credentials',
         help="Don't save any bugzilla cookies or tokens to disk, and "
@@ -134,6 +132,11 @@ def setup_parser():
     # Generate the man page, dump to stdout. Not for end users
     p.add_option('--generate-man', action='store_true',
             help=optparse.SUPPRESS_HELP)
+
+    # Allow user to specify BZClass to initialize. Kinda weird for the
+    # CLI, I'd rather people file bugs about this so we can fix our detection.
+    # So hide it from the help output but keep it for back compat
+    p.add_option('--bztype', default='auto', help=optparse.SUPPRESS_HELP)
 
     return p
 
