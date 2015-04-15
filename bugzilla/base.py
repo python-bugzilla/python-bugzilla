@@ -904,10 +904,8 @@ class BugzillaBase(object):
         if exclude_fields:
             kwargs["exclude_fields"] = exclude_fields
 
-        # The bugzilla4 name is Product.get(), but Bugzilla3 only had
-        # Product.get_product, and bz4 kept an alias.
-        log.debug("Calling Product.get_products with: %s", kwargs)
-        ret = self._proxy.Product.get_products(kwargs)
+        log.debug("Calling Product.get with: %s", kwargs)
+        ret = self._proxy.Product.get(kwargs)
         return ret['products']
 
     def _getproducts(self, **kwargs):
