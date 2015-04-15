@@ -620,8 +620,7 @@ class BugzillaBase(object):
         '''Attempt to log in using the given username and password. Subsequent
         method calls will use this username and password. Returns False if
         login fails, otherwise returns some kind of login info - typically
-        either a numeric userid, or a dict of user info. It also sets the
-        logged_in attribute to True, if successful.
+        either a numeric userid, or a dict of user info.
 
         If user is not set, the value of Bugzilla.user will be used. If *that*
         is not set, ValueError will be raised. If login fails, BugzillaError
