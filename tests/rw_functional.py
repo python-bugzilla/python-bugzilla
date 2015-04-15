@@ -874,3 +874,8 @@ class RHPartnerTest(BaseTest):
         bz.remove_external_tracker(ids=ids)
         ids = [bug['id'] for bug in bz.getbug(bugid).external_bugs]
         assert len(ids) == 0
+
+    def test15EnsureLoggedIn(self):
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        comm = "bugzilla --ensure-logged-in query --bug_id 979546"
+        tests.clicomm(comm, bz)

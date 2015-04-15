@@ -111,6 +111,11 @@ def setup_parser():
     p.add_option('--password', help="password")
     p.add_option('--login', action="store_true",
         help='Run "login" before performing the specified command.')
+    p.add_option('--ensure-logged-in', action="store_true",
+        help="Raise an error if we aren't logged in to bugzilla. "
+             "Consider using this if you are implicitly depending on "
+             "cached credentials, to ensure that when they expire the "
+             "command output doesn't change.")
     p.add_option('--no-cache-credentials',
         action='store_false', default=True, dest='cache_credentials',
         help="Don't save any bugzilla cookies or tokens to disk, and "
@@ -1194,6 +1199,11 @@ def main(bzinstance=None):
             sys.exit(0)
     except bugzilla.BugzillaError:
         print(str(sys.exc_info()[1]))
+        sys.exit(1)
+
+    if global_opt.ensure_logged_in and not bz.logged_in:
+        print("--ensure-logged-in passed but you aren't logged in to %s" %
+            bz.url)
         sys.exit(1)
 
 
