@@ -29,7 +29,7 @@ if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
 else:
     from xmlrpclib import Fault, ProtocolError
 
-from requests.exceptions import SSLError
+import requests.exceptions
 
 import bugzilla
 
@@ -1275,11 +1275,6 @@ if __name__ == '__main__':
         log.debug("", exc_info=True)
         print("\nExited at user request.")
         sys.exit(1)
-    except socket.error:
-        e = sys.exc_info()[1]
-        log.debug("", exc_info=True)
-        print("\nConnection lost/failed: %s" % str(e))
-        sys.exit(2)
     except (Fault, bugzilla.BugzillaError):
         e = sys.exc_info()[1]
         log.debug("", exc_info=True)
@@ -1295,7 +1290,7 @@ if __name__ == '__main__':
             print("\nServer was attempting a redirect. Try: "
                   "  bugzilla --bugzilla %s ..." % redir)
         sys.exit(4)
-    except SSLError:
+    except requests.exceptions.SSLError:
         e = sys.exc_info()[1]
         log.debug("", exc_info=True)
 
@@ -1305,3 +1300,10 @@ if __name__ == '__main__':
               "around this error with:\n"
               "  bugzilla --nosslverify ...")
         sys.exit(4)
+    except (socket.error,
+            requests.exceptions.HTTPError,
+            requests.exceptions.ConnectionError):
+        e = sys.exc_info()[1]
+        log.debug("", exc_info=True)
+        print("\nConnection lost/failed: %s" % str(e))
+        sys.exit(2)
