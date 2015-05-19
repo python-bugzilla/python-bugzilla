@@ -96,7 +96,7 @@ class RHBugzilla(_parent):
             if val is None:
                 return
 
-            if type(val) is not dict:
+            if not isinstance(val, dict):
                 component = self._listify(kwargs.get("component"))
                 if not component:
                     raise ValueError("component must be specified if "
@@ -268,14 +268,14 @@ class RHBugzilla(_parent):
         old = query.copy()
 
         if 'bug_id' in query:
-            if type(query['bug_id']) is not list:
+            if not isinstance(query['bug_id'], list):
                 query['id'] = query['bug_id'].split(',')
             else:
                 query['id'] = query['bug_id']
             del query['bug_id']
 
         if 'component' in query:
-            if type(query['component']) is not list:
+            if not isinstance(query['component'], list):
                 query['component'] = query['component'].split(',')
 
         if 'include_fields' not in query and 'column_list' not in query:
@@ -306,12 +306,12 @@ class RHBugzilla(_parent):
         # and versions respectively.
         if 'component' in bug and "components" not in bug:
             val = bug['component']
-            bug['components'] = type(val) is list and val or [val]
+            bug['components'] = isinstance(val, list) and val or [val]
             bug['component'] = bug['components'][0]
 
         if 'version' in bug and "versions" not in bug:
             val = bug['version']
-            bug['versions'] = type(val) is list and val or [val]
+            bug['versions'] = isinstance(val, list) and val or [val]
             bug['version'] = bug['versions'][0]
 
         # sub_components isn't too friendly of a format, add a simpler
@@ -319,7 +319,7 @@ class RHBugzilla(_parent):
         if 'sub_components' in bug and 'sub_component' not in bug:
             val = bug['sub_components']
             bug['sub_component'] = ""
-            if type(val) is dict:
+            if isinstance(val, dict):
                 values = []
                 for vallist in val.values():
                     values += vallist
@@ -328,27 +328,27 @@ class RHBugzilla(_parent):
         if not self.rhbz_back_compat:
             return
 
-        if 'flags' in bug and type(bug["flags"]) is list:
+        if 'flags' in bug and isinstance(bug["flags"], list):
             tmpstr = []
             for tmp in bug['flags']:
                 tmpstr.append("%s%s" % (tmp['name'], tmp['status']))
 
             bug['flags'] = ",".join(tmpstr)
 
-        if 'blocks' in bug and type(bug["blocks"]) is list:
+        if 'blocks' in bug and isinstance(bug["blocks"], list):
             # Aliases will handle the 'blockedby' and 'blocked' back compat
             bug['blocks'] = ','.join([str(b) for b in bug['blocks']])
 
-        if 'keywords' in bug and type(bug["keywords"]) is list:
+        if 'keywords' in bug and isinstance(bug["keywords"], list):
             bug['keywords'] = ','.join(bug['keywords'])
 
-        if 'alias' in bug and type(bug["alias"]) is list:
+        if 'alias' in bug and isinstance(bug["alias"], list):
             bug['alias'] = ','.join(bug['alias'])
 
         if ('groups' in bug and
-            type(bug["groups"]) is list and
+            isinstance(bug["groups"], list) and
             len(bug["groups"]) > 0 and
-            type(bug["groups"][0]) is str):
+            isinstance(bug["groups"][0], str)):
             # groups went to the opposite direction: it got simpler
             # instead of having name, ison, description, it's now just
             # an array of strings of the groups the bug belongs to

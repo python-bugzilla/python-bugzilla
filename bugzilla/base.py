@@ -483,7 +483,7 @@ class BugzillaBase(object):
     def _listify(self, val):
         if val is None:
             return val
-        if type(val) is list:
+        if isinstance(val, list):
             return val
         return [val]
 
@@ -813,7 +813,7 @@ class BugzillaBase(object):
         return self._components[product]
 
     def _component_data_convert(self, data, update=False):
-        if type(data['product']) is int:
+        if isinstance(data['product'], int):
             data['product'] = self._product_id_to_name(data['product'])
 
 
@@ -913,7 +913,7 @@ class BugzillaBase(object):
         return r
 
     def _getcomponents(self, product):
-        if type(product) == str:
+        if isinstance(product, str):
             product = self._product_name_to_id(product)
         r = self._proxy.Bug.legal_values({'product_id': product,
                                           'field': 'component'})
@@ -1516,7 +1516,7 @@ class BugzillaBase(object):
             # BZ 4.4+
             ret = ret["ids"]
 
-        if type(ret) is list and len(ret) == 1:
+        if isinstance(ret, list) and len(ret) == 1:
             ret = ret[0]
         return ret
 
@@ -1645,7 +1645,7 @@ class BugzillaBase(object):
                                 "args=%s with kwargs=%s, must be one or the "
                                 "other." % (args, kwargs))
         if args:
-            if len(args) > 1 or type(args[0]) is not dict:
+            if len(args) > 1 or not isinstance(args[0], dict):
                 raise BugzillaError("createbug: positional arguments only "
                                     "accept a single dictionary.")
             data = args[0]

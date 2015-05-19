@@ -647,7 +647,7 @@ def _do_query(bz, opt, parser):
     for optname in ["bug_severity", "bug_id", "bug_status", "component",
                     "priority", "product", "version"]:
         val = getattr(opt, optname, None)
-        if type(val) is not str:
+        if not isinstance(val, str):
             continue
         setattr(opt, optname, val.split(","))
 
@@ -669,7 +669,7 @@ def _do_query(bz, opt, parser):
                 # Needs to be in sync with bug.__unicode__
                 fieldname = ["id", "status", "assigned_to", "summary"]
 
-            flist = type(fieldname) is list and fieldname or [fieldname]
+            flist = isinstance(fieldname, list) and fieldname or [fieldname]
             for f in flist:
                 if f not in include_fields:
                     include_fields.append(f)
@@ -865,7 +865,7 @@ def _format_output(bz, opt, buglist):
         else:
             val = getattr(b, fieldname, "")
 
-        vallist = type(val) is list and val or [val]
+        vallist = isinstance(val, list) and val or [val]
         val = ','.join([to_encoding(v) for v in vallist])
 
         return val
@@ -887,7 +887,7 @@ def _parse_triset(vallist, checkplus=True, checkminus=True, checkequal=True,
             return v.split(",")
         return [v]
 
-    for val in type(vallist) is list and vallist or [vallist]:
+    for val in isinstance(vallist, list) and vallist or [vallist]:
         val = val or ""
 
         if val.startswith("+") and checkplus:
