@@ -3,5 +3,7 @@ install:
   - pip install tox
 script:
     - tox -- --ro-functional
-branches:
 notifications:
+    email: true
+    on_success: never
+    on_failure: always
