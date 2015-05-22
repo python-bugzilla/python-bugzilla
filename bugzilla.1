@@ -1,4 +1,4 @@
-.TH bugzilla 1  "April 08, 2015" "version 1.2.0" "User Commands"
+.TH bugzilla 1  "May 22, 2015" "version 1.2.1" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -30,16 +30,16 @@ show program's version number and exit
 show this help message and exit
 .IP "--bugzilla=BUGZILLA"
 bugzilla XMLRPC URI. default: https://bugzilla.redhat.com/xmlrpc.cgi
-.IP "--bztype=BZTYPE"
-Bugzilla type. Autodetected if not set. Available types: Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36, Bugzilla4, Bugzilla42, Bugzilla44, RHBugzilla3, RHBugzilla4, RHBugzilla, NovellBugzilla
 .IP "--nosslverify"
 Don't error on invalid bugzilla SSL certificate
 .IP "--user=USER"
-username
+Optional bugzilla login username
 .IP "--password=PASSWORD"
-password
+Optional bugzilla login password
 .IP "--login"
-Run "login" before performing the specified command.
+Run interactive "login" before performing the specified command.
+.IP "--ensure-logged-in"
+Raise an error if we aren't logged in to bugzilla. Consider using this if you are depending on cached credentials, to ensure that when they expire the tool errors, rather than subtly change output.
 .IP "--no-cache-credentials"
 Don't save any bugzilla cookies or tokens to disk, and don't use any pre-existing credentials.
 .IP "--cookiefile=COOKIEFILE"
