@@ -39,8 +39,7 @@ class MiscCLI(unittest.TestCase):
             ignore = ManHelpFormatter
         except Exception:
             e = sys.exc_info()[1]
-            print("Skipping man page test: %s" % e)
-            return
+            self.skipTest("Skipping man page test: %s" % e)
 
         out = tests.clicomm("bugzilla --generate-man", None)
         self.assertTrue(len(out.splitlines()) > 100)
