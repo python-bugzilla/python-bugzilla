@@ -195,7 +195,7 @@ class RHTest(BaseTest):
             "sw=%{whiteboard:status} flag=%{flag:fedora-review} "
             "sum=%{summary}\"",
             "id=785016 sw= flag=+")
-    # Unicode in this bugs summary
+    # Unicode in this bug's summary
     test13 = lambda s: BaseTest._testQueryFormat(s,
              "--bug_id 522796 --outputformat \"%{summary}\"",
              "V34 — system")
