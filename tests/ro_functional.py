@@ -156,7 +156,7 @@ class BZFDO(BaseTest):
 
 
 class RHTest(BaseTest):
-    url = "https://bugzilla.redhat.com/xmlrpc.cgi"
+    url = tests.REDHAT_URL or "https://bugzilla.redhat.com/xmlrpc.cgi"
     bzclass = bugzilla.RHBugzilla
 
     test0 = BaseTest._testBZClass

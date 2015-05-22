@@ -65,8 +65,7 @@ class RHPartnerTest(BaseTest):
     # Despite its name, this instance is simply for bugzilla testing,
     # doesn't send out emails and is blown away occasionally. The front
     # page has some info.
-    url = "https://partner-bugzilla.redhat.com/xmlrpc.cgi"
-    # url = "https://bzweb01-devel.app.eng.rdu.redhat.com/"
+    url = tests.REDHAT_URL or "https://partner-bugzilla.redhat.com/xmlrpc.cgi"
     bzclass = bugzilla.RHBugzilla
 
 

@@ -31,6 +31,9 @@ def _cleanup_cb():
 atexit.register(_cleanup_cb)
 bugzillascript = _import("bugzillascript", "bin/bugzilla")
 
+# This is overwritten by python setup.py test --redhat-url, and then
+# used in ro/rw tests
+REDHAT_URL = None
 
 
 def diff(orig, new):

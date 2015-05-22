@@ -30,12 +30,15 @@ class TestCommand(Command):
          "This will also be very slow."),
         ("only=", None,
          "Run only tests whose name contains the passed string"),
+        ("redhat-url=", None,
+         "Redhat bugzilla URL to use for ro/rw_functional tests"),
     ]
 
     def initialize_options(self):
         self.ro_functional = False
         self.rw_functional = False
         self.only = None
+        self.redhat_url = None
 
     def finalize_options(self):
         pass
@@ -75,6 +78,9 @@ class TestCommand(Command):
                 unittest.installHandler()
             except:
                 print("installHandler hack failed")
+
+        import tests as testsmodule
+        testsmodule.REDHAT_URL = self.redhat_url
 
         tests = unittest.TestLoader().loadTestsFromNames(testfiles)
         if self.only:
