@@ -800,9 +800,8 @@ class BugzillaBase(object):
         return self._components_details[product]
 
     def getcomponentdetails(self, product, component, force_refresh=False):
-        '''Get details for a single component. Returns a dict with the
-        following keys:
-        description, initialowner, initialqacontact, initialcclist'''
+        '''Get details for a single component. See bugzilla documentation
+        for a list of returned keys.'''
         d = self.getcomponentsdetails(product, force_refresh)
         return d[component]
 
@@ -852,6 +851,8 @@ class BugzillaBase(object):
                                        initial QA contact
         default_cc: (optional) The initial list of users to be CC'ed on
                                new bugs for the component.
+        is_active: (optional) If False, the component is hidden from
+                              the component list when filing new bugs.
         '''
         data = data.copy()
         self._component_data_convert(data)

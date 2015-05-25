@@ -709,6 +709,7 @@ class RHPartnerTest(BaseTest):
                              compdata["default_assigned_to"])
             self.assertEqual(data["initialqacontact"],
                              compdata["default_qa_contact"])
+            self.assertEqual(data["is_active"], compdata["is_active"])
 
 
         # Create component
@@ -718,8 +719,11 @@ class RHPartnerTest(BaseTest):
             "initialowner": "crobinso@redhat.com",
             "initialqacontact": "extras-qa@fedoraproject.org",
             "initialcclist": ["wwoods@redhat.com", "toshio@fedoraproject.org"],
+            "is_active": True,
         })
         newid = bz.addcomponent(data)['id']
+        print("Created product=%s component=%s" % (
+            basedata["product"], basedata["component"]))
         compare(data, newid)
 
         # Edit component
@@ -730,6 +734,7 @@ class RHPartnerTest(BaseTest):
             "initialqacontact": "virt-mgr-maint@redhat.com",
             "initialcclist": ["libvirt-maint@redhat.com",
                               "virt-maint@lists.fedoraproject.org"],
+            "is_active": False,
         })
         bz.editcomponent(data)
         compare(data, newid)
