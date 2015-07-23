@@ -256,10 +256,6 @@ class RequestsTransport(Transport):
         # xmlrpclib fails to escape \r
         request_body = request_body.replace(b'\r', b'&#xd;')
 
-        # Needed for python-requests < 2.0 with python3, otherwise we get
-        # Content-Type error later for the POST request
-        request_body = request_body.decode('utf-8')
-
         return self._request_helper(url, request_body)
 
 
