@@ -425,7 +425,8 @@ def setup_action_parser(action):
 
     elif action == 'login':
         p.set_usage('%prog login [username [password]]')
-        p.set_description("Log into bugzilla and save a login cookie or token.")
+        p.set_description(
+            "Log into bugzilla and save a login cookie or token.")
 
     if action in ['new', 'query']:
         outg = optparse.OptionGroup(p, "Output format options")
