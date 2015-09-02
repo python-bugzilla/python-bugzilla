@@ -70,3 +70,8 @@ but please give them a go if you are interested.
 
 Patches can be submitted via github pull-request, or via the mailing list
 at python-bugzilla@lists.fedorahosted.org using 'git send-email'.
+
+
+# Bug reports
+
+Bug reports should be submitted as github issues, or sent to the mailing list
