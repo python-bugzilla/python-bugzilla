@@ -11,8 +11,8 @@ Release:        1%{?dist}
 Summary:        A python library and tool for interacting with Bugzilla
 
 License:        GPLv2+
-URL:            https://fedorahosted.org/python-bugzilla
-Source0:        https://fedorahosted.org/releases/p/y/%{name}/%{name}-%{version}.tar.gz
+URL:            https://github.com/python-bugzilla/python-bugzilla
+Source0:        https://github.com/python-bugzilla/python-bugzilla/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
 BuildArch:      noarch
 
 BuildRequires: python2-devel

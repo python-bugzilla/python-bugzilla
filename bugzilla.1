@@ -1,4 +1,4 @@
-.TH bugzilla 1  "May 22, 2015" "version 1.2.1" "User Commands"
+.TH bugzilla 1  "September 02, 2015" "version 1.2.1" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -339,7 +339,6 @@ invoking the command.
 Additionally, the --no-cache-credentials option will tell the bugzilla tool to
 _not_ save any credentials to ~/.bugzillacookies or ~/.bugzillatoken.
 
-
 .SH EXAMPLES
 .PP
 .RS 0
@@ -373,9 +372,11 @@ is interrupted by the user (or a login attempt fails), 2 if a
 socket error occurs (e.g. TCP connection timeout), and 3 if the server returns
 an XML-RPC fault.
 .SH BUGS
-Please report any bugs to bugzilla.redhat.com
+Please report any bugs as github issues at
 .br
-Product=Fedora component=python-bugzilla or to the mailing list at
+https://github.com/python-bugzilla/python-bugzilla
+.br
+to the mailing list at
 .br
 https://fedorahosted.org/mailman/listinfo/python-bugzilla
 .SH SEE ALSO

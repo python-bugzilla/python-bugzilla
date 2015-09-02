@@ -596,9 +596,11 @@ is interrupted by the user (or a login attempt fails), 2 if a
 socket error occurs (e.g. TCP connection timeout), and 3 if the server returns
 an XML-RPC fault.
 .SH BUGS
-Please report any bugs to bugzilla.redhat.com
+Please report any bugs as github issues at
 .br
-Product=Fedora component=python-bugzilla or to the mailing list at
+https://github.com/python-bugzilla/python-bugzilla
+.br
+to the mailing list at
 .br
 https://fedorahosted.org/mailman/listinfo/python-bugzilla
 .SH SEE ALSO
