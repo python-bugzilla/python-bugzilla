@@ -1070,6 +1070,12 @@ class BugzillaBase(object):
                 for b in self._getbugs(idlist, simple=True)]
 
 
+    def get_comments(self, idlist):
+        '''Returns a dictionary of bugs and comments.  The comments key will
+           be empty.  See bugzilla docs for details'''
+        return self._proxy.Bug.comments({'ids': idlist})
+
+
     #################
     # query methods #
     #################

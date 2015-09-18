@@ -293,6 +293,16 @@ class _Bug(object):
 
         return self.bugzilla.update_bugs(self.bug_id, vals)
 
+    ################
+    # Get comments #
+    ################
+
+    def getcomments(self):
+        '''
+        Returns an array of comment dictionaries for this bug
+        '''
+        comment_list = self.bugzilla.get_comments([self.bug_id])
+        return comment_list['bugs'][str(self.bug_id)]['comments']
 
     ##########################
     # Get/set bug whiteboard #
