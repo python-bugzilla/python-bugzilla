@@ -33,14 +33,13 @@ class _Bug(object):
         self._bug_fields = []
         self.autorefresh = autorefresh
 
+        if not dict:
+            dict = {}
         if bug_id:
-            if not dict:
-                dict = {}
             dict["id"] = bug_id
 
-        if dict:
-            log.debug("Bug(%s)", sorted(dict.keys()))
-            self._update_dict(dict)
+        log.debug("Bug(%s)", sorted(dict.keys()))
+        self._update_dict(dict)
 
         self.weburl = bugzilla.url.replace('xmlrpc.cgi',
                                            'show_bug.cgi?id=%i' % self.bug_id)
