@@ -14,7 +14,7 @@
 from __future__ import print_function
 
 import locale
-import logging
+from logging import DEBUG, INFO, WARN, StreamHandler, Formatter
 import optparse
 import os
 import re
@@ -40,8 +40,8 @@ cmdlist = ['login', 'new', 'query', 'modify', 'attach', 'info']
 format_field_re = re.compile("%{([a-z0-9_]+)(?::([^}]*))?}")
 
 log = bugzilla.log
-handler = logging.StreamHandler(sys.stderr)
-handler.setFormatter(logging.Formatter(
+handler = StreamHandler(sys.stderr)
+handler.setFormatter(Formatter(
     "[%(asctime)s] %(levelname)s (%(module)s:%(lineno)d) %(message)s",
     "%H:%M:%S"))
 log.addHandler(handler)
@@ -1080,7 +1080,7 @@ def _do_modify(bz, parser, opt, args):
 
     # Now for the things we can't blindly batch.
     # This could be improved to batch identical updates.
-    logging.debug("Adjusting whiteboard fields one by one")
+    log.debug("Adjusting whiteboard fields one by one")
     for bug in bz.getbugs(bugid_list):
         for wbtype, (add_list, rm_list) in wbmap.items():
             for tag in add_list:
@@ -1159,11 +1159,11 @@ def main(bzinstance=None):
         return 0
 
     if global_opt.debug:
-        log.setLevel(logging.DEBUG)
+        log.setLevel(DEBUG)
     elif global_opt.verbose:
-        log.setLevel(logging.INFO)
+        log.setLevel(INFO)
     else:
-        log.setLevel(logging.WARN)
+        log.setLevel(WARN)
 
     # Get our action
     if len(args) == 0:
