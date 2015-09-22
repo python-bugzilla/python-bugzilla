@@ -1165,6 +1165,8 @@ def main(bzinstance=None):
     else:
         log.setLevel(WARN)
 
+    log.debug("Launched with command line: %s", " ".join(sys.argv))
+
     # Get our action
     if len(args) == 0:
         parser.error("No command specified, command must be one of: %s" %
