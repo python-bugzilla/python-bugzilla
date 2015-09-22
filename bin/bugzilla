@@ -613,13 +613,15 @@ https://bugzilla.redhat.com/docs/en/html/api/Bugzilla/WebService/Bug.html'''
 
 def _merge_field_opts(query, opt, parser):
     # Add any custom fields if specified
-    if opt.fields is not None:
-        for f in opt.fields:
-            try:
-                f, v = f.split('=', 1)
-                query[f] = v
-            except:
-                parser.error("Invalid field argument provided: %s" % (f))
+    if opt.fields is None:
+        return
+
+    for f in opt.fields:
+        try:
+            f, v = f.split('=', 1)
+            query[f] = v
+        except:
+            parser.error("Invalid field argument provided: %s" % (f))
 
 
 def _do_query(bz, opt, parser):
