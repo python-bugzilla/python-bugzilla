@@ -380,6 +380,12 @@ class BugzillaBase(object):
 
     def __init__(self, url=None, user=None, password=None, cookiefile=-1,
                  sslverify=True, tokenfile=-1):
+        """
+        :param tokenfile: If -1, use the default path. If None, don't use
+            or save any tokenfile.
+        :param cookiefile: If -1, use the default path. If None, don't use
+            or save any cookiefile.
+        """
         # Hook to allow Bugzilla autodetection without weirdly overriding
         # __init__
         if self._init_class_from_url(url, sslverify):
@@ -649,27 +655,12 @@ class BugzillaBase(object):
         """
         Helper method to handle login for this bugzilla instance.
 
-        If a 'user' is provided or 'force' is set to True; or no cookie/token
-        file exists, a username/password authentication is attempted requesting
-        any information that is not available from the user.
-
-        If a cookie/token file exists, the call to the instance login method is
-        skipped.
+        :param user: bugzilla username. If not specified, prompt for it.
+        :param password: bugzilla password. If not specified, prompt for it.
+        :param force: Unused
         """
-        if not force and user is None:
-            auths = {
-                'cookies': self.cookiefile,
-                'token': self.tokenfile,
-            }
-            for (method, source) in auths.items():
-                if source and os.path.exists(source):
-                    log.info(
-                        'Using %s in %s for authentication', method, source)
-                    return
-        elif not force:
-            log.error('No authentication information provided for login')
-
-        log.info('Using username/password for authentication')
+        ignore = force
+        log.debug('Calling interactive_login')
 
         if not user:
             sys.stdout.write('Bugzilla Username: ')

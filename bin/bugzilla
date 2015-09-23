@@ -1221,7 +1221,7 @@ def main(bzinstance=None):
                 parser.error("Too many arguments for login")
 
     try:
-        if not _is_unittest or force_login:
+        if force_login:
             bz.interactive_login(
                 global_opt.user, global_opt.password, force_login)
         if is_login_command:
