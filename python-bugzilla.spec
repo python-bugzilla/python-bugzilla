@@ -83,13 +83,13 @@ popd
 
 
 %files
-%doc COPYING README PKG-INFO
+%doc COPYING README.md PKG-INFO
 %{python2_sitelib}/*
 %{_bindir}/bugzilla
 %{_mandir}/man1/bugzilla.1.gz
 
 %if 0%{?with_python3}
 %files -n python3-bugzilla
-%doc COPYING README PKG-INFO
+%doc COPYING README.md PKG-INFO
 %{python3_sitelib}/*
 %endif # with_python3

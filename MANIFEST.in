@@ -1,4 +1,4 @@
-include COPYING HACKING MANIFEST.in README
+include COPYING CONTRIBUTING.md MANIFEST.in README.md
 include bugzilla.1
 include bz-api-notes.txt
 include python-bugzilla.spec
