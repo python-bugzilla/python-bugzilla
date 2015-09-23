@@ -1,4 +1,4 @@
-.TH bugzilla 1  "September 02, 2015" "version 1.2.1" "User Commands"
+.TH bugzilla 1  "September 22, 2015" "version 1.2.2" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -173,19 +173,19 @@ Search bug 'tags' field
 .IP "--booleantype=BOOLEANTYPE, -B BOOLEANTYPE"
 specify searching option for booleans, ie. substring, notsubstring, exact, ... [Default: substring]
 .IP "--boolean_query=BOOLEAN_QUERY"
-Boolean:Create your own query. Format: BooleanName-Condition-Parameter &/| ... . ie, keywords-substring-Partner & keywords-notsubstring-OtherQA
+Create your own query. Format: BooleanName-Condition-Parameter &/| ... . ie, keywords-substring-Partner & keywords-notsubstring-OtherQA
 .IP "--blocked=BLOCKED"
-Boolean:search for bugs that block this bug ID
+Search for bugs that block this bug ID
 .IP "--dependson=DEPENDSON"
-Boolean:search for bugs that depend on this bug ID
+Search for bugs that depend on this bug ID
 .IP "--flag=FLAG"
-Boolean:search for bugs that have certain flag states present
+Search for bugs that have certain flag states present. Ex --flags=dev_ack+
 .IP "--qa_whiteboard=QA_WHITEBOARD"
-Boolean:search for bugs that have certain QA Whiteboard text present
+search for bugs that have certain QA Whiteboard text present
 .IP "--devel_whiteboard=DEVEL_WHITEBOARD"
-Boolean:search for bugs that have certain Devel Whiteboard text present
+search for bugs that have certain Devel Whiteboard text present
 .IP "--alias=ALIAS"
-Boolean:search for bugs that have the provided alias
+search for bugs that have the provided alias
 .IP "--fixed_in=FIXED_IN"
 search Status Whiteboard field for specified words
 
