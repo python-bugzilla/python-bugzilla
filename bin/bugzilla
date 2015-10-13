@@ -208,6 +208,9 @@ def setup_action_parser(action):
                 help="search for a target milestone")
         p.add_option('-s', '--short_desc',
                 help="search bug summaries")
+        p.add_option('--short_desc_type',
+                help="'allwordssubstr', 'anywordssubstr', 'substring', "
+                     "'casesubstring', 'allwords', 'anywords', 'regexp', 'notregexp'")
         p.add_option('-t', '--bug_status', default="ALL",
                 help="comma-separated list of bug statuses to accept "
                      "[Default:all]")
@@ -710,6 +713,7 @@ def _do_query(bz, opt, parser):
         reporter=getattr(opt, "reporter", None),
         bug_id=getattr(opt, "bug_id", None),
         short_desc=getattr(opt, "short_desc", None),
+        short_desc_type=getattr(opt, "short_desc_type", None),
         long_desc=getattr(opt, "long_desc", None),
         cc=getattr(opt, "cc", None),
         assigned_to=getattr(opt, "assigned_to", None),
