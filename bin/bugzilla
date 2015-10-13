@@ -861,7 +861,13 @@ def _format_output(bz, opt, buglist):
                 requestee = f.get('requestee', "")
                 if fieldname == "flags":
                     requestee = ""
-                tmpstr.append("%s%s%s" % (f['name'], f['status'], requestee))
+                if fieldname == "flags_requestee":
+                    if requestee == "":
+                        continue
+                    tmpstr.append("%s" % requestee)
+                else:
+                    tmpstr.append("%s%s%s" % (f['name'], f['status'], requestee))
+
             val = ",".join(tmpstr)
 
         elif fieldname == "cve":
