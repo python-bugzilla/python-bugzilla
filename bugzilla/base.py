@@ -204,6 +204,10 @@ class RequestsTransport(Transport):
             }
         }
 
+        # Using an explicit Session, rather than requests.get, will use
+        # HTTP KeepAlive if the server supports it.
+        self.session = requests.Session()
+
     def parse_response(self, response):
         """ Parse XMLRPC response """
         parser, unmarshaller = self.getparser()
@@ -218,7 +222,7 @@ class RequestsTransport(Transport):
         """
         response = None
         try:
-            response = requests.post(
+            response = self.session.post(
                 url, data=request_body, **self.request_defaults)
 
             # We expect utf-8 from the server
@@ -1536,7 +1540,8 @@ class BugzillaBase(object):
         defaults["headers"] = defaults["headers"].copy()
         del(defaults["headers"]["Content-Type"])
 
-        response = requests.get(att_uri, stream=True, **defaults)
+        response = self._transport.session.get(
+            att_uri, stream=True, **defaults)
 
         ret = BytesIO()
         for chunk in response.iter_content(chunk_size=1024):
