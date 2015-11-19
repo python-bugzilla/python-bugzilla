@@ -867,7 +867,8 @@ def _format_output(bz, opt, buglist):
                         continue
                     tmpstr.append("%s" % requestee)
                 else:
-                    tmpstr.append("%s%s%s" % (f['name'], f['status'], requestee))
+                    tmpstr.append("%s%s%s" %
+                            (f['name'], f['status'], requestee))
 
             val = ",".join(tmpstr)
 
