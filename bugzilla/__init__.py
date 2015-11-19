@@ -116,7 +116,7 @@ class Bugzilla(_BugzillaBase):
 
 
 # This is the list of possible Bugzilla instances an app can use,
-# bin/bugzilla uses it for the --bztype field
+# bin/bugzilla used to use it for the --bztype field
 classlist = [
     "Bugzilla3", "Bugzilla32", "Bugzilla34", "Bugzilla36",
     "Bugzilla4", "Bugzilla42", "Bugzilla44",

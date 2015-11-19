@@ -1156,30 +1156,24 @@ def _do_set_attach(bz, opt, parser, args):
 # Main handling #
 #################
 
-def _make_bz_instance(global_opt, parser):
+def _make_bz_instance(global_opt):
     """
     Build the Bugzilla instance we will use
     """
-    if global_opt.bztype == 'auto':
-        log.info('Autodetecting Bugzilla type')
-        bzclass = bugzilla.Bugzilla
-    elif global_opt.bztype in bugzilla.classlist:
-        log.info('Using Bugzilla class %s', global_opt.bztype)
-        bzclass = getattr(bugzilla, global_opt.bztype)
-    else:
-        parser.error("bztype must be one of: %s" % str(bugzilla.classlist))
+    if global_opt.bztype != 'auto':
+        log.info("Explicit --bztype is no longer supported, ignoring")
 
+    cookiefile = None
+    tokenfile = None
     if global_opt.cache_credentials:
         cookiefile = global_opt.cookiefile or -1
         tokenfile = global_opt.tokenfile or -1
-    else:
-        cookiefile = None
-        tokenfile = None
 
-    bz = bzclass(url=global_opt.bugzilla,
-                 cookiefile=cookiefile,
-                 tokenfile=tokenfile,
-                 sslverify=global_opt.sslverify)
+    bz = bugzilla.Bugzilla(
+        url=global_opt.bugzilla,
+        cookiefile=cookiefile,
+        tokenfile=tokenfile,
+        sslverify=global_opt.sslverify)
     return bz
 
 
