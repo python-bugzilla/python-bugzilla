@@ -422,8 +422,10 @@ class BugzillaBase(object):
         self._cookiejar = None
         self._sslverify = bool(sslverify)
         self._cache = _BugzillaAPICache()
+        self._bug_autorefresh = True
 
-        self.bug_autorefresh = True
+        self._field_aliases = []
+        self._init_field_aliases()
 
         if cookiefile == -1:
             cookiefile = os.path.expanduser('~/.bugzillacookies')
@@ -432,9 +434,6 @@ class BugzillaBase(object):
         log.debug("Using tokenfile=%s", tokenfile)
         self.cookiefile = cookiefile
         self.tokenfile = tokenfile
-
-        self._field_aliases = []
-        self._init_field_aliases()
 
         if url:
             self.connect(url)
@@ -954,6 +953,19 @@ class BugzillaBase(object):
     ###################
     # getbug* methods #
     ###################
+
+    def _get_bug_autorefresh(self):
+        """
+        This value is passed to Bug.autorefresh for all fetched bugs.
+        If True, and an uncached attribute is requested from a Bug,
+            the Bug will update its contents and try again.
+        """
+        return self._bug_autorefresh
+
+    def _set_bug_autorefresh(self, val):
+        self._bug_autorefresh = bool(val)
+    bug_autorefresh = property(_get_bug_autorefresh, _set_bug_autorefresh)
+
 
     # getbug_extra_fields: Extra fields that need to be explicitly
     # requested from Bug.get in order for the data to be returned. This
