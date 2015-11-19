@@ -107,11 +107,12 @@ def setup_parser():
                  action="store_false", default=True,
                  help="Don't error on invalid bugzilla SSL certificate")
 
-    p.add_option('--username', help="Optional bugzilla login username")
-    p.add_option('--password', help="Optional bugzilla login password")
     p.add_option('--login', action="store_true",
         help='Run interactive "login" before performing the '
              'specified command.')
+    p.add_option('--username', help="Log in with this username")
+    p.add_option('--password', help="Log in with this password")
+
     p.add_option('--ensure-logged-in', action="store_true",
         help="Raise an error if we aren't logged in to bugzilla. "
              "Consider using this if you are depending on "
@@ -1182,24 +1183,22 @@ def _handle_login(global_opt, parser, args, action, bz):
     Handle all login related bits
     """
     is_login_command = (action == 'login')
-    force_login = is_login_command or global_opt.login
 
-    if force_login:
-        if is_login_command:
-            if len(args) == 2:
-                (global_opt.username, global_opt.password) = args
-            elif len(args) == 1:
-                (global_opt.username, ) = args
-            elif len(args) > 2:
-                parser.error("Too many arguments for login")
+    do_interactive_login = (is_login_command or
+        global_opt.login or global_opt.username or global_opt.password)
+
+    if is_login_command:
+        if len(args) == 2:
+            (global_opt.username, global_opt.password) = args
+        elif len(args) == 1:
+            (global_opt.username, ) = args
+        elif len(args) > 2:
+            parser.error("Too many arguments for login")
 
     try:
-        if force_login:
+        if do_interactive_login:
             bz.interactive_login(
-                global_opt.username, global_opt.password, force_login)
-        if is_login_command:
-            print("Login successful.")
-            sys.exit(0)
+                global_opt.username, global_opt.password)
     except bugzilla.BugzillaError:
         print(str(sys.exc_info()[1]))
         sys.exit(1)
@@ -1208,6 +1207,10 @@ def _handle_login(global_opt, parser, args, action, bz):
         print("--ensure-logged-in passed but you aren't logged in to %s" %
             bz.url)
         sys.exit(1)
+
+    if is_login_command:
+        print("Login successful.")
+        sys.exit(0)
 
 
 def main(unittest_bz_instance=None):
