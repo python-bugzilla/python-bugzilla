@@ -107,7 +107,7 @@ def setup_parser():
                  action="store_false", default=True,
                  help="Don't error on invalid bugzilla SSL certificate")
 
-    p.add_option('--user', help="Optional bugzilla login username")
+    p.add_option('--username', help="Optional bugzilla login username")
     p.add_option('--password', help="Optional bugzilla login password")
     p.add_option('--login', action="store_true",
         help='Run interactive "login" before performing the '
@@ -1220,16 +1220,16 @@ def main(bzinstance=None):
     if force_login:
         if is_login_command:
             if len(args) == 2:
-                (global_opt.user, global_opt.password) = args
+                (global_opt.username, global_opt.password) = args
             elif len(args) == 1:
-                (global_opt.user, ) = args
+                (global_opt.username, ) = args
             elif len(args) > 2:
                 parser.error("Too many arguments for login")
 
     try:
         if force_login:
             bz.interactive_login(
-                global_opt.user, global_opt.password, force_login)
+                global_opt.username, global_opt.password, force_login)
         if is_login_command:
             print("Login successful.")
             sys.exit(0)

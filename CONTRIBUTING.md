@@ -37,7 +37,7 @@ Before running rw-functional tests, make sure you have logged into bugzilla
 using. These currently run against the test bugzilla instance at
 partner-bugzilla.redhat.com, and requires a valid login there:
 
-    bugzilla-cli --bugzilla=partner-bugzilla.redhat.com --user=$USER login
+    bugzilla-cli --bugzilla=partner-bugzilla.redhat.com --username=$USER login
     python setup.py test --rw-functional
 
 ## Testing across python versions
