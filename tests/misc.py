@@ -169,4 +169,3 @@ class MiscAPI(unittest.TestCase):
     def testUnimplementedAPI(self):
         bz3 = bugzilla.Bugzilla3(None, cookiefile=None, tokenfile=None)
         self.assertRaises(RuntimeError, bz3.getbugfields)
-        self.assertRaises(RuntimeError, bz3.getqueryinfo)

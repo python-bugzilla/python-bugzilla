@@ -1818,10 +1818,3 @@ class BugzillaBase(object):
         name: The full name of the user to create
         '''
         self.createuser(user, name)
-
-    def getqueryinfo(self, force_refresh=False):
-        ignore = force_refresh
-        raise RuntimeError("getqueryinfo is deprecated and the "
-            "information is not provided by any modern bugzilla.")
-    querydata = property(getqueryinfo)
-    querydefaults = property(getqueryinfo)
