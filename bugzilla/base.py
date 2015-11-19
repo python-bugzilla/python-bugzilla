@@ -427,10 +427,28 @@ class BugzillaBase(object):
         self.cookiefile = cookiefile
         self.tokenfile = tokenfile
 
+        self._field_aliases = []
+        self._init_field_aliases()
+
+        if url:
+            self.connect(url)
+
+    def _init_class_from_url(self, url, sslverify):
+        ignore = url
+        ignore = sslverify
+
+    def _init_private_data(self):
+        '''initialize private variables used by this bugzilla instance.'''
+        self._proxy = None
+        self._products = None
+        self._bugfields = None
+        self._components = {}
+        self._components_details = {}
+
+    def _init_field_aliases(self):
         # List of field aliases. Maps old style RHBZ parameter
         # names to actual upstream values. Used for createbug() and
         # query include_fields at least.
-        self._field_aliases = []
         self._add_field_alias('summary', 'short_desc')
         self._add_field_alias('description', 'comment')
         self._add_field_alias('platform', 'rep_platform')
@@ -449,21 +467,6 @@ class BugzillaBase(object):
         self._add_field_alias('creation_time', 'creation_ts')
         self._add_field_alias('whiteboard', 'status_whiteboard')
         self._add_field_alias('last_change_time', 'delta_ts')
-
-        if url:
-            self.connect(url)
-
-    def _init_class_from_url(self, url, sslverify):
-        ignore = url
-        ignore = sslverify
-
-    def _init_private_data(self):
-        '''initialize private variables used by this bugzilla instance.'''
-        self._proxy = None
-        self._products = None
-        self._bugfields = None
-        self._components = {}
-        self._components_details = {}
 
     def _get_user_agent(self):
         ret = ('Python-urllib bugzilla.py/%s %s' %
