@@ -290,6 +290,18 @@ class _FieldAlias(object):
         self.is_bug = is_bug
 
 
+class _BugzillaAPICache(object):
+    """
+    Helper class that holds cached API results for things like products,
+    components, etc.
+    """
+    def __init__(self):
+        self.products = []
+        self.bugfields = []
+        self.components = {}
+        self.components_details = {}
+
+
 class BugzillaBase(object):
     '''An object which represents the data and methods exported by a Bugzilla
     instance. Uses xmlrpclib to do its thing. You'll want to create one thusly:
@@ -405,19 +417,13 @@ class BugzillaBase(object):
         self.password = password or ''
         self.url = ''
 
+        self._proxy = None
         self._transport = None
         self._cookiejar = None
         self._sslverify = bool(sslverify)
+        self._cache = _BugzillaAPICache()
 
         self.bug_autorefresh = True
-
-        # Bugzilla object state info that users shouldn't mess with
-        self._proxy = None
-        self._products = None
-        self._bugfields = None
-        self._components = {}
-        self._components_details = {}
-        self._init_private_data()
 
         if cookiefile == -1:
             cookiefile = os.path.expanduser('~/.bugzillacookies')
@@ -434,16 +440,11 @@ class BugzillaBase(object):
             self.connect(url)
 
     def _init_class_from_url(self, url, sslverify):
+        """
+        Hook used by the Bugzilla() autodetect class to work its magic
+        """
         ignore = url
         ignore = sslverify
-
-    def _init_private_data(self):
-        '''initialize private variables used by this bugzilla instance.'''
-        self._proxy = None
-        self._products = None
-        self._bugfields = None
-        self._components = {}
-        self._components_details = {}
 
     def _init_field_aliases(self):
         # List of field aliases. Maps old style RHBZ parameter
@@ -591,6 +592,9 @@ class BugzillaBase(object):
         If 'user' and 'password' are both set, we'll run login(). Otherwise
         you'll have to login() yourself before some methods will work.
         '''
+        if self._proxy:
+            self.disconnect()
+
         if url is None and self.url:
             url = self.url
         url = self.fix_url(url)
@@ -613,8 +617,9 @@ class BugzillaBase(object):
         '''
         Disconnect from the given bugzilla instance.
         '''
-        # clears all the connection state
-        self._init_private_data()
+        self._proxy = None
+        self._transport = None
+        self._cache = _BugzillaAPICache()
 
 
     def _login(self, user, password):
@@ -728,13 +733,13 @@ class BugzillaBase(object):
         for this bugzilla instance. This can be used to set the list of attrs
         on the Bug object.
         '''
-        if force_refresh or self._bugfields is None:
+        if force_refresh or not self._cache.bugfields:
             log.debug("Refreshing bugfields")
-            self._bugfields = self._getbugfields()
-            self._bugfields.sort()
-            log.debug("bugfields = %s", self._bugfields)
+            self._cache.bugfields = self._getbugfields()
+            self._cache.bugfields.sort()
+            log.debug("bugfields = %s", self._cache.bugfields)
 
-        return self._bugfields
+        return self._cache.bugfields
     bugfields = property(fget=lambda self: self.getbugfields(),
                          fdel=lambda self: setattr(self, '_bugfields', None))
 
@@ -744,22 +749,19 @@ class BugzillaBase(object):
         Refresh a product's cached info
         Takes same arguments as _getproductinfo
         """
-        if self._products is None:
-            self._products = []
-
         for product in self._getproductinfo(**kwargs):
             added = False
-            for current in self._products[:]:
+            for current in self._cache.products[:]:
                 if (current.get("id", -1) != product.get("id", -2) and
                     current.get("name", -1) != product.get("name", -2)):
                     continue
 
-                self._products.remove(current)
-                self._products.append(product)
+                self._cache.products.remove(current)
+                self._cache.products.append(product)
                 added = True
                 break
             if not added:
-                self._products.append(product)
+                self._cache.products.append(product)
 
     def getproducts(self, force_refresh=False, **kwargs):
         '''Get product data: names, descriptions, etc.
@@ -769,9 +771,9 @@ class BugzillaBase(object):
 
         Any method that requires a 'product' can be given either the
         id or the name.'''
-        if force_refresh or not self._products:
-            self._products = self._getproducts(**kwargs)
-        return self._products
+        if force_refresh or not self._cache.products:
+            self._cache.products = self._getproducts(**kwargs)
+        return self._cache.products
 
     products = property(fget=lambda self: self.getproducts(),
                         fdel=lambda self: setattr(self, '_products', None))
@@ -782,16 +784,16 @@ class BugzillaBase(object):
         for the given product. The keys of the dict are component names. For
         each component, the value is a dict with the following keys:
         description, initialowner, initialqacontact'''
-        if force_refresh or product not in self._components_details:
+        if force_refresh or product not in self._cache.components_details:
             clist = self._getcomponentsdetails(product)
             cdict = {}
             for item in clist:
                 name = item['component']
                 del item['component']
                 cdict[name] = item
-            self._components_details[product] = cdict
+            self._cache.components_details[product] = cdict
 
-        return self._components_details[product]
+        return self._cache.components_details[product]
 
     def getcomponentdetails(self, product, component, force_refresh=False):
         '''Get details for a single component. See bugzilla documentation
@@ -801,9 +803,9 @@ class BugzillaBase(object):
 
     def getcomponents(self, product, force_refresh=False):
         '''Return a dict of components:descriptions for the given product.'''
-        if force_refresh or product not in self._components:
-            self._components[product] = self._getcomponents(product)
-        return self._components[product]
+        if force_refresh or product not in self._cache.components:
+            self._cache.components[product] = self._getcomponents(product)
+        return self._cache.components[product]
 
     def _component_data_convert(self, data, update=False):
         if isinstance(data['product'], int):
@@ -921,12 +923,8 @@ class BugzillaBase(object):
             raise RuntimeError("This bugzilla version does not support "
                                "fetching component details.")
 
-        comps = None
-        if self._products is None:
-            self._products = []
-
         def _find_comps():
-            for p in self._products:
+            for p in self._cache.products:
                 if p["name"] != product:
                     continue
                 return p.get("components", None)
