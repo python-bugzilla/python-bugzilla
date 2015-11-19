@@ -625,11 +625,47 @@ class RHPartnerTest(BaseTest):
         """
         Failed login test, gives us a bit more coverage
         """
-        ret = tests.clicomm("bugzilla --bugzilla %s "
-                            "--user foobar@example.com "
-                            "--password foobar login" % self.url, None,
-                            expectfail=True)
-        self.assertTrue("Login failed: " in ret)
+        # We overwrite getpass for testing
+        import getpass
+
+        def fakegetpass(prompt):
+            sys.stdout.write(prompt)
+            sys.stdout.flush()
+            return sys.stdin.readline()
+        oldgetpass = getpass.getpass
+        getpass.getpass = fakegetpass
+
+        try:
+            # Implied login with --username and --password
+            ret = tests.clicomm("bugzilla --bugzilla %s "
+                                "--user foobar@example.com "
+                                "--password foobar query -b 123456" % self.url,
+                                None, expectfail=True)
+            self.assertTrue("Login failed: " in ret)
+
+            # 'login' with explicit options
+            ret = tests.clicomm("bugzilla --bugzilla %s "
+                                "--user foobar@example.com "
+                                "--password foobar login" % self.url,
+                                None, expectfail=True)
+            self.assertTrue("Login failed: " in ret)
+
+            # 'login' with positional options
+            ret = tests.clicomm("bugzilla --bugzilla %s "
+                                "login foobar@example.com foobar" % self.url,
+                                None, expectfail=True)
+            self.assertTrue("Login failed: " in ret)
+
+
+            # bare 'login'
+            stdinstr = "foobar@example.com\n\rfoobar\n\r"
+            ret = tests.clicomm("bugzilla --bugzilla %s login" % self.url,
+                                None, expectfail=True, stdinstr=stdinstr)
+            self.assertTrue("Bugzilla Username:" in ret)
+            self.assertTrue("Bugzilla Password:" in ret)
+            self.assertTrue("Login failed: " in ret)
+        finally:
+            getpass.getpass = oldgetpass
 
 
     def test10LoginState(self):

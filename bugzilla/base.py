@@ -9,12 +9,12 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
+import getpass
 import locale
 from logging import getLogger
 import os
 import sys
 
-from getpass import getpass
 from io import BytesIO
 
 if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
@@ -670,7 +670,7 @@ class BugzillaBase(object):
             sys.stdout.write('Bugzilla Username: ')
             user = sys.stdin.readline().strip()
         if not password:
-            password = getpass('Bugzilla Password: ')
+            password = getpass.getpass('Bugzilla Password: ')
 
         log.info('Logging in... ')
         self.login(user, password)

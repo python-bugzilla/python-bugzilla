@@ -57,7 +57,7 @@ def difffile(expect, filename):
 
 
 def clicomm(argv, bzinstance, returnmain=False, printcliout=False,
-            stdin=None, expectfail=False):
+            stdin=None, stdinstr=None, expectfail=False):
     """
     Run bin/bugzilla.main() directly with passed argv
     """
@@ -75,6 +75,9 @@ def clicomm(argv, bzinstance, returnmain=False, printcliout=False,
             sys.stderr = out
             if stdin:
                 sys.stdin = stdin
+            elif stdinstr:
+                sys.stdin = StringIO(stdinstr)
+
         sys.argv = argv
 
         ret = 0
