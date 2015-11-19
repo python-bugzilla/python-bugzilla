@@ -60,11 +60,11 @@ def to_encoding(ustring):
 
     if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
         return string
-    else:
-        preferred = locale.getpreferredencoding()
-        if "PYTHON_BUGZILLA_TEST_SUITE" in os.environ:
-            preferred = "UTF-8"
-        return string.encode(preferred, 'replace')
+
+    preferred = locale.getpreferredencoding()
+    if _is_unittest:
+        preferred = "UTF-8"
+    return string.encode(preferred, 'replace')
 
 
 def open_without_clobber(name, *args):

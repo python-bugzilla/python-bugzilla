@@ -14,7 +14,6 @@ else:
     from StringIO import StringIO
 
 
-os.environ["PYTHON_BUGZILLA_TEST_SUITE"] = "1"
 _cleanup = []
 
 
