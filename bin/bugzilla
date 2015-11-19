@@ -1153,10 +1153,70 @@ def _do_set_attach(bz, opt, parser, args):
 
 
 #################
-# Main function #
+# Main handling #
 #################
 
-def main(bzinstance=None):
+def _make_bz_instance(global_opt, parser):
+    """
+    Build the Bugzilla instance we will use
+    """
+    if global_opt.bztype == 'auto':
+        log.info('Autodetecting Bugzilla type')
+        bzclass = bugzilla.Bugzilla
+    elif global_opt.bztype in bugzilla.classlist:
+        log.info('Using Bugzilla class %s', global_opt.bztype)
+        bzclass = getattr(bugzilla, global_opt.bztype)
+    else:
+        parser.error("bztype must be one of: %s" % str(bugzilla.classlist))
+
+    if global_opt.cache_credentials:
+        cookiefile = global_opt.cookiefile or -1
+        tokenfile = global_opt.tokenfile or -1
+    else:
+        cookiefile = None
+        tokenfile = None
+
+    bz = bzclass(url=global_opt.bugzilla,
+                 cookiefile=cookiefile,
+                 tokenfile=tokenfile,
+                 sslverify=global_opt.sslverify)
+    return bz
+
+
+def _handle_login(global_opt, parser, args, action, bz):
+    """
+    Handle all login related bits
+    """
+    is_login_command = (action == 'login')
+    force_login = is_login_command or global_opt.login
+
+    if force_login:
+        if is_login_command:
+            if len(args) == 2:
+                (global_opt.username, global_opt.password) = args
+            elif len(args) == 1:
+                (global_opt.username, ) = args
+            elif len(args) > 2:
+                parser.error("Too many arguments for login")
+
+    try:
+        if force_login:
+            bz.interactive_login(
+                global_opt.username, global_opt.password, force_login)
+        if is_login_command:
+            print("Login successful.")
+            sys.exit(0)
+    except bugzilla.BugzillaError:
+        print(str(sys.exc_info()[1]))
+        sys.exit(1)
+
+    if global_opt.ensure_logged_in and not bz.logged_in:
+        print("--ensure-logged-in passed but you aren't logged in to %s" %
+            bz.url)
+        sys.exit(1)
+
+
+def main(unittest_bz_instance=None):
     parser = setup_parser()
     (global_opt, args) = parser.parse_args()
 
@@ -1189,58 +1249,13 @@ def main(bzinstance=None):
     # Connect to bugzilla
     log.info('Connecting to %s', global_opt.bugzilla)
 
-    if global_opt.bztype == 'auto':
-        log.info('Autodetecting Bugzilla type')
-        bzclass = bugzilla.Bugzilla
-    elif global_opt.bztype in bugzilla.classlist:
-        log.info('Using Bugzilla class %s', global_opt.bztype)
-        bzclass = getattr(bugzilla, global_opt.bztype)
+    if unittest_bz_instance:
+        bz = unittest_bz_instance
     else:
-        parser.error("bztype must be one of: %s" % str(bugzilla.classlist))
+        bz = _make_bz_instance(global_opt)
 
-    if bzinstance:
-        bz = bzinstance
-    else:
-        if global_opt.cache_credentials:
-            cookiefile = global_opt.cookiefile or -1
-            tokenfile = global_opt.tokenfile or -1
-        else:
-            cookiefile = None
-            tokenfile = None
-        bz = bzclass(url=global_opt.bugzilla,
-                     cookiefile=cookiefile,
-                     tokenfile=tokenfile,
-                     sslverify=global_opt.sslverify)
-
-
-    # Handle 'login' action
-    is_login_command = (action == 'login')
-    force_login = is_login_command or global_opt.login
-
-    if force_login:
-        if is_login_command:
-            if len(args) == 2:
-                (global_opt.username, global_opt.password) = args
-            elif len(args) == 1:
-                (global_opt.username, ) = args
-            elif len(args) > 2:
-                parser.error("Too many arguments for login")
-
-    try:
-        if force_login:
-            bz.interactive_login(
-                global_opt.username, global_opt.password, force_login)
-        if is_login_command:
-            print("Login successful.")
-            sys.exit(0)
-    except bugzilla.BugzillaError:
-        print(str(sys.exc_info()[1]))
-        sys.exit(1)
-
-    if global_opt.ensure_logged_in and not bz.logged_in:
-        print("--ensure-logged-in passed but you aren't logged in to %s" %
-            bz.url)
-        sys.exit(1)
+    # Handle login options
+    _handle_login(global_opt, parser, args, action, bz)
 
 
     ###########################

@@ -83,7 +83,7 @@ def clicomm(argv, bzinstance, returnmain=False, printcliout=False,
             print(" ".join(argv))
             print()
 
-            mainout = bugzillascript.main(bzinstance)
+            mainout = bugzillascript.main(unittest_bz_instance=bzinstance)
         except SystemExit:
             sys_e = sys.exc_info()[1]
             ret = sys_e.code
