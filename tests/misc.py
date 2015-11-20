@@ -16,6 +16,7 @@ import logging
 import os
 import shutil
 import sys
+import tempfile
 import unittest
 
 import bugzilla
@@ -101,6 +102,40 @@ class MiscAPI(unittest.TestCase):
 
         # Mozilla should 'just work'
         bugzilla.Bugzilla3(url=None, cookiefile=cookiesmoz)
+
+    def test_readconfig(self):
+        bzapi = bugzilla.RHBugzilla(url=None)
+        bzapi.url = "foo.example.com"
+        temp = tempfile.NamedTemporaryFile()
+
+        content = """
+[example.com]
+foo=1
+user=test1
+password=test2"""
+        temp.write(content)
+        temp.flush()
+        bzapi.readconfig(temp.name)
+        self.assertEquals(bzapi.user, "test1")
+        self.assertEquals(bzapi.password, "test2")
+
+        content = """
+[foo.example.com]
+user=test3
+password=test4"""
+        temp.write(content)
+        temp.flush()
+        bzapi.readconfig(temp.name)
+        self.assertEquals(bzapi.user, "test3")
+        self.assertEquals(bzapi.password, "test4")
+
+        bzapi.url = "bugzilla.redhat.com"
+        bzapi.user = None
+        bzapi.password = None
+        bzapi.readconfig(temp.name)
+        self.assertEquals(bzapi.user, None)
+        self.assertEquals(bzapi.password, None)
+
 
     def testPostTranslation(self):
         def _testPostCompare(bz, indict, outexpect):

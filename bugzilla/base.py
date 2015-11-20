@@ -561,25 +561,38 @@ class BugzillaBase(object):
         '''
         if not configpath:
             configpath = self.configpath
-        configpath = [os.path.expanduser(p) for p in configpath]
-        c = SafeConfigParser()
-        r = c.read(configpath)
-        if not r:
+
+        configpath = [os.path.expanduser(p) for p in
+                      self._listify(configpath)]
+        cfg = SafeConfigParser()
+        read_files = cfg.read(configpath)
+        if not read_files:
             return
-        # See if we have a config section that matches this url.
+
+        log.info("Found bugzillarc files: %s", read_files)
+
         section = ""
-        # Substring match - prefer the longest match found
-        log.debug("Searching for config section matching %s", self.url)
-        for s in sorted(c.sections()):
+        log.debug("bugzillarc: Searching for config section matching %s",
+            self.url)
+        for s in sorted(cfg.sections()):
+            # Substring match - prefer the longest match found
             if s in self.url:
-                log.debug("Found matching section: %s", s)
+                log.debug("bugzillarc: Found matching section: %s", s)
                 section = s
+
         if not section:
+            log.debug("bugzillarc: No section found")
             return
-        for k, v in c.items(section):
-            if k in ('user', 'password'):
-                log.debug("Setting '%s' from configfile", k)
-                setattr(self, k, v)
+
+        for key, val in cfg.items(section):
+            if key == "user":
+                log.debug("bugzillarc: setting user=%s", val)
+                self.user = val
+            elif key == "password":
+                log.debug("bugzillarc: setting password")
+                self.password = val
+            else:
+                log.debug("bugzillarc: unknown key=%s", key)
 
     def connect(self, url=None):
         '''
