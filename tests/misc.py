@@ -106,7 +106,7 @@ class MiscAPI(unittest.TestCase):
     def test_readconfig(self):
         bzapi = bugzilla.RHBugzilla(url=None)
         bzapi.url = "foo.example.com"
-        temp = tempfile.NamedTemporaryFile()
+        temp = tempfile.NamedTemporaryFile(mode="w")
 
         content = """
 [example.com]
