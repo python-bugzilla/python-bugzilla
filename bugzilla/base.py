@@ -397,10 +397,13 @@ class BugzillaBase(object):
     def __init__(self, url=None, user=None, password=None, cookiefile=-1,
                  sslverify=True, tokenfile=-1):
         """
-        :param tokenfile: If -1, use the default path. If None, don't use
-            or save any tokenfile.
         :param cookiefile: If -1, use the default path. If None, don't use
             or save any cookiefile.
+        :param tokenfile: If -1, use the default path. If None, don't use
+            or save any tokenfile.
+        :param sslverify: Maps to 'requests' sslverify parameter. Set to
+            False to disable SSL verification, but it can also be a path
+            to file or directory for custom certs.
         """
         # Hook to allow Bugzilla autodetection without weirdly overriding
         # __init__
