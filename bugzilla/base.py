@@ -420,7 +420,7 @@ class BugzillaBase(object):
         self._proxy = None
         self._transport = None
         self._cookiejar = None
-        self._sslverify = bool(sslverify)
+        self._sslverify = sslverify
         self._cache = _BugzillaAPICache()
         self._bug_autorefresh = True
 
