@@ -17,6 +17,7 @@ import sys
 
 from io import BytesIO
 
+# pylint: disable=ungrouped-imports
 if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
     # pylint: disable=F0401,E0611
     from configparser import SafeConfigParser
@@ -60,8 +61,8 @@ def _detect_filetype(fname):
         except ImportError:
             e = sys.exc_info()[1]
             log.debug("Could not load python-magic: %s", e)
-            mimemagic = False
-    if mimemagic is False:
+            mimemagic = None
+    if not mimemagic:
         return None
 
     if not os.path.isabs(fname):
@@ -94,6 +95,7 @@ def _build_cookiejar(cookiefile):
     except LoadError:
         pass
 
+    # pylint: disable=redefined-variable-type
     try:
         cj = LWPCookieJar(cookiefile)
         cj.load()
