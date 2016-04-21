@@ -30,7 +30,7 @@ log = getLogger(__name__)
 
 
 # Back compat for deleted NovellBugzilla
-class NovellBugzilla(Bugzilla34):
+class NovellBugzilla(Bugzilla44):
     pass
 
 
@@ -51,6 +51,12 @@ def _getBugzillaClassForURL(url, sslverify):
     if "bugzilla.mozilla.org" in url:
         log.info("Using Bugzilla42 for URL containing bugzilla.mozilla.org")
         return Bugzilla42
+
+    # Gentoo uses Bugzilla 5.0.x so below is a placeholder until a new
+    # Bugzilla50 class is created and includes changes in the 5.x API.
+    if "bugs.gentoo.org" in url:
+        log.info("Using Bugzilla44 for URL containing bugs.gentoo.org")
+        return Bugzilla44
 
     # Check for a Red Hat extension
     try:
