@@ -20,8 +20,7 @@ else:
 
 from .apiversion import version, __version__
 from .base import BugzillaBase as _BugzillaBase
-from .base import BugzillaError
-from .base import RequestsTransport as _RequestsTransport
+from .transport import BugzillaError, _RequestsTransport
 from .bugzilla3 import Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36
 from .bugzilla4 import Bugzilla4, Bugzilla42, Bugzilla44
 from .rhbugzilla import RHBugzilla, RHBugzilla3, RHBugzilla4

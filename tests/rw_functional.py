@@ -25,7 +25,7 @@ else:
 
 import bugzilla
 from bugzilla import Bugzilla
-from bugzilla.base import _BugzillaToken
+from bugzilla.transport import _BugzillaToken
 
 import tests
 
