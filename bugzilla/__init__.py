@@ -19,22 +19,18 @@ else:
     from xmlrpclib import Fault, ServerProxy
 
 from .apiversion import version, __version__
-from .base import BugzillaBase as _BugzillaBase
+from .base import BugzillaBase
 from .transport import BugzillaError, _RequestsTransport
-from .bugzilla3 import Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36
-from .bugzilla4 import Bugzilla4, Bugzilla42, Bugzilla44
-from .rhbugzilla import RHBugzilla, RHBugzilla3, RHBugzilla4
+from .rhbugzilla import RHBugzilla
+from .oldclasses import (Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36,
+        Bugzilla4, Bugzilla42, Bugzilla44,
+        NovellBugzilla, RHBugzilla3, RHBugzilla4)
 
 log = getLogger(__name__)
 
 
-# Back compat for deleted NovellBugzilla
-class NovellBugzilla(Bugzilla44):
-    pass
-
-
 def _getBugzillaClassForURL(url, sslverify):
-    url = Bugzilla3.fix_url(url)
+    url = BugzillaBase.fix_url(url)
     log.debug("Detecting subclass for %s", url)
     s = ServerProxy(url, _RequestsTransport(url, sslverify=sslverify))
 
@@ -56,7 +52,7 @@ def _getBugzillaClassForURL(url, sslverify):
         pass
 
 
-class Bugzilla(_BugzillaBase):
+class Bugzilla(BugzillaBase):
     '''
     Magical Bugzilla class that figures out which Bugzilla implementation
     to use and uses that.
@@ -73,6 +69,8 @@ class Bugzilla(_BugzillaBase):
         log.info("Chose subclass %s v%s", c.__name__, c.version)
         return True
 
+
+del(BugzillaBase)
 
 # This is the list of possible Bugzilla instances an app can use,
 # bin/bugzilla used to use it for the --bztype field

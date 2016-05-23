@@ -484,12 +484,3 @@ class RHBugzilla(_parent):
         query.update(newquery)
         self.pre_translation(query)
         return query
-
-
-# Just for API back compat
-class RHBugzilla3(RHBugzilla):
-    pass
-
-
-class RHBugzilla4(RHBugzilla):
-    pass

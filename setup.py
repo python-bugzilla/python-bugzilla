@@ -137,7 +137,7 @@ class PylintCommand(Command):
         print("running pep8")
         cmd = "pep8 "
         cmd += " ".join(files)
-        os.system(cmd + " --config tests/pep8.cfg")
+        os.system(cmd + " --config tests/pep8.cfg --exclude oldclasses.py")
 
     def run(self):
         os.link("bin/bugzilla", "bin-bugzilla")
