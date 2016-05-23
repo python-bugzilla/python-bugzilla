@@ -33,25 +33,6 @@ class RHBugzilla(_parent):
     '''
 
     def __init__(self, *args, **kwargs):
-        """
-        @rhbz_back_compat: If True, convert parameters to the format they were
-            in prior RHBZ upgrade in June 2012. Mostly this replaces lists
-            with comma separated strings, and alters groups and flags.
-            Default is False. Please don't use this in new code, just update
-            your scripts.
-        @multicall: Unused nowadays, will be removed in the future
-        """
-        # 'multicall' is no longer used, just ignore it
-        multicall = kwargs.pop("multicall", None)
-        self.rhbz_back_compat = bool(kwargs.pop("rhbz_back_compat", False))
-
-        if multicall is not None:
-            log.warn("multicall is unused and will be removed in a "
-                "future release.")
-
-        if self.rhbz_back_compat:
-            log.warn("rhbz_back_compat will be removed in a future release.")
-
         _parent.__init__(self, *args, **kwargs)
 
         def _add_both_alias(newname, origname):
@@ -324,43 +305,6 @@ class RHBugzilla(_parent):
                 for vallist in val.values():
                     values += vallist
                 bug['sub_component'] = " ".join(values)
-
-        if not self.rhbz_back_compat:
-            return
-
-        if 'flags' in bug and isinstance(bug["flags"], list):
-            tmpstr = []
-            for tmp in bug['flags']:
-                tmpstr.append("%s%s" % (tmp['name'], tmp['status']))
-
-            bug['flags'] = ",".join(tmpstr)
-
-        if 'blocks' in bug and isinstance(bug["blocks"], list):
-            # Aliases will handle the 'blockedby' and 'blocked' back compat
-            bug['blocks'] = ','.join([str(b) for b in bug['blocks']])
-
-        if 'keywords' in bug and isinstance(bug["keywords"], list):
-            bug['keywords'] = ','.join(bug['keywords'])
-
-        if 'alias' in bug and isinstance(bug["alias"], list):
-            bug['alias'] = ','.join(bug['alias'])
-
-        if ('groups' in bug and
-            isinstance(bug["groups"], list) and
-            len(bug["groups"]) > 0 and
-            isinstance(bug["groups"][0], str)):
-            # groups went to the opposite direction: it got simpler
-            # instead of having name, ison, description, it's now just
-            # an array of strings of the groups the bug belongs to
-            # we're emulating the old behaviour here
-            tmp = []
-            for g in bug['groups']:
-                t = {}
-                t['name'] = g
-                t['description'] = g
-                t['ison'] = 1
-                tmp.append(t)
-            bug['groups'] = tmp
 
     def build_external_tracker_boolean_query(
             self, ext_type_description=None, ext_type_url=None,

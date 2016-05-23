@@ -178,25 +178,5 @@ password=test4"""
         out_simple["versions"] = out_simple["version"]
         out_simple["version"] = out_simple["versions"][0]
 
-        out_complex = out_simple.copy()
-        out_complex["keywords"] = ",".join(out_complex["keywords"])
-        out_complex["blocks"] = ",".join([str(b) for b in
-                                          out_complex["blocks"]])
-        out_complex["alias"] = ",".join(out_complex["alias"])
-        out_complex["groups"] = [{'description': 'redhat',
-                                  'ison': 1, 'name': 'redhat'}]
-        out_complex["flags"] = "qe_test_coverage?,rhel-6.4.0+"
-
         _testPostCompare(bug3, test1, test1)
         _testPostCompare(rhbz, test1, out_simple)
-
-        rhbz.rhbz_back_compat = True
-        _testPostCompare(rhbz, test1, out_complex)
-
-    def testRHBZInit(self):
-        # Just get us coverage when the extra values are specified
-        level = bugzilla.log.level
-        bugzilla.log.setLevel(logging.ERROR)
-        bugzilla.RHBugzilla(None, cookiefile=None, multicall=True,
-            rhbz_back_compat=True)
-        bugzilla.log.setLevel(level)

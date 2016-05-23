@@ -310,7 +310,3 @@ class TestURLToQuery(BZ34Test):
             'order': 'bug_status,bug_id'
         }
         self._check(url, query)
-
-    def testBZAutoMagic(self):
-        bz = bugzilla.Bugzilla("bugzilla.redhat.com")
-        self.assertTrue(hasattr(bz, "rhbz_back_compat"))
