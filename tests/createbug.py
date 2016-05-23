@@ -11,12 +11,10 @@ Unit tests for building createbug dictionaries with bin/bugzilla
 
 import unittest
 
-from bugzilla.bugzilla4 import Bugzilla4
-
 import tests
 
 
-bz4 = Bugzilla4(cookiefile=None, tokenfile=None)
+bz4 = tests.make_bz("4.0.0")
 
 
 class CreatebugTest(unittest.TestCase):

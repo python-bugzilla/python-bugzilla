@@ -11,7 +11,7 @@
 
 from logging import getLogger
 
-from .bugzilla4 import Bugzilla44 as _parent
+from .base import BugzillaBase as _parent
 
 log = getLogger(__name__)
 

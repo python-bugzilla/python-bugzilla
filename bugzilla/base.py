@@ -313,9 +313,7 @@ class BugzillaBase(object):
         self._add_field_alias('last_change_time', 'delta_ts')
 
     def _get_user_agent(self):
-        ret = ('Python-urllib bugzilla.py/%s %s' %
-               (__version__, str(self.__class__.__name__)))
-        return ret
+        return 'python-bugzilla/%s' % __version__
     user_agent = property(_get_user_agent)
 
 
@@ -438,6 +436,16 @@ class BugzillaBase(object):
             else:
                 log.debug("bugzillarc: unknown key=%s", key)
 
+    def _set_bz_version(self, version):
+        try:
+            self.bz_ver_major, self.bz_ver_minor = [
+                int(i) for i in version.split(".")[0:2]]
+        except:
+            log.debug("version doesn't match expected format X.Y.Z, "
+                    "assuming 5.0", exc_info=True)
+            self.bz_ver_major = 5
+            self.bz_ver_minor = 0
+
     def connect(self, url=None):
         '''
         Connect to the bugzilla instance with the given url.
@@ -468,6 +476,10 @@ class BugzillaBase(object):
         if (self.user and self.password):
             log.info("user and password present - doing login()")
             self.login()
+
+        version = self._proxy.Bugzilla.version()["version"]
+        log.debug("Bugzilla version string: %s", version)
+        self._set_bz_version(version)
 
     def disconnect(self):
         '''

@@ -13,6 +13,9 @@ if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
 else:
     from StringIO import StringIO
 
+from bugzilla.base import BugzillaBase
+from bugzilla import RHBugzilla
+
 
 _cleanup = []
 
@@ -34,6 +37,19 @@ bugzillascript = _import("bugzillascript", "bin/bugzilla")
 # This is overwritten by python setup.py test --redhat-url, and then
 # used in ro/rw tests
 REDHAT_URL = None
+
+
+def make_bz(version, *args, **kwargs):
+    cls = BugzillaBase
+    if kwargs.pop("rhbz", False):
+        cls = RHBugzilla
+    if "cookiefile" not in kwargs:
+        kwargs["cookiefile"] = None
+    if "tokenfile" not in kwargs:
+        kwargs["tokenfile"] = None
+    bz = cls(*args, **kwargs)
+    bz._set_bz_version(version)  # pylint: disable=protected-access
+    return bz
 
 
 def diff(orig, new):

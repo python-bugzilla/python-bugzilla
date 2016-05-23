@@ -12,13 +12,12 @@ from .bugzilla3 import Bugzilla36
 
 
 class Bugzilla4(Bugzilla36):
-    bz_ver_major = 4
-    bz_ver_minor = 0
+    pass
 
 
 class Bugzilla42(Bugzilla4):
-    bz_ver_minor = 2
+    pass
 
 
 class Bugzilla44(Bugzilla42):
-    bz_ver_minor = 4
+    pass

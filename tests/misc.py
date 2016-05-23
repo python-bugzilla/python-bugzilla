@@ -12,7 +12,6 @@ Unit tests for building query strings with bin/bugzilla
 from __future__ import print_function
 
 import atexit
-import logging
 import os
 import shutil
 import sys
@@ -64,11 +63,8 @@ class MiscAPI(unittest.TestCase):
     Test miscellaneous API bits
     """
     def testUserAgent(self):
-        b3 = bugzilla.Bugzilla3(url=None, cookiefile=None, tokenfile=None)
-        rhbz = bugzilla.RHBugzilla(url=None, cookiefile=None, tokenfile=None)
-
-        self.assertTrue(b3.user_agent.endswith("Bugzilla3"))
-        self.assertTrue(rhbz.user_agent.endswith("RHBugzilla"))
+        b3 = tests.make_bz("3.0.0")
+        self.assertTrue("python-bugzilla" in b3.user_agent)
 
     def testCookies(self):
         cookiesbad = os.path.join(os.getcwd(), "tests/data/cookies-bad.txt")
@@ -83,7 +79,7 @@ class MiscAPI(unittest.TestCase):
         shutil.copy(cookieslwp, cookiesnew)
 
         # Mozilla should be converted inplace to LWP
-        bugzilla.Bugzilla3(url=None, cookiefile=cookiesnew)
+        tests.make_bz("3.0.0", cookiefile=cookiesnew)
 
         def strip_comments(content):
             return [l for l in content.split("\n") if not l.startswith("#")]
@@ -93,7 +89,7 @@ class MiscAPI(unittest.TestCase):
 
         # Make sure bad cookies raise an error
         try:
-            bugzilla.Bugzilla3(url=None, cookiefile=cookiesbad)
+            tests.make_bz("3.0.0", cookiefile=cookiesbad)
             raise AssertionError("Expected BugzillaError from parsing %s" %
                                  os.path.basename(cookiesbad))
         except bugzilla.BugzillaError:
@@ -101,10 +97,10 @@ class MiscAPI(unittest.TestCase):
             pass
 
         # Mozilla should 'just work'
-        bugzilla.Bugzilla3(url=None, cookiefile=cookiesmoz)
+        tests.make_bz("3.0.0", cookiefile=cookiesmoz)
 
     def test_readconfig(self):
-        bzapi = bugzilla.RHBugzilla(url=None)
+        bzapi = tests.make_bz("4.4.0", rhbz=True)
         bzapi.url = "foo.example.com"
         temp = tempfile.NamedTemporaryFile(mode="w")
 
@@ -147,8 +143,8 @@ password=test4"""
             bz.post_translation({}, outdict)
             self.assertTrue(outdict == outexpect)
 
-        bug3 = bugzilla.Bugzilla3(url=None, cookiefile=None, tokenfile=None)
-        rhbz = bugzilla.RHBugzilla(url=None, cookiefile=None, tokenfile=None)
+        bug3 = tests.make_bz("3.4.0")
+        rhbz = tests.make_bz("4.4.0", rhbz=True)
 
         test1 = {
             "component": ["comp1"],

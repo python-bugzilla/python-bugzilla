@@ -13,17 +13,16 @@ from .base import BugzillaBase
 
 
 class Bugzilla3(BugzillaBase):
-    bz_ver_major = 3
-    bz_ver_minor = 0
+    pass
 
 
 class Bugzilla32(Bugzilla3):
-    bz_ver_minor = 2
+    pass
 
 
 class Bugzilla34(Bugzilla32):
-    bz_ver_minor = 4
+    pass
 
 
 class Bugzilla36(Bugzilla34):
-    bz_ver_minor = 6
+    pass

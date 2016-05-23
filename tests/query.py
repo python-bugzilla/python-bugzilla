@@ -13,16 +13,11 @@ import copy
 import os
 import unittest
 
-import bugzilla
-from bugzilla.bugzilla3 import Bugzilla34
-from bugzilla.bugzilla4 import Bugzilla4
-from bugzilla.rhbugzilla import RHBugzilla4
-
 import tests
 
-bz34 = Bugzilla34(cookiefile=None, tokenfile=None)
-bz4 = Bugzilla4(cookiefile=None, tokenfile=None)
-rhbz4 = RHBugzilla4(cookiefile=None, tokenfile=None)
+bz34 = tests.make_bz("3.4.0")
+bz4 = tests.make_bz("4.0.0")
+rhbz4 = tests.make_bz("4.4.0", rhbz=True)
 
 
 class BZ34Test(unittest.TestCase):
