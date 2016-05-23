@@ -14,7 +14,7 @@
 from __future__ import print_function
 
 import locale
-from logging import DEBUG, INFO, WARN, StreamHandler, Formatter
+from logging import getLogger, DEBUG, INFO, WARN, StreamHandler, Formatter
 import optparse
 import os
 import re
@@ -39,7 +39,7 @@ _is_unittest = bool(os.getenv("__BUGZILLA_UNITTEST"))
 cmdlist = ['login', 'new', 'query', 'modify', 'attach', 'info']
 format_field_re = re.compile("%{([a-z0-9_]+)(?::([^}]*))?}")
 
-log = bugzilla.log
+log = getLogger(bugzilla.__name__)
 handler = StreamHandler(sys.stderr)
 handler.setFormatter(Formatter(
     "[%(asctime)s] %(levelname)s (%(module)s:%(lineno)d) %(message)s",

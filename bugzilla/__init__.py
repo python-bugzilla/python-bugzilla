@@ -26,31 +26,6 @@ from .oldclasses import (Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36,
         Bugzilla4, Bugzilla42, Bugzilla44,
         NovellBugzilla, RHBugzilla3, RHBugzilla4)
 
-log = getLogger(__name__)
-
-
-def _getBugzillaClassForURL(url, sslverify):
-    url = BugzillaBase.fix_url(url)
-    log.debug("Detecting subclass for %s", url)
-    s = ServerProxy(url, _RequestsTransport(url, sslverify=sslverify))
-
-    if "bugzilla.redhat.com" in url:
-        log.info("Using RHBugzilla for URL containing bugzilla.redhat.com")
-        return RHBugzilla
-    if "bugzilla.novell.com" in url:
-        log.info("Using NovellBugzilla for URL containing bugzilla.novell.com")
-        return NovellBugzilla
-
-    # Check for a Red Hat extension
-    try:
-        log.debug("Checking for Red Hat Bugzilla extension")
-        extensions = s.Bugzilla.extensions()
-        if extensions.get('extensions', {}).get('RedHat', False):
-            log.debug("Found RedHat bugzilla extension")
-            return RHBugzilla
-    except Fault:
-        pass
-
 
 class Bugzilla(BugzillaBase):
     '''
@@ -60,31 +35,47 @@ class Bugzilla(BugzillaBase):
     def _init_class_from_url(self, url, sslverify):
         if url is None:
             raise TypeError("You must pass a valid bugzilla URL")
+        url = RHBugzilla.fix_url(url)
+        log.debug("Detecting subclass for %s", url)
 
-        c = _getBugzillaClassForURL(url, sslverify)
+        if "bugzilla.redhat.com" in url:
+            log.info("Using RHBugzilla for URL containing bugzilla.redhat.com")
+            c = RHBugzilla
+        else:
+            # Check for a Red Hat extension
+            s = ServerProxy(url, _RequestsTransport(url, sslverify=sslverify))
+            try:
+                extensions = s.Bugzilla.extensions()
+                if extensions.get('extensions', {}).get('RedHat', False):
+                    log.debug("Found RedHat bugzilla extension")
+                    c = RHBugzilla
+            except Fault:
+                pass
+
         if not c:
-            return False
+            return
 
         self.__class__ = c
-        log.info("Chose subclass %s v%s", c.__name__, c.version)
+        log.info("Found subclass %s v%s", c.__name__, c.version)
         return True
 
-
-del(BugzillaBase)
-
-# This is the list of possible Bugzilla instances an app can use,
-# bin/bugzilla used to use it for the --bztype field
-classlist = [
-    "Bugzilla3", "Bugzilla32", "Bugzilla34", "Bugzilla36",
-    "Bugzilla4", "Bugzilla42", "Bugzilla44",
-    "RHBugzilla3", "RHBugzilla4", "RHBugzilla",
-    "NovellBugzilla",
-]
 
 # This is the public API. If you are explicitly instantiating any other
 # class, using some function, or poking into internal files, don't complain
 # if things break on you.
-__all__ = classlist + [
+__all__ = [
+    "Bugzilla3", "Bugzilla32", "Bugzilla34", "Bugzilla36",
+    "Bugzilla4", "Bugzilla42", "Bugzilla44",
+    "NovellBugzilla",
+    "RHBugzilla3", "RHBugzilla4", "RHBugzilla",
     'BugzillaError',
-    'Bugzilla',
+    'Bugzilla', "version",
 ]
+
+
+# Clear all other locals() from the public API
+for __sym in locals().copy():
+    if __sym.startswith("__") or __sym in __all__:
+        continue
+    locals().pop(__sym)
+locals().pop("__sym")
