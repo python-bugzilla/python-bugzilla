@@ -1824,27 +1824,3 @@ class BugzillaBase(object):
 
         log.debug("Call User.update with: %s", update)
         return self._proxy.User.update(update)
-
-
-    ######################
-    # Deprecated methods #
-    ######################
-
-    def initcookiefile(self, cookiefile=None):
-        '''
-        Deprecated: Set self.cookiefile instead.
-        '''
-        if not cookiefile:
-            cookiefile = os.path.expanduser('~/.bugzillacookies')
-        self.cookiefile = cookiefile
-
-
-    def adduser(self, user, name):
-        '''Deprecated: Use createuser() instead.
-
-        A method to create a user in Bugzilla. Takes the following:
-
-        user: The email address of the user to create
-        name: The full name of the user to create
-        '''
-        self.createuser(user, name)
