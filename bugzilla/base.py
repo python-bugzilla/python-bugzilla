@@ -184,10 +184,6 @@ class BugzillaBase(object):
     bz_ver_major = 0
     bz_ver_minor = 0
 
-    # Intended to be the API version of the class, but historically is
-    # unused and basically worthless since we don't plan on breaking API.
-    version = "0.1"
-
     @staticmethod
     def url_to_query(url):
         '''

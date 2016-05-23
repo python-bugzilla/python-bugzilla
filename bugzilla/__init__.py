@@ -56,7 +56,7 @@ class Bugzilla(BugzillaBase):
             return
 
         self.__class__ = c
-        log.info("Found subclass %s v%s", c.__name__, c.version)
+        log.info("Found subclass %s", c.__name__)
         return True
 
 
