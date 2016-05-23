@@ -580,8 +580,11 @@ class BugzillaBase(object):
     #############################################
 
     def _getbugfields(self):
-        raise RuntimeError("This bugzilla version does not support listing "
-            "bug fields.")
+        '''
+        Get the list of valid fields for Bug objects
+        '''
+        r = self._proxy.Bug.fields({'include_fields': ['name']})
+        return [f['name'] for f in r['fields']]
 
     def getbugfields(self, force_refresh=False):
         '''
@@ -993,7 +996,8 @@ class BugzillaBase(object):
                     savedsearch=None,
                     savedsearch_sharer_id=None,
                     sub_component=None,
-                    tags=None):
+                    tags=None,
+                    exclude_fields=None):
         """
         Build a query string from passed arguments. Will handle
         query parameter differences between various bugzilla versions.
@@ -1007,9 +1011,10 @@ class BugzillaBase(object):
 
         Then pass the output to Bugzilla.query()
         """
+        # These parameters are only used by RHBugzilla, which overwrites
+        # this implementation. So ignore them here
         ignore = emailtype
         ignore = booleantype
-        ignore = include_fields
 
         for key, val in [
             ('fixed_in', fixed_in),
@@ -1053,6 +1058,18 @@ class BugzillaBase(object):
             "reporter": reporter,
             "tag": self._listify(tags),
         }
+
+        # 'include_fields' only available for Bugzilla4+
+        if self._check_version(4, 0):
+            include_fields = self._convert_include_field_list(include_fields)
+            if include_fields:
+                if 'id' not in include_fields:
+                    include_fields.append('id')
+                query["include_fields"] = include_fields
+
+            exclude_fields = self._convert_include_field_list(exclude_fields)
+            if exclude_fields:
+                query["exclude_fields"] = exclude_fields
 
         # Strip out None elements in the dict
         for k, v in query.copy().items():

@@ -200,7 +200,3 @@ password=test4"""
         bugzilla.RHBugzilla(None, cookiefile=None, multicall=True,
             rhbz_back_compat=True)
         bugzilla.log.setLevel(level)
-
-    def testUnimplementedAPI(self):
-        bz3 = bugzilla.Bugzilla3(None, cookiefile=None, tokenfile=None)
-        self.assertRaises(RuntimeError, bz3.getbugfields)

@@ -16,29 +16,6 @@ class Bugzilla4(Bugzilla36):
     bz_ver_minor = 0
 
 
-    #################
-    # Query Methods #
-    #################
-
-    def build_query(self, **kwargs):
-        query = Bugzilla36.build_query(self, **kwargs)
-
-        # 'include_fields' only available for Bugzilla4+
-        include_fields = self._convert_include_field_list(
-            kwargs.pop('include_fields', None))
-        if include_fields:
-            if 'id' not in include_fields:
-                include_fields.append('id')
-            query["include_fields"] = include_fields
-
-        exclude_fields = self._convert_include_field_list(
-            kwargs.pop('exclude_fields', None))
-        if exclude_fields:
-            query["exclude_fields"] = exclude_fields
-
-        return query
-
-
 class Bugzilla42(Bugzilla4):
     bz_ver_minor = 2
 

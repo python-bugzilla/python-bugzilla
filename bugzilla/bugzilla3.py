@@ -27,8 +27,3 @@ class Bugzilla34(Bugzilla32):
 
 class Bugzilla36(Bugzilla34):
     bz_ver_minor = 6
-
-    def _getbugfields(self):
-        '''Get the list of valid fields for Bug objects'''
-        r = self._proxy.Bug.fields({'include_fields': ['name']})
-        return [f['name'] for f in r['fields']]
