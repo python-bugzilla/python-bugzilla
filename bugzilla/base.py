@@ -860,7 +860,7 @@ class BugzillaBase(object):
         getbugdata = {"ids": idlist}
         if permissive:
             getbugdata["permissive"] = 1
-        if self.bz_ver_major >= 4:
+        if self._check_version(4, 0):
             if include_fields:
                 getbugdata["include_fields"] = self._listify(include_fields)
             if exclude_fields:
@@ -871,7 +871,7 @@ class BugzillaBase(object):
         log.debug("Calling Bug.get with: %s", getbugdata)
         r = self._proxy.Bug.get(getbugdata)
 
-        if self.bz_ver_major >= 4:
+        if self._check_version(4, 0):
             bugdict = dict([(b['id'], b) for b in r['bugs']])
         else:
             bugdict = dict([(b['id'], b['internals']) for b in r['bugs']])
