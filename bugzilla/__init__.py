@@ -37,9 +37,6 @@ def _getBugzillaClassForURL(url, sslverify):
     url = Bugzilla3.fix_url(url)
     log.debug("Detecting subclass for %s", url)
     s = ServerProxy(url, _RequestsTransport(url, sslverify=sslverify))
-    rhbz = False
-    bzversion = ''
-    c = None
 
     if "bugzilla.redhat.com" in url:
         log.info("Using RHBugzilla for URL containing bugzilla.redhat.com")
@@ -47,58 +44,16 @@ def _getBugzillaClassForURL(url, sslverify):
     if "bugzilla.novell.com" in url:
         log.info("Using NovellBugzilla for URL containing bugzilla.novell.com")
         return NovellBugzilla
-    if "bugzilla.mozilla.org" in url:
-        log.info("Using Bugzilla42 for URL containing bugzilla.mozilla.org")
-        return Bugzilla42
-
-    # Gentoo uses Bugzilla 5.0.x so below is a placeholder until a new
-    # Bugzilla50 class is created and includes changes in the 5.x API.
-    if "bugs.gentoo.org" in url:
-        log.info("Using Bugzilla44 for URL containing bugs.gentoo.org")
-        return Bugzilla44
 
     # Check for a Red Hat extension
     try:
         log.debug("Checking for Red Hat Bugzilla extension")
         extensions = s.Bugzilla.extensions()
         if extensions.get('extensions', {}).get('RedHat', False):
-            rhbz = True
+            log.debug("Found RedHat bugzilla extension")
+            return RHBugzilla
     except Fault:
         pass
-    log.debug("rhbz=%s", str(rhbz))
-
-    # Try to get the bugzilla version string
-    try:
-        log.debug("Checking return value of Bugzilla.version()")
-        r = s.Bugzilla.version()
-        bzversion = r['version']
-    except Fault:
-        pass
-    log.debug("bzversion='%s'", str(bzversion))
-
-    # note preference order: RHBugzilla* wins if available
-    if rhbz:
-        c = RHBugzilla
-    elif bzversion.startswith("4."):
-        if bzversion.startswith("4.0"):
-            c = Bugzilla4
-        elif bzversion.startswith("4.2"):
-            c = Bugzilla42
-        else:
-            log.debug("No explicit match for %s, using latest bz4", bzversion)
-            c = Bugzilla44
-    else:
-        if bzversion.startswith('3.6'):
-            c = Bugzilla36
-        elif bzversion.startswith('3.4'):
-            c = Bugzilla34
-        elif bzversion.startswith('3.2'):
-            c = Bugzilla32
-        else:
-            log.debug("No explicit match for %s, fall through", bzversion)
-            c = Bugzilla3
-
-    return c
 
 
 class Bugzilla(_BugzillaBase):
@@ -112,8 +67,7 @@ class Bugzilla(_BugzillaBase):
 
         c = _getBugzillaClassForURL(url, sslverify)
         if not c:
-            raise ValueError("Couldn't determine Bugzilla version for %s" %
-                             url)
+            return False
 
         self.__class__ = c
         log.info("Chose subclass %s v%s", c.__name__, c.version)

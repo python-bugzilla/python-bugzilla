@@ -22,20 +22,23 @@ import tests
 class BaseTest(unittest.TestCase):
     url = None
     bzclass = Bugzilla
+    bzversion = (0, 0)
     closestatus = "CLOSED"
 
     def clicomm(self, argstr, expectexc=False):
         comm = "bugzilla " + argstr
 
-        bz = self.bzclass(url=self.url, cookiefile=None, tokenfile=None)
+        bz = Bugzilla(url=self.url, cookiefile=None, tokenfile=None)
         if expectexc:
             self.assertRaises(Exception, tests.clicomm, comm, bz)
         else:
             return tests.clicomm(comm, bz)
 
-    def _testBZClass(self):
+    def _testBZVersion(self):
         bz = Bugzilla(self.url, cookiefile=None, tokenfile=None)
-        self.assertTrue(bz.__class__ is self.bzclass)
+        self.assertEquals(bz.__class__, self.bzclass)
+        self.assertEquals(bz.bz_ver_major, self.bzversion[0])
+        self.assertEquals(bz.bz_ver_minor, self.bzversion[1])
 
     # Since we are running these tests against bugzilla instances in
     # the wild, we can't depend on certain data like product lists
@@ -115,17 +118,27 @@ class BaseTest(unittest.TestCase):
 
 
 class BZMozilla(BaseTest):
-    url = "https://bugzilla.mozilla.org"
-    bzclass = bugzilla.Bugzilla42
-    test0 = BaseTest._testBZClass
+    def testVersion(self):
+        # bugzilla.mozilla.org returns version values in YYYY-MM-DD
+        # format, so just try to confirm that
+        bz = Bugzilla("bugzilla.mozilla.org", cookiefile=None, tokenfile=None)
+        self.assertEquals(bz.__class__, Bugzilla)
+        self.assertTrue(bz.bz_ver_major >= 2016)
+        self.assertTrue(bz.bz_ver_minor in range(1, 13))
+
+
+class BZGentoo(BaseTest):
+    url = "bugs.gentoo.org"
+    bzversion = (5, 0)
+    test0 = BaseTest._testBZVersion
 
 
 class BZGnome(BaseTest):
     url = "https://bugzilla.gnome.org/xmlrpc.cgi"
-    bzclass = bugzilla.Bugzilla44
+    bzversion = (4, 4)
     closestatus = "RESOLVED"
 
-    test0 = BaseTest._testBZClass
+    test0 = BaseTest._testBZVersion
     test1 = lambda s: BaseTest._testQuery(s,
                 "--product dogtail --component sniff",
                 9, "321654")
@@ -137,10 +150,10 @@ class BZGnome(BaseTest):
 
 class BZFDO(BaseTest):
     url = "https://bugs.freedesktop.org/xmlrpc.cgi"
-    bzclass = bugzilla.Bugzilla44
+    bzversion = (5, 0)
     closestatus = "CLOSED,RESOLVED"
 
-    test0 = BaseTest._testBZClass
+    test0 = BaseTest._testBZVersion
 
     test1 = lambda s: BaseTest._testQuery(s, "--product avahi", 10, "3450")
     test2 = lambda s: BaseTest._testQueryFull(s, "3450", 10, "Blocked: \n")
@@ -158,8 +171,9 @@ class BZFDO(BaseTest):
 class RHTest(BaseTest):
     url = tests.REDHAT_URL or "https://bugzilla.redhat.com/xmlrpc.cgi"
     bzclass = bugzilla.RHBugzilla
+    bzversion = (4, 4)
 
-    test0 = BaseTest._testBZClass
+    test0 = BaseTest._testBZVersion
     test1 = lambda s: BaseTest._testInfoProducts(s, 125,
                                                  "Virtualization Tools")
     test2 = lambda s: BaseTest._testInfoComps(s, "Virtualization Tools",
