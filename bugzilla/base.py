@@ -1082,7 +1082,21 @@ class Bugzilla(object):
         implementation.
         '''
         log.debug("Calling Bug.search with: %s", query)
-        r = self._proxy.Bug.search(query)
+        try:
+            r = self._proxy.Bug.search(query)
+        except Fault:
+            e = sys.exc_info()[1]
+
+            # Try to give a hint in the error message if url_to_query
+            # isn't supported by this bugzilla instance
+            if ("query_format" not in str(e) or
+                "RHBugzilla" in str(e.__class__) or
+                self._check_version(5, 0)):
+                raise
+            raise BugzillaError("%s\nYour bugzilla instance does not "
+                "appear to support API queries derived from bugzilla "
+                "web URL queries." % e)
+
         log.debug("Query returned %s bugs", len(r['bugs']))
         return [Bug(self, dict=b,
                 autorefresh=self.bug_autorefresh) for b in r['bugs']]

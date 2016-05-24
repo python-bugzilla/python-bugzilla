@@ -11,10 +11,10 @@
 Unit tests that do readonly functional tests against real bugzilla instances.
 '''
 
+import sys
 import unittest
 
-import bugzilla
-from bugzilla import Bugzilla
+from bugzilla import Bugzilla, BugzillaError, RHBugzilla
 
 import tests
 
@@ -132,6 +132,15 @@ class BZGentoo(BaseTest):
     bzversion = (5, 0)
     test0 = BaseTest._testBZVersion
 
+    def testURLQuery(self):
+        # This is a bugzilla 5.0 instance, which supports URL queries now
+        query_url = ("https://bugs.gentoo.org/buglist.cgi?"
+            "component=[CS]&product=Doc%20Translations"
+            "&query_format=advanced&resolution=FIXED")
+        bz = Bugzilla(url=self.url, cookiefile=None, tokenfile=None)
+        ret = bz.query(bz.url_to_query(query_url))
+        self.assertTrue(len(ret) > 0)
+
 
 class BZGnome(BaseTest):
     url = "https://bugzilla.gnome.org/xmlrpc.cgi"
@@ -146,6 +155,19 @@ class BZGnome(BaseTest):
     test2 = lambda s: BaseTest._testQueryRaw(s, "321654", 30,
                                              "ATTRIBUTE[version]: CVS HEAD")
     test3 = lambda s: BaseTest._testQueryOneline(s, "321654", "Sniff")
+
+    def testURLQuery(self):
+        # This instance is old and doesn't support URL queries, we are
+        # just verifying our extra error message report
+        query_url = ("https://bugzilla.gnome.org/buglist.cgi?"
+            "bug_status=RESOLVED&order=Importance&product=accerciser"
+            "&query_format=advanced&resolution=NOTABUG")
+        bz = Bugzilla(url=self.url, cookiefile=None, tokenfile=None)
+        try:
+            bz.query(bz.url_to_query(query_url))
+        except BugzillaError:
+            e = sys.exc_info()[1]
+            self.assertTrue("derived from bugzilla" in str(e))
 
 
 class BZFDO(BaseTest):
@@ -170,7 +192,7 @@ class BZFDO(BaseTest):
 
 class RHTest(BaseTest):
     url = tests.REDHAT_URL or "https://bugzilla.redhat.com/xmlrpc.cgi"
-    bzclass = bugzilla.RHBugzilla
+    bzclass = RHBugzilla
     bzversion = (4, 4)
 
     test0 = BaseTest._testBZVersion
