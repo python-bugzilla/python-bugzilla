@@ -32,14 +32,11 @@ else:
 
 
 from .apiversion import __version__
-from .bug import _Bug, _User
+from .bug import Bug, User
 from .transport import BugzillaError, _BugzillaServerProxy, _RequestsTransport
 
 
 log = getLogger(__name__)
-
-# Backwards compatibility
-Bug = _Bug
 
 mimemagic = None
 
@@ -943,7 +940,7 @@ class Bugzilla(object):
         already loaded.'''
         data = self._getbug(objid, include_fields=include_fields,
             exclude_fields=exclude_fields, extra_fields=extra_fields)
-        return _Bug(self, dict=data, autorefresh=self.bug_autorefresh)
+        return Bug(self, dict=data, autorefresh=self.bug_autorefresh)
 
     def getbugs(self, idlist,
         include_fields=None, exclude_fields=None, extra_fields=None):
@@ -952,8 +949,8 @@ class Bugzilla(object):
         the corresponding item in the returned list will be None.'''
         data = self._getbugs(idlist, include_fields=include_fields,
             exclude_fields=exclude_fields, extra_fields=extra_fields)
-        return [(b and _Bug(self, dict=b,
-                            autorefresh=self.bug_autorefresh)) or None
+        return [(b and Bug(self, dict=b,
+                           autorefresh=self.bug_autorefresh)) or None
                 for b in data]
 
     # Since for so long getbugsimple was just getbug, I don't think we can
@@ -962,16 +959,16 @@ class Bugzilla(object):
     # big stuff'
     def getbugsimple(self, objid):
         '''Return a Bug object given bug id, populated with simple info'''
-        return _Bug(self,
-                    dict=self._getbug(objid, simple=True),
-                    autorefresh=self.bug_autorefresh)
+        return Bug(self,
+                   dict=self._getbug(objid, simple=True),
+                   autorefresh=self.bug_autorefresh)
 
     def getbugssimple(self, idlist):
         '''Return a list of Bug objects for the given bug ids, populated with
         simple info. As with getbugs(), if there's a problem getting the data
         for a given bug ID, the corresponding item in the returned list will
         be None.'''
-        return [(b and _Bug(self, dict=b,
+        return [(b and Bug(self, dict=b,
                 autorefresh=self.bug_autorefresh)) or None
                 for b in self._getbugs(idlist, simple=True)]
 
@@ -1131,7 +1128,7 @@ class Bugzilla(object):
         '''
         r = self._query(query)
         log.debug("Query returned %s bugs", len(r['bugs']))
-        return [_Bug(self, dict=b,
+        return [Bug(self, dict=b,
                 autorefresh=self.bug_autorefresh) for b in r['bugs']]
 
     def simplequery(self, product, version='', component='',
@@ -1600,8 +1597,8 @@ class Bugzilla(object):
         data = self._validate_createbug(*args, **kwargs)
         log.debug("Calling Bug.create with: %s", data)
         rawbug = self._proxy.Bug.create(data)
-        return _Bug(self, bug_id=rawbug["id"],
-                    autorefresh=self.bug_autorefresh)
+        return Bug(self, bug_id=rawbug["id"],
+                   autorefresh=self.bug_autorefresh)
 
 
     ##############################
@@ -1654,7 +1651,7 @@ class Bugzilla(object):
         :userlist: List of usernames to lookup
         :returns: List of User records
         '''
-        userobjs = [_User(self, **rawuser) for rawuser in
+        userobjs = [User(self, **rawuser) for rawuser in
                     self._getusers(names=userlist).get('users', [])]
 
         # Return users in same order they were passed in
@@ -1675,7 +1672,7 @@ class Bugzilla(object):
         :arg pattern: List of patterns to match against.
         :returns: List of User records
         '''
-        return [_User(self, **rawuser) for rawuser in
+        return [User(self, **rawuser) for rawuser in
                 self._getusers(match=pattern).get('users', [])]
 
     def createuser(self, email, name='', password=''):

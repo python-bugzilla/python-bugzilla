@@ -16,7 +16,7 @@ import unittest
 import tests
 from tests import StringIO
 
-from bugzilla.bug import _Bug
+from bugzilla.bug import Bug
 
 
 rhbz = tests.make_bz("4.4.0", rhbz=True)
@@ -39,7 +39,7 @@ class BugTest(unittest.TestCase):
             "devel_whiteboard": "some status value",
         }
 
-        bug = _Bug(bugzilla=self.bz, dict=data)
+        bug = Bug(bugzilla=self.bz, dict=data)
 
         def _assert_bug():
             self.assertEqual(hasattr(bug, "component"), True)
@@ -78,7 +78,7 @@ class BugTest(unittest.TestCase):
 
     def testBugNoID(self):
         try:
-            _Bug(bugzilla=self.bz, dict={"component": "foo"})
+            Bug(bugzilla=self.bz, dict={"component": "foo"})
             raise AssertionError("Expected lack of ID failure.")
         except TypeError:
             pass

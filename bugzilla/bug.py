@@ -16,7 +16,7 @@ import sys
 log = getLogger(__name__)
 
 
-class _Bug(object):
+class Bug(object):
     '''A container object for a bug report. Requires a Bugzilla instance -
     every Bug is on a Bugzilla, obviously.
     Optional keyword args:
@@ -474,7 +474,7 @@ class _Bug(object):
         return self.bugzilla.update_flags(self.bug_id, flaglist)
 
 
-class _User(object):
+class User(object):
     '''Container object for a bugzilla User.
 
     :arg bugzilla: Bugzilla instance that this User belongs to.
