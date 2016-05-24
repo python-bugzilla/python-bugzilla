@@ -1093,13 +1093,6 @@ class Bugzilla(object):
                 del(query[k])
         return query
 
-    def _query(self, query):
-        # This is kinda redundant now, but various scripts call
-        # _query with their own assembled dictionaries, so don't
-        # drop this lest we needlessly break those users
-        log.debug("Calling Bug.search with: %s", query)
-        return self._proxy.Bug.search(query)
-
     def query(self, query):
         '''Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
@@ -1107,7 +1100,8 @@ class Bugzilla(object):
         Also see the _query() method for details about the underlying
         implementation.
         '''
-        r = self._query(query)
+        log.debug("Calling Bug.search with: %s", query)
+        r = self._proxy.Bug.search(query)
         log.debug("Query returned %s bugs", len(r['bugs']))
         return [Bug(self, dict=b,
                 autorefresh=self.bug_autorefresh) for b in r['bugs']]
