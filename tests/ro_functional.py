@@ -283,15 +283,23 @@ class RHTest(BaseTest):
     def testBugAutoRefresh(self):
         bz = self.bzclass(self.url, use_creds=False)
 
+        bz.bug_autorefresh = True
+
         bug = bz.query(bz.build_query(bug_id=720773,
             include_fields=["summary"]))[0]
         self.assertTrue(hasattr(bug, "component"))
+        self.assertTrue(bool(bug.component))
 
         bz.bug_autorefresh = False
 
         bug = bz.query(bz.build_query(bug_id=720773,
             include_fields=["summary"]))[0]
         self.assertFalse(hasattr(bug, "component"))
+        try:
+            self.assertFalse(bool(bug.component))
+        except:
+            e = sys.exc_info()[1]
+            self.assertTrue("adjust your include_fields" in str(e))
 
     def testExtraFields(self):
         bz = self.bzclass(self.url, cookiefile=None, tokenfile=None)

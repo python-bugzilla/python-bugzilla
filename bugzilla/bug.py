@@ -25,7 +25,7 @@ class Bug(object):
                       you can read any attributes or make modifications to this
                       bug.
     '''
-    def __init__(self, bugzilla, bug_id=None, dict=None, autorefresh=True):
+    def __init__(self, bugzilla, bug_id=None, dict=None, autorefresh=False):
         # pylint: disable=redefined-builtin
         # API had pre-existing issue that we can't change ('dict' usage)
 
@@ -102,7 +102,12 @@ class Bug(object):
             self.refresh(extra_fields=[name])
             refreshed = True
 
-        raise AttributeError("Bug object has no attribute '%s'" % name)
+        msg = ("Bug object has no attribute '%s'." % name)
+        if not self.autorefresh:
+            msg += ("\nIf '%s' is a bugzilla attribute, it may not have "
+                    "been cached when the bug was fetched. You may want "
+                    "to adjust your include_fields for getbug/query." % name)
+        raise AttributeError(msg)
 
     def refresh(self, include_fields=None, exclude_fields=None,
         extra_fields=None):

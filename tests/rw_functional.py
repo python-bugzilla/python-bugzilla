@@ -158,7 +158,7 @@ class RHPartnerTest(BaseTest):
         self.assertTrue(len(newout.splitlines()) == 3)
 
         bugid = int(newout.splitlines()[2])
-        bug = bz.getbug(bugid)
+        bug = bz.getbug(bugid, extra_fields=["sub_components"])
         print("\nCreated bugid: %s" % bugid)
 
         self.assertEquals(bug.summary, summary)
@@ -515,7 +515,7 @@ class RHPartnerTest(BaseTest):
         testfile = "../tests/data/bz-attach-get1.txt"
 
         # Add attachment as CLI option
-        setbug = bz.getbug(setbugid)
+        setbug = bz.getbug(setbugid, extra_fields=["attachments"])
         orignumattach = len(setbug.attachments)
 
         # Add attachment from CLI with mime guessing
@@ -571,6 +571,7 @@ class RHPartnerTest(BaseTest):
 
         # Get all attachments
         getbug = bz.getbug(getallbugid)
+        getbug.autorefresh = True
         numattach = len(getbug.attachments)
         out = tests.clicomm(cmd + "--getall %s" % getallbugid, bz).splitlines()
 
@@ -856,6 +857,7 @@ class RHPartnerTest(BaseTest):
         bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
         # Long closed RHEL5 lvm2 bug. This component has sub_components
         bug = bz.getbug("185526")
+        bug.autorefresh = True
         self.assertEquals(bug.component, "lvm2")
 
         bz.update_bugs(bug.id, bz.build_update(

@@ -244,7 +244,7 @@ class Bugzilla(object):
         self._cookiejar = None
         self._sslverify = sslverify
         self._cache = _BugzillaAPICache()
-        self._bug_autorefresh = True
+        self._bug_autorefresh = False
 
         self._field_aliases = []
         self._init_field_aliases()
