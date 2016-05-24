@@ -275,9 +275,9 @@ class Bug(object):
         return self.bugzilla.update_bugs(self.bug_id, vals)
 
 
-    ###############
-    # Add comment #
-    ###############
+    ####################
+    # comment handling #
+    ####################
 
     def addcomment(self, comment, private=False,
                    timestamp=None, worktime=None, bz_gid=None):
@@ -296,16 +296,13 @@ class Bug(object):
 
         return self.bugzilla.update_bugs(self.bug_id, vals)
 
-    ################
-    # Get comments #
-    ################
-
     def getcomments(self):
         '''
         Returns an array of comment dictionaries for this bug
         '''
         comment_list = self.bugzilla.get_comments([self.bug_id])
         return comment_list['bugs'][str(self.bug_id)]['comments']
+
 
     ##########################
     # Get/set bug whiteboard #
@@ -432,6 +429,15 @@ class Bug(object):
 
         return f[0]['status']
 
+    def updateflags(self, flags):
+        '''
+        Think wrapper around bugzilla.update_flags()
+        '''
+        flaglist = []
+        for key, value in flags.items():
+            flaglist.append({"name": key, "status": value})
+        return self.bugzilla.update_flags(self.bug_id, flaglist)
+
 
     ########################
     # Experimental methods #
@@ -457,6 +463,7 @@ class Bug(object):
         '''
         return self.bugzilla.bugs_history([self.bug_id])
 
+
     ######################
     # Deprecated methods #
     ######################
@@ -467,14 +474,6 @@ class Bug(object):
         '''
         return getattr(self, "%s_whiteboard" % which)
 
-    def updateflags(self, flags):
-        '''
-        Deprecated, use bugzilla.update_flags() directly
-        '''
-        flaglist = []
-        for key, value in flags.items():
-            flaglist.append({"name": key, "status": value})
-        return self.bugzilla.update_flags(self.bug_id, flaglist)
 
 
 class User(object):
