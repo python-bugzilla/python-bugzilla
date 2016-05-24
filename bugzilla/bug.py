@@ -205,6 +205,7 @@ class Bug(object):
         You can optionally add a comment while closing the bug. Set 'isprivate'
           to True if you want that comment to be private.
         '''
+        # Note: fedora bodhi uses this function
         ignore = private_in_it
         ignore = nomail
 
@@ -283,6 +284,7 @@ class Bug(object):
         Add the given comment to this bug. Set private to True to mark this
         comment as private.
         '''
+        # Note: fedora bodhi uses this function
         ignore = timestamp
         ignore = bz_gid
         ignore = worktime

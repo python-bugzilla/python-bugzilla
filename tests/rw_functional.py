@@ -241,13 +241,28 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(len(bug.longdescs), desclen + 1)
         self.assertTrue("marked as a duplicate" in bug.longdescs[-1]["text"])
 
-        # Add lone comment
+        # bz.setstatus test
         comment = ("adding lone comment at %s" % datetime.datetime.today())
-        tests.clicomm(cmd + "--comment \"%s\" --private" % comment, bz)
-
+        bug.setstatus("POST", comment=comment, private=True)
         bug.refresh()
         self.assertEquals(bug.longdescs[-1]["is_private"], 1)
         self.assertEquals(bug.longdescs[-1]["text"], comment)
+        self.assertEquals(bug.status, "POST")
+
+        # bz.close test
+        fixed_in = str(datetime.datetime.today())
+        bug.close("ERRATA", fixedin=fixed_in)
+        bug.refresh()
+        self.assertEquals(bug.status, "CLOSED")
+        self.assertEquals(bug.resolution, "ERRATA")
+        self.assertEquals(bug.fixed_in, fixed_in)
+
+        # bz.addcomment test
+        comment = ("yet another test comment %s" % datetime.datetime.today())
+        bug.addcomment(comment, private=False)
+        bug.refresh()
+        self.assertEquals(bug.longdescs[-1]["text"], comment)
+        self.assertEquals(bug.longdescs[-1]["is_private"], 0)
 
         # Reset state
         tests.clicomm(cmd + "--status %s" % origstatus, bz)
