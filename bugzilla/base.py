@@ -23,12 +23,12 @@ if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
     from configparser import SafeConfigParser
     from http.cookiejar import LoadError, MozillaCookieJar
     from urllib.parse import urlparse, parse_qsl
-    from xmlrpc.client import Binary, Fault, ServerProxy
+    from xmlrpc.client import Binary, Fault
 else:
     from ConfigParser import SafeConfigParser
     from cookielib import LoadError, MozillaCookieJar
     from urlparse import urlparse, parse_qsl
-    from xmlrpclib import Binary, Fault, ServerProxy
+    from xmlrpclib import Binary, Fault
 
 
 from .apiversion import __version__
@@ -230,8 +230,6 @@ class Bugzilla(object):
         """
         if url is -1:
             raise TypeError("Specify a valid bugzilla url, or pass url=None")
-        if url is not None:
-            self._init_class_from_url(url, sslverify)
 
         # Settings the user might want to tweak
         self.user = user or ''
@@ -258,10 +256,10 @@ class Bugzilla(object):
 
         if url:
             self.connect(url)
-
+            self._init_class_from_url(url)
         self._init_class_state()
 
-    def _init_class_from_url(self, url, sslverify):
+    def _init_class_from_url(self, url):
         """
         Detect if we should use RHBugzilla class, and if so, set it
         """
@@ -275,15 +273,13 @@ class Bugzilla(object):
             log.info("Using RHBugzilla for URL containing bugzilla.redhat.com")
             c = RHBugzilla
         else:
-            # Check for a Red Hat extension
-            s = ServerProxy(url, _RequestsTransport(url, sslverify=sslverify))
             try:
-                extensions = s.Bugzilla.extensions()
-                if extensions.get('extensions', {}).get('RedHat', False):
+                extensions = self._proxy.Bugzilla.extensions()
+                if "RedHat" in extensions.get('extensions', {}):
                     log.debug("Found RedHat bugzilla extension")
                     c = RHBugzilla
             except Fault:
-                pass
+                log.debug("Failed to fetch bugzilla extensions", exc_info=True)
 
         if not c:
             return
