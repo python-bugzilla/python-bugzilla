@@ -550,11 +550,12 @@ should work, like --bug_status becomes %{bug_status}, etc.
 .SH AUTHENTICATION COOKIES AND TOKENS
 
 Older bugzilla instances use cookie-based authentication, and
-bugzilla.redhat.com uses a non-cookie token system.
+newer bugzilla instances (around 5.0) use a non-cookie token system.
 
 When you log into bugzilla with the "login" subcommand or the "--login"
-argument, we cache the cookie in ~/.bugzillacookies. If you are using
-bugzilla.redhat.com, we also cache the token in ~/.bugzillatoken.
+argument, we cache the login credentials in ~/.cache/python-bugzilla/
+Previously we cached credentials in ~/.<filename>. If you want to see
+which file the tool is using, check --debug output.
 
 To perform an authenticated bugzilla command on a new machine, run a one time
 "bugzilla login" to cache credentials before running the desired command. You
@@ -562,7 +563,7 @@ can also run "bugzilla --login" and the login process will be initiated before
 invoking the command.
 
 Additionally, the --no-cache-credentials option will tell the bugzilla tool to
-_not_ save any credentials to ~/.bugzillacookies or ~/.bugzillatoken.
+_not_ save any credentials in $HOME, or use any previously cached credentials.
 
 .SH EXAMPLES
 .PP

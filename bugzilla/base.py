@@ -72,6 +72,24 @@ def _detect_filetype(fname):
     return None
 
 
+def _default_auth_location(filename):
+    """
+    Determine auth location for filename, like 'bugzillacookies'. If
+    old style ~/.bugzillacookies exists, we use that, otherwise we
+    use ~/.cache/python-bugzilla/bugzillacookies. Same for bugzillatoken
+    """
+    homepath = os.path.expanduser("~/.%s" % filename)
+    xdgpath = os.path.expanduser("~/.cache/python-bugzilla/%s" % filename)
+    if os.path.exists(xdgpath):
+        return xdgpath
+    if os.path.exists(homepath):
+        return homepath
+
+    if not os.path.exists(os.path.dirname(xdgpath)):
+        os.makedirs(os.path.dirname(xdgpath), 0o700)
+    return xdgpath
+
+
 def _build_cookiejar(cookiefile):
     cj = MozillaCookieJar(cookiefile)
     if cookiefile is None:
@@ -137,9 +155,12 @@ class Bugzilla(object):
     get cookies this way, you will be considered logged in until the cookie
     expires.
 
-    You may also specify 'user' and 'password' in a bugzillarc file, either
-    /etc/bugzillarc or ~/.bugzillarc. The latter will override the former.
-    The format works like this:
+    You may also specify 'user' and 'password' in a bugzillarc file. The
+    locations are preferred in this order:
+      ~/.config/python-bugzilla/bugzillarc
+      ~/.bugzillarc
+      /etc/bugzillarc
+    It has content like:
       [bugzilla.yoursite.com]
       user = username
       password = password
@@ -249,16 +270,17 @@ class Bugzilla(object):
         self._field_aliases = []
         self._init_field_aliases()
 
-        self.configpath = ['/etc/bugzillarc', '~/.bugzillarc']
+        self.configpath = ['/etc/bugzillarc', '~/.bugzillarc',
+                           '~/.config/python-bugzilla/bugzillarc']
         if not use_creds:
             cookiefile = None
             tokenfile = None
             self.configpath = []
 
         if cookiefile == -1:
-            cookiefile = os.path.expanduser('~/.bugzillacookies')
+            cookiefile = _default_auth_location("bugzillacookies")
         if tokenfile == -1:
-            tokenfile = os.path.expanduser("~/.bugzillatoken")
+            tokenfile = _default_auth_location("bugzillatoken")
         log.debug("Using tokenfile=%s", tokenfile)
         self.cookiefile = cookiefile
         self.tokenfile = tokenfile

@@ -65,7 +65,7 @@ class RHPartnerTest(BaseTest):
     # Despite its name, this instance is simply for bugzilla testing,
     # doesn't send out emails and is blown away occasionally. The front
     # page has some info.
-    url = tests.REDHAT_URL or "https://partner-bugzilla.redhat.com/xmlrpc.cgi"
+    url = tests.REDHAT_URL or "partner-bugzilla.redhat.com"
     bzclass = bugzilla.RHBugzilla
 
 
@@ -78,22 +78,24 @@ class RHPartnerTest(BaseTest):
             print("\nNo admin privs, reduced testing of %s" % funcname)
         return ret
 
-    def _check_rh_privs(self, bz, funcname, authtype, quiet=False):
-        noprivs = bool(bz.getbugs([184858]) == [None])
-        if noprivs and not quiet:
-            print("\nNo RH %s privs, skipping %s" % (authtype, funcname))
-        return not noprivs
-
-
-    test1 = BaseTest._testCookieOrToken
     test2 = BaseTest._testBZClass
+
+
+    def test00LoginState(self):
+        bz = self.bzclass(url=self.url)
+        self.assertTrue(bz.logged_in,
+            "R/W tests require cached login credentials for url=%s" % self.url)
+
+        bz = self.bzclass(url=self.url, use_creds=False)
+        self.assertFalse(bz.logged_in,
+            "Login state check failed for logged out user.")
 
 
     def test03NewBugBasic(self):
         """
         Create a bug with minimal amount of fields, then close it
         """
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bz = self.bzclass(url=self.url)
         component = "python-bugzilla"
         version = "rawhide"
         summary = ("python-bugzilla test basic bug %s" %
@@ -131,7 +133,7 @@ class RHPartnerTest(BaseTest):
         """
         Create a bug using all 'new' fields, check some values, close it
         """
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bz = self.bzclass(url=self.url)
 
         summary = ("python-bugzilla test manyfields bug %s" %
                    datetime.datetime.today())
@@ -195,7 +197,7 @@ class RHPartnerTest(BaseTest):
         """
         Modify status and comment fields for an existing bug
         """
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bz = self.bzclass(url=self.url)
         bugid = "663674"
         cmd = "bugzilla modify %s " % bugid
 
@@ -282,7 +284,7 @@ class RHPartnerTest(BaseTest):
         """
         Modify cc, assignee, qa_contact for existing bug
         """
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bz = self.bzclass(url=self.url)
         bugid = "663674"
         cmd = "bugzilla modify %s " % bugid
 
@@ -330,7 +332,7 @@ class RHPartnerTest(BaseTest):
         """
         Modify flags and fixed_in for 2 bugs
         """
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bz = self.bzclass(url=self.url)
         bugid1 = "461686"
         bugid2 = "461687"
         cmd = "bugzilla modify %s %s " % (bugid1, bugid2)
@@ -406,7 +408,7 @@ class RHPartnerTest(BaseTest):
     def test07ModifyMisc(self):
         bugid = "461686"
         cmd = "bugzilla modify %s " % bugid
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bz = self.bzclass(url=self.url)
         bug = bz.getbug(bugid)
 
         # modify --dependson
@@ -508,7 +510,7 @@ class RHPartnerTest(BaseTest):
         """
         Get and set attachments for a bug
         """
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bz = self.bzclass(url=self.url)
         getallbugid = "663674"
         setbugid = "461686"
         cmd = "bugzilla attach "
@@ -585,7 +587,7 @@ class RHPartnerTest(BaseTest):
 
 
     def test09Whiteboards(self):
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bz = self.bzclass(url=self.url)
         bug_id = "663674"
         cmd = "bugzilla modify %s " % bug_id
         bug = bz.getbug(bug_id)
@@ -687,19 +689,9 @@ class RHPartnerTest(BaseTest):
             getpass.getpass = oldgetpass
 
 
-    def test10LoginState(self):
-        bz = self.bzclass(url=self.url, use_creds=False)
-        self.assertFalse(bz.logged_in,
-            "Login state check failed for logged out user.")
-
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
-        self.assertTrue(bz.logged_in,
-            "Login state check failed for logged in user.")
-
-
     def test11UserUpdate(self):
         # This won't work if run by the same user we are using
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bz = self.bzclass(url=self.url)
         email = "anaconda-maint-list@redhat.com"
         group = "fedora_contrib"
 
@@ -761,7 +753,7 @@ class RHPartnerTest(BaseTest):
 
 
     def test11ComponentEditing(self):
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bz = self.bzclass(url=self.url)
         component = ("python-bugzilla-testcomponent-%s" %
                      str(random.randint(1, 1024 * 1024 * 1024)))
         basedata = {
@@ -833,11 +825,7 @@ class RHPartnerTest(BaseTest):
 
     def test12SetCookie(self):
         bz = self.bzclass("partner-bugzilla.redhat.com",
-            cookiefile=cf, tokenfile=None)
-
-        fn = sys._getframe().f_code.co_name  # pylint: disable=protected-access
-        if not self._check_rh_privs(bz, "cookie", fn):
-            return
+            cookiefile=-1, tokenfile=None)
 
         try:
             bz.cookiefile = None
@@ -850,11 +838,10 @@ class RHPartnerTest(BaseTest):
         bz.disconnect()
         bz.cookiefile = None
         bz.connect()
-        self.assertFalse(bool(self._check_rh_privs(
-            bz, "", "cookie", quiet=True)))
+        self.assertFalse(bz.logged_in)
 
     def test13SubComponents(self):
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bz = self.bzclass(url=self.url)
         # Long closed RHEL5 lvm2 bug. This component has sub_components
         bug = bz.getbug("185526")
         bug.autorefresh = True
@@ -871,13 +858,13 @@ class RHPartnerTest(BaseTest):
         self.assertEqual(bug.sub_components, {})
 
     def _deleteAllExistingExternalTrackers(self, bugid):
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bz = self.bzclass(url=self.url)
         ids = [bug['id'] for bug in bz.getbug(bugid).external_bugs]
         if ids != []:
             bz.remove_external_tracker(ids=ids)
 
     def test14ExternalTrackersQuery(self):
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bz = self.bzclass(url=self.url)
         bugid = 461686
         ext_bug_id = 1234659
 
@@ -925,7 +912,7 @@ class RHPartnerTest(BaseTest):
         assert bugid in [qr.id for qr in query_results]
 
     def test14ExternalTrackersAddUpdateRemoveQuery(self):
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bz = self.bzclass(url=self.url)
         bugid = 461686
         ext_bug_id = 380489
 
@@ -973,14 +960,14 @@ class RHPartnerTest(BaseTest):
         assert len(ids) == 0
 
     def test15EnsureLoggedIn(self):
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bz = self.bzclass(url=self.url)
         comm = "bugzilla --ensure-logged-in query --bug_id 979546"
         tests.clicomm(comm, bz)
 
     def test16ModifyTags(self):
         bugid = "461686"
         cmd = "bugzilla modify %s " % bugid
-        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bz = self.bzclass(url=self.url)
         bug = bz.getbug(bugid)
 
         if bug.tags:
