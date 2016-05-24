@@ -6,9 +6,6 @@ Red Hat bugzilla originally had a totally custom API. Much of that is
 being dropped in 2013, API conversions outlined here:
 https://bugzilla.redhat.com/show_bug.cgi?id=822007
 
-Current RH bugzilla docs:
-https://bugzilla.redhat.com/docs/en/html/api/
-
 Externally facing RH bugzilla instance that doesn't send email and is
 refreshed periodically. This is what is used in the functional test suite:
 http://partner-bugzilla.redhat.com
@@ -22,6 +19,7 @@ Some trackers in the wild to use for API testing:
     bugzilla.novell.com
     bugzilla.zimbra.com
     bugzilla.samba.org
+    bugs.gentoo.org
 
 
   Upstream timeline
@@ -34,90 +32,87 @@ Bugzilla 2.*:
 
 Bugzilla 3.0:
     http://www.bugzilla.org/docs/3.0/html/api/index.html
-    Bug:
-        legal_values
-        get_bugs:
-            returns: id, alias, summary, creation_time, last_change_time
-        create
-    Bugzilla:
-        version
-        timezone
-    Product:
-        get_selectable_products
-        get_enterable_products
-        get_accessible_products
-        get_products
-    User:
-        login
-        logout
-        offer_account_by_email
-        create
+    Bug.legal_values
+    Bug.get_bugs:
+        returns: id, alias, summary, creation_time, last_change_time
+    Bug.create
+    Bugzilla.version
+    Bugzilla.timezone
+    Product.get_selectable_products
+    Product.get_enterable_products
+    Product.get_accessible_products
+    Product.get_products
+    User.login
+    User.logout
+    User.offer_account_by_email
+    User.create
 
 Bugzilla 3.2:
     http://www.bugzilla.org/docs/3.2/en/html/api/
-    Bug:
-        RENAME: get_bugs->get, get_bugs should still work
-        add_comment
-    Bugzilla:
-        extensions
-    Product:
-        RENAME: get_products->get, get_products should still work
+    Bug: RENAME: get_bugs->get, get_bugs should still work
+    Bug.add_comment
+    Bugzilla.extensions
+    Product: RENAME: get_products->get, get_products should still work
 
 Bugzilla 3.4:
     http://www.bugzilla.org/docs/3.4/en/html/api/
-    Bug:
-        comments
-        history
-        search
-        update_see_also
-    Bugzilla:
-        time
-        DEPRECATED: timezon,e use time instead
-    User:
-        get
-    Util:
-        filter_fields
-        validate
+    Bug.comments
+    Bug.history
+    Bug.search
+    Bug.update_see_also
+    Bugzilla.time
+    Bugzilla: DEPRECATED: timezone, use time instead
+    User.get
+    Util.filter_fields
+    Util.validate
 
 Bugzilla 3.6:
     http://www.bugzilla.org/docs/3.6/en/html/api/
-    Bug:
-        attachments
-        fields
-        DEPRECATED: legal_values
-    Bugzilla:
-        timezone now always returns UTC+0000
+    Bug.attachments
+    Bug.fields
+    Bug: DEPRECATED: legal_values
+    Bugzilla: timezone now always returns UTC+0000
 
 Bugzilla 4.0:
     http://www.bugzilla.org/docs/4.0/en/html/api/
-    Bug:
-        add_attachment
-        update
-    Util:
-        filter_wants
+    Bug.add_attachment
+    Bug.update
+    Util.filter_wants
 
 Bugzilla 4.2:
     http://www.bugzilla.org/docs/4.2/en/html/api/
-    Group:
-        create
-    Product:
-        create
+    Group.create
+    Product.create
 
 Bugzilla 4.4:
     http://www.bugzilla.org/docs/4.4/en/html/api/
-    Bug:
-        update_tags
-    Bugzilla:
-        parameters
-        last_audit_time
-    Classification:
-        get
-    Group:
-        update
-    Product:
-        update
-    User:
-        update
-    Util:
-        translate
-        params_to_objects
+    Bug.update_tags
+    Bugzilla.parameters
+    Bugzilla.last_audit_time
+    Classification.get
+    Group.update
+    Product.update
+    User.update
+    Util.translate
+    Util.params_to_objects
+
+Bugzilla 5.0: (July 2015)
+    https://www.bugzilla.org/docs/5.0/en/html/integrating/api/index.html
+    Bug.update_attachment
+    Bug.search/update_comment_tags
+    Bug.search:
+        search() now supports --from-url style, like rhbz before it
+        search() now supports quicksearch
+    Bug.update:
+        update() alias is now a hash of add/remove/set, but has back compat
+        update() can take 'flags' config now
+    Component (new, or newly documented?)
+    Component.create
+    User.valid_login
+
+
+Redhat Bugzilla: 4.4 based with extensions. Bits on top of 4.4
+    https://bugzilla.redhat.com/docs/en/html/api/
+    Bug.search has --from-url extension
+    Bug.update has more hashing support
+    ExternalBugs extension: https://bugzilla.redhat.com/docs/en/html/api/extensions/ExternalBugs/lib/WebService.html

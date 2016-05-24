@@ -179,6 +179,7 @@ class Bug(object):
 
         To change bugs to CLOSED, use .close() instead.
         '''
+        # Note: fedora bodhi uses this function
         ignore = private_in_it
         ignore = nomail
 
