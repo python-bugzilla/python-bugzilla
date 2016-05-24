@@ -965,3 +965,26 @@ class RHPartnerTest(BaseTest):
         bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
         comm = "bugzilla --ensure-logged-in query --bug_id 979546"
         tests.clicomm(comm, bz)
+
+    def test16ModifyTags(self):
+        bugid = "461686"
+        cmd = "bugzilla modify %s " % bugid
+        bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
+        bug = bz.getbug(bugid)
+
+        if bug.tags:
+            bz.update_tags(bug.id, tags_remove=bug.tags)
+            bug.refresh()
+            self.assertEquals(bug.tags, [])
+
+        tests.clicomm(cmd + "--tags foo --tags +bar --tags baz", bz)
+        bug.refresh()
+        self.assertEquals(bug.tags, ["foo", "bar", "baz"])
+
+        tests.clicomm(cmd + "--tags -bar", bz)
+        bug.refresh()
+        self.assertEquals(bug.tags, ["foo", "baz"])
+
+        bz.update_tags(bug.id, tags_remove=bug.tags)
+        bug.refresh()
+        self.assertEquals(bug.tags, [])
