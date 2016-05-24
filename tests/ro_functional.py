@@ -174,24 +174,24 @@ class RHTest(BaseTest):
     bzversion = (4, 4)
 
     test0 = BaseTest._testBZVersion
-    test1 = lambda s: BaseTest._testInfoProducts(s, 125,
+    test01 = lambda s: BaseTest._testInfoProducts(s, 125,
                                                  "Virtualization Tools")
-    test2 = lambda s: BaseTest._testInfoComps(s, "Virtualization Tools",
+    test02 = lambda s: BaseTest._testInfoComps(s, "Virtualization Tools",
                                               10, "virt-manager")
-    test3 = lambda s: BaseTest._testInfoVers(s, "Fedora", 19, "rawhide")
-    test4 = lambda s: BaseTest._testInfoCompOwners(s, "Virtualization Tools",
-                                        "libvirt: Libvirt Maintainers")
+    test03 = lambda s: BaseTest._testInfoVers(s, "Fedora", 19, "rawhide")
+    test04 = lambda s: BaseTest._testInfoCompOwners(s, "Virtualization Tools",
+                                         "libvirt: Libvirt Maintainers")
 
-    test5 = lambda s: BaseTest._testQuery(s,
+    test05 = lambda s: BaseTest._testQuery(s,
                 "--product Fedora --component python-bugzilla --version 14",
                 6, "621030")
-    test6 = lambda s: BaseTest._testQueryFull(s, "621601", 60,
+    test06 = lambda s: BaseTest._testQueryFull(s, "621601", 60,
                                               "end-of-life (EOL)")
-    test7 = lambda s: BaseTest._testQueryRaw(s, "307471", 70,
+    test07 = lambda s: BaseTest._testQueryRaw(s, "307471", 70,
                 "ATTRIBUTE[whiteboard]:  bzcl34nup")
-    test8 = lambda s: BaseTest._testQueryOneline(s, "785016",
+    test08 = lambda s: BaseTest._testQueryOneline(s, "785016",
                 "[---] fedora-review+,fedora-cvs+")
-    test9 = lambda s: BaseTest._testQueryExtra(s, "307471",
+    test09 = lambda s: BaseTest._testQueryExtra(s, "307471",
             " +Status Whiteboard:  bzcl34nup")
     test10 = lambda s: BaseTest._testQueryFormat(s,
             "--bug_id 307471 --outputformat=\"id=%{bug_id} "

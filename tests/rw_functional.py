@@ -89,7 +89,7 @@ class RHPartnerTest(BaseTest):
     test2 = BaseTest._testBZClass
 
 
-    def test3NewBugBasic(self):
+    def test03NewBugBasic(self):
         """
         Create a bug with minimal amount of fields, then close it
         """
@@ -127,7 +127,7 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug.resolution, "NOTABUG")
 
 
-    def test4NewBugAllFields(self):
+    def test04NewBugAllFields(self):
         """
         Create a bug using all 'new' fields, check some values, close it
         """
@@ -186,7 +186,7 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug.alias, [alias])
 
 
-    def test5ModifyStatus(self):
+    def test05ModifyStatus(self):
         """
         Modify status and comment fields for an existing bug
         """
@@ -270,7 +270,7 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug.status, origstatus)
 
 
-    def test6ModifyEmails(self):
+    def test06ModifyEmails(self):
         """
         Modify cc, assignee, qa_contact for existing bug
         """
@@ -317,7 +317,7 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug.qa_contact, "extras-qa@fedoraproject.org")
 
 
-    def test7ModifyMultiFlags(self):
+    def test07ModifyMultiFlags(self):
         """
         Modify flags and fixed_in for 2 bugs
         """
@@ -394,7 +394,7 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug2.fixed_in, "-")
 
 
-    def test7ModifyMisc(self):
+    def test07ModifyMisc(self):
         bugid = "461686"
         cmd = "bugzilla modify %s " % bugid
         bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
@@ -482,7 +482,7 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug.cf_release_notes, "baz")
 
 
-    def test8Attachments(self):
+    def test08Attachments(self):
         tmpdir = "__test_attach_output"
         if tmpdir in os.listdir("."):
             os.system("rm -r %s" % tmpdir)
@@ -574,7 +574,7 @@ class RHPartnerTest(BaseTest):
             os.unlink(f)
 
 
-    def test9Whiteboards(self):
+    def test09Whiteboards(self):
         bz = self.bzclass(url=self.url, cookiefile=cf, tokenfile=tf)
         bug_id = "663674"
         cmd = "bugzilla modify %s " % bug_id
