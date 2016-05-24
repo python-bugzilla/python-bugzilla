@@ -304,87 +304,6 @@ class Bug(object):
         return comment_list['bugs'][str(self.bug_id)]['comments']
 
 
-    ##########################
-    # Get/set bug whiteboard #
-    ##########################
-
-    def _dowhiteboard(self, text, which, action, comment, private):
-        '''
-        Update the whiteboard given by 'which' for the given bug.
-        '''
-        if which not in ["status", "qa", "devel", "internal"]:
-            raise ValueError("Unknown whiteboard type '%s'" % which)
-
-        if not which.endswith('_whiteboard'):
-            which = which + '_whiteboard'
-        if which == "status_whiteboard":
-            which = "whiteboard"
-
-        if action != 'overwrite':
-            wb = getattr(self, which, '').strip()
-            tags = wb.split()
-
-            sep = " "
-            for t in tags:
-                if t.endswith(","):
-                    sep = ", "
-
-            if action == 'prepend':
-                text = text + sep + wb
-            elif action == 'append':
-                text = wb + sep + text
-            else:
-                raise ValueError("Unknown whiteboard action '%s'" % action)
-
-        updateargs = {which: text}
-        vals = self.bugzilla.build_update(comment=comment,
-                                          comment_private=private,
-                                          **updateargs)
-        log.debug("_updatewhiteboard: update=%s", vals)
-
-        self.bugzilla.update_bugs(self.bug_id, vals)
-
-
-    def appendwhiteboard(self, text, which='status',
-                         comment=None, private=False):
-        '''Append the given text (with a space before it) to the given
-        whiteboard. Defaults to using status_whiteboard.'''
-        self._dowhiteboard(text, which, "append", comment, private)
-
-    def prependwhiteboard(self, text, which='status',
-                          comment=None, private=False):
-        '''Prepend the given text (with a space following it) to the given
-        whiteboard. Defaults to using status_whiteboard.'''
-        self._dowhiteboard(text, which, "prepend", comment, private)
-
-    def setwhiteboard(self, text, which='status',
-                      comment=None, private=False):
-        '''Overwrites the contents of the given whiteboard with the given text.
-        Defaults to using status_whiteboard.'''
-        self._dowhiteboard(text, which, "overwrite", comment, private)
-
-    def addtag(self, tag, which='status'):
-        '''Adds the given tag to the given bug.'''
-        whiteboard = self.getwhiteboard(which)
-        if whiteboard:
-            self.appendwhiteboard(tag, which)
-        else:
-            self.setwhiteboard(tag, which)
-
-    def gettags(self, which='status'):
-        '''Get a list of tags (basically just whitespace-split the given
-        whiteboard)'''
-        return self.getwhiteboard(which).split()
-
-    def deltag(self, tag, which='status'):
-        '''Removes the given tag from the given bug.'''
-        tags = self.gettags(which)
-        for t in tags:
-            if t.strip(",") == tag:
-                tags.remove(t)
-        self.setwhiteboard(' '.join(tags), which)
-
-
     #####################
     # Get/Set bug flags #
     #####################
@@ -462,18 +381,6 @@ class Bug(object):
         Experimental. Get the history of changes for this bug.
         '''
         return self.bugzilla.bugs_history([self.bug_id])
-
-
-    ######################
-    # Deprecated methods #
-    ######################
-
-    def getwhiteboard(self, which='status'):
-        '''
-        Deprecated. Use bug.qa_whiteboard, bug.devel_whiteboard, etc.
-        '''
-        return getattr(self, "%s_whiteboard" % which)
-
 
 
 class User(object):

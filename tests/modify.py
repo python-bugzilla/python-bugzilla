@@ -90,7 +90,7 @@ class ModifyTest(unittest.TestCase):
     def testWhiteboard(self):
         self.clicomm(
             "--whiteboard tagfoo --whiteboard -tagbar",
-            {}, wbout={"status": (["tagfoo"], ["tagbar"])}
+            {}, wbout={"whiteboard": (["tagfoo"], ["tagbar"])}
         )
         self.clicomm(
             "--whiteboard =foo --whiteboard =thisone",
@@ -105,9 +105,9 @@ class ModifyTest(unittest.TestCase):
             {'cf_devel_whiteboard': 'devel-duh',
              'cf_internal_whiteboard': 'internal-hey',
              'cf_qa_whiteboard': 'yo-qa'}, wbout={
-                "qa": ([], ["foo"]),
-                "internal": (["bar"], []),
-                "devel": ([], ["yay"])
+                "qa_whiteboard": ([], ["foo"]),
+                "internal_whiteboard": (["bar"], []),
+                "devel_whiteboard": ([], ["yay"])
             }, tags_add=["foo1"], tags_rm=["remove2"],
         )
 

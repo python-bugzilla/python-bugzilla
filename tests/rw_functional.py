@@ -599,35 +599,29 @@ class RHPartnerTest(BaseTest):
         # Modify whiteboards
         tests.clicomm(cmd +
                       "--whiteboard =foobar "
-                      "--qa_whiteboard _app ", bz)
-        bug.prependwhiteboard("pre-", "devel")
+                      "--qa_whiteboard _app "
+                      "--devel_whiteboard =pre-%s" % bug.devel_whiteboard, bz)
 
         bug.refresh()
         self.assertEquals(bug.qa_whiteboard, initval + "qa" + " _app")
-        self.assertEquals(bug.devel_whiteboard, "pre- " + initval + "devel")
+        self.assertEquals(bug.devel_whiteboard, "pre-" + initval + "devel")
         self.assertEquals(bug.status_whiteboard, "foobar")
 
         # Verify that tag manipulation is smart about separator
         tests.clicomm(cmd +
                       "--qa_whiteboard -_app "
-                      "--internal_whiteboard -security", bz)
+                      "--internal_whiteboard -security,", bz)
         bug.refresh()
 
         self.assertEquals(bug.qa_whiteboard, initval + "qa")
         self.assertEquals(bug.internal_whiteboard,
                           initval + "internal, foo security1")
 
-        bug.addtag("teststuff", "internal")
-        bug.refresh()
-        self.assertEquals(bug.internal_whiteboard,
-                          initval + "internal, foo security1, teststuff")
-
-
         # Clear whiteboards
-        bug.setwhiteboard("", "status")
-        bug.setwhiteboard("", "qa")
-        bug.setwhiteboard("", "devel")
-        bug.setwhiteboard("", "internal")
+        update = bz.build_update(
+            whiteboard="", devel_whiteboard="",
+            internal_whiteboard="", qa_whiteboard="")
+        bz.update_bugs(bug.id, update)
 
         bug.refresh()
         self.assertEquals(bug.whiteboard, "")

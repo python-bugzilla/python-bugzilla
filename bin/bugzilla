@@ -1051,10 +1051,10 @@ def _do_modify(bz, parser, opt, args):
 
     # We make this a little convoluted to facilitate unit testing
     wbmap = {
-        "status": (add_wb, rm_wb),
-        "internal": (add_intwb, rm_intwb),
-        "qa": (add_qawb, rm_qawb),
-        "devel": (add_devwb, rm_devwb),
+        "whiteboard": (add_wb, rm_wb),
+        "internal_whiteboard": (add_intwb, rm_intwb),
+        "qa_whiteboard": (add_qawb, rm_qawb),
+        "devel_whiteboard": (add_devwb, rm_devwb),
     }
 
     for k, v in wbmap.copy().items():
@@ -1088,14 +1088,27 @@ def _do_modify(bz, parser, opt, args):
         return
 
     # Now for the things we can't blindly batch.
-    # This could be improved to batch identical updates.
+    # Being able to prepend/append to whiteboards, which are just
+    # plain string values, is an old rhbz semantic that we try to maintain
+    # here. This is a bit weird for traditional bugzilla XMLRPC
     log.debug("Adjusting whiteboard fields one by one")
     for bug in bz.getbugs(bugid_list):
-        for wbtype, (add_list, rm_list) in wbmap.items():
+        for wb, (add_list, rm_list) in wbmap.items():
             for tag in add_list:
-                bug.addtag(tag, which=wbtype)
+                newval = getattr(bug, wb) or ""
+                if newval:
+                    newval += " "
+                newval += tag
+                bz.update_bugs([bug.id],
+                               bz.build_update(**{wb: newval}))
+
             for tag in rm_list:
-                bug.deltag(tag, which=wbtype)
+                newval = (getattr(bug, wb) or "").split()
+                for t in newval[:]:
+                    if t == tag:
+                        newval.remove(t)
+                bz.update_bugs([bug.id],
+                               bz.build_update(**{wb: " ".join(newval)}))
 
 
 def _do_get_attach(bz, opt, parser, args):
