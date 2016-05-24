@@ -143,7 +143,7 @@ class _BugzillaAPICache(object):
         self.components_details = {}
 
 
-class BugzillaBase(object):
+class Bugzilla(object):
     '''An object which represents the data and methods exported by a Bugzilla
     instance. Uses xmlrpclib to do its thing. You'll want to create one thusly:
     bz=Bugzilla(url='https://bugzilla.redhat.com/xmlrpc.cgi',

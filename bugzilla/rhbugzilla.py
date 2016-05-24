@@ -11,12 +11,12 @@
 
 from logging import getLogger
 
-from .base import BugzillaBase
+from .base import Bugzilla
 
 log = getLogger(__name__)
 
 
-class RHBugzilla(BugzillaBase):
+class RHBugzilla(Bugzilla):
     '''
     Bugzilla class for connecting Red Hat's forked bugzilla instance,
     bugzilla.redhat.com
@@ -106,7 +106,7 @@ class RHBugzilla(BugzillaBase):
         get_sub_component()
         get_alias()
 
-        vals = BugzillaBase.build_update(self, **kwargs)
+        vals = Bugzilla.build_update(self, **kwargs)
         vals.update(adddict)
 
         return vals
@@ -477,7 +477,7 @@ class RHBugzilla(BugzillaBase):
         if extra_fields:
             query["extra_fields"] = extra_fields
 
-        newquery = BugzillaBase.build_query(self, **kwargs)
+        newquery = Bugzilla.build_query(self, **kwargs)
         query.update(newquery)
         self.pre_translation(query)
         return query

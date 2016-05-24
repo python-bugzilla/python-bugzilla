@@ -13,8 +13,7 @@ if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
 else:
     from StringIO import StringIO
 
-from bugzilla.base import BugzillaBase
-from bugzilla import RHBugzilla
+from bugzilla import Bugzilla, RHBugzilla
 
 
 _cleanup = []
@@ -40,7 +39,7 @@ REDHAT_URL = None
 
 
 def make_bz(version, *args, **kwargs):
-    cls = BugzillaBase
+    cls = Bugzilla
     if kwargs.pop("rhbz", False):
         cls = RHBugzilla
     if "cookiefile" not in kwargs:
