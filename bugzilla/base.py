@@ -1112,25 +1112,6 @@ class Bugzilla(object):
         return [Bug(self, dict=b,
                 autorefresh=self.bug_autorefresh) for b in r['bugs']]
 
-    def simplequery(self, product, version='', component='',
-                    string='', matchtype='allwordssubstr'):
-        '''Convenience method - query for bugs filed against the given
-        product, version, and component whose comments match the given string.
-        matchtype specifies the type of match to be done. matchtype may be
-        any of the types listed in querydefaults['long_desc_type_list'], e.g.:
-        ['allwordssubstr', 'anywordssubstr', 'substring', 'casesubstring',
-         'allwords', 'anywords', 'regexp', 'notregexp']
-        Return value is the same as with query().
-        '''
-        q = {
-            'product': product,
-            'version': version,
-            'component': component,
-            'long_desc': string,
-            'long_desc_type': matchtype
-        }
-        return self.query(q)
-
     def pre_translation(self, query):
         '''In order to keep the API the same, Bugzilla4 needs to process the
         query and the result. This also applies to the refresh() function
