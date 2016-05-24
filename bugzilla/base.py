@@ -1113,12 +1113,13 @@ class Bugzilla(object):
         '''
         pass
 
-    def bugs_history(self, bug_ids):
+    def bugs_history_raw(self, bug_ids):
         '''
         Experimental. Gets the history of changes for
         particular bugs in the database.
         '''
         return self._proxy.Bug.history({'ids': bug_ids})
+
 
     #######################################
     # Methods for modifying existing bugs #

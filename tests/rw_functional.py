@@ -185,6 +185,11 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug.resolution, "WONTFIX")
         self.assertEquals(bug.alias, [alias])
 
+        # Check bug's minimal history
+        ret = bug.get_history_raw()
+        self.assertTrue(len(ret["bugs"]) == 1)
+        self.assertTrue(len(ret["bugs"][0]["history"]) == 1)
+
 
     def test05ModifyStatus(self):
         """

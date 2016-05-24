@@ -376,11 +376,11 @@ class Bug(object):
 
         return [a["id"] for a in attachments]
 
-    def get_history(self):
+    def get_history_raw(self):
         '''
         Experimental. Get the history of changes for this bug.
         '''
-        return self.bugzilla.bugs_history([self.bug_id])
+        return self.bugzilla.bugs_history_raw([self.bug_id])
 
 
 class User(object):
