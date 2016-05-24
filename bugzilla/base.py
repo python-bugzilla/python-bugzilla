@@ -231,9 +231,13 @@ class BugzillaBase(object):
             url = url + '/xmlrpc.cgi'
         return url
 
-    def __init__(self, url=None, user=None, password=None, cookiefile=-1,
+    def __init__(self, url=-1, user=None, password=None, cookiefile=-1,
                  sslverify=True, tokenfile=-1):
         """
+        :param url: The bugzilla instance URL, which we will connect
+            to immediately. Most users will want to specify this at
+            __init__ time, but you can defer connecting by passing
+            url=None and calling connect(URL) manually
         :param cookiefile: If -1, use the default path. If None, don't use
             or save any cookiefile.
         :param tokenfile: If -1, use the default path. If None, don't use
@@ -242,7 +246,10 @@ class BugzillaBase(object):
             False to disable SSL verification, but it can also be a path
             to file or directory for custom certs.
         """
-        self._init_class_from_url(url, sslverify)
+        if url is -1:
+            raise TypeError("Specify a valid bugzilla url, or pass url=None")
+        if url is not None:
+            self._init_class_from_url(url, sslverify)
 
         # Settings the user might want to tweak
         self.user = user or ''
@@ -277,8 +284,6 @@ class BugzillaBase(object):
         Detect if we should use RHBugzilla class, and if so, set it
         """
         from bugzilla import RHBugzilla
-        if url is None:
-            return
 
         url = self.fix_url(url)
         log.debug("Detecting subclass for %s", url)

@@ -11,12 +11,10 @@ Unit tests for building update dictionaries with 'bugzilla modify'
 
 import unittest
 
-from bugzilla.rhbugzilla import RHBugzilla
-
 import tests
 
 
-rhbz = RHBugzilla(cookiefile=None, tokenfile=None)
+rhbz = tests.make_bz("4.4.0", rhbz=True)
 
 
 class ModifyTest(unittest.TestCase):

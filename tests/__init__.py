@@ -47,6 +47,8 @@ def make_bz(version, *args, **kwargs):
         kwargs["cookiefile"] = None
     if "tokenfile" not in kwargs:
         kwargs["tokenfile"] = None
+    if "url" not in kwargs:
+        kwargs["url"] = None
     bz = cls(*args, **kwargs)
     bz._set_bz_version(version)  # pylint: disable=protected-access
     return bz

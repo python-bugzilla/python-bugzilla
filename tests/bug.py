@@ -13,13 +13,13 @@ import pickle
 import sys
 import unittest
 
+import tests
 from tests import StringIO
 
-from bugzilla import RHBugzilla
 from bugzilla.bug import _Bug
 
 
-rhbz = RHBugzilla(cookiefile=None, tokenfile=None)
+rhbz = tests.make_bz("4.4.0", rhbz=True)
 
 
 class BugTest(unittest.TestCase):
