@@ -11,9 +11,7 @@ Unit tests for building query strings with bin/bugzilla
 
 from __future__ import print_function
 
-import atexit
 import os
-import shutil
 import sys
 import tempfile
 import unittest
@@ -70,22 +68,16 @@ class MiscAPI(unittest.TestCase):
         cookiesbad = os.path.join(os.getcwd(), "tests/data/cookies-bad.txt")
         cookieslwp = os.path.join(os.getcwd(), "tests/data/cookies-lwp.txt")
         cookiesmoz = os.path.join(os.getcwd(), "tests/data/cookies-moz.txt")
-        cookiesnew = cookieslwp + ".new"
 
-        def cleanup():
-            if os.path.exists(cookiesnew):
-                os.unlink(cookiesnew)
-        atexit.register(cleanup)
-        shutil.copy(cookieslwp, cookiesnew)
-
-        # Mozilla should be converted inplace to LWP
-        tests.make_bz("3.0.0", cookiefile=cookiesnew)
-
-        def strip_comments(content):
-            return [l for l in content.split("\n") if not l.startswith("#")]
-        self.assertEquals(
-            strip_comments(open(cookiesmoz).read()),
-            strip_comments(open(cookiesnew).read()))
+        # We used to convert LWP cookies, but it shouldn't matter anymore,
+        # so verify they fail at least
+        try:
+            tests.make_bz("3.0.0", cookiefile=cookieslwp)
+            raise AssertionError("Expected BugzillaError from parsing %s" %
+                                 os.path.basename(cookieslwp))
+        except bugzilla.BugzillaError:
+            # Expected result
+            pass
 
         # Make sure bad cookies raise an error
         try:

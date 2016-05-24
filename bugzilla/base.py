@@ -21,12 +21,12 @@ from io import BytesIO
 if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
     # pylint: disable=F0401,E0611
     from configparser import SafeConfigParser
-    from http.cookiejar import LoadError, LWPCookieJar, MozillaCookieJar
+    from http.cookiejar import LoadError, MozillaCookieJar
     from urllib.parse import urlparse, parse_qsl
     from xmlrpc.client import Binary, Fault, ServerProxy
 else:
     from ConfigParser import SafeConfigParser
-    from cookielib import LoadError, LWPCookieJar, MozillaCookieJar
+    from cookielib import LoadError, MozillaCookieJar
     from urlparse import urlparse, parse_qsl
     from xmlrpclib import Binary, Fault, ServerProxy
 
@@ -83,27 +83,12 @@ def _build_cookiejar(cookiefile):
         cj.save()
         return cj
 
-    # We always want to use Mozilla cookies, but we previously accepted
-    # LWP cookies. If we see the latter, convert it to former
     try:
         cj.load()
         return cj
     except LoadError:
-        pass
-
-    # pylint: disable=redefined-variable-type
-    try:
-        cj = LWPCookieJar(cookiefile)
-        cj.load()
-    except LoadError:
-        raise BugzillaError("cookiefile=%s not in LWP or Mozilla format" %
+        raise BugzillaError("cookiefile=%s not in Mozilla format" %
                             cookiefile)
-
-    retcj = MozillaCookieJar(cookiefile)
-    for cookie in cj:
-        retcj.set_cookie(cookie)
-    retcj.save()
-    return retcj
 
 
 class _FieldAlias(object):
