@@ -214,7 +214,7 @@ class Bugzilla(object):
         return url
 
     def __init__(self, url=-1, user=None, password=None, cookiefile=-1,
-                 sslverify=True, tokenfile=-1):
+                 sslverify=True, tokenfile=-1, use_creds=True):
         """
         :param url: The bugzilla instance URL, which we will connect
             to immediately. Most users will want to specify this at
@@ -224,6 +224,9 @@ class Bugzilla(object):
             or save any cookiefile.
         :param tokenfile: If -1, use the default path. If None, don't use
             or save any tokenfile.
+        :param use_creds: If False, this disables cookiefile, tokenfile,
+            and any bugzillarc reading. This overwrites any tokenfile
+            or cookiefile settings
         :param sslverify: Maps to 'requests' sslverify parameter. Set to
             False to disable SSL verification, but it can also be a path
             to file or directory for custom certs.
@@ -245,6 +248,12 @@ class Bugzilla(object):
 
         self._field_aliases = []
         self._init_field_aliases()
+
+        self.configpath = ['/etc/bugzillarc', '~/.bugzillarc']
+        if not use_creds:
+            cookiefile = None
+            tokenfile = None
+            self.configpath = []
 
         if cookiefile == -1:
             cookiefile = os.path.expanduser('~/.bugzillacookies')
@@ -398,8 +407,6 @@ class Bugzilla(object):
     #############################
     # Login/connection handling #
     #############################
-
-    configpath = ['/etc/bugzillarc', '~/.bugzillarc']
 
     def readconfig(self, configpath=None):
         '''

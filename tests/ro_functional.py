@@ -28,14 +28,14 @@ class BaseTest(unittest.TestCase):
     def clicomm(self, argstr, expectexc=False):
         comm = "bugzilla " + argstr
 
-        bz = Bugzilla(url=self.url, cookiefile=None, tokenfile=None)
+        bz = Bugzilla(url=self.url, use_creds=False)
         if expectexc:
             self.assertRaises(Exception, tests.clicomm, comm, bz)
         else:
             return tests.clicomm(comm, bz)
 
     def _testBZVersion(self):
-        bz = Bugzilla(self.url, cookiefile=None, tokenfile=None)
+        bz = Bugzilla(self.url, use_creds=False)
         self.assertEquals(bz.__class__, self.bzclass)
         self.assertEquals(bz.bz_ver_major, self.bzversion[0])
         self.assertEquals(bz.bz_ver_minor, self.bzversion[1])
@@ -121,7 +121,7 @@ class BZMozilla(BaseTest):
     def testVersion(self):
         # bugzilla.mozilla.org returns version values in YYYY-MM-DD
         # format, so just try to confirm that
-        bz = Bugzilla("bugzilla.mozilla.org", cookiefile=None, tokenfile=None)
+        bz = Bugzilla("bugzilla.mozilla.org", use_creds=False)
         self.assertEquals(bz.__class__, Bugzilla)
         self.assertTrue(bz.bz_ver_major >= 2016)
         self.assertTrue(bz.bz_ver_minor in range(1, 13))
@@ -137,7 +137,7 @@ class BZGentoo(BaseTest):
         query_url = ("https://bugs.gentoo.org/buglist.cgi?"
             "component=[CS]&product=Doc%20Translations"
             "&query_format=advanced&resolution=FIXED")
-        bz = Bugzilla(url=self.url, cookiefile=None, tokenfile=None)
+        bz = Bugzilla(url=self.url, use_creds=False)
         ret = bz.query(bz.url_to_query(query_url))
         self.assertTrue(len(ret) > 0)
 
@@ -162,7 +162,7 @@ class BZGnome(BaseTest):
         query_url = ("https://bugzilla.gnome.org/buglist.cgi?"
             "bug_status=RESOLVED&order=Importance&product=accerciser"
             "&query_format=advanced&resolution=NOTABUG")
-        bz = Bugzilla(url=self.url, cookiefile=None, tokenfile=None)
+        bz = Bugzilla(url=self.url, use_creds=False)
         try:
             bz.query(bz.url_to_query(query_url))
         except BugzillaError:
@@ -248,7 +248,7 @@ class RHTest(BaseTest):
         """
         Fresh call to getcomponentsdetails should properly refresh
         """
-        bz = self.bzclass(url=self.url, cookiefile=None, tokenfile=None)
+        bz = self.bzclass(url=self.url, use_creds=False)
         self.assertTrue(
             bool(bz.getcomponentsdetails("Red Hat Developer Toolset")))
 
@@ -256,7 +256,7 @@ class RHTest(BaseTest):
         """
         getbug() works if passed an alias
         """
-        bz = self.bzclass(url=self.url, cookiefile=None, tokenfile=None)
+        bz = self.bzclass(url=self.url, use_creds=False)
         bug = bz.getbug("CVE-2011-2527")
         self.assertTrue(bug.bug_id == 720773)
 
@@ -273,7 +273,7 @@ class RHTest(BaseTest):
         self.assertTrue("#1060931 " in out)
 
     def testBugFields(self):
-        bz = self.bzclass(url=self.url, cookiefile=None, tokenfile=None)
+        bz = self.bzclass(url=self.url, use_creds=False)
         fields1 = bz.getbugfields()[:]
         fields2 = bz.getbugfields(force_refresh=True)[:]
         self.assertTrue(bool([f for f in fields1 if
@@ -281,7 +281,7 @@ class RHTest(BaseTest):
         self.assertEqual(fields1, fields2)
 
     def testBugAutoRefresh(self):
-        bz = self.bzclass(self.url, cookiefile=None, tokenfile=None)
+        bz = self.bzclass(self.url, use_creds=False)
 
         bug = bz.query(bz.build_query(bug_id=720773,
             include_fields=["summary"]))[0]

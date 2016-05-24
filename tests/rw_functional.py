@@ -42,7 +42,7 @@ class BaseTest(unittest.TestCase):
     bzclass = None
 
     def _testBZClass(self):
-        bz = Bugzilla(url=self.url, cookiefile=None, tokenfile=None)
+        bz = Bugzilla(url=self.url, use_creds=False)
         self.assertTrue(bz.__class__ is self.bzclass)
 
     def _testCookieOrToken(self):
@@ -687,7 +687,7 @@ class RHPartnerTest(BaseTest):
 
 
     def test10LoginState(self):
-        bz = self.bzclass(url=self.url, cookiefile=None, tokenfile=None)
+        bz = self.bzclass(url=self.url, use_creds=False)
         self.assertFalse(bz.logged_in,
             "Login state check failed for logged out user.")
 

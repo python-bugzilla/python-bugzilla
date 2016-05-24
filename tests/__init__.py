@@ -42,10 +42,8 @@ def make_bz(version, *args, **kwargs):
     cls = Bugzilla
     if kwargs.pop("rhbz", False):
         cls = RHBugzilla
-    if "cookiefile" not in kwargs:
-        kwargs["cookiefile"] = None
-    if "tokenfile" not in kwargs:
-        kwargs["tokenfile"] = None
+    if "cookiefile" not in kwargs and "tokenfile" not in kwargs:
+        kwargs["use_creds"] = False
     if "url" not in kwargs:
         kwargs["url"] = None
     bz = cls(*args, **kwargs)
