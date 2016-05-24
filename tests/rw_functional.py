@@ -232,8 +232,8 @@ class RHPartnerTest(BaseTest):
         bug.refresh()
         self.assertEquals(bug.status, "CLOSED")
         self.assertEquals(bug.resolution, resolution)
-        self.assertEquals(bug.longdescs[-1]["is_private"], 1)
-        self.assertEquals(bug.longdescs[-1]["text"], comment)
+        self.assertEquals(bug.comments[-1]["is_private"], 1)
+        self.assertEquals(bug.comments[-1]["text"], comment)
 
         # Close bug as dup with no comment
         dupeid = "461686"
@@ -268,6 +268,9 @@ class RHPartnerTest(BaseTest):
         bug.refresh()
         self.assertEquals(bug.longdescs[-1]["text"], comment)
         self.assertEquals(bug.longdescs[-1]["is_private"], 0)
+
+        # Confirm comments is same as getcomments
+        self.assertEquals(bug.comments, bug.getcomments())
 
         # Reset state
         tests.clicomm(cmd + "--status %s" % origstatus, bz)
