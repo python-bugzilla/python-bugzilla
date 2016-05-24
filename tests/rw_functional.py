@@ -287,6 +287,7 @@ class RHPartnerTest(BaseTest):
         email2 = "crobinso@redhat.com"
         bug.deletecc(origcc)
         tests.clicomm(cmd + "--cc %s --cc %s" % (email1, email2), bz)
+        bug.addcc(email1)
 
         bug.refresh()
         self.assertTrue(email1 in bug.cc)
