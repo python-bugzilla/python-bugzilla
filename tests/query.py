@@ -255,7 +255,7 @@ class RHBZTest(BZ4Test):
         out_query = translate(in_query)
 
         in_query["include_fields"] = [
-            "cf_devel_whiteboard", "cf_fixed_in", "component"]
+            "cf_devel_whiteboard", "cf_fixed_in", "component", "id"]
         self.assertDictEqual(in_query, out_query)
 
         in_query = {"bug_id": "123,456", "component": "foo,bar"}

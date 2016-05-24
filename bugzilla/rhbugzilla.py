@@ -267,7 +267,8 @@ class RHBugzilla(Bugzilla):
 
         # We need to do this for users here for users that
         # don't call build_query
-        self._convert_include_field_list(query['include_fields'])
+        query.update(self._process_include_fields(query["include_fields"],
+            None, None))
 
         if old != query:
             log.debug("RHBugzilla pretranslated query to: %s", query)
@@ -472,10 +473,8 @@ class RHBugzilla(Bugzilla):
         _add_key("savedsearch_sharer_id", "sharer_id")
         _add_key("sub_component", "sub_components", listify=True)
 
-        extra_fields = self._convert_include_field_list(
-            kwargs.pop('extra_fields', None))
-        if extra_fields:
-            query["extra_fields"] = extra_fields
+        query.update(self._process_include_fields(None, None,
+            kwargs.pop('extra_fields', None)))
 
         newquery = Bugzilla.build_query(self, **kwargs)
         query.update(newquery)

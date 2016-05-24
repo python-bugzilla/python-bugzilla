@@ -292,3 +292,16 @@ class RHTest(BaseTest):
         bug = bz.query(bz.build_query(bug_id=720773,
             include_fields=["summary"]))[0]
         self.assertFalse(hasattr(bug, "component"))
+
+    def testExtraFields(self):
+        bz = self.bzclass(self.url, cookiefile=None, tokenfile=None)
+
+        # Check default extra_fields will pull in comments
+        bug = bz.getbug(720773, exclude_fields=["product"])
+        self.assertTrue("comments" in dir(bug))
+        self.assertTrue("product" not in dir(bug))
+
+        # Ensure that include_fields overrides default extra_fields
+        bug = bz.getbug(720773, include_fields=["summary"])
+        self.assertTrue("summary" in dir(bug))
+        self.assertTrue("comments" not in dir(bug))

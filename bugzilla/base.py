@@ -837,6 +837,37 @@ class Bugzilla(object):
     # getbug* methods #
     ###################
 
+    def _process_include_fields(self, include_fields, exclude_fields,
+                                extra_fields):
+        """
+        Internal helper to process include_fields lists
+        """
+        def _convert_fields(_in):
+            if not _in:
+                return _in
+
+            for newname, oldname in self._get_api_aliases():
+                if oldname in _in:
+                    _in.remove(oldname)
+                    if newname not in _in:
+                        _in.append(newname)
+            return _in
+
+        ret = {}
+        if self._check_version(4, 0):
+            if include_fields:
+                include_fields = _convert_fields(include_fields)
+                if "id" not in include_fields:
+                    include_fields.append("id")
+                ret["include_fields"] = include_fields
+            if exclude_fields:
+                exclude_fields = _convert_fields(exclude_fields)
+                ret["exclude_fields"] = exclude_fields
+        if self._supports_getbug_extra_fields:
+            if extra_fields:
+                ret["extra_fields"] = _convert_fields(extra_fields)
+        return ret
+
     def _get_bug_autorefresh(self):
         """
         This value is passed to Bug.autorefresh for all fetched bugs.
@@ -879,13 +910,9 @@ class Bugzilla(object):
         getbugdata = {"ids": idlist}
         if permissive:
             getbugdata["permissive"] = 1
-        if self._check_version(4, 0):
-            if include_fields:
-                getbugdata["include_fields"] = self._listify(include_fields)
-            if exclude_fields:
-                getbugdata["exclude_fields"] = self._listify(exclude_fields)
-        if self._supports_getbug_extra_fields:
-            getbugdata["extra_fields"] = extra_fields
+
+        getbugdata.update(self._process_include_fields(
+            include_fields, exclude_fields, extra_fields))
 
         log.debug("Calling Bug.get with: %s", getbugdata)
         r = self._proxy.Bug.get(getbugdata)
@@ -951,17 +978,6 @@ class Bugzilla(object):
     #################
     # query methods #
     #################
-
-    def _convert_include_field_list(self, _in):
-        if not _in:
-            return _in
-
-        for newname, oldname in self._get_api_aliases():
-            if oldname in _in:
-                _in.remove(oldname)
-                if newname not in _in:
-                    _in.append(newname)
-        return _in
 
     def build_query(self,
                     product=None,
@@ -1064,16 +1080,8 @@ class Bugzilla(object):
         }
 
         # 'include_fields' only available for Bugzilla4+
-        if self._check_version(4, 0):
-            include_fields = self._convert_include_field_list(include_fields)
-            if include_fields:
-                if 'id' not in include_fields:
-                    include_fields.append('id')
-                query["include_fields"] = include_fields
-
-            exclude_fields = self._convert_include_field_list(exclude_fields)
-            if exclude_fields:
-                query["exclude_fields"] = exclude_fields
+        query.update(self._process_include_fields(
+            include_fields, exclude_fields, None))
 
         # Strip out None elements in the dict
         for k, v in query.copy().items():

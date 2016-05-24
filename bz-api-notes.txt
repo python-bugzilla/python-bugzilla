@@ -115,4 +115,5 @@ Redhat Bugzilla: 4.4 based with extensions. Bits on top of 4.4
     https://bugzilla.redhat.com/docs/en/html/api/
     Bug.search has --from-url extension
     Bug.update has more hashing support
+    extra_fields for fetching comments, attachments, etc at Bug.get time
     ExternalBugs extension: https://bugzilla.redhat.com/docs/en/html/api/extensions/ExternalBugs/lib/WebService.html
