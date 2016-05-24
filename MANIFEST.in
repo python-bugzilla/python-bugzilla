@@ -3,4 +3,5 @@ include bugzilla.1
 include xmlrpc-api-notes.txt
 include python-bugzilla.spec
 include *requirements.txt
+recursive-include examples *.py
 recursive-include tests *.py *.txt *.cfg

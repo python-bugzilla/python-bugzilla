@@ -126,7 +126,7 @@ class PylintCommand(Command):
         pass
 
     def _run(self):
-        files = ["bugzilla/", "bin-bugzilla", "tests/*.py"]
+        files = ["bugzilla/", "bin-bugzilla", "examples/*.py", "tests/*.py"]
         output_format = sys.stdout.isatty() and "colorized" or "text"
 
         cmd = "pylint "
