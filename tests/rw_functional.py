@@ -75,7 +75,7 @@ class RHPartnerTest(BaseTest):
         # Check a known account that likely won't ever go away
         ret = bool(bz.getuser("anaconda-maint-list@redhat.com").groupnames)
         if not ret:
-            print("\nNo admin privs, skipping %s" % funcname)
+            print("\nNo admin privs, reduced testing of %s" % funcname)
         return ret
 
     def _check_rh_privs(self, bz, funcname, authtype, quiet=False):
@@ -685,32 +685,58 @@ class RHPartnerTest(BaseTest):
         group = "fedora_contrib"
 
         fn = sys._getframe().f_code.co_name  # pylint: disable=protected-access
-        if not self._check_have_admin(bz, fn):
-            return
+        have_admin = self._check_have_admin(bz, fn)
 
         user = bz.getuser(email)
-        self.assertTrue(group in user.groupnames)
+        if have_admin:
+            self.assertTrue(group in user.groupnames)
         origgroups = user.groupnames
 
         # Remove the group
-        bz.updateperms(email, "remove", [group])
-        user.refresh()
-        self.assertTrue(group not in user.groupnames)
+        try:
+            bz.updateperms(email, "remove", [group])
+            user.refresh()
+            self.assertTrue(group not in user.groupnames)
+        except:
+            e = sys.exc_info()[1]
+            if have_admin:
+                raise
+            self.assertTrue("Sorry, you aren't a member" in str(e))
 
         # Re add it
-        bz.updateperms(email, "add", group)
-        user.refresh()
-        self.assertTrue(group in user.groupnames)
+        try:
+            bz.updateperms(email, "add", group)
+            user.refresh()
+            self.assertTrue(group in user.groupnames)
+        except:
+            e = sys.exc_info()[1]
+            if have_admin:
+                raise
+            self.assertTrue("Sorry, you aren't a member" in str(e))
 
         # Set groups
-        newgroups = user.groupnames[:]
-        newgroups.remove(group)
-        bz.updateperms(email, "set", newgroups)
-        user.refresh()
-        self.assertTrue(group not in user.groupnames)
+        try:
+            newgroups = user.groupnames[:]
+            if have_admin:
+                newgroups.remove(group)
+            bz.updateperms(email, "set", newgroups)
+            user.refresh()
+            self.assertTrue(group not in user.groupnames)
+        except:
+            e = sys.exc_info()[1]
+            if have_admin:
+                raise
+            self.assertTrue("Sorry, you aren't a member" in str(e))
 
         # Reset everything
-        bz.updateperms(email, "set", origgroups)
+        try:
+            bz.updateperms(email, "set", origgroups)
+        except:
+            e = sys.exc_info()[1]
+            if have_admin:
+                raise
+            self.assertTrue("Sorry, you aren't a member" in str(e))
+
         user.refresh()
         self.assertEqual(user.groupnames, origgroups)
 
@@ -725,9 +751,7 @@ class RHPartnerTest(BaseTest):
         }
 
         fn = sys._getframe().f_code.co_name  # pylint: disable=protected-access
-        if not self._check_have_admin(bz, fn):
-            return
-
+        have_admin = self._check_have_admin(bz, fn)
 
         def compare(data, newid):
             proxy = bz._proxy  # pylint: disable=protected-access
@@ -757,10 +781,17 @@ class RHPartnerTest(BaseTest):
             "initialcclist": ["wwoods@redhat.com", "toshio@fedoraproject.org"],
             "is_active": True,
         })
-        newid = bz.addcomponent(data)['id']
-        print("Created product=%s component=%s" % (
-            basedata["product"], basedata["component"]))
-        compare(data, newid)
+        try:
+            newid = bz.addcomponent(data)['id']
+            print("Created product=%s component=%s" % (
+                basedata["product"], basedata["component"]))
+            compare(data, newid)
+        except:
+            e = sys.exc_info()[1]
+            if have_admin:
+                raise
+            self.assertTrue("Sorry, you aren't a member" in str(e))
+
 
         # Edit component
         data = basedata.copy()
@@ -772,8 +803,14 @@ class RHPartnerTest(BaseTest):
                               "virt-maint@lists.fedoraproject.org"],
             "is_active": False,
         })
-        bz.editcomponent(data)
-        compare(data, newid)
+        try:
+            bz.editcomponent(data)
+            compare(data, newid)
+        except:
+            e = sys.exc_info()[1]
+            if have_admin:
+                raise
+            self.assertTrue("Sorry, you aren't a member" in str(e))
 
     def test12SetCookie(self):
         bz = self.bzclass("partner-bugzilla.redhat.com",
