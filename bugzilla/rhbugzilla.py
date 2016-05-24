@@ -11,12 +11,12 @@
 
 from logging import getLogger
 
-from .base import BugzillaBase as _parent
+from .base import BugzillaBase
 
 log = getLogger(__name__)
 
 
-class RHBugzilla(_parent):
+class RHBugzilla(BugzillaBase):
     '''
     Bugzilla class for connecting Red Hat's forked bugzilla instance,
     bugzilla.redhat.com
@@ -31,10 +31,7 @@ class RHBugzilla(_parent):
     This class was written using bugzilla.redhat.com's API docs:
     https://bugzilla.redhat.com/docs/en/html/api/
     '''
-
-    def __init__(self, *args, **kwargs):
-        _parent.__init__(self, *args, **kwargs)
-
+    def _init_class_state(self):
         def _add_both_alias(newname, origname):
             self._add_field_alias(newname, origname, is_api=False)
             self._add_field_alias(origname, newname, is_bug=False)
@@ -109,7 +106,7 @@ class RHBugzilla(_parent):
         get_sub_component()
         get_alias()
 
-        vals = _parent.build_update(self, **kwargs)
+        vals = BugzillaBase.build_update(self, **kwargs)
         vals.update(adddict)
 
         return vals
@@ -480,7 +477,7 @@ class RHBugzilla(_parent):
         if extra_fields:
             query["extra_fields"] = extra_fields
 
-        newquery = _parent.build_query(self, **kwargs)
+        newquery = BugzillaBase.build_query(self, **kwargs)
         query.update(newquery)
         self.pre_translation(query)
         return query

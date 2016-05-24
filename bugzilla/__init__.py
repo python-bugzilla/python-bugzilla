@@ -9,55 +9,13 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-from logging import getLogger
-import sys
-
-if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
-    # pylint: disable=F0401
-    from xmlrpc.client import Fault, ServerProxy
-else:
-    from xmlrpclib import Fault, ServerProxy
-
 from .apiversion import version, __version__
-from .base import BugzillaBase
-from .transport import BugzillaError, _RequestsTransport
+from .base import BugzillaBase as Bugzilla
+from .transport import BugzillaError
 from .rhbugzilla import RHBugzilla
 from .oldclasses import (Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36,
         Bugzilla4, Bugzilla42, Bugzilla44,
         NovellBugzilla, RHBugzilla3, RHBugzilla4)
-
-
-class Bugzilla(BugzillaBase):
-    '''
-    Magical Bugzilla class that figures out which Bugzilla implementation
-    to use and uses that.
-    '''
-    def _init_class_from_url(self, url, sslverify):
-        if url is None:
-            raise TypeError("You must pass a valid bugzilla URL")
-        url = RHBugzilla.fix_url(url)
-        log.debug("Detecting subclass for %s", url)
-
-        if "bugzilla.redhat.com" in url:
-            log.info("Using RHBugzilla for URL containing bugzilla.redhat.com")
-            c = RHBugzilla
-        else:
-            # Check for a Red Hat extension
-            s = ServerProxy(url, _RequestsTransport(url, sslverify=sslverify))
-            try:
-                extensions = s.Bugzilla.extensions()
-                if extensions.get('extensions', {}).get('RedHat', False):
-                    log.debug("Found RedHat bugzilla extension")
-                    c = RHBugzilla
-            except Fault:
-                pass
-
-        if not c:
-            return
-
-        self.__class__ = c
-        log.info("Found subclass %s", c.__name__)
-        return True
 
 
 # This is the public API. If you are explicitly instantiating any other

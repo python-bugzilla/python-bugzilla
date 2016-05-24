@@ -23,12 +23,12 @@ if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
     from configparser import SafeConfigParser
     from http.cookiejar import LoadError, LWPCookieJar, MozillaCookieJar
     from urllib.parse import urlparse, parse_qsl
-    from xmlrpc.client import Binary, Fault
+    from xmlrpc.client import Binary, Fault, ServerProxy
 else:
     from ConfigParser import SafeConfigParser
     from cookielib import LoadError, LWPCookieJar, MozillaCookieJar
     from urlparse import urlparse, parse_qsl
-    from xmlrpclib import Binary, Fault
+    from xmlrpclib import Binary, Fault, ServerProxy
 
 
 from .apiversion import __version__
@@ -242,15 +242,7 @@ class BugzillaBase(object):
             False to disable SSL verification, but it can also be a path
             to file or directory for custom certs.
         """
-        # Hook to allow Bugzilla autodetection without weirdly overriding
-        # __init__
-        if self._init_class_from_url(url, sslverify):
-            kwargs = locals().copy()
-            del(kwargs["self"])
-
-            # pylint: disable=non-parent-init-called
-            self.__class__.__init__(self, **kwargs)
-            return
+        self._init_class_from_url(url, sslverify)
 
         # Settings the user might want to tweak
         self.user = user or ''
@@ -278,12 +270,45 @@ class BugzillaBase(object):
         if url:
             self.connect(url)
 
+        self._init_class_state()
+
     def _init_class_from_url(self, url, sslverify):
         """
-        Hook used by the Bugzilla() autodetect class to work its magic
+        Detect if we should use RHBugzilla class, and if so, set it
         """
-        ignore = url
-        ignore = sslverify
+        from bugzilla import RHBugzilla
+        if url is None:
+            return
+
+        url = self.fix_url(url)
+        log.debug("Detecting subclass for %s", url)
+
+        c = None
+        if "bugzilla.redhat.com" in url:
+            log.info("Using RHBugzilla for URL containing bugzilla.redhat.com")
+            c = RHBugzilla
+        else:
+            # Check for a Red Hat extension
+            s = ServerProxy(url, _RequestsTransport(url, sslverify=sslverify))
+            try:
+                extensions = s.Bugzilla.extensions()
+                if extensions.get('extensions', {}).get('RedHat', False):
+                    log.debug("Found RedHat bugzilla extension")
+                    c = RHBugzilla
+            except Fault:
+                pass
+
+        if not c:
+            return
+
+        self.__class__ = c
+        log.info("Found subclass %s", c.__name__)
+
+    def _init_class_state(self):
+        """
+        Hook for subclasses to do any __init__ time setup
+        """
+        pass
 
     def _init_field_aliases(self):
         # List of field aliases. Maps old style RHBZ parameter
