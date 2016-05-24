@@ -171,8 +171,7 @@ class Bug(object):
     # Modify bug status #
     #####################
 
-    def setstatus(self, status, comment=None, private=False,
-                  private_in_it=False, nomail=False):
+    def setstatus(self, status, comment=None, private=False):
         '''
         Update the status for this bug report.
         Commonly-used values are ASSIGNED, MODIFIED, and NEEDINFO.
@@ -180,9 +179,6 @@ class Bug(object):
         To change bugs to CLOSED, use .close() instead.
         '''
         # Note: fedora bodhi uses this function
-        ignore = private_in_it
-        ignore = nomail
-
         vals = self.bugzilla.build_update(status=status,
                                           comment=comment,
                                           comment_private=private)
@@ -191,8 +187,7 @@ class Bug(object):
         return self.bugzilla.update_bugs(self.bug_id, vals)
 
     def close(self, resolution, dupeid=None, fixedin=None,
-              comment=None, isprivate=False,
-              private_in_it=False, nomail=False):
+              comment=None, isprivate=False):
         '''Close this bug.
         Valid values for resolution are in bz.querydefaults['resolution_list']
         For bugzilla.redhat.com that's:
@@ -207,9 +202,6 @@ class Bug(object):
           to True if you want that comment to be private.
         '''
         # Note: fedora bodhi uses this function
-        ignore = private_in_it
-        ignore = nomail
-
         vals = self.bugzilla.build_update(comment=comment,
                                           comment_private=isprivate,
                                           resolution=resolution,
@@ -225,7 +217,7 @@ class Bug(object):
     # Modify bug emails #
     #####################
 
-    def setassignee(self, assigned_to=None, reporter=None,
+    def setassignee(self, assigned_to=None,
                     qa_contact=None, comment=None):
         '''
         Set any of the assigned_to or qa_contact fields to a new
@@ -238,9 +230,6 @@ class Bug(object):
 
         Returns [bug_id, mailresults].
         '''
-        if reporter:
-            raise ValueError("reporter can not be changed")
-
         if not (assigned_to or qa_contact):
             raise ValueError("You must set one of assigned_to "
                              " or qa_contact")
@@ -279,17 +268,12 @@ class Bug(object):
     # comment handling #
     ####################
 
-    def addcomment(self, comment, private=False,
-                   timestamp=None, worktime=None, bz_gid=None):
+    def addcomment(self, comment, private=False):
         '''
         Add the given comment to this bug. Set private to True to mark this
         comment as private.
         '''
         # Note: fedora bodhi uses this function
-        ignore = timestamp
-        ignore = bz_gid
-        ignore = worktime
-
         vals = self.bugzilla.build_update(comment=comment,
                                           comment_private=private)
         log.debug("addcomment: update=%s", vals)
