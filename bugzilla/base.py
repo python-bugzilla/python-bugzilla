@@ -844,21 +844,18 @@ class Bugzilla(object):
 
 
     # getbug_extra_fields: Extra fields that need to be explicitly
-    # requested from Bug.get in order for the data to be returned. This
-    # decides the difference between getbug() and getbugsimple().
+    # requested from Bug.get in order for the data to be returned.
     #
     # As of Dec 2012 it seems like only RH bugzilla actually has behavior
     # like this, for upstream bz it returns all info for every Bug.get()
     _getbug_extra_fields = []
     _supports_getbug_extra_fields = False
 
-    def _getbugs(self, idlist, simple=False, permissive=True,
+    def _getbugs(self, idlist, permissive=True,
             include_fields=None, exclude_fields=None, extra_fields=None):
         '''
         Return a list of dicts of full bug info for each given bug id.
         bug ids that couldn't be found will return None instead of a dict.
-
-        @simple: If True, don't ask for any large extra_fields.
         '''
         oldidlist = idlist
         idlist = []
@@ -870,8 +867,7 @@ class Bugzilla(object):
                 idlist.append(i)
 
         extra_fields = self._listify(extra_fields or [])
-        if not simple:
-            extra_fields += self._getbug_extra_fields
+        extra_fields += self._getbug_extra_fields
 
         getbugdata = {"ids": idlist}
         if permissive:
@@ -908,23 +904,28 @@ class Bugzilla(object):
 
         return ret
 
-    def _getbug(self, objid, simple=False,
-            include_fields=None, exclude_fields=None, extra_fields=None):
-        '''Return a dict of full bug info for the given bug id'''
-        return self._getbugs([objid], simple=simple, permissive=False,
-            include_fields=include_fields, exclude_fields=exclude_fields,
-            extra_fields=extra_fields)[0]
+    def _getbug(self, objid, **kwargs):
+        """
+        Thin wrapper around _getbugs to handle the slight argument tweaks
+        for fetching a single bug. The main bit is permissive=False, which
+        will tell bugzilla to raise an explicit error if we can't fetch
+        that bug.
+
+        This logic is called from Bug() too
+        """
+        return self._getbugs([objid], permissive=False, **kwargs)[0]
 
     def getbug(self, objid,
-            include_fields=None, exclude_fields=None, extra_fields=None):
+               include_fields=None, exclude_fields=None, extra_fields=None):
         '''Return a Bug object with the full complement of bug data
         already loaded.'''
-        data = self._getbug(objid, include_fields=include_fields,
-            exclude_fields=exclude_fields, extra_fields=extra_fields)
+        data = self._getbug(objid,
+            include_fields=include_fields, exclude_fields=exclude_fields,
+            extra_fields=extra_fields)
         return Bug(self, dict=data, autorefresh=self.bug_autorefresh)
 
     def getbugs(self, idlist,
-        include_fields=None, exclude_fields=None, extra_fields=None):
+                include_fields=None, exclude_fields=None, extra_fields=None):
         '''Return a list of Bug objects with the full complement of bug data
         already loaded. If there's a problem getting the data for a given id,
         the corresponding item in the returned list will be None.'''
@@ -933,26 +934,6 @@ class Bugzilla(object):
         return [(b and Bug(self, dict=b,
                            autorefresh=self.bug_autorefresh)) or None
                 for b in data]
-
-    # Since for so long getbugsimple was just getbug, I don't think we can
-    # remove any fields without possibly causing a slowdown for some
-    # existing users. Just have this API mean 'don't ask for the extra
-    # big stuff'
-    def getbugsimple(self, objid):
-        '''Return a Bug object given bug id, populated with simple info'''
-        return Bug(self,
-                   dict=self._getbug(objid, simple=True),
-                   autorefresh=self.bug_autorefresh)
-
-    def getbugssimple(self, idlist):
-        '''Return a list of Bug objects for the given bug ids, populated with
-        simple info. As with getbugs(), if there's a problem getting the data
-        for a given bug ID, the corresponding item in the returned list will
-        be None.'''
-        return [(b and Bug(self, dict=b,
-                autorefresh=self.bug_autorefresh)) or None
-                for b in self._getbugs(idlist, simple=True)]
-
 
     def get_comments(self, idlist):
         '''Returns a dictionary of bugs and comments.  The comments key will
