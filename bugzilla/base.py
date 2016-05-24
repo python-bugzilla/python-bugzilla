@@ -265,27 +265,25 @@ class Bugzilla(object):
 
         if url:
             self.connect(url)
-            self._init_class_from_url(url)
+            self._init_class_from_url()
         self._init_class_state()
 
-    def _init_class_from_url(self, url):
+    def _init_class_from_url(self):
         """
         Detect if we should use RHBugzilla class, and if so, set it
         """
         from bugzilla import RHBugzilla
 
-        url = self.fix_url(url)
-        log.debug("Detecting subclass for %s", url)
-
         c = None
-        if "bugzilla.redhat.com" in url:
+        if "bugzilla.redhat.com" in self.url:
             log.info("Using RHBugzilla for URL containing bugzilla.redhat.com")
             c = RHBugzilla
         else:
             try:
                 extensions = self._proxy.Bugzilla.extensions()
                 if "RedHat" in extensions.get('extensions', {}):
-                    log.debug("Found RedHat bugzilla extension")
+                    log.info("Found RedHat bugzilla extension, "
+                        "using RHBugzilla")
                     c = RHBugzilla
             except Fault:
                 log.debug("Failed to fetch bugzilla extensions", exc_info=True)
@@ -294,7 +292,6 @@ class Bugzilla(object):
             return
 
         self.__class__ = c
-        log.info("Found subclass %s", c.__name__)
 
     def _init_class_state(self):
         """
