@@ -156,9 +156,11 @@ class BZ34Test(unittest.TestCase):
     _booleans_chart_out = None
     _longdesc_out = {'longdesc': 'foobar', 'longdesc_type': 'allwordssubstr',
         'query_format': 'advanced'}
-    _quicksearch_out = None
-    _savedsearch_out = None
-    _sub_component_out = None
+    _quicksearch_out = {'quicksearch': 'foo bar baz'}
+    _savedsearch_out = {'savedsearch': "my saved search",
+        'sharer_id': "123456"}
+    _sub_component_out = {'component': ["lvm2", "kernel"],
+        'sub_components': ["Command-line tools (RHEL5)"]}
 
 
 class BZ4Test(BZ34Test):
@@ -210,6 +212,13 @@ class BZ4Test(BZ34Test):
     _longdesc_out = BZ34Test._longdesc_out.copy()
     _longdesc_out["include_fields"] = _default_includes
 
+    _quicksearch_out = BZ34Test._quicksearch_out.copy()
+    _quicksearch_out["include_fields"] = _default_includes
+    _savedsearch_out = BZ34Test._savedsearch_out.copy()
+    _savedsearch_out["include_fields"] = _default_includes
+    _sub_component_out = BZ34Test._sub_component_out.copy()
+    _sub_component_out["include_fields"] = _default_includes
+
 
 class RHBZTest(BZ4Test):
     bz = rhbz4
@@ -236,13 +245,7 @@ class RHBZTest(BZ4Test):
         'type0-1-0': 'notsubstring', 'value0-1-0': 'OtherQA',
         'include_fields': BZ4Test._default_includes,
         'query_format': 'advanced'}
-    _quicksearch_out = {'include_fields': BZ4Test._default_includes,
-        'quicksearch': 'foo bar baz'}
-    _savedsearch_out = {'include_fields': BZ4Test._default_includes,
-        'savedsearch': "my saved search", 'sharer_id': "123456"}
-    _sub_component_out = {'include_fields': BZ4Test._default_includes,
-        'component': ["lvm2", "kernel"],
-        'sub_components': ["Command-line tools (RHEL5)"]}
+
 
     def testTranslation(self):
         def translate(_in):

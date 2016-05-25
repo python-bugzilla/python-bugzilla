@@ -1063,10 +1063,6 @@ class Bugzilla(object):
             ('devel_whiteboard', devel_whiteboard),
             ('alias', alias),
             ('boolean_query', boolean_query),
-            ('quicksearch', quicksearch),
-            ('savedsearch', savedsearch),
-            ('sharer_id', savedsearch_sharer_id),
-            ('sub_component', sub_component),
         ]:
             if val is not None:
                 raise RuntimeError("'%s' search not supported by this "
@@ -1090,6 +1086,10 @@ class Bugzilla(object):
             "priority": priority,
             "target_milestone": target_milestone,
             "tag": self._listify(tags),
+            "quicksearch": quicksearch,
+            "savedsearch": savedsearch,
+            "sharer_id": savedsearch_sharer_id,
+            "sub_components": self._listify(sub_component),
         }
 
         def add_email(key, value, count):

@@ -441,11 +441,6 @@ class RHBugzilla(Bugzilla):
         chart_id = add_boolean("alias", "alias", chart_id)
         chart_id = add_boolean("boolean_query", None, chart_id)
 
-        _add_key("quicksearch", "quicksearch")
-        _add_key("savedsearch", "savedsearch")
-        _add_key("savedsearch_sharer_id", "sharer_id")
-        _add_key("sub_component", "sub_components", listify=True)
-
         query.update(self._process_include_fields(None, None,
             kwargs.pop('extra_fields', None)))
 
