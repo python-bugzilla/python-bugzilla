@@ -142,8 +142,8 @@ class BZ34Test(unittest.TestCase):
         'emailreporter3': True, 'emailqa_contact4': True,
         'query_format': 'advanced'}
     _components_file_out = {'component': ["foo", "bar", "baz"]}
-    _keywords_out = {'keywords': 'Triaged', 'bug_file_loc':
-        'http://example.com', 'bug_file_loc_type': 'foo'}
+    _keywords_out = {'keywords': 'Triaged', 'keywords_type': "substring",
+        'bug_file_loc': 'http://example.com', 'bug_file_loc_type': 'foo'}
     _longdesc_out = {'longdesc': 'foobar', 'longdesc_type': 'allwordssubstr',
         'query_format': 'advanced'}
     _quicksearch_out = {'quicksearch': 'foo bar baz'}
@@ -255,7 +255,9 @@ class RHBZTest(BZ4Test):
         out = {
             'blocked': '123456',
             'cf_devel_whiteboard': 'foobar | baz',
+            'cf_devel_whiteboard_type': "substring",
             'cf_qa_whiteboard': '! baz foo',
+            'cf_qa_whiteboard_type': "substring",
             'flagtypes.name': 'needinfo & devel_ack',
             'include_fields': ['assigned_to', 'id', 'status', 'summary']
         }

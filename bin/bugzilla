@@ -272,20 +272,17 @@ def _setup_action_query_parser(subparsers):
     stro = p.add_argument_group("String search options")
     stro.add_argument('-u', '--url',
             help="search keywords field for given url")
-    stro.add_argument('-U', '--url_type',
-            help="specify searching option for urls, "
-                 "ie. anywords, allwords, nowords")
     stro.add_argument('-k', '--keywords',
             help="search keywords field for specified words")
-    stro.add_argument('-K', '--keywords_type',
-            help="specify searching option for keywords, "
-                 "ie. anywords, allwords, nowords")
     stro.add_argument('-w', '--status_whiteboard',
             help="search Status Whiteboard field for specified words")
-    stro.add_argument('-W', '--status_whiteboard_type',
-            help="specify searching option for Status Whiteboard, "
-                 "ie. anywords, allwords, nowords")
     stro.add_argument("--tags", help="Search bug 'tags' field")
+    stro.add_argument('-U', '--url_type',
+            help=argparse.SUPPRESS)
+    stro.add_argument('-K', '--keywords_type',
+            help=argparse.SUPPRESS)
+    stro.add_argument('-W', '--status_whiteboard_type',
+            help=argparse.SUPPRESS)
 
     # Precomposed queries
     p.add_argument('--from-url',
@@ -323,6 +320,7 @@ def _setup_action_query_parser(subparsers):
             help="search for bugs that have the provided alias")
     bgrp.add_argument('--fixed_in',
             help="search Status Whiteboard field for specified words")
+    bgrp.add_argument('--fixed_in_type', help=argparse.SUPPRESS)
 
     _parser_add_output_options(p)
     _parser_add_field_option(p, "Query a specified field.")

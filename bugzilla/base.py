@@ -1064,12 +1064,8 @@ class Bugzilla(object):
             "short_desc": short_desc,
             "bug_status": status,
             "keywords": keywords,
-            "keywords_type": keywords_type,
             "bug_file_loc": url,
-            "bug_file_loc_type": url_type,
             "status_whiteboard": status_whiteboard,
-            "status_whiteboard_type": status_whiteboard_type,
-            "fixed_in_type": fixed_in_type,
             "bug_severity": bug_severity,
             "priority": priority,
             "target_milestone": target_milestone,
@@ -1091,6 +1087,15 @@ class Bugzilla(object):
             "alias": alias,
             "sub_components": self._listify(sub_component),
         }
+
+        for key, val in [("keywords", keywords_type),
+                         ("bug_file_loc", url_type),
+                         ("status_whiteboard", status_whiteboard_type),
+                         ("cf_fixed_in", fixed_in_type),
+                         ("cf_qa_whiteboard", None),
+                         ("cf_devel_whiteboard", None)]:
+            if query[key]:
+                query[key + "_type"] = val or "substring"
 
         def add_email(key, value, count):
             if value is None:
