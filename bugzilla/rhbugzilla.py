@@ -353,17 +353,6 @@ class RHBugzilla(Bugzilla):
                 val = self._listify(val)
             query[keyname] = val
 
-        def add_email(key, count):
-            value = kwargs.pop(key, None)
-            if value is None:
-                return count
-
-            query["query_format"] = "advanced"
-            query['email%i' % count] = value
-            query['email%s%i' % (key, count)] = True
-            query['emailtype%i' % count] = kwargs.get("emailtype", "substring")
-            return count + 1
-
         def bool_smart_split(boolval):
             # This parses the CLI command syntax, but we only want to
             # do space splitting if the space is actually part of a
@@ -440,11 +429,6 @@ class RHBugzilla(Bugzilla):
         # strictly required, but is more powerful, and it is what
         # bin/bugzilla historically generated. This requires
         # query_format='advanced' which is an RHBZ only XMLRPC extension
-        email_count = 1
-        email_count = add_email("cc", email_count)
-        email_count = add_email("assigned_to", email_count)
-        email_count = add_email("reporter", email_count)
-        email_count = add_email("qa_contact", email_count)
 
         chart_id = 0
         chart_id = add_boolean("fixed_in", "cf_fixed_in", chart_id)

@@ -254,10 +254,10 @@ def _setup_action_query_parser(subparsers):
 
     # Email
     malg = p.add_argument_group("Email Options")
-    malg.add_argument('-E', '--emailtype', default="substring",
+    malg.add_argument('-E', '--emailtype',
             help="Email: specify searching option for emails, "
                  "ie. substring, notsubstring, exact, ... "
-                 "[Default: substring]")
+                 "bugzilla defaults to 'substring'")
     malg.add_argument('-o', '--cc',
             help="Email: search cc lists for given address")
     malg.add_argument('-r', '--reporter',
@@ -611,7 +611,7 @@ def _do_query(bz, opt, parser):
         bug_severity=getattr(opt, "bug_severity", None),
         priority=getattr(opt, "priority", None),
         target_milestone=getattr(opt, "target_milestone", None),
-        emailtype=opt.emailtype,
+        emailtype=opt.emailtype or None,
         booleantype=opt.booleantype,
         include_fields=include_fields,
         quicksearch=getattr(opt, "quicksearch", None),

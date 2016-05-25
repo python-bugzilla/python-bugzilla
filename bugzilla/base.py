@@ -1052,7 +1052,6 @@ class Bugzilla(object):
         """
         # These parameters are only used by RHBugzilla, which overwrites
         # this implementation. So ignore them here
-        ignore = emailtype
         ignore = booleantype
 
         for key, val in [
@@ -1090,12 +1089,27 @@ class Bugzilla(object):
             "bug_severity": bug_severity,
             "priority": priority,
             "target_milestone": target_milestone,
-            "assigned_to": assigned_to,
-            "cc": cc,
-            "qa_contact": qa_contact,
-            "reporter": reporter,
             "tag": self._listify(tags),
         }
+
+        def add_email(key, value, count):
+            if value is None:
+                return count
+            if not emailtype:
+                query[key] = value
+                return count
+
+            query["query_format"] = "advanced"
+            query['email%i' % count] = value
+            query['email%s%i' % (key, count)] = True
+            query['emailtype%i' % count] = emailtype
+            return count + 1
+
+        email_count = 1
+        email_count = add_email("cc", cc, email_count)
+        email_count = add_email("assigned_to", assigned_to, email_count)
+        email_count = add_email("reporter", reporter, email_count)
+        email_count = add_email("qa_contact", qa_contact, email_count)
 
         if long_desc is not None:
             query["query_format"] = "advanced"

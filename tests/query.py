@@ -74,10 +74,12 @@ class BZ34Test(unittest.TestCase):
         self.clicomm("--bug_status POST", self._status_post_out)
 
     def testEmailOptions(self):
-        self.clicomm("--cc foo1@example.com "
-                    "--assigned_to foo2@example.com "
-                    "--reporter foo3@example.com "
-                    "--qa_contact foo7@example.com", self._email_out)
+        cmd = ("--cc foo1@example.com "
+               "--assigned_to foo2@example.com "
+               "--reporter foo3@example.com "
+               "--qa_contact foo7@example.com")
+        self.clicomm(cmd, self._email_out)
+        self.clicomm(cmd + " --emailtype notsubstring", self._email_type_out)
 
     def testComponentsFile(self):
         self.clicomm("--components_file " +
@@ -139,6 +141,14 @@ class BZ34Test(unittest.TestCase):
     _status_post_out = {'bug_status': ['POST']}
     _email_out = {'assigned_to': 'foo2@example.com', 'cc': "foo1@example.com",
         'reporter': "foo3@example.com", "qa_contact": "foo7@example.com"}
+    _email_type_out = {
+        'email1': 'foo1@example.com', 'email2': "foo2@example.com",
+        'email3': 'foo3@example.com', 'email4': 'foo7@example.com',
+        'emailtype1': 'notsubstring', 'emailtype2': 'notsubstring',
+        'emailtype3': 'notsubstring', 'emailtype4': 'notsubstring',
+        'emailcc1': True, 'emailassigned_to2': True,
+        'emailreporter3': True, 'emailqa_contact4': True,
+        'query_format': 'advanced'}
     _components_file_out = {'component': ["foo", "bar", "baz"]}
     _keywords_out = {'keywords': 'Triaged', 'bug_file_loc':
         'http://example.com', 'bug_file_loc_type': 'foo'}
@@ -188,6 +198,9 @@ class BZ4Test(BZ34Test):
     _email_out = BZ34Test._email_out.copy()
     _email_out["include_fields"] = _default_includes
 
+    _email_type_out = BZ34Test._email_type_out.copy()
+    _email_type_out["include_fields"] = _default_includes
+
     _components_file_out = BZ34Test._components_file_out.copy()
     _components_file_out["include_fields"] = _default_includes
 
@@ -204,14 +217,6 @@ class RHBZTest(BZ4Test):
     _output_format_out = BZ34Test.output_format_out.copy()
     _output_format_out["include_fields"] = ['product', 'summary',
         'platform', 'status', 'id', 'blocks', 'whiteboard']
-    _email_out = {'email1': 'foo1@example.com', 'email2': "foo2@example.com",
-        'email3': 'foo3@example.com', 'email4': 'foo7@example.com',
-        'emailtype1': 'substring', 'emailtype2': 'substring',
-        'emailtype3': 'substring', 'emailtype4': 'substring',
-        'emailcc1': True, 'emailassigned_to2': True,
-        'emailreporter3': True, 'emailqa_contact4': True,
-        'include_fields': BZ4Test._default_includes,
-        'query_format': 'advanced'}
     _booleans_out = {'value2-0-0': 'baz foo', 'value0-0-0': '123456',
         'type3-0-1': 'substring', 'value1-1-0': 'devel_ack', 'type0-0-0':
         'substring', 'type2-0-0': 'substring', 'field3-0-1':
