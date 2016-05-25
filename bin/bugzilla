@@ -138,22 +138,9 @@ def _setup_root_parser():
     return p
 
 
-def _parser_add_field_option(p, message):
-    p.add_argument('--field', help="%s FIELD is expected to be "
-        "the raw name used by the bugzilla instance. No safety "
-        "checks are perfomed when using this option." % (message),
-        action="append", dest="fields")
-
-
-def _parser_add_unittest_option(p):
-    # Used by unit tests, not for end user consumption
-    p.add_argument('--test-return-result', action="store_true",
-        help=argparse.SUPPRESS)
-
-
 def _parser_add_output_options(p):
     outg = p.add_argument_group("Output format options")
-    outg.add_argument('-f', '--full', action='store_const', dest='output',
+    outg.add_argument('--full', action='store_const', dest='output',
             const='full', default='normal',
             help="output detailed bug info")
     outg.add_argument('-i', '--ids', action='store_const', dest='output',
@@ -174,161 +161,149 @@ def _parser_add_output_options(p):
                  "section 'OUTPUT FORMAT' for more details.")
 
 
+def _parser_add_bz_fields(rootp, command):
+    cmd_new = (command == "new")
+    cmd_query = (command == "query")
+    cmd_modify = (command == "modify")
+    if cmd_new:
+        comment_help = "Set initial bug comment/description"
+    elif cmd_query:
+        comment_help = "Search all bug comments"
+    else:
+        comment_help = "Add new bug comment"
+
+    p = rootp.add_argument_group("Standard bugzilla options")
+
+    p.add_argument('-p', '--product', help="Product name")
+    p.add_argument('-v', '--version', help="Product version")
+    p.add_argument('-c', '--component', help="Component name")
+    p.add_argument('-t', '--summary', '--short_desc', help="Bug summary")
+    p.add_argument('-l', '--comment', '--long_desc', help=comment_help)
+    p.add_argument("--sub-component", action="append",
+        help="RHBZ sub component field")
+    p.add_argument('-o', '--os', help="Operating system")
+    p.add_argument('--arch', help="Arch this bug occurs on")
+    p.add_argument('-x', '--severity', help="Bug severity")
+    p.add_argument('-z', '--priority', help="Bug priority")
+    p.add_argument('--alias', help='Bug alias (name)')
+    p.add_argument('-s', '--status', '--bug_status',
+        help='Bug status (NEW, ASSIGNED, etc.)')
+    p.add_argument('-u', '--url', help="URL field")
+    p.add_argument('-m', '--target_milestone', help="Target milestone")
+    p.add_argument('--target_release', help="Target release")
+
+    p.add_argument('--blocked', action="append",
+        help="Bug IDs that this bug blocks")
+    p.add_argument('--dependson', action="append",
+        help="Bug IDs that this bug depends on")
+    p.add_argument('--keywords', action="append",
+        help="Bug keywords")
+    p.add_argument('--groups', action="append",
+        help="Which user groups can view this bug")
+
+    p.add_argument('--cc', action="append", help="CC list")
+    p.add_argument('-a', '--assigned_to', '--assignee', help="Bug assignee")
+    p.add_argument('-q', '--qa_contact', help='QA contact')
+
+    if not cmd_new:
+        p.add_argument('-f', '--flag', action='append',
+            help="Bug flags state. Ex:\n"
+                 "  --flag needinfo?\n"
+                 "  --flag dev_ack+")
+        p.add_argument("--tags", action="append", help="Tags field.")
+
+        p.add_argument('-w', "--whiteboard", '--status_whiteboard',
+            action="append", help='Whiteboard field')
+        p.add_argument("--devel_whiteboard", action="append",
+            help='RHBZ devel whiteboard field')
+        p.add_argument("--internal_whiteboard", action="append",
+            help='RHBZ internal whiteboard field')
+        p.add_argument("--qa_whiteboard", action="append",
+            help='RHBZ QA whiteboard field')
+        p.add_argument('-F', '--fixed_in',
+            help="RHBZ 'Fixed in version' field")
+
+    # Put this at the end, so it sticks out more
+    p.add_argument('--field',
+        metavar="FIELD=VALUE", action="append", dest="fields",
+        help="Manually specify a bugzilla XMLRPC field. FIELD is "
+        "the raw name used by the bugzilla instance. For example if your "
+        "bugzilla instance has a custom field cf_my_field, do:\n"
+        "  --field cf_my_field=VALUE")
+
+    # Used by unit tests, not for end user consumption
+    p.add_argument('--test-return-result', action="store_true",
+        help=argparse.SUPPRESS)
+
+    if not cmd_modify:
+        _parser_add_output_options(rootp)
+
+
 def _setup_action_new_parser(subparsers):
-    description = "Create a new bug report."
+    description = ("Create a new bug report. "
+        "--product, --component, --version, --summary, and --comment "
+        "must be specified. "
+        "Options that take multiple values accept comma separated lists, "
+        "including --cc, --blocks, --dependson, --groups, and --keywords.")
     p = subparsers.add_parser("new", description=description)
 
-    p.add_argument('-p', '--product', help="REQUIRED: product name")
-    p.add_argument('-v', '--version', help="REQUIRED: product version")
-    p.add_argument('-c', '--component', help="REQUIRED: component name")
-    p.add_argument("--sub-component", help="Optional sub component name")
-    p.add_argument('-s', '--short_desc', '--summary', dest='summary',
-            help="REQUIRED: bug summary")
-    p.add_argument('-l', '--comment', dest='description',
-            help="initial bug comment")
-    p.add_argument('-o', '--os', help="Operating system")
-    p.add_argument('-a', '--arch', help="Arch this bug occurs on")
-    p.add_argument('--severity', help="Bug severity")
-    p.add_argument('--priority', help="Bug priority")
-    p.add_argument('-u', '--url', help="URL for further bug info")
-    p.add_argument('--cc',
-            metavar='CC[, CC, ...]', action="append",
-            help="add emails to initial CC list")
-    p.add_argument('--blocked',
-            metavar='BUGID[, BUGID, ...]', action="append",
-            help="add bug_ids blocked by this bug")
-    p.add_argument('--dependson',
-            metavar='BUGID[, BUGID, ...]', action="append",
-            help="add bug_ids that this bug depends on")
-    p.add_argument('--groups',
-            metavar='GROUP[, GROUP, ...]', action="append",
-            help="add groups to which bug is visible")
-    p.add_argument('--assigned_to',
-            help='Assign bugzilla to specified email address')
-    p.add_argument('--qa_contact',
-            help='Set QA contact to specified email address')
-    p.add_argument('--keywords',
-            metavar='KEYWORD[, KEYWORD, ...]', action="append",
-            help="Set specified keywords on new bugzilla")
-    p.add_argument('--alias',
-            help='An alias (name) for the bug (must be unique)')
-
-    _parser_add_output_options(p)
-    _parser_add_field_option(p, "Set a specified field.")
-    _parser_add_unittest_option(p)
+    _parser_add_bz_fields(p, "new")
 
 
 def _setup_action_query_parser(subparsers):
-    description = "List bug reports that match the given criteria."
-    p = subparsers.add_parser("query", description=description)
+    description = ("List bug reports that match the given criteria. "
+        "Certain options can accept a comma separated list to query multiple "
+        "values, including --status, --component, --product, --version, --id.")
+    epilog = ("Note: querying via explicit command line options will only "
+        "get you so far. See the --from-url option for a way to use powerful "
+        "Web UI queries from the command line.")
+    p = subparsers.add_parser("query",
+        description=description, epilog=epilog)
 
-    # General bug metadata
-    p.add_argument('-b', '--bug_id', default=None,
-            help="specify individual bugs by IDs, separated with commas")
-    p.add_argument('-p', '--product',
-            help="product name, comma-separated "
-                 "(list with 'bugzilla info --products')")
-    p.add_argument('-v', '--version',
-            help="product version, comma-separated")
-    p.add_argument('-c', '--component',
-            help="component name(s), comma-separated "
-                 "(list with 'bugzilla info --components PRODUCT')")
-    p.add_argument("--sub-component", action="append",
-        help="Sub component. Can be specified multiple times")
-    p.add_argument('--components_file', default=None,
-            help="list of component names from a file, one component "
-                 "per line (list with 'bugzilla info -c PRODUCT')")
-    p.add_argument('-l', '--long_desc',
-            help="search inside bug comments")
-    p.add_argument('-m', '--target_milestone',
-            help="search for a target milestone")
-    p.add_argument('-s', '--short_desc',
-            help="search bug summaries")
-    p.add_argument('-t', '--bug_status', default="ALL",
-            help="comma-separated list of bug statuses to accept "
-                 "[Default:all]")
-    p.add_argument('-x', '--bug_severity', '--severity',
-            help="search severities, comma-separated")
-    p.add_argument('-z', '--priority',
-            help="search priorities, comma-separated")
+    _parser_add_bz_fields(p, "query")
 
-    # Email
-    malg = p.add_argument_group("Email Options")
-    malg.add_argument('-E', '--emailtype',
-            help="Email: specify searching option for emails, "
-                 "ie. substring, notsubstring, exact, ... "
-                 "bugzilla defaults to 'substring'")
-    malg.add_argument('-o', '--cc',
-            help="Email: search cc lists for given address")
-    malg.add_argument('-r', '--reporter',
-            help="Email: search reporter email for given address")
-    malg.add_argument('-a', '--assigned_to',
-            help="Email: search for bugs assigned to this address")
-    malg.add_argument('-q', '--qa_contact',
-            help="Email: search for bugs which have QA Contact "
-                 "assigned to this address")
-
-    # Strings
-    stro = p.add_argument_group("String search options")
-    stro.add_argument('-u', '--url',
-            help="search keywords field for given url")
-    stro.add_argument('-k', '--keywords',
-            help="search keywords field for specified words")
-    stro.add_argument('-w', '--status_whiteboard',
-            help="search Status Whiteboard field for specified words")
-    stro.add_argument("--tags", help="Search bug 'tags' field")
-    stro.add_argument('-U', '--url_type',
-            help=argparse.SUPPRESS)
-    stro.add_argument('-K', '--keywords_type',
-            help=argparse.SUPPRESS)
-    stro.add_argument('-W', '--status_whiteboard_type',
-            help=argparse.SUPPRESS)
-
-    # Precomposed queries
-    p.add_argument('--from-url',
-        help="Use the query given by a query.cgi URL. (Use quotes!)")
-    p.add_argument('--quicksearch',
+    g = p.add_argument_group("'query' specific options")
+    g.add_argument('-b', '--id', '--bug_id',
+        help="specify individual bugs by IDs, separated with commas")
+    g.add_argument('-r', '--reporter',
+        help="Email: search reporter email for given address")
+    g.add_argument('--quicksearch',
         help="Search using bugzilla's quicksearch functionality.")
-    p.add_argument('--savedsearch',
+    g.add_argument('--savedsearch',
         help="Name of a bugzilla saved search. If you don't own this "
             "saved search, you must passed --savedsearch_sharer_id.")
-    p.add_argument('--savedsearch-sharer-id',
+    g.add_argument('--savedsearch-sharer-id',
         help="Owner ID of the --savedsearch. You can get this ID from "
             "the URL bugzilla generates when running the saved search "
             "from the web UI.")
 
-    # Boolean Charts
-    bgrp = p.add_argument_group("Boolean options")
-    bgrp.add_argument('-B', '--booleantype',
-            help=argparse.SUPPRESS)
-    bgrp.add_argument('--boolean_query', action="append",
-            help=argparse.SUPPRESS)
-    bgrp.add_argument('--blocked',
-            help="Search for bugs that block this bug ID")
-    bgrp.add_argument('--dependson',
-            help="Search for bugs that depend on this bug ID")
-    bgrp.add_argument('--flag',
-            help="Search for bugs that have certain "
-                 "flag states present. Ex --flags=dev_ack+")
-    bgrp.add_argument('--qa_whiteboard',
-            help="search for bugs that have certain QA "
-                 "Whiteboard text present")
-    bgrp.add_argument('--devel_whiteboard',
-            help="search for bugs that have certain "
-                 "Devel Whiteboard text present")
-    bgrp.add_argument('--alias',
-            help="search for bugs that have the provided alias")
-    bgrp.add_argument('--fixed_in',
-            help="search Status Whiteboard field for specified words")
-    bgrp.add_argument('--fixed_in_type', help=argparse.SUPPRESS)
+    # Keep this at the end so it sticks out more
+    g.add_argument('--from-url', metavar="WEB_QUERY_URL",
+        help="Make a working query via bugzilla's 'Advanced search' web UI, "
+             "grab the url from your browser (the string with query.cgi or "
+             "buglist.cgi in it), and --from-url will run it via the "
+             "bugzilla API. Don't forget to quote the string! "
+             "This only works for Bugzilla 5 and Red Hat bugzilla")
 
-    _parser_add_output_options(p)
-    _parser_add_field_option(p, "Query a specified field.")
-    _parser_add_unittest_option(p)
+    # Deprecated options
+    p.add_argument('-E', '--emailtype', help=argparse.SUPPRESS)
+    p.add_argument('--components_file', help=argparse.SUPPRESS)
+    p.add_argument('-U', '--url_type',
+            help=argparse.SUPPRESS)
+    p.add_argument('-K', '--keywords_type',
+            help=argparse.SUPPRESS)
+    p.add_argument('-W', '--status_whiteboard_type',
+            help=argparse.SUPPRESS)
+    p.add_argument('-B', '--booleantype',
+            help=argparse.SUPPRESS)
+    p.add_argument('--boolean_query', action="append",
+            help=argparse.SUPPRESS)
+    p.add_argument('--fixed_in_type', help=argparse.SUPPRESS)
 
 
 def _setup_action_info_parser(subparsers):
-    description = "Get information about the bugzilla server."
+    description = ("List products or component information about the "
+        "bugzilla server.")
     p = subparsers.add_parser("info", description=description)
 
     p.add_argument('-p', '--products', action='store_true',
@@ -342,102 +317,28 @@ def _setup_action_info_parser(subparsers):
 
 
 def _setup_action_modify_parser(subparsers):
-    usage = "bugzilla modify [options] BUGID [BUGID...]"
-    description = "Modify one or more bugs."
-    p = subparsers.add_parser("modify", usage=usage, description=description)
+    usage = ("bugzilla modify [options] BUGID [BUGID...]\n"
+        "Fields that take multiple values have a special input format.\n"
+        "Append:    --cc=foo@example.com\n"
+        "Overwrite: --cc==foo@example.com\n"
+        "Remove:    --cc=-foo@example.com\n"
+        "Options that accept this format: --cc, --blocked, --dependson,\n"
+        "    --groups, --tags, whiteboard fields.")
+    p = subparsers.add_parser("modify", usage=usage)
 
-    bgrp = p.add_argument_group("Bug details")
-    bgrp.add_argument('--product',
-            help="Reassign bug to different product")
-    bgrp.add_argument('-c', '--component',
-            help="Reassign bug to different component")
-    bgrp.add_argument("--sub-component",
-        help="Reassign bug to different sub-component (rhbz extension)")
-    bgrp.add_argument("-v", '--version',
-            help="Reassign bug to different version")
-    bgrp.add_argument('-o', '--os',
-            help="Change operating system this bug occurs on")
-    bgrp.add_argument('-a', '--arch',
-            help="Change arch this bug occurs on")
-    bgrp.add_argument('-u', '--url',
-            help="URL for further bug info")
-    bgrp.add_argument('--alias',
-            help='An alias (name) for the bug (must be unique)')
+    _parser_add_bz_fields(p, "modify")
 
-    sgrp = p.add_argument_group("Bug status options")
-    sgrp.add_argument('-s', '--status',
-            help='Change status of bug')
-    sgrp.add_argument('-k', '--close', metavar="RESOLUTION",
-            help='Close with the given resolution')
-    sgrp.add_argument('-d', '--dupeid', metavar="ORIGINAL",
-            help='ID of original bug (implies -k DUPLICATE)')
-    sgrp.add_argument('-F', '--fixed_in', metavar="VERSION",
-            help='"Fixed in version" field')
-
-    cgrp = p.add_argument_group(p, "Comment options")
-    cgrp.add_argument('-l', '--comment',
-            help='Add a comment')
-    cgrp.add_argument('-p', '--private', action='store_true', default=False,
-            help='Mark new comment as private')
-    cgrp.add_argument("--summary", help="Change bug summary")
-
-    egrp = p.add_argument_group("Contact options")
-    egrp.add_argument('--assignee',
-            help='Assign bugzilla to assignee')
-    egrp.add_argument('--cc', action='append', metavar="EMAIL",
-            help='Alter CC list. EMAIL appends, -EMAIL removes.')
-    egrp.add_argument('--qa_contact',
-            help='Change QA contact')
-    egrp.add_argument('--reset-assignee', action="store_true",
-            help='Reset assignee to component default')
-    egrp.add_argument('--reset-qa-contact', action="store_true",
-            help='Reset QA contact to component default')
-    egrp.add_argument('--groups', metavar='GROUP[, GROUP, ...]',
-            action="append",
-            help="add groups to which bug is visible")
-
-    tgrp = p.add_argument_group("Tracking options")
-    tgrp.add_argument('-f', '--flag', action='append',
-            help='Update bugzilla flags with requested type, '
-                 'ie fedora-cvs?, or needinfoX to clear '
-                 '(Use a new option for each flag)')
-    tgrp.add_argument('--severity', help="Change bug severity")
-    tgrp.add_argument('--priority', help="Change bug priority")
-    tgrp.add_argument('--target_milestone', help="Set target milestone")
-    tgrp.add_argument('--target_release', help="Set target release")
-    tgrp.add_argument('--blocked',
-            metavar='BUGID[, BUGID, ...]', action="append",
-            help="Add bug_ids blocked by this bug. BUGID appends, "
-                 "-BUGID removes, =BUGID overwrites")
-    tgrp.add_argument('--dependson', metavar='BUGID[, BUGID, ...]',
-            action="append",
-            help=('Alter depends_on list.  BUGID appends, '
-                 '-BUGID removes, =BUGID overwrites'))
-    tgrp.add_argument('--keywords',
-            metavar='KEYWORD', action="append",
-            help="Alter bug keywords list. KEYWORD appends, "
-                 "-KEYWORD removes, =KEYWORD overwrites")
-    tgrp.add_argument("--whiteboard", metavar="TEXT", action="append",
-            help='Alter status whiteboard text. '
-                  'TEXT appends, -TEXT removes, =TEXT overwrites')
-    tgrp.add_argument("--devel_whiteboard",
-            metavar="TEXT", action="append",
-            help='Alter devel whiteboard text. '
-                  'TEXT appends, -TEXT removes, =TEXT overwrites')
-    tgrp.add_argument("--internal_whiteboard",
-            metavar="TEXT", action="append",
-            help='Alter internal whiteboard text. '
-                  'TEXT appends, -TEXT removes, =TEXT overwrites')
-    tgrp.add_argument("--qa_whiteboard",
-            metavar="TEXT", action="append",
-            help='Alter QA whiteboard. '
-                  'TEXT appends, -TEXT removes, =TEXT overwrites')
-    tgrp.add_argument("--tags", metavar="TEXT", action="append",
-            help="Alter bug 'tags' field"
-                 "TEXT appends, -TEXT removes")
-
-    _parser_add_field_option(p, "Modify a specified field.")
-    _parser_add_unittest_option(p)
+    g = p.add_argument_group("'modify' specific options")
+    g.add_argument('-k', '--close', metavar="RESOLUTION",
+        help='Close with the given resolution')
+    g.add_argument('-d', '--dupeid', metavar="ORIGINAL",
+        help='ID of original bug. Implies --close DUPLICATE')
+    g.add_argument('--private', action='store_true', default=False,
+        help='Mark new comment as private')
+    g.add_argument('--reset-assignee', action="store_true",
+        help='Reset assignee to component default')
+    g.add_argument('--reset-qa-contact', action="store_true",
+        help='Reset QA contact to component default')
 
 
 def _setup_action_attach_parser(subparsers):
@@ -496,10 +397,10 @@ def _merge_field_opts(query, opt, parser):
 
 
 def _do_query(bz, opt, parser):
-    # Construct the query from the list of queryable options
-    q = dict()
+    q = {}
+
     # Parse preconstructed queries.
-    u = getattr(opt, 'from_url', None)
+    u = opt.from_url
     if u:
         q = bz.url_to_query(u)
 
@@ -513,8 +414,8 @@ def _do_query(bz, opt, parser):
             clist.append(line)
         opt.component = clist
 
-    if opt.bug_status:
-        val = opt.bug_status
+    if opt.status:
+        val = opt.status
         stat = val
         if val == 'ALL':
             # leaving this out should return bugs of any status
@@ -533,14 +434,14 @@ def _do_query(bz, opt, parser):
             # non-Closed statuses
             stat = ['NEW', 'ASSIGNED', 'MODIFIED', 'ON_DEV', 'ON_QA',
                 'VERIFIED', 'RELEASE_PENDING', 'POST']
-        opt.bug_status = stat
+        opt.status = stat
 
     # Convert all comma separated list parameters to actual lists,
     # which is what bugzilla wants
     # According to bugzilla docs, any parameter can be a list, but
     # let's only do this for options we explicitly mention can be
     # comma separated.
-    for optname in ["bug_severity", "bug_id", "bug_status", "component",
+    for optname in ["severity", "id", "status", "component",
                     "priority", "product", "version"]:
         val = getattr(opt, optname, None)
         if not isinstance(val, str):
@@ -575,43 +476,43 @@ def _do_query(bz, opt, parser):
         include_fields.sort()
 
     built_query = bz.build_query(
-        product=getattr(opt, "product", None),
-        component=getattr(opt, "component", None),
-        sub_component=getattr(opt, "sub_component", None),
-        version=getattr(opt, "version", None),
-        reporter=getattr(opt, "reporter", None),
-        bug_id=getattr(opt, "bug_id", None),
-        short_desc=getattr(opt, "short_desc", None),
-        long_desc=getattr(opt, "long_desc", None),
-        cc=getattr(opt, "cc", None),
-        assigned_to=getattr(opt, "assigned_to", None),
-        qa_contact=getattr(opt, "qa_contact", None),
-        status=getattr(opt, "bug_status", None),
-        blocked=getattr(opt, "blocked", None),
-        dependson=getattr(opt, "dependson", None),
-        keywords=getattr(opt, "keywords", None),
-        keywords_type=getattr(opt, "keywords_type", None),
-        url=getattr(opt, "url", None),
-        url_type=getattr(opt, "url_type", None),
-        status_whiteboard=getattr(opt, "status_whiteboard", None),
-        status_whiteboard_type=getattr(opt, "status_whiteboard_type", None),
-        fixed_in=getattr(opt, "fixed_in", None),
-        fixed_in_type=getattr(opt, "fixed_in_type", None),
-        flag=getattr(opt, "flag", None),
-        alias=getattr(opt, "alias", None),
-        qa_whiteboard=getattr(opt, "qa_whiteboard", None),
-        devel_whiteboard=getattr(opt, "devel_whiteboard", None),
-        boolean_query=getattr(opt, "boolean_query", None),
-        bug_severity=getattr(opt, "bug_severity", None),
-        priority=getattr(opt, "priority", None),
-        target_milestone=getattr(opt, "target_milestone", None),
+        product=opt.product or None,
+        component=opt.component or None,
+        sub_component=opt.sub_component or None,
+        version=opt.version or None,
+        reporter=opt.reporter or None,
+        bug_id=opt.id or None,
+        short_desc=opt.summary or None,
+        long_desc=opt.comment or None,
+        cc=opt.cc or None,
+        assigned_to=opt.assigned_to or None,
+        qa_contact=opt.qa_contact or None,
+        status=opt.status or None,
+        blocked=opt.blocked or None,
+        dependson=opt.dependson or None,
+        keywords=opt.keywords or None,
+        keywords_type=opt.keywords_type or None,
+        url=opt.url or None,
+        url_type=opt.url_type or None,
+        status_whiteboard=opt.whiteboard or None,
+        status_whiteboard_type=opt.status_whiteboard_type or None,
+        fixed_in=opt.fixed_in or None,
+        fixed_in_type=opt.fixed_in_type or None,
+        flag=opt.flag or None,
+        alias=opt.alias or None,
+        qa_whiteboard=opt.qa_whiteboard or None,
+        devel_whiteboard=opt.devel_whiteboard or None,
+        boolean_query=opt.boolean_query or None,
+        bug_severity=opt.severity or None,
+        priority=opt.priority or None,
+        target_milestone=opt.target_milestone or None,
         emailtype=opt.emailtype or None,
         booleantype=opt.booleantype or None,
         include_fields=include_fields,
-        quicksearch=getattr(opt, "quicksearch", None),
-        savedsearch=getattr(opt, "savedsearch", None),
-        savedsearch_sharer_id=getattr(opt, "savedsearch_sharer_id", None),
-        tags=getattr(opt, "tags", None))
+        quicksearch=opt.quicksearch or None,
+        savedsearch=opt.savedsearch or None,
+        savedsearch_sharer_id=opt.savedsearch_sharer_id or None,
+        tags=opt.tags or None)
 
     _merge_field_opts(built_query, opt, parser)
 
@@ -818,7 +719,7 @@ def _do_new(bz, opt, parser):
         cc=parse_multi(opt.cc) or None,
         component=opt.component or None,
         depends_on=parse_multi(opt.dependson) or None,
-        description=opt.description or None,
+        description=opt.comment or None,
         groups=parse_multi(opt.groups) or None,
         keywords=parse_multi(opt.keywords) or None,
         op_sys=opt.os or None,
@@ -871,7 +772,7 @@ def _do_modify(bz, parser, opt, args):
         status = "CLOSED"
 
     update = bz.build_update(
-        assigned_to=opt.assignee or None,
+        assigned_to=opt.assigned_to or None,
         comment=opt.comment or None,
         comment_private=opt.private or None,
         component=opt.component or None,

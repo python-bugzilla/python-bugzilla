@@ -131,10 +131,11 @@ class BZ34Test(unittest.TestCase):
     _status_open_out = {'bug_status': ['NEW', 'ASSIGNED', 'MODIFIED',
         'ON_DEV', 'ON_QA', 'VERIFIED', 'RELEASE_PENDING', 'POST']}
     _status_post_out = {'bug_status': ['POST']}
-    _email_out = {'assigned_to': 'foo2@example.com', 'cc': "foo1@example.com",
+    _email_out = {'assigned_to': 'foo2@example.com',
+        'cc': ["foo1@example.com"],
         'reporter': "foo3@example.com", "qa_contact": "foo7@example.com"}
     _email_type_out = {
-        'email1': 'foo1@example.com', 'email2': "foo2@example.com",
+        'email1': ['foo1@example.com'], 'email2': "foo2@example.com",
         'email3': 'foo3@example.com', 'email4': 'foo7@example.com',
         'emailtype1': 'notsubstring', 'emailtype2': 'notsubstring',
         'emailtype3': 'notsubstring', 'emailtype4': 'notsubstring',
@@ -142,7 +143,7 @@ class BZ34Test(unittest.TestCase):
         'emailreporter3': True, 'emailqa_contact4': True,
         'query_format': 'advanced'}
     _components_file_out = {'component': ["foo", "bar", "baz"]}
-    _keywords_out = {'keywords': 'Triaged', 'keywords_type': "substring",
+    _keywords_out = {'keywords': ['Triaged'], 'keywords_type': "substring",
         'bug_file_loc': 'http://example.com', 'bug_file_loc_type': 'foo'}
     _longdesc_out = {'longdesc': 'foobar', 'longdesc_type': 'allwordssubstr',
         'query_format': 'advanced'}
@@ -253,12 +254,12 @@ class RHBZTest(BZ4Test):
 
     def testBooleans(self):
         out = {
-            'blocked': '123456',
-            'cf_devel_whiteboard': 'foobar | baz',
+            'blocked': ['123456'],
+            'cf_devel_whiteboard': ['foobar | baz'],
             'cf_devel_whiteboard_type': "substring",
-            'cf_qa_whiteboard': '! baz foo',
+            'cf_qa_whiteboard': ['! baz foo'],
             'cf_qa_whiteboard_type': "substring",
-            'flagtypes.name': 'needinfo & devel_ack',
+            'flagtypes.name': ['needinfo & devel_ack'],
             'include_fields': ['assigned_to', 'id', 'status', 'summary']
         }
 

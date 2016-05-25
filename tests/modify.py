@@ -200,7 +200,7 @@ class ModifyTest(unittest.TestCase):
 
     def testSubComponents(self):
         self.clicomm("--component foo --sub-component 'bar baz'",
-            {"component": "foo", "sub_components": {"foo": "bar baz"}})
+            {"component": "foo", "sub_components": {"foo": ["bar baz"]}})
 
     def testSubComponentFail(self):
         self.assertRaises(ValueError, self.bz.build_update,
