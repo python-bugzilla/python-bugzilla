@@ -1050,23 +1050,10 @@ class Bugzilla(object):
 
         Then pass the output to Bugzilla.query()
         """
-        if boolean_query:
+        if boolean_query or booleantype:
             raise RuntimeError("boolean_query format is no longer supported. "
                 "If you need complicated URL queries, look into "
                 "query --from-url/url_to_query().")
-
-        for key, val in [
-            ('fixed_in', fixed_in),
-            ('blocked', blocked),
-            ('dependson', dependson),
-            ('flag', flag),
-            ('qa_whiteboard', qa_whiteboard),
-            ('devel_whiteboard', devel_whiteboard),
-            ('alias', alias),
-        ]:
-            if val is not None:
-                raise RuntimeError("'%s' search not supported by this "
-                                   "bugzilla's XMLRPC interface" % key)
 
         query = {
             "product": self._listify(product),
@@ -1089,6 +1076,18 @@ class Bugzilla(object):
             "quicksearch": quicksearch,
             "savedsearch": savedsearch,
             "sharer_id": savedsearch_sharer_id,
+
+            # RH extensions that we have to maintain here for back compat,
+            # but all future custom fields should be specified via
+            # cli --field option, or via extending the query dict() manually.
+            # No more supporting custom fields in this API
+            "cf_fixed_in": fixed_in,
+            "blocked": blocked,
+            "dependson": dependson,
+            "flagtypes.name": flag,
+            "cf_qa_whiteboard": qa_whiteboard,
+            "cf_devel_whiteboard": devel_whiteboard,
+            "alias": alias,
             "sub_components": self._listify(sub_component),
         }
 

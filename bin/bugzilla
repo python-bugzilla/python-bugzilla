@@ -302,27 +302,26 @@ def _setup_action_query_parser(subparsers):
 
     # Boolean Charts
     bgrp = p.add_argument_group("Boolean options")
-    bgrp.add_argument('-B', '--booleantype', default="substring",
-            help="specify searching option for booleans, ie. substring, "
-                 "notsubstring, exact, ... [Default: substring]")
+    bgrp.add_argument('-B', '--booleantype',
+            help=argparse.SUPPRESS)
     bgrp.add_argument('--boolean_query', action="append",
             help=argparse.SUPPRESS)
-    bgrp.add_argument('--blocked', action="append",
+    bgrp.add_argument('--blocked',
             help="Search for bugs that block this bug ID")
-    bgrp.add_argument('--dependson', action="append",
+    bgrp.add_argument('--dependson',
             help="Search for bugs that depend on this bug ID")
-    bgrp.add_argument('--flag', action='append',
+    bgrp.add_argument('--flag',
             help="Search for bugs that have certain "
                  "flag states present. Ex --flags=dev_ack+")
-    bgrp.add_argument('--qa_whiteboard', action="append",
+    bgrp.add_argument('--qa_whiteboard',
             help="search for bugs that have certain QA "
                  "Whiteboard text present")
-    bgrp.add_argument('--devel_whiteboard', action="append",
+    bgrp.add_argument('--devel_whiteboard',
             help="search for bugs that have certain "
                  "Devel Whiteboard text present")
-    bgrp.add_argument('--alias', action="append",
+    bgrp.add_argument('--alias',
             help="search for bugs that have the provided alias")
-    bgrp.add_argument('--fixed_in', action="append",
+    bgrp.add_argument('--fixed_in',
             help="search Status Whiteboard field for specified words")
 
     _parser_add_output_options(p)
@@ -609,7 +608,7 @@ def _do_query(bz, opt, parser):
         priority=getattr(opt, "priority", None),
         target_milestone=getattr(opt, "target_milestone", None),
         emailtype=opt.emailtype or None,
-        booleantype=opt.booleantype,
+        booleantype=opt.booleantype or None,
         include_fields=include_fields,
         quicksearch=getattr(opt, "quicksearch", None),
         savedsearch=getattr(opt, "savedsearch", None),

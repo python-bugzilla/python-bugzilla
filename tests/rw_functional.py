@@ -857,59 +857,16 @@ class RHPartnerTest(BaseTest):
         bug.refresh()
         self.assertEqual(bug.sub_components, {})
 
+    def test13ExternalTrackerQuery(self):
+        bz = self.bzclass(url=self.url)
+        self.assertRaises(RuntimeError,
+                          bz.build_external_tracker_boolean_query)
+
     def _deleteAllExistingExternalTrackers(self, bugid):
         bz = self.bzclass(url=self.url)
         ids = [bug['id'] for bug in bz.getbug(bugid).external_bugs]
         if ids != []:
             bz.remove_external_tracker(ids=ids)
-
-    def test14ExternalTrackersQuery(self):
-        bz = self.bzclass(url=self.url)
-        bugid = 461686
-        ext_bug_id = 1234659
-
-        # Delete any existing external trackers to get to a known state
-        self._deleteAllExistingExternalTrackers(bugid)
-
-        # test adding tracker
-        kwargs = {
-            'ext_type_url': 'http://bugzilla.mozilla.org',
-            'ext_type_description': 'Mozilla Foundation',
-            'ext_status': 'Original Status',
-        }
-
-        # Add a tracker that we can query for
-        bz.add_external_tracker(bugid, ext_bug_id, **kwargs)
-
-        kwargs['ext_bz_bug_id'] = ext_bug_id
-
-        boolean_query = bz.build_external_tracker_boolean_query(
-            ext_bz_bug_id=ext_bug_id)
-        query_results = bz.query(bz.build_query(boolean_query=boolean_query))
-        if len(query_results) != 1:
-            raise AssertionError(
-                'external tracker query by bug id should return 1 result.')
-        for key, value in kwargs.items():
-            assert kwargs[key] == value
-
-        boolean_query = bz.build_external_tracker_boolean_query(
-            ext_type_description=kwargs['ext_type_description'])
-        query_results = bz.query(bz.build_query(boolean_query=boolean_query))
-        assert bugid in [qr.id for qr in query_results]
-
-        boolean_query = bz.build_external_tracker_boolean_query(
-            ext_status=kwargs['ext_status'])
-        query_results = bz.query(bz.build_query(boolean_query=boolean_query))
-        if len(query_results) != 1:
-            raise AssertionError(
-                'external tracker query by status should return 1 result.')
-        for key, value in kwargs.items():
-            assert kwargs[key] == value
-
-        boolean_query = bz.build_external_tracker_boolean_query(
-            ext_type_url=kwargs['ext_type_url'])
-        query_results = bz.query(bz.build_query(boolean_query=boolean_query))
-        assert bugid in [qr.id for qr in query_results]
 
     def test14ExternalTrackersAddUpdateRemoveQuery(self):
         bz = self.bzclass(url=self.url)

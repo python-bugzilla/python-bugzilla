@@ -304,142 +304,42 @@ class RHBugzilla(Bugzilla):
                     values += vallist
                 bug['sub_component'] = " ".join(values)
 
-    def build_external_tracker_boolean_query(
-            self, ext_type_description=None, ext_type_url=None,
-            ext_bz_bug_id=None, ext_status=None):
-        """
-        Helper method to build a boolean query to find bugs that contain an
-        external tracker.
+    def build_external_tracker_boolean_query(self, *args, **kwargs):
+        ignore1 = args
+        ignore2 = kwargs
+        raise RuntimeError("Building external boolean queries is "
+            "no longer supported. Please build a URL query "
+            "via the bugzilla web UI and pass it to 'query --from-url' "
+            "or url_to_query()")
 
-        All parameters that are None will be ignored when building the query.
-
-        ext_type_description: The external tracker description as used by
-            Bugzilla.
-        ext_type_url: The external tracker url as used by Bugzilla.
-        ext_bz_bug_id: The external bug id (ie: the bug number in the
-            external tracker).
-        ext_status: The status of the external bug.
-        """
-        parts = []
-
-        if ext_type_description is not None:
-            parts.append(
-                'external_bugzilla.description-equals-{0:s}'.format(
-                    ext_type_description))
-
-        if ext_type_url is not None:
-            parts.append(
-                'external_bugzilla.url-equals-{0:s}'.format(ext_type_url))
-
-        if ext_bz_bug_id is not None:
-            id_str = str(ext_bz_bug_id)
-            parts.append(
-                'ext_bz_bug_map.ext_bz_bug_id-equals-{0:s}'.format(id_str))
-
-        if ext_status is not None:
-            parts.append(
-                'ext_bz_bug_map.ext_status-equals-{0:s}'.format(ext_status))
-
-        return ' & '.join(parts)
 
     def build_query(self, **kwargs):
+        # We previously accepted a text format to approximate boolean
+        # queries, and only for RHBugzilla. Upstream bz has --from-url
+        # support now, so point people to that instead so we don't have
+        # to document and maintain this logic anymore
+        def _warn_bool(kwkey):
+            vallist = self._listify(kwargs.get(kwkey, None))
+            for value in vallist or []:
+                for s in value.split(" "):
+                    if s not in ["|", "&", "!"]:
+                        continue
+                    log.warn("%s value '%s' appears to use the now "
+                        "unsupported boolean formatting, your query may "
+                        "be incorrect. If you need complicated URL queries, "
+                        "look into bugzilla --from-url/url_to_query().",
+                        kwkey, value)
+                    return
+
+        _warn_bool("fixed_in")
+        _warn_bool("blocked")
+        _warn_bool("dependson")
+        _warn_bool("flag")
+        _warn_bool("qa_whiteboard")
+        _warn_bool("devel_whiteboard")
+        _warn_bool("alias")
+
         query = {}
-
-        def _add_key(paramname, keyname, listify=False):
-            val = kwargs.pop(paramname, None)
-            if val is None:
-                return
-            if listify:
-                val = self._listify(val)
-            query[keyname] = val
-
-        def bool_smart_split(boolval):
-            # This parses the CLI command syntax, but we only want to
-            # do space splitting if the space is actually part of a
-            # boolean operator
-            boolchars = ["|", "&", "!"]
-            add = ""
-            retlist = []
-
-            for word in boolval.split(" "):
-                if word.strip() in boolchars:
-                    word = word.strip()
-                    if add:
-                        retlist.append(add)
-                        add = ""
-                    retlist.append(word)
-                else:
-                    if add:
-                        add += " "
-                    add += word
-
-            if add:
-                retlist.append(add)
-            return retlist
-
-        def add_boolean(kwkey, key, bool_id):
-            value = self._listify(kwargs.pop(kwkey, None))
-            if value is None:
-                return bool_id
-
-            query["query_format"] = "advanced"
-            for boolval in value:
-                and_count = 0
-                or_count = 0
-
-                def make_bool_str(prefix):
-                    # pylint: disable=cell-var-from-loop
-                    return "%s%i-%i-%i" % (prefix, bool_id,
-                                           and_count, or_count)
-
-                for par in bool_smart_split(boolval):
-                    field = None
-                    fval = par
-                    typ = kwargs.get("booleantype", "substring")
-
-                    if par == "&":
-                        and_count += 1
-                    elif par == "|":
-                        or_count += 1
-                    elif par == "!":
-                        query['negate%i' % bool_id] = 1
-                    elif not key:
-                        if par.find('-') == -1:
-                            raise RuntimeError('Malformed boolean query: %s' %
-                                               value)
-
-                        args = par.split('-', 2)
-                        field = args[0]
-                        typ = args[1]
-                        fval = None
-                        if len(args) == 3:
-                            fval = args[2]
-                    else:
-                        field = key
-
-                    query[make_bool_str("field")] = field
-                    if fval:
-                        query[make_bool_str("value")] = fval
-                    query[make_bool_str("type")] = typ
-
-                bool_id += 1
-            return bool_id
-
-        # Use fancy email specification for RH bugzilla. It isn't
-        # strictly required, but is more powerful, and it is what
-        # bin/bugzilla historically generated. This requires
-        # query_format='advanced' which is an RHBZ only XMLRPC extension
-
-        chart_id = 0
-        chart_id = add_boolean("fixed_in", "cf_fixed_in", chart_id)
-        chart_id = add_boolean("blocked", "blocked", chart_id)
-        chart_id = add_boolean("dependson", "dependson", chart_id)
-        chart_id = add_boolean("flag", "flagtypes.name", chart_id)
-        chart_id = add_boolean("qa_whiteboard", "cf_qa_whiteboard", chart_id)
-        chart_id = add_boolean("devel_whiteboard", "cf_devel_whiteboard",
-                               chart_id)
-        chart_id = add_boolean("alias", "alias", chart_id)
-
         query.update(self._process_include_fields(None, None,
             kwargs.pop('extra_fields', None)))
 

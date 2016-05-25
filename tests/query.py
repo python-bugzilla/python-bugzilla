@@ -91,13 +91,6 @@ class BZ34Test(unittest.TestCase):
                     "--url http://example.com --url_type foo",
                     self._keywords_out)
 
-    def testBooleans(self):
-        self.clicomm("--blocked 123456 "
-                    "--devel_whiteboard 'foobar | baz' "
-                    "--qa_whiteboard '! baz foo' "
-                    "--flag 'needinfo & devel_ack'",
-                    self._booleans_out)
-
     def testBooleanChart(self):
         self.clicomm("--boolean_query 'keywords-substring-Partner & "
                     "keywords-notsubstring-OtherQA' "
@@ -151,7 +144,6 @@ class BZ34Test(unittest.TestCase):
     _components_file_out = {'component': ["foo", "bar", "baz"]}
     _keywords_out = {'keywords': 'Triaged', 'bug_file_loc':
         'http://example.com', 'bug_file_loc_type': 'foo'}
-    _booleans_out = None
     _longdesc_out = {'longdesc': 'foobar', 'longdesc_type': 'allwordssubstr',
         'query_format': 'advanced'}
     _quicksearch_out = {'quicksearch': 'foo bar baz'}
@@ -224,18 +216,7 @@ class RHBZTest(BZ4Test):
     _output_format_out = BZ34Test.output_format_out.copy()
     _output_format_out["include_fields"] = ['product', 'summary',
         'platform', 'status', 'id', 'blocks', 'whiteboard']
-    _booleans_out = {'value2-0-0': 'baz foo', 'value0-0-0': '123456',
-        'type3-0-1': 'substring', 'value1-1-0': 'devel_ack', 'type0-0-0':
-        'substring', 'type2-0-0': 'substring', 'field3-0-1':
-        'cf_devel_whiteboard', 'field3-0-0': 'cf_devel_whiteboard',
-        'field1-0-0': 'flagtypes.name', 'value3-0-0': 'foobar',
-        'value3-0-1': 'baz', 'value1-0-0': 'needinfo', 'type1-1-0':
-        'substring', 'type1-0-0': 'substring', 'field1-1-0':
-        'flagtypes.name', 'negate2': 1, 'field2-0-0':
-        'cf_qa_whiteboard', 'type3-0-0': 'substring', 'field0-0-0':
-        'blocked', 'include_fields': BZ4Test._default_includes,
-        'query_format': 'advanced'}
-
+    _booleans_out = {}
 
     def testTranslation(self):
         def translate(_in):
@@ -269,6 +250,28 @@ class RHBZTest(BZ4Test):
     def testInvalidBoolean(self):
         self.assertRaises(RuntimeError, self.bz.build_query,
             boolean_query="foobar")
+
+    def testBooleans(self):
+        out = {
+            'blocked': '123456',
+            'cf_devel_whiteboard': 'foobar | baz',
+            'cf_qa_whiteboard': '! baz foo',
+            'flagtypes.name': 'needinfo & devel_ack',
+            'include_fields': ['assigned_to', 'id', 'status', 'summary']
+        }
+
+        import bugzilla
+        import logging
+        log = logging.getLogger(bugzilla.__name__)
+        handlers = log.handlers
+        try:
+            log.handlers = []
+            self.clicomm("--blocked 123456 "
+                        "--devel_whiteboard 'foobar | baz' "
+                        "--qa_whiteboard '! baz foo' "
+                        "--flag 'needinfo & devel_ack'", out)
+        finally:
+            log.handlers = handlers
 
 
 class TestURLToQuery(BZ34Test):
