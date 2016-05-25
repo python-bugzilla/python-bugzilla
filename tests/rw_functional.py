@@ -304,7 +304,7 @@ class RHPartnerTest(BaseTest):
         self.assertTrue(email2 in bug.cc)
         self.assertEquals(len(bug.cc), 2)
 
-        tests.clicomm(cmd + "--cc -%s" % email1, bz)
+        tests.clicomm(cmd + "--cc=-%s" % email1, bz)
         bug.refresh()
         self.assertTrue(email1 not in bug.cc)
 
@@ -389,7 +389,7 @@ class RHPartnerTest(BaseTest):
         if newfix == origfix2:
             newfix = origfix2 + "-2"
 
-        tests.clicomm(cmd + "--fixed_in %s" % newfix, bz)
+        tests.clicomm(cmd + "--fixed_in=%s" % newfix, bz)
 
         bug1.refresh()
         bug2.refresh()
@@ -397,7 +397,7 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug2.fixed_in, newfix)
 
         # Reset fixed_in
-        tests.clicomm(cmd + "--fixed_in \"-\"", bz)
+        tests.clicomm(cmd + "--fixed_in=\"-\"", bz)
 
         bug1.refresh()
         bug2.refresh()
@@ -418,7 +418,7 @@ class RHPartnerTest(BaseTest):
         tests.clicomm(cmd + "--dependson =111222", bz)
         bug.refresh()
         self.assertEquals([111222], bug.depends_on)
-        tests.clicomm(cmd + "--dependson -111222", bz)
+        tests.clicomm(cmd + "--dependson=-111222", bz)
         bug.refresh()
         self.assertEquals([], bug.depends_on)
 
@@ -434,7 +434,7 @@ class RHPartnerTest(BaseTest):
         tests.clicomm(cmd + "--keywords +Documentation --keywords EasyFix", bz)
         bug.refresh()
         self.assertEquals(["Documentation", "EasyFix"], bug.keywords)
-        tests.clicomm(cmd + "--keywords -EasyFix --keywords -Documentation",
+        tests.clicomm(cmd + "--keywords=-EasyFix --keywords=-Documentation",
                       bz)
         bug.refresh()
         self.assertEquals([], bug.keywords)
@@ -621,8 +621,8 @@ class RHPartnerTest(BaseTest):
 
         # Verify that tag manipulation is smart about separator
         tests.clicomm(cmd +
-                      "--qa_whiteboard -_app "
-                      "--internal_whiteboard -security,", bz)
+                      "--qa_whiteboard=-_app "
+                      "--internal_whiteboard=-security,", bz)
         bug.refresh()
 
         self.assertEquals(bug.qa_whiteboard, initval + "qa")
@@ -979,7 +979,7 @@ class RHPartnerTest(BaseTest):
         bug.refresh()
         self.assertEquals(bug.tags, ["foo", "bar", "baz"])
 
-        tests.clicomm(cmd + "--tags -bar", bz)
+        tests.clicomm(cmd + "--tags=-bar", bz)
         bug.refresh()
         self.assertEquals(bug.tags, ["foo", "baz"])
 

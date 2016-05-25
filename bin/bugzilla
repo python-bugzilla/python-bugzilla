@@ -15,7 +15,7 @@ from __future__ import print_function
 
 import locale
 from logging import getLogger, DEBUG, INFO, WARN, StreamHandler, Formatter
-import optparse
+import argparse
 import os
 import re
 import socket
@@ -36,7 +36,6 @@ import bugzilla
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
 _is_unittest = bool(os.getenv("__BUGZILLA_UNITTEST"))
-cmdlist = ['login', 'new', 'query', 'modify', 'attach', 'info']
 format_field_re = re.compile("%{([a-z0-9_]+)(?::([^}]*))?}")
 
 log = getLogger(bugzilla.__name__)
@@ -93,525 +92,401 @@ def open_without_clobber(name, *args):
 # Option parsing #
 ##################
 
-def setup_parser():
-    u = ("%%prog [global options] COMMAND [command-options]"
-         "\n\nCommands: %s" % ', '.join(sorted(cmdlist)))
-    p = optparse.OptionParser(usage=u, version=bugzilla.__version__)
-    p.disable_interspersed_args()
-    p.epilog = 'Try "bugzilla COMMAND --help" for command-specific help.'
+def _setup_root_parser():
+    epilog = 'Try "bugzilla COMMAND --help" for command-specific help.'
+    p = argparse.ArgumentParser(version=bugzilla.__version__,
+        epilog=epilog)
 
     # General bugzilla connection options
-    p.add_option('--bugzilla', default=default_bz,
+    p.add_argument('--bugzilla', default=default_bz,
             help="bugzilla XMLRPC URI. default: %s" % default_bz)
-    p.add_option("--nosslverify", dest="sslverify",
+    p.add_argument("--nosslverify", dest="sslverify",
                  action="store_false", default=True,
                  help="Don't error on invalid bugzilla SSL certificate")
 
-    p.add_option('--login', action="store_true",
+    p.add_argument('--login', action="store_true",
         help='Run interactive "login" before performing the '
              'specified command.')
-    p.add_option('--username', help="Log in with this username")
-    p.add_option('--password', help="Log in with this password")
+    p.add_argument('--username', help="Log in with this username")
+    p.add_argument('--password', help="Log in with this password")
 
-    p.add_option('--ensure-logged-in', action="store_true",
+    p.add_argument('--ensure-logged-in', action="store_true",
         help="Raise an error if we aren't logged in to bugzilla. "
              "Consider using this if you are depending on "
              "cached credentials, to ensure that when they expire the "
              "tool errors, rather than subtly change output.")
-    p.add_option('--no-cache-credentials',
+    p.add_argument('--no-cache-credentials',
         action='store_false', default=True, dest='cache_credentials',
         help="Don't save any bugzilla cookies or tokens to disk, and "
              "don't use any pre-existing credentials.")
 
-    p.add_option('--cookiefile', default=None,
+    p.add_argument('--cookiefile', default=None,
             help="cookie file to use for bugzilla authentication")
-    p.add_option('--tokenfile', default=None,
+    p.add_argument('--tokenfile', default=None,
             help="token file to use for bugzilla authentication")
 
-    p.add_option('--verbose', action='store_true',
+    p.add_argument('--verbose', action='store_true',
             help="give more info about what's going on")
-    p.add_option('--debug', action='store_true',
+    p.add_argument('--debug', action='store_true',
             help="output bunches of debugging info")
-
-    # Generate the man page, dump to stdout. Not for end users
-    p.add_option('--generate-man', action='store_true',
-            help=optparse.SUPPRESS_HELP)
 
     # Allow user to specify BZClass to initialize. Kinda weird for the
     # CLI, I'd rather people file bugs about this so we can fix our detection.
     # So hide it from the help output but keep it for back compat
-    p.add_option('--bztype', default='auto', help=optparse.SUPPRESS_HELP)
+    p.add_argument('--bztype', default='auto', help=argparse.SUPPRESS)
 
     return p
 
 
-def setup_action_parser(action):
-    p = optparse.OptionParser(usage="%%prog %s [options]" % action)
-
-    if action == 'new':
-        p.set_description("Create a new bug report.")
-        p.add_option('-p', '--product', help="REQUIRED: product name")
-        p.add_option('-v', '--version', help="REQUIRED: product version")
-        p.add_option('-c', '--component', help="REQUIRED: component name")
-        p.add_option("--sub-component", help="Optional sub component name")
-        p.add_option('-s', '--short_desc', '--summary', dest='summary',
-                help="REQUIRED: bug summary")
-        p.add_option('-l', '--comment', dest='description',
-                help="initial bug comment")
-        p.add_option('-o', '--os', help="Operating system")
-        p.add_option('-a', '--arch', help="Arch this bug occurs on")
-        p.add_option('--severity', help="Bug severity")
-        p.add_option('--priority', help="Bug priority")
-        p.add_option('-u', '--url', help="URL for further bug info")
-        p.add_option('--cc',
-                metavar='CC[, CC, ...]', action="append",
-                help="add emails to initial CC list")
-        p.add_option('--blocked',
-                metavar='BUGID[, BUGID, ...]', action="append",
-                help="add bug_ids blocked by this bug")
-        p.add_option('--dependson',
-                metavar='BUGID[, BUGID, ...]', action="append",
-                help="add bug_ids that this bug depends on")
-        p.add_option('--groups',
-                metavar='GROUP[, GROUP, ...]', action="append",
-                help="add groups to which bug is visible")
-        p.add_option('--assigned_to',
-                help='Assign bugzilla to specified email address')
-        p.add_option('--qa_contact',
-                help='Set QA contact to specified email address')
-        p.add_option('--keywords',
-                metavar='KEYWORD[, KEYWORD, ...]', action="append",
-                help="Set specified keywords on new bugzilla")
-        p.add_option('--alias',
-                help='An alias (name) for the bug (must be unique)')
-
-    elif action == 'query':
-        p.set_description("List bug reports that match the given criteria.")
-        # General bug metadata
-        p.add_option('-b', '--bug_id', default=None,
-                help="specify individual bugs by IDs, separated with commas")
-        p.add_option('-p', '--product',
-                help="product name, comma-separated "
-                     "(list with 'bugzilla info --products')")
-        p.add_option('-v', '--version',
-                help="product version, comma-separated")
-        p.add_option('-c', '--component',
-                help="component name(s), comma-separated "
-                     "(list with 'bugzilla info --components PRODUCT')")
-        p.add_option("--sub-component", action="append",
-            help="Sub component. Can be specified multiple times")
-        p.add_option('--components_file', default=None,
-                help="list of component names from a file, one component "
-                     "per line (list with 'bugzilla info -c PRODUCT')")
-        p.add_option('-l', '--long_desc',
-                help="search inside bug comments")
-        p.add_option('-m', '--target_milestone',
-                help="search for a target milestone")
-        p.add_option('-s', '--short_desc',
-                help="search bug summaries")
-        p.add_option('-t', '--bug_status', default="ALL",
-                help="comma-separated list of bug statuses to accept "
-                     "[Default:all]")
-        p.add_option('-x', '--bug_severity', '--severity',
-                help="search severities, comma-separated")
-        p.add_option('-z', '--priority',
-                help="search priorities, comma-separated")
-
-        # Email
-        malg = optparse.OptionGroup(p, "Email Options")
-        malg.add_option('-E', '--emailtype', default="substring",
-                help="Email: specify searching option for emails, "
-                     "ie. substring, notsubstring, exact, ... "
-                     "[Default: substring]")
-        malg.add_option('-o', '--cc',
-                help="Email: search cc lists for given address")
-        malg.add_option('-r', '--reporter',
-                help="Email: search reporter email for given address")
-        malg.add_option('-a', '--assigned_to',
-                help="Email: search for bugs assigned to this address")
-        malg.add_option('-q', '--qa_contact',
-                help="Email: search for bugs which have QA Contact "
-                     "assigned to this address")
-        p.add_option_group(malg)
-
-        # Strings
-        stro = optparse.OptionGroup(p, "String search options")
-        stro.add_option('-u', '--url',
-                help="search keywords field for given url")
-        stro.add_option('-U', '--url_type',
-                help="specify searching option for urls, "
-                     "ie. anywords, allwords, nowords")
-        stro.add_option('-k', '--keywords',
-                help="search keywords field for specified words")
-        stro.add_option('-K', '--keywords_type',
-                help="specify searching option for keywords, "
-                     "ie. anywords, allwords, nowords")
-        stro.add_option('-w', '--status_whiteboard',
-                help="search Status Whiteboard field for specified words")
-        stro.add_option('-W', '--status_whiteboard_type',
-                help="specify searching option for Status Whiteboard, "
-                     "ie. anywords, allwords, nowords")
-        stro.add_option("--tags", help="Search bug 'tags' field")
-        p.add_option_group(stro)
-
-        # Precomposed queries
-        p.add_option('--from-url',
-            help="Use the query given by a query.cgi URL. (Use quotes!)")
-        p.add_option('--quicksearch',
-            help="Search using bugzilla's quicksearch functionality.")
-        p.add_option('--savedsearch',
-            help="Name of a bugzilla saved search. If you don't own this "
-                "saved search, you must passed --savedsearch_sharer_id.")
-        p.add_option('--savedsearch-sharer-id',
-            help="Owner ID of the --savedsearch. You can get this ID from "
-                "the URL bugzilla generates when running the saved search "
-                "from the web UI.")
-
-        # Boolean Charts
-        bgrp = optparse.OptionGroup(p, "Boolean options")
-        bgrp.add_option('-B', '--booleantype', default="substring",
-                help="specify searching option for booleans, ie. substring, "
-                     "notsubstring, exact, ... [Default: substring]")
-        bgrp.add_option('--boolean_query', action="append",
-                help="Create your own query. Format: "
-                     "BooleanName-Condition-Parameter &/| ... . ie, "
-                     "keywords-substring-Partner & "
-                     "keywords-notsubstring-OtherQA")
-        bgrp.add_option('--blocked', action="append",
-                help="Search for bugs that block this bug ID")
-        bgrp.add_option('--dependson', action="append",
-                help="Search for bugs that depend on this bug ID")
-        bgrp.add_option('--flag', action='append',
-                help="Search for bugs that have certain "
-                     "flag states present. Ex --flags=dev_ack+")
-        bgrp.add_option('--qa_whiteboard', action="append",
-                help="search for bugs that have certain QA "
-                     "Whiteboard text present")
-        bgrp.add_option('--devel_whiteboard', action="append",
-                help="search for bugs that have certain "
-                     "Devel Whiteboard text present")
-        bgrp.add_option('--alias', action="append",
-                help="search for bugs that have the provided alias")
-        bgrp.add_option('--fixed_in', action="append",
-                help="search Status Whiteboard field for specified words")
-        p.add_option_group(bgrp)
-
-    elif action == 'info':
-        p.set_description("Get information about the bugzilla server.")
-        p.add_option('-p', '--products', action='store_true',
-                help='Get a list of products')
-        p.add_option('-c', '--components', metavar="PRODUCT",
-                help='List the components in the given product')
-        p.add_option('-o', '--component_owners', metavar="PRODUCT",
-                help='List components (and their owners)')
-        p.add_option('-v', '--versions', metavar="VERSION",
-                help='List the versions for the given product')
-
-    elif action == 'modify':
-        p.set_usage("%prog modify [options] BUGID [BUGID...]")
-        p.set_description("Modify one or more bugs.")
-
-        bgrp = optparse.OptionGroup(p, "Bug details")
-        bgrp.add_option('--product',
-                help="Reassign bug to different product")
-        bgrp.add_option('-c', '--component',
-                help="Reassign bug to different component")
-        bgrp.add_option("--sub-component",
-            help="Reassign bug to different sub-component (rhbz extension)")
-        bgrp.add_option("-v", '--version',
-                help="Reassign bug to different version")
-        bgrp.add_option('-o', '--os',
-                help="Change operating system this bug occurs on")
-        bgrp.add_option('-a', '--arch',
-                help="Change arch this bug occurs on")
-        bgrp.add_option('-u', '--url',
-                help="URL for further bug info")
-        bgrp.add_option('--alias',
-                help='An alias (name) for the bug (must be unique)')
-        p.add_option_group(bgrp)
-
-        sgrp = optparse.OptionGroup(p, "Bug status options")
-        sgrp.add_option('-s', '--status',
-                help='Change status of bug')
-        sgrp.add_option('-k', '--close', metavar="RESOLUTION",
-                help='Close with the given resolution')
-        sgrp.add_option('-d', '--dupeid', metavar="ORIGINAL",
-                help='ID of original bug (implies -k DUPLICATE)')
-        sgrp.add_option('-F', '--fixed_in', metavar="VERSION",
-                help='"Fixed in version" field')
-        p.add_option_group(sgrp)
-
-        cgrp = optparse.OptionGroup(p, "Comment options")
-        cgrp.add_option('-l', '--comment',
-                help='Add a comment')
-        cgrp.add_option('-p', '--private', action='store_true', default=False,
-                help='Mark new comment as private')
-        cgrp.add_option("--summary", help="Change bug summary")
-        p.add_option_group(cgrp)
-
-        egrp = optparse.OptionGroup(p, "Contact options")
-        egrp.add_option('--assignee',
-                help='Assign bugzilla to assignee')
-        egrp.add_option('--cc', action='append', metavar="EMAIL",
-                help='Alter CC list. EMAIL appends, -EMAIL removes.')
-        egrp.add_option('--qa_contact',
-                help='Change QA contact')
-        egrp.add_option('--reset-assignee', action="store_true",
-                help='Reset assignee to component default')
-        egrp.add_option('--reset-qa-contact', action="store_true",
-                help='Reset QA contact to component default')
-        egrp.add_option('--groups', metavar='GROUP[, GROUP, ...]',
-                action="append",
-                help="add groups to which bug is visible")
-        p.add_option_group(egrp)
-
-        tgrp = optparse.OptionGroup(p, "Tracking options")
-        tgrp.add_option('-f', '--flag', action='append',
-                help='Update bugzilla flags with requested type, '
-                     'ie fedora-cvs?, or needinfoX to clear '
-                     '(Use a new option for each flag)')
-        tgrp.add_option('--severity', help="Change bug severity")
-        tgrp.add_option('--priority', help="Change bug priority")
-        tgrp.add_option('--target_milestone', help="Set target milestone")
-        tgrp.add_option('--target_release', help="Set target release")
-        tgrp.add_option('--blocked',
-                metavar='BUGID[, BUGID, ...]', action="append",
-                help="Add bug_ids blocked by this bug. BUGID appends, "
-                     "-BUGID removes, =BUGID overwrites")
-        tgrp.add_option('--dependson', metavar='BUGID[, BUGID, ...]',
-                action="append",
-                help=('Alter depends_on list.  BUGID appends, '
-                     '-BUGID removes, =BUGID overwrites'))
-        tgrp.add_option('--keywords',
-                metavar='KEYWORD', action="append",
-                help="Alter bug keywords list. KEYWORD appends, "
-                     "-KEYWORD removes, =KEYWORD overwrites")
-        tgrp.add_option("", "--whiteboard", metavar="TEXT", action="append",
-                help='Alter status whiteboard text. '
-                      'TEXT appends, -TEXT removes, =TEXT overwrites')
-        tgrp.add_option("--devel_whiteboard",
-                metavar="TEXT", action="append",
-                help='Alter devel whiteboard text. '
-                      'TEXT appends, -TEXT removes, =TEXT overwrites')
-        tgrp.add_option("--internal_whiteboard",
-                metavar="TEXT", action="append",
-                help='Alter internal whiteboard text. '
-                      'TEXT appends, -TEXT removes, =TEXT overwrites')
-        tgrp.add_option("--qa_whiteboard",
-                metavar="TEXT", action="append",
-                help='Alter QA whiteboard. '
-                      'TEXT appends, -TEXT removes, =TEXT overwrites')
-        tgrp.add_option("--tags", metavar="TEXT", action="append",
-                help="Alter bug 'tags' field"
-                     "TEXT appends, -TEXT removes")
-        p.add_option_group(tgrp)
+def _parser_add_field_option(p, message):
+    p.add_argument('--field', help="%s FIELD is expected to be "
+        "the raw name used by the bugzilla instance. No safety "
+        "checks are perfomed when using this option." % (message),
+        action="append", dest="fields")
 
 
-    elif action == 'attach':
-        p.set_usage('''
-  %prog attach --file=FILE --desc=DESC [--type=TYPE] BUGID [BUGID...]
-  %prog attach --get=ATTACHID --getall=BUGID [...]
-  %prog attach --type=TYPE BUGID [BUGID...]''')
-        p.set_description("Attach files or download attachments.")
-        p.add_option('-f', '--file', metavar="FILENAME",
-                help='File to attach, or filename for data provided on stdin')
-        p.add_option('-d', '--description', metavar="DESCRIPTION", dest='desc',
-                help="A short description of the file being attached")
-        p.add_option('-t', '--type', metavar="MIMETYPE",
-                help="Mime-type for the file being attached")
-        p.add_option('-g', '--get', metavar="ATTACHID", action="append",
-                default=[], help="Download the attachment with the given ID")
-        p.add_option("--getall", "--get-all", metavar="BUGID", action="append",
-                default=[], help="Download all attachments on the given bug")
-
-    elif action == 'login':
-        p.set_usage('%prog login [username [password]]')
-        p.set_description(
-            "Log into bugzilla and save a login cookie or token.")
-
-    if action in ['new', 'query']:
-        outg = optparse.OptionGroup(p, "Output format options")
-        outg.add_option('-f', '--full', action='store_const', dest='output',
-                const='full', default='normal',
-                help="output detailed bug info")
-        outg.add_option('-i', '--ids', action='store_const', dest='output',
-                const='ids', help="output only bug IDs")
-        outg.add_option('-e', '--extra', action='store_const',
-                dest='output', const='extra',
-                help="output additional bug information "
-                     "(keywords, Whiteboards, etc.)")
-        outg.add_option('--oneline', action='store_const', dest='output',
-                const='oneline',
-                help="one line summary of the bug (useful for scripts)")
-        outg.add_option('--raw', action='store_const', dest='output',
-                const='raw', help="raw output of the bugzilla contents")
-        outg.add_option('--outputformat',
-                help="Print output in the form given. "
-                     "You can use RPM-style tags that match bug "
-                     "fields, e.g.: '%{id}: %{summary}'. See the man page "
-                     "section 'OUTPUT FORMAT' for more details.")
-        p.add_option_group(outg)
-
-    if action in ['new', 'query', 'modify']:
-        message = {
-            'new': 'Set a specified field.',
-            'query': 'Query a specified field.',
-            'modify': 'Modify a specified field.'
-        }.get(action)
-        p.add_option('--field', help="%s FIELD is expected to be \
-                     the raw name used by the bugzilla instance. No safety \
-                     checks are perfomed when using this option." % (message),
-                     action="append", type="str", dest="fields",
-                     metavar="FIELD=VALUE")
-
-
+def _parser_add_unittest_option(p):
     # Used by unit tests, not for end user consumption
-    if action in ['new', 'query', 'modify']:
-        p.add_option('--test-return-result', action="store_true",
-                     help=optparse.SUPPRESS_HELP)
+    p.add_argument('--test-return-result', action="store_true",
+        help=argparse.SUPPRESS)
 
-    return p
+
+def _parser_add_output_options(p):
+    outg = p.add_argument_group("Output format options")
+    outg.add_argument('-f', '--full', action='store_const', dest='output',
+            const='full', default='normal',
+            help="output detailed bug info")
+    outg.add_argument('-i', '--ids', action='store_const', dest='output',
+            const='ids', help="output only bug IDs")
+    outg.add_argument('-e', '--extra', action='store_const',
+            dest='output', const='extra',
+            help="output additional bug information "
+                 "(keywords, Whiteboards, etc.)")
+    outg.add_argument('--oneline', action='store_const', dest='output',
+            const='oneline',
+            help="one line summary of the bug (useful for scripts)")
+    outg.add_argument('--raw', action='store_const', dest='output',
+            const='raw', help="raw output of the bugzilla contents")
+    outg.add_argument('--outputformat',
+            help="Print output in the form given. "
+                 "You can use RPM-style tags that match bug "
+                 "fields, e.g.: '%%{id}: %%{summary}'. See the man page "
+                 "section 'OUTPUT FORMAT' for more details.")
+
+
+def _setup_action_new_parser(subparsers):
+    description = "Create a new bug report."
+    p = subparsers.add_parser("new", description=description)
+
+    p.add_argument('-p', '--product', help="REQUIRED: product name")
+    p.add_argument('-v', '--version', help="REQUIRED: product version")
+    p.add_argument('-c', '--component', help="REQUIRED: component name")
+    p.add_argument("--sub-component", help="Optional sub component name")
+    p.add_argument('-s', '--short_desc', '--summary', dest='summary',
+            help="REQUIRED: bug summary")
+    p.add_argument('-l', '--comment', dest='description',
+            help="initial bug comment")
+    p.add_argument('-o', '--os', help="Operating system")
+    p.add_argument('-a', '--arch', help="Arch this bug occurs on")
+    p.add_argument('--severity', help="Bug severity")
+    p.add_argument('--priority', help="Bug priority")
+    p.add_argument('-u', '--url', help="URL for further bug info")
+    p.add_argument('--cc',
+            metavar='CC[, CC, ...]', action="append",
+            help="add emails to initial CC list")
+    p.add_argument('--blocked',
+            metavar='BUGID[, BUGID, ...]', action="append",
+            help="add bug_ids blocked by this bug")
+    p.add_argument('--dependson',
+            metavar='BUGID[, BUGID, ...]', action="append",
+            help="add bug_ids that this bug depends on")
+    p.add_argument('--groups',
+            metavar='GROUP[, GROUP, ...]', action="append",
+            help="add groups to which bug is visible")
+    p.add_argument('--assigned_to',
+            help='Assign bugzilla to specified email address')
+    p.add_argument('--qa_contact',
+            help='Set QA contact to specified email address')
+    p.add_argument('--keywords',
+            metavar='KEYWORD[, KEYWORD, ...]', action="append",
+            help="Set specified keywords on new bugzilla")
+    p.add_argument('--alias',
+            help='An alias (name) for the bug (must be unique)')
+
+    _parser_add_output_options(p)
+    _parser_add_field_option(p, "Set a specified field.")
+    _parser_add_unittest_option(p)
+
+
+def _setup_action_query_parser(subparsers):
+    description = "List bug reports that match the given criteria."
+    p = subparsers.add_parser("query", description=description)
+
+    # General bug metadata
+    p.add_argument('-b', '--bug_id', default=None,
+            help="specify individual bugs by IDs, separated with commas")
+    p.add_argument('-p', '--product',
+            help="product name, comma-separated "
+                 "(list with 'bugzilla info --products')")
+    p.add_argument('-v', '--version',
+            help="product version, comma-separated")
+    p.add_argument('-c', '--component',
+            help="component name(s), comma-separated "
+                 "(list with 'bugzilla info --components PRODUCT')")
+    p.add_argument("--sub-component", action="append",
+        help="Sub component. Can be specified multiple times")
+    p.add_argument('--components_file', default=None,
+            help="list of component names from a file, one component "
+                 "per line (list with 'bugzilla info -c PRODUCT')")
+    p.add_argument('-l', '--long_desc',
+            help="search inside bug comments")
+    p.add_argument('-m', '--target_milestone',
+            help="search for a target milestone")
+    p.add_argument('-s', '--short_desc',
+            help="search bug summaries")
+    p.add_argument('-t', '--bug_status', default="ALL",
+            help="comma-separated list of bug statuses to accept "
+                 "[Default:all]")
+    p.add_argument('-x', '--bug_severity', '--severity',
+            help="search severities, comma-separated")
+    p.add_argument('-z', '--priority',
+            help="search priorities, comma-separated")
+
+    # Email
+    malg = p.add_argument_group("Email Options")
+    malg.add_argument('-E', '--emailtype', default="substring",
+            help="Email: specify searching option for emails, "
+                 "ie. substring, notsubstring, exact, ... "
+                 "[Default: substring]")
+    malg.add_argument('-o', '--cc',
+            help="Email: search cc lists for given address")
+    malg.add_argument('-r', '--reporter',
+            help="Email: search reporter email for given address")
+    malg.add_argument('-a', '--assigned_to',
+            help="Email: search for bugs assigned to this address")
+    malg.add_argument('-q', '--qa_contact',
+            help="Email: search for bugs which have QA Contact "
+                 "assigned to this address")
+
+    # Strings
+    stro = p.add_argument_group("String search options")
+    stro.add_argument('-u', '--url',
+            help="search keywords field for given url")
+    stro.add_argument('-U', '--url_type',
+            help="specify searching option for urls, "
+                 "ie. anywords, allwords, nowords")
+    stro.add_argument('-k', '--keywords',
+            help="search keywords field for specified words")
+    stro.add_argument('-K', '--keywords_type',
+            help="specify searching option for keywords, "
+                 "ie. anywords, allwords, nowords")
+    stro.add_argument('-w', '--status_whiteboard',
+            help="search Status Whiteboard field for specified words")
+    stro.add_argument('-W', '--status_whiteboard_type',
+            help="specify searching option for Status Whiteboard, "
+                 "ie. anywords, allwords, nowords")
+    stro.add_argument("--tags", help="Search bug 'tags' field")
+
+    # Precomposed queries
+    p.add_argument('--from-url',
+        help="Use the query given by a query.cgi URL. (Use quotes!)")
+    p.add_argument('--quicksearch',
+        help="Search using bugzilla's quicksearch functionality.")
+    p.add_argument('--savedsearch',
+        help="Name of a bugzilla saved search. If you don't own this "
+            "saved search, you must passed --savedsearch_sharer_id.")
+    p.add_argument('--savedsearch-sharer-id',
+        help="Owner ID of the --savedsearch. You can get this ID from "
+            "the URL bugzilla generates when running the saved search "
+            "from the web UI.")
+
+    # Boolean Charts
+    bgrp = p.add_argument_group("Boolean options")
+    bgrp.add_argument('-B', '--booleantype', default="substring",
+            help="specify searching option for booleans, ie. substring, "
+                 "notsubstring, exact, ... [Default: substring]")
+    bgrp.add_argument('--boolean_query', action="append",
+            help="Create your own query. Format: "
+                 "BooleanName-Condition-Parameter &/| ... . ie, "
+                 "keywords-substring-Partner & "
+                 "keywords-notsubstring-OtherQA")
+    bgrp.add_argument('--blocked', action="append",
+            help="Search for bugs that block this bug ID")
+    bgrp.add_argument('--dependson', action="append",
+            help="Search for bugs that depend on this bug ID")
+    bgrp.add_argument('--flag', action='append',
+            help="Search for bugs that have certain "
+                 "flag states present. Ex --flags=dev_ack+")
+    bgrp.add_argument('--qa_whiteboard', action="append",
+            help="search for bugs that have certain QA "
+                 "Whiteboard text present")
+    bgrp.add_argument('--devel_whiteboard', action="append",
+            help="search for bugs that have certain "
+                 "Devel Whiteboard text present")
+    bgrp.add_argument('--alias', action="append",
+            help="search for bugs that have the provided alias")
+    bgrp.add_argument('--fixed_in', action="append",
+            help="search Status Whiteboard field for specified words")
+
+    _parser_add_output_options(p)
+    _parser_add_field_option(p, "Query a specified field.")
+    _parser_add_unittest_option(p)
+
+
+def _setup_action_info_parser(subparsers):
+    description = "Get information about the bugzilla server."
+    p = subparsers.add_parser("info", description=description)
+
+    p.add_argument('-p', '--products', action='store_true',
+            help='Get a list of products')
+    p.add_argument('-c', '--components', metavar="PRODUCT",
+            help='List the components in the given product')
+    p.add_argument('-o', '--component_owners', metavar="PRODUCT",
+            help='List components (and their owners)')
+    p.add_argument('-v', '--versions', metavar="VERSION",
+            help='List the versions for the given product')
+
+
+def _setup_action_modify_parser(subparsers):
+    usage = "bugzilla modify [options] BUGID [BUGID...]"
+    description = "Modify one or more bugs."
+    p = subparsers.add_parser("modify", usage=usage, description=description)
+
+    bgrp = p.add_argument_group("Bug details")
+    bgrp.add_argument('--product',
+            help="Reassign bug to different product")
+    bgrp.add_argument('-c', '--component',
+            help="Reassign bug to different component")
+    bgrp.add_argument("--sub-component",
+        help="Reassign bug to different sub-component (rhbz extension)")
+    bgrp.add_argument("-v", '--version',
+            help="Reassign bug to different version")
+    bgrp.add_argument('-o', '--os',
+            help="Change operating system this bug occurs on")
+    bgrp.add_argument('-a', '--arch',
+            help="Change arch this bug occurs on")
+    bgrp.add_argument('-u', '--url',
+            help="URL for further bug info")
+    bgrp.add_argument('--alias',
+            help='An alias (name) for the bug (must be unique)')
+
+    sgrp = p.add_argument_group("Bug status options")
+    sgrp.add_argument('-s', '--status',
+            help='Change status of bug')
+    sgrp.add_argument('-k', '--close', metavar="RESOLUTION",
+            help='Close with the given resolution')
+    sgrp.add_argument('-d', '--dupeid', metavar="ORIGINAL",
+            help='ID of original bug (implies -k DUPLICATE)')
+    sgrp.add_argument('-F', '--fixed_in', metavar="VERSION",
+            help='"Fixed in version" field')
+
+    cgrp = p.add_argument_group(p, "Comment options")
+    cgrp.add_argument('-l', '--comment',
+            help='Add a comment')
+    cgrp.add_argument('-p', '--private', action='store_true', default=False,
+            help='Mark new comment as private')
+    cgrp.add_argument("--summary", help="Change bug summary")
+
+    egrp = p.add_argument_group("Contact options")
+    egrp.add_argument('--assignee',
+            help='Assign bugzilla to assignee')
+    egrp.add_argument('--cc', action='append', metavar="EMAIL",
+            help='Alter CC list. EMAIL appends, -EMAIL removes.')
+    egrp.add_argument('--qa_contact',
+            help='Change QA contact')
+    egrp.add_argument('--reset-assignee', action="store_true",
+            help='Reset assignee to component default')
+    egrp.add_argument('--reset-qa-contact', action="store_true",
+            help='Reset QA contact to component default')
+    egrp.add_argument('--groups', metavar='GROUP[, GROUP, ...]',
+            action="append",
+            help="add groups to which bug is visible")
+
+    tgrp = p.add_argument_group("Tracking options")
+    tgrp.add_argument('-f', '--flag', action='append',
+            help='Update bugzilla flags with requested type, '
+                 'ie fedora-cvs?, or needinfoX to clear '
+                 '(Use a new option for each flag)')
+    tgrp.add_argument('--severity', help="Change bug severity")
+    tgrp.add_argument('--priority', help="Change bug priority")
+    tgrp.add_argument('--target_milestone', help="Set target milestone")
+    tgrp.add_argument('--target_release', help="Set target release")
+    tgrp.add_argument('--blocked',
+            metavar='BUGID[, BUGID, ...]', action="append",
+            help="Add bug_ids blocked by this bug. BUGID appends, "
+                 "-BUGID removes, =BUGID overwrites")
+    tgrp.add_argument('--dependson', metavar='BUGID[, BUGID, ...]',
+            action="append",
+            help=('Alter depends_on list.  BUGID appends, '
+                 '-BUGID removes, =BUGID overwrites'))
+    tgrp.add_argument('--keywords',
+            metavar='KEYWORD', action="append",
+            help="Alter bug keywords list. KEYWORD appends, "
+                 "-KEYWORD removes, =KEYWORD overwrites")
+    tgrp.add_argument("--whiteboard", metavar="TEXT", action="append",
+            help='Alter status whiteboard text. '
+                  'TEXT appends, -TEXT removes, =TEXT overwrites')
+    tgrp.add_argument("--devel_whiteboard",
+            metavar="TEXT", action="append",
+            help='Alter devel whiteboard text. '
+                  'TEXT appends, -TEXT removes, =TEXT overwrites')
+    tgrp.add_argument("--internal_whiteboard",
+            metavar="TEXT", action="append",
+            help='Alter internal whiteboard text. '
+                  'TEXT appends, -TEXT removes, =TEXT overwrites')
+    tgrp.add_argument("--qa_whiteboard",
+            metavar="TEXT", action="append",
+            help='Alter QA whiteboard. '
+                  'TEXT appends, -TEXT removes, =TEXT overwrites')
+    tgrp.add_argument("--tags", metavar="TEXT", action="append",
+            help="Alter bug 'tags' field"
+                 "TEXT appends, -TEXT removes")
+
+    _parser_add_field_option(p, "Modify a specified field.")
+    _parser_add_unittest_option(p)
+
+
+def _setup_action_attach_parser(subparsers):
+    usage = """
+bugzilla attach --file=FILE --desc=DESC [--type=TYPE] BUGID [BUGID...]
+bugzilla attach --get=ATTACHID --getall=BUGID [...]
+bugzilla attach --type=TYPE BUGID [BUGID...]"""
+    description = "Attach files or download attachments."
+    p = subparsers.add_parser("attach", description=description, usage=usage)
+
+    p.add_argument('-f', '--file', metavar="FILENAME",
+            help='File to attach, or filename for data provided on stdin')
+    p.add_argument('-d', '--description', metavar="DESCRIPTION", dest='desc',
+            help="A short description of the file being attached")
+    p.add_argument('-t', '--type', metavar="MIMETYPE",
+            help="Mime-type for the file being attached")
+    p.add_argument('-g', '--get', metavar="ATTACHID", action="append",
+            default=[], help="Download the attachment with the given ID")
+    p.add_argument("--getall", "--get-all", metavar="BUGID", action="append",
+            default=[], help="Download all attachments on the given bug")
+
+
+def _setup_action_login_parser(subparsers):
+    usage = 'bugzilla login [username [password]]'
+    description = "Log into bugzilla and save a login cookie or token."
+    subparsers.add_parser("login", description=description, usage=usage)
+
+
+def setup_parser():
+    rootparser = _setup_root_parser()
+    subparsers = rootparser.add_subparsers(dest="command_name")
+    _setup_action_new_parser(subparsers)
+    _setup_action_query_parser(subparsers)
+    _setup_action_info_parser(subparsers)
+    _setup_action_modify_parser(subparsers)
+    _setup_action_attach_parser(subparsers)
+    _setup_action_login_parser(subparsers)
+    return rootparser
 
 
 ####################
 # Command routines #
 ####################
-
-def generate_man_page():
-    from logilab.common.optik_ext import ManHelpFormatter
-    import datetime
-
-    today = datetime.date.today()
-    datestr = today.strftime("%B %d, %Y")
-
-    # pylint: disable=W1401
-    # Anomalous backslash in string, man format confuses pylint
-    manpage = \
-'''.TH bugzilla 1  "%s" "version %s" "User Commands"
-.SH NAME
-bugzilla \- command-line interface to Bugzilla over XML-RPC
-.SH SYNOPSIS
-.B bugzilla
-[\\fIoptions\\fR] [\\fIcommand\\fR] [\\fIcommand-options\\fR]
-.SH DESCRIPTION
-.PP
-.BR bugzilla
-is a command-line utility that allows access to the XML-RPC interface provided
-by Bugzilla.
-.PP
-\\fIcommand\\fP is one of:
-.br
-.I \\fR * login - log into the given bugzilla instance
-.br
-.I \\fR * new - create a new bug
-.br
-.I \\fR * query - search for bugs matching given criteria
-.br
-.I \\fR * modify - modify existing bugs
-.br
-.I \\fR * attach - attach files to existing bugs, or get attachments
-.br
-.I \\fR * info - get info about the given bugzilla instance
-''' % (datestr, bugzilla.__version__)
-
-    manformatter = ManHelpFormatter()
-    parser = setup_parser()
-    parser.formatter = manformatter
-
-    opt_section = parser.format_option_help()
-    manpage += opt_section.replace("OPTIONS", "GLOBAL OPTIONS")
-    for action in cmdlist:
-        action_parser = setup_action_parser(action)
-        action_parser.remove_option("--help")
-        action_parser.formatter = manformatter
-        opt_section = action_parser.format_option_help()
-        manpage += opt_section.replace("OPTIONS",
-                                       '\[oq]%s\[cq] OPTIONS' % action.upper())
-    manpage += \
-'''.SH OUTPUT FORMAT
-
-The output of the bugzilla tool should NEVER BE PARSED unless you are using a
-custom --outputformat. For everything else, just don't parse it, the formats
-are not stable and are subject to change.
-
---outputformat allows printing arbitrary bug data in a user preferred format.
-For example, to print a returned bug ID, component, and product, separated
-with ::, do:
-
---outputformat "%{id}::%{component}::%{product}"
-
-The fields (like 'id', 'component', etc.) are the names of the values returned
-by bugzilla's XMLRPC interface. To see a list of all fields, check the API
-documentation in the 'SEE ALSO' section. Alternatively, run a 'bugzilla
---debug query ...' and look at the key names returned in the query results.
-Also, in most cases, using the name of the associated command line switch
-should work, like --bug_status becomes %{bug_status}, etc.
-
-.SH AUTHENTICATION COOKIES AND TOKENS
-
-Older bugzilla instances use cookie-based authentication, and
-newer bugzilla instances (around 5.0) use a non-cookie token system.
-
-When you log into bugzilla with the "login" subcommand or the "--login"
-argument, we cache the login credentials in ~/.cache/python-bugzilla/
-Previously we cached credentials in ~/.<filename>. If you want to see
-which file the tool is using, check --debug output.
-
-To perform an authenticated bugzilla command on a new machine, run a one time
-"bugzilla login" to cache credentials before running the desired command. You
-can also run "bugzilla --login" and the login process will be initiated before
-invoking the command.
-
-Additionally, the --no-cache-credentials option will tell the bugzilla tool to
-_not_ save any credentials in $HOME, or use any previously cached credentials.
-
-.SH EXAMPLES
-.PP
-.RS 0
-bugzilla query --bug_id 62037
-
-bugzilla query --version 15 --component python-bugzilla
-
-# All boolean options can be formatted like this
-.br
-bugzilla query --blocked "123456 | 224466"
-
-bugzilla login
-
-bugzilla new -p Fedora -v rawhide -c python-bugzilla \\\\
-         --summary "python-bugzilla causes headaches" \\\\
-         --comment "python-bugzilla made my brain hurt when I used it."
-
-bugzilla attach --file ~/Pictures/cam1.jpg --desc "me, in pain" $BUGID
-
-bugzilla attach --getall $BUGID
-
-bugzilla modify --close NOTABUG --comment "Actually, you're hungover." $BUGID
-
-
-.SH EXIT STATUS
-.BR bugzilla
-normally returns 0 if the requested command was successful.
-Otherwise, exit status is 1 if
-.BR bugzilla
-is interrupted by the user (or a login attempt fails), 2 if a
-socket error occurs (e.g. TCP connection timeout), and 3 if the server returns
-an XML-RPC fault.
-.SH BUGS
-Please report any bugs as github issues at
-.br
-https://github.com/python-bugzilla/python-bugzilla
-.br
-to the mailing list at
-.br
-https://fedorahosted.org/mailman/listinfo/python-bugzilla
-.SH SEE ALSO
-.nf
-http://www.bugzilla.org/docs/tip/en/html/api/Bugzilla/WebService/Bug.html
-https://bugzilla.redhat.com/docs/en/html/api/Bugzilla/WebService/Bug.html'''
-
-    print(manpage)
-
 
 def _merge_field_opts(query, opt, parser):
     # Add any custom fields if specified
@@ -1029,8 +904,8 @@ def _do_modify(bz, parser, opt, args):
         status=status,
         summary=opt.summary or None,
         version=opt.version or None,
-        reset_assigned_to=opt.reset_assignee,
-        reset_qa_contact=opt.reset_qa_contact,
+        reset_assigned_to=opt.reset_assignee or None,
+        reset_qa_contact=opt.reset_qa_contact or None,
         resolution=opt.close or None,
         target_release=opt.target_release or None,
         target_milestone=opt.target_milestone or None,
@@ -1173,53 +1048,53 @@ def _do_set_attach(bz, opt, parser, args):
 # Main handling #
 #################
 
-def _make_bz_instance(global_opt):
+def _make_bz_instance(opt):
     """
     Build the Bugzilla instance we will use
     """
-    if global_opt.bztype != 'auto':
+    if opt.bztype != 'auto':
         log.info("Explicit --bztype is no longer supported, ignoring")
 
     cookiefile = None
     tokenfile = None
-    if global_opt.cache_credentials:
-        cookiefile = global_opt.cookiefile or -1
-        tokenfile = global_opt.tokenfile or -1
+    if opt.cache_credentials:
+        cookiefile = opt.cookiefile or -1
+        tokenfile = opt.tokenfile or -1
 
     bz = bugzilla.Bugzilla(
-        url=global_opt.bugzilla,
+        url=opt.bugzilla,
         cookiefile=cookiefile,
         tokenfile=tokenfile,
-        sslverify=global_opt.sslverify)
+        sslverify=opt.sslverify)
     return bz
 
 
-def _handle_login(global_opt, parser, args, action, bz):
+def _handle_login(opt, parser, args, action, bz):
     """
     Handle all login related bits
     """
     is_login_command = (action == 'login')
 
     do_interactive_login = (is_login_command or
-        global_opt.login or global_opt.username or global_opt.password)
+        opt.login or opt.username or opt.password)
 
     if is_login_command:
         if len(args) == 2:
-            (global_opt.username, global_opt.password) = args
+            (opt.username, opt.password) = args
         elif len(args) == 1:
-            (global_opt.username, ) = args
+            (opt.username, ) = args
         elif len(args) > 2:
             parser.error("Too many arguments for login")
 
     try:
         if do_interactive_login:
             bz.interactive_login(
-                global_opt.username, global_opt.password)
+                opt.username, opt.password)
     except bugzilla.BugzillaError:
         print(str(sys.exc_info()[1]))
         sys.exit(1)
 
-    if global_opt.ensure_logged_in and not bz.logged_in:
+    if opt.ensure_logged_in and not bz.logged_in:
         print("--ensure-logged-in passed but you aren't logged in to %s" %
             bz.url)
         sys.exit(1)
@@ -1235,44 +1110,28 @@ def _handle_login(global_opt, parser, args, action, bz):
 
 def main(unittest_bz_instance=None):
     parser = setup_parser()
-    (global_opt, args) = parser.parse_args()
+    opt, args = parser.parse_known_args()
+    action = opt.command_name
 
-    if global_opt.generate_man:
-        generate_man_page()
-        return 0
-
-    if global_opt.debug:
+    if opt.debug:
         log.setLevel(DEBUG)
-    elif global_opt.verbose:
+    elif opt.verbose:
         log.setLevel(INFO)
     else:
         log.setLevel(WARN)
 
     log.debug("Launched with command line: %s", " ".join(sys.argv))
 
-    # Get our action
-    if len(args) == 0:
-        parser.error("No command specified, command must be one of: %s" %
-                     ', '.join(cmdlist))
-    action = args.pop(0)
-    if action not in cmdlist:
-        parser.error("Unknown command '%s', command must be one of: %s" %
-                     (action, ', '.join(cmdlist)))
-
-    # Parse action-specific args
-    action_parser = setup_action_parser(action)
-    (opt, args) = action_parser.parse_args(args)
-
     # Connect to bugzilla
-    log.info('Connecting to %s', global_opt.bugzilla)
+    log.info('Connecting to %s', opt.bugzilla)
 
     if unittest_bz_instance:
         bz = unittest_bz_instance
     else:
-        bz = _make_bz_instance(global_opt)
+        bz = _make_bz_instance(opt)
 
     # Handle login options
-    _handle_login(global_opt, parser, args, action, bz)
+    _handle_login(opt, parser, args, action, bz)
 
 
     ###########################

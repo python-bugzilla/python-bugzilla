@@ -89,7 +89,7 @@ class ModifyTest(unittest.TestCase):
 
     def testWhiteboard(self):
         self.clicomm(
-            "--whiteboard tagfoo --whiteboard -tagbar",
+            "--whiteboard tagfoo --whiteboard=-tagbar",
             {}, wbout={"whiteboard": (["tagfoo"], ["tagbar"])}
         )
         self.clicomm(
@@ -98,10 +98,10 @@ class ModifyTest(unittest.TestCase):
         )
 
         self.clicomm(
-            "--qa_whiteboard =yo-qa --qa_whiteboard -foo "
+            "--qa_whiteboard =yo-qa --qa_whiteboard=-foo "
             "--internal_whiteboard =internal-hey --internal_whiteboard +bar "
-            "--devel_whiteboard =devel-duh --devel_whiteboard -yay "
-            "--tags foo1 --tags -remove2",
+            "--devel_whiteboard =devel-duh --devel_whiteboard=-yay "
+            "--tags foo1 --tags=-remove2",
             {'cf_devel_whiteboard': 'devel-duh',
              'cf_internal_whiteboard': 'internal-hey',
              'cf_qa_whiteboard': 'yo-qa'}, wbout={
@@ -119,7 +119,7 @@ class ModifyTest(unittest.TestCase):
              'reset_qa_contact': True}
         )
         self.clicomm(
-            "--groups +foo --groups -bar,baz --groups fribby",
+            "--groups +foo --groups=-bar,baz --groups fribby",
             {'groups': {'add': ['foo', 'fribby'], 'remove': ['bar', 'baz']}}
         )
         self.clicomm(
@@ -165,7 +165,7 @@ class ModifyTest(unittest.TestCase):
             {'depends_on': {'add': [100, 200]}}
         )
         self.clicomm(
-            "--dependson -100,200",
+            "--dependson=-100,200",
             {'depends_on': {'remove': [100, 200]}}
         )
         self.clicomm(
@@ -174,7 +174,7 @@ class ModifyTest(unittest.TestCase):
         )
 
         self.clicomm(
-            "--dependson 1 --dependson -2 --dependson +3 --dependson =4",
+            "--dependson 1 --dependson=-2 --dependson +3 --dependson =4",
             {'depends_on': {'add': [1, 3], 'remove': [2], 'set': [4]}}
         )
         self.clicomm(
@@ -182,7 +182,7 @@ class ModifyTest(unittest.TestCase):
             {'blocks': {'add': [5, 7], 'remove': [6], 'set': [8, 9]}}
         )
         self.clicomm(
-            "--keywords foo --keywords -bar --keywords +baz --keywords =yay",
+            "--keywords foo --keywords=-bar --keywords +baz --keywords =yay",
             {'keywords': {'add': ["foo", "baz"],
                           'remove': ["bar"], 'set': ["yay"]}}
         )
@@ -191,7 +191,7 @@ class ModifyTest(unittest.TestCase):
 
     def testCC(self):
         self.clicomm(
-            "--cc foo@example.com --cc -minus@example.com "
+            "--cc foo@example.com --cc=-minus@example.com "
             "--cc =foo@example.com --cc +foo@example.com",
             {'cc': {'add': ['foo@example.com', "=foo@example.com",
                             "+foo@example.com"],

@@ -12,7 +12,6 @@ Unit tests for building query strings with bin/bugzilla
 from __future__ import print_function
 
 import os
-import sys
 import tempfile
 import unittest
 
@@ -26,22 +25,6 @@ class MiscCLI(unittest.TestCase):
     Test miscellaneous CLI bits to get build out our code coverage
     """
     maxDiff = None
-
-    def testManPageGeneration(self):
-        try:
-            # If logilab found, we get some useless import warning
-            import warnings
-            warnings.simplefilter("ignore")
-
-            from logilab.common.optik_ext import ManHelpFormatter
-            ignore = ManHelpFormatter
-        except Exception:
-            e = sys.exc_info()[1]
-            print("Skipping man page test: %s" % e)
-            return
-
-        out = tests.clicomm("bugzilla --generate-man", None)
-        self.assertTrue(len(out.splitlines()) > 100)
 
     def testHelp(self):
         out = tests.clicomm("bugzilla --help", None)
