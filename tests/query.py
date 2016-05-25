@@ -102,8 +102,7 @@ class BZ34Test(unittest.TestCase):
         self.clicomm("--boolean_query 'keywords-substring-Partner & "
                     "keywords-notsubstring-OtherQA' "
                     "--boolean_query 'foo-bar-baz | foo-bar-wee' "
-                    "--boolean_query '! foo-bar-yargh'",
-                    self._booleans_chart_out)
+                    "--boolean_query '! foo-bar-yargh'", None)
 
     def testLongDesc(self):
         self.clicomm("--long_desc 'foobar'", self._longdesc_out)
@@ -153,7 +152,6 @@ class BZ34Test(unittest.TestCase):
     _keywords_out = {'keywords': 'Triaged', 'bug_file_loc':
         'http://example.com', 'bug_file_loc_type': 'foo'}
     _booleans_out = None
-    _booleans_chart_out = None
     _longdesc_out = {'longdesc': 'foobar', 'longdesc_type': 'allwordssubstr',
         'query_format': 'advanced'}
     _quicksearch_out = {'quicksearch': 'foo bar baz'}
@@ -236,14 +234,6 @@ class RHBZTest(BZ4Test):
         'flagtypes.name', 'negate2': 1, 'field2-0-0':
         'cf_qa_whiteboard', 'type3-0-0': 'substring', 'field0-0-0':
         'blocked', 'include_fields': BZ4Test._default_includes,
-        'query_format': 'advanced'}
-    _booleans_chart_out = {'value1-0-1': 'wee', 'value2-0-0': 'yargh',
-        'field2-0-0': 'foo', 'value0-0-0': 'Partner', 'type0-0-0':
-        'substring', 'type2-0-0': 'bar', 'field1-0-1': 'foo', 'field1-0-0':
-        'foo', 'value1-0-0': 'baz', 'field0-1-0': 'keywords', 'field0-0-0':
-        'keywords', 'type1-0-0': 'bar', 'type1-0-1': 'bar', 'negate2': 1,
-        'type0-1-0': 'notsubstring', 'value0-1-0': 'OtherQA',
-        'include_fields': BZ4Test._default_includes,
         'query_format': 'advanced'}
 
 

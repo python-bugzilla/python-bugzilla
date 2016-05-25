@@ -306,10 +306,7 @@ def _setup_action_query_parser(subparsers):
             help="specify searching option for booleans, ie. substring, "
                  "notsubstring, exact, ... [Default: substring]")
     bgrp.add_argument('--boolean_query', action="append",
-            help="Create your own query. Format: "
-                 "BooleanName-Condition-Parameter &/| ... . ie, "
-                 "keywords-substring-Partner & "
-                 "keywords-notsubstring-OtherQA")
+            help=argparse.SUPPRESS)
     bgrp.add_argument('--blocked', action="append",
             help="Search for bugs that block this bug ID")
     bgrp.add_argument('--dependson', action="append",

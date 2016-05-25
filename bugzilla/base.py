@@ -1050,9 +1050,10 @@ class Bugzilla(object):
 
         Then pass the output to Bugzilla.query()
         """
-        # These parameters are only used by RHBugzilla, which overwrites
-        # this implementation. So ignore them here
-        ignore = booleantype
+        if boolean_query:
+            raise RuntimeError("boolean_query format is no longer supported. "
+                "If you need complicated URL queries, look into "
+                "query --from-url/url_to_query().")
 
         for key, val in [
             ('fixed_in', fixed_in),
@@ -1062,7 +1063,6 @@ class Bugzilla(object):
             ('qa_whiteboard', qa_whiteboard),
             ('devel_whiteboard', devel_whiteboard),
             ('alias', alias),
-            ('boolean_query', boolean_query),
         ]:
             if val is not None:
                 raise RuntimeError("'%s' search not supported by this "

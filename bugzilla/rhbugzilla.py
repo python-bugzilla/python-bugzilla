@@ -439,7 +439,6 @@ class RHBugzilla(Bugzilla):
         chart_id = add_boolean("devel_whiteboard", "cf_devel_whiteboard",
                                chart_id)
         chart_id = add_boolean("alias", "alias", chart_id)
-        chart_id = add_boolean("boolean_query", None, chart_id)
 
         query.update(self._process_include_fields(None, None,
             kwargs.pop('extra_fields', None)))
