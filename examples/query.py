@@ -29,6 +29,11 @@ query = bzapi.build_query(
     product="Fedora",
     component="python-bugzilla")
 
+# Since 'query' is just a dict, you could set your own parameters too, like
+# if your bugzilla had a custom field. This will set 'status' for example,
+# but for common opts it's better to use build_query
+query["status"] = "CLOSED"
+
 # query() is what actually performs the query. it's a wrapper around Bug.search
 t1 = time.time()
 bugs = bzapi.query(query)
