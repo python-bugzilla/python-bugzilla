@@ -339,11 +339,4 @@ class RHBugzilla(Bugzilla):
         _warn_bool("devel_whiteboard")
         _warn_bool("alias")
 
-        query = {}
-        query.update(self._process_include_fields(None, None,
-            kwargs.pop('extra_fields', None)))
-
-        newquery = Bugzilla.build_query(self, **kwargs)
-        query.update(newquery)
-        self.pre_translation(query)
-        return query
+        return Bugzilla.build_query(self, **kwargs)

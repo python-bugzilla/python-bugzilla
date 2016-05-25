@@ -1036,7 +1036,8 @@ class Bugzilla(object):
                     savedsearch_sharer_id=None,
                     sub_component=None,
                     tags=None,
-                    exclude_fields=None):
+                    exclude_fields=None,
+                    extra_fields=None):
         """
         Build a query string from passed arguments. Will handle
         query parameter differences between various bugzilla versions.
@@ -1116,13 +1117,16 @@ class Bugzilla(object):
             query["longdesc_type"] = "allwordssubstr"
 
         # 'include_fields' only available for Bugzilla4+
+        # 'extra_fields' is an RHBZ extension
         query.update(self._process_include_fields(
-            include_fields, exclude_fields, None))
+            include_fields, exclude_fields, extra_fields))
 
         # Strip out None elements in the dict
         for k, v in query.copy().items():
             if v is None:
                 del(query[k])
+
+        self.pre_translation(query)
         return query
 
     def query(self, query):
