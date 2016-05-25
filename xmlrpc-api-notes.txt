@@ -110,6 +110,9 @@ Bugzilla 5.0: (July 2015)
     Component.create
     User.valid_login
 
+Bugzilla latest/tip:
+    https://bugzilla.readthedocs.io/en/latest/api/index.html
+
 
 Redhat Bugzilla: 4.4 based with extensions. Bits on top of 4.4
     https://bugzilla.redhat.com/docs/en/html/api/
