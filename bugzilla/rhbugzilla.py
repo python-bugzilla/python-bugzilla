@@ -353,15 +353,6 @@ class RHBugzilla(Bugzilla):
                 val = self._listify(val)
             query[keyname] = val
 
-        def add_longdesc():
-            val = kwargs.pop("long_desc", None)
-            if val is None:
-                return
-
-            query["query_format"] = "advanced"
-            query["longdesc"] = val
-            query["longdesc_type"] = "allwordssubstr"
-
         def add_email(key, count):
             value = kwargs.pop(key, None)
             if value is None:
@@ -465,8 +456,6 @@ class RHBugzilla(Bugzilla):
                                chart_id)
         chart_id = add_boolean("alias", "alias", chart_id)
         chart_id = add_boolean("boolean_query", None, chart_id)
-
-        add_longdesc()
 
         _add_key("quicksearch", "quicksearch")
         _add_key("savedsearch", "savedsearch")

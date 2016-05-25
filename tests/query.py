@@ -144,7 +144,8 @@ class BZ34Test(unittest.TestCase):
         'http://example.com', 'bug_file_loc_type': 'foo'}
     _booleans_out = None
     _booleans_chart_out = None
-    _longdesc_out = None
+    _longdesc_out = {'longdesc': 'foobar', 'longdesc_type': 'allwordssubstr',
+        'query_format': 'advanced'}
     _quicksearch_out = None
     _savedsearch_out = None
     _sub_component_out = None
@@ -193,6 +194,8 @@ class BZ4Test(BZ34Test):
     _keywords_out = BZ34Test._keywords_out.copy()
     _keywords_out["include_fields"] = _default_includes
 
+    _longdesc_out = BZ34Test._longdesc_out.copy()
+    _longdesc_out["include_fields"] = _default_includes
 
 
 class RHBZTest(BZ4Test):
@@ -227,9 +230,6 @@ class RHBZTest(BZ4Test):
         'keywords', 'type1-0-0': 'bar', 'type1-0-1': 'bar', 'negate2': 1,
         'type0-1-0': 'notsubstring', 'value0-1-0': 'OtherQA',
         'include_fields': BZ4Test._default_includes,
-        'query_format': 'advanced'}
-    _longdesc_out = {'include_fields': BZ4Test._default_includes,
-        'longdesc': 'foobar', 'longdesc_type': 'allwordssubstr',
         'query_format': 'advanced'}
     _quicksearch_out = {'include_fields': BZ4Test._default_includes,
         'quicksearch': 'foo bar baz'}

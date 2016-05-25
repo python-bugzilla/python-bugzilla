@@ -1064,7 +1064,6 @@ class Bugzilla(object):
             ('devel_whiteboard', devel_whiteboard),
             ('alias', alias),
             ('boolean_query', boolean_query),
-            ('long_desc', long_desc),
             ('quicksearch', quicksearch),
             ('savedsearch', savedsearch),
             ('sharer_id', savedsearch_sharer_id),
@@ -1097,6 +1096,11 @@ class Bugzilla(object):
             "reporter": reporter,
             "tag": self._listify(tags),
         }
+
+        if long_desc is not None:
+            query["query_format"] = "advanced"
+            query["longdesc"] = long_desc
+            query["longdesc_type"] = "allwordssubstr"
 
         # 'include_fields' only available for Bugzilla4+
         query.update(self._process_include_fields(
