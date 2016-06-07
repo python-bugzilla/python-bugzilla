@@ -25,10 +25,11 @@ class BaseTest(unittest.TestCase):
     bzversion = (0, 0)
     closestatus = "CLOSED"
 
-    def clicomm(self, argstr, expectexc=False):
+    def clicomm(self, argstr, expectexc=False, bz=None):
         comm = "bugzilla " + argstr
 
-        bz = Bugzilla(url=self.url, use_creds=False)
+        if not bz:
+            bz = Bugzilla(url=self.url, use_creds=False)
         if expectexc:
             self.assertRaises(Exception, tests.clicomm, comm, bz)
         else:
@@ -238,6 +239,19 @@ class RHTest(BaseTest):
     # CVE bug output
     test14 = lambda s: BaseTest._testQueryOneline(s, "720784",
             " CVE-2011-2527")
+
+    def testQueryFlags(self):
+        bz = self.bzclass(url=self.url)
+        if not bz.logged_in:
+            print "not logged in, skipping testQueryFlags"
+            return
+
+        out = self.clicomm("query --product 'Red Hat Enterprise Linux 5' "
+            "--component virt-manager --bug_status CLOSED "
+            "--flag rhel-5.4.0+", bz=bz)
+        self.assertTrue(len(out.splitlines()) > 15)
+        self.assertTrue(len(out.splitlines()) < 28)
+        self.assertTrue("223805" in out)
 
     def testQueryFixedIn(self):
         out = self.clicomm("query --fixed_in anaconda-15.29-1")

@@ -1057,15 +1057,13 @@ class Bugzilla(object):
                 "query --from-url/url_to_query().")
 
         query = {
+            "alias": alias,
             "product": self._listify(product),
             "component": self._listify(component),
             "version": version,
             "id": bug_id,
             "short_desc": short_desc,
             "bug_status": status,
-            "keywords": keywords,
-            "bug_file_loc": url,
-            "status_whiteboard": status_whiteboard,
             "bug_severity": bug_severity,
             "priority": priority,
             "target_milestone": target_milestone,
@@ -1074,28 +1072,43 @@ class Bugzilla(object):
             "savedsearch": savedsearch,
             "sharer_id": savedsearch_sharer_id,
 
-            # RH extensions that we have to maintain here for back compat,
-            # but all future custom fields should be specified via
-            # cli --field option, or via extending the query dict() manually.
-            # No more supporting custom fields in this API
-            "cf_fixed_in": fixed_in,
-            "blocked": blocked,
-            "dependson": dependson,
-            "flagtypes.name": flag,
-            "cf_qa_whiteboard": qa_whiteboard,
-            "cf_devel_whiteboard": devel_whiteboard,
-            "alias": alias,
+            # RH extensions... don't add any more. See comment below
             "sub_components": self._listify(sub_component),
         }
 
-        for key, val in [("keywords", keywords_type),
-                         ("bug_file_loc", url_type),
-                         ("status_whiteboard", status_whiteboard_type),
-                         ("cf_fixed_in", fixed_in_type),
-                         ("cf_qa_whiteboard", None),
-                         ("cf_devel_whiteboard", None)]:
-            if query[key]:
-                query[key + "_type"] = val or "substring"
+        def add_bool(bzkey, value, bool_id, booltype=None):
+            value = self._listify(value)
+            if value is None:
+                return bool_id
+
+            query["query_format"] = "advanced"
+            for boolval in value:
+                def make_bool_str(prefix):
+                    # pylint: disable=cell-var-from-loop
+                    return "%s%i-0-0" % (prefix, bool_id)
+
+                query[make_bool_str("field")] = bzkey
+                query[make_bool_str("value")] = boolval
+                query[make_bool_str("type")] = booltype or "substring"
+
+                bool_id += 1
+            return bool_id
+
+        # RH extensions that we have to maintain here for back compat,
+        # but all future custom fields should be specified via
+        # cli --field option, or via extending the query dict() manually.
+        # No more supporting custom fields in this API
+        bool_id = 0
+        bool_id = add_bool("keywords", keywords, bool_id, keywords_type)
+        bool_id = add_bool("blocked", blocked, bool_id)
+        bool_id = add_bool("dependson", dependson, bool_id)
+        bool_id = add_bool("bug_file_loc", url, bool_id, url_type)
+        bool_id = add_bool("cf_fixed_in", fixed_in, bool_id, fixed_in_type)
+        bool_id = add_bool("flagtypes.name", flag, bool_id)
+        bool_id = add_bool("status_whiteboard",
+                           status_whiteboard, bool_id, status_whiteboard_type)
+        bool_id = add_bool("cf_qa_whiteboard", qa_whiteboard, bool_id)
+        bool_id = add_bool("cf_devel_whiteboard", devel_whiteboard, bool_id)
 
         def add_email(key, value, count):
             if value is None:

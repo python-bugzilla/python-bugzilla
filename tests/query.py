@@ -143,8 +143,10 @@ class BZ34Test(unittest.TestCase):
         'emailreporter3': True, 'emailqa_contact4': True,
         'query_format': 'advanced'}
     _components_file_out = {'component': ["foo", "bar", "baz"]}
-    _keywords_out = {'keywords': ['Triaged'], 'keywords_type': "substring",
-        'bug_file_loc': 'http://example.com', 'bug_file_loc_type': 'foo'}
+    _keywords_out = {'query_format': 'advanced',
+        'field0-0-0': 'keywords', 'value0-0-0': 'Triaged',
+        'field1-0-0': 'bug_file_loc', 'value1-0-0': 'http://example.com',
+        'type0-0-0': 'substring', 'type1-0-0': 'foo'}
     _longdesc_out = {'longdesc': 'foobar', 'longdesc_type': 'allwordssubstr',
         'query_format': 'advanced'}
     _quicksearch_out = {'quicksearch': 'foo bar baz'}
@@ -254,13 +256,20 @@ class RHBZTest(BZ4Test):
 
     def testBooleans(self):
         out = {
-            'blocked': ['123456'],
-            'cf_devel_whiteboard': ['foobar | baz'],
-            'cf_devel_whiteboard_type': "substring",
-            'cf_qa_whiteboard': ['! baz foo'],
-            'cf_qa_whiteboard_type': "substring",
-            'flagtypes.name': ['needinfo & devel_ack'],
-            'include_fields': ['assigned_to', 'id', 'status', 'summary']
+            'query_format': 'advanced',
+            'type0-0-0': 'substring',
+            'type1-0-0': 'substring',
+            'type2-0-0': 'substring',
+            'type3-0-0': 'substring',
+            'value0-0-0': '123456',
+            'value1-0-0': 'needinfo & devel_ack',
+            'value2-0-0': '! baz foo',
+            'value3-0-0': 'foobar | baz',
+            'field0-0-0': 'blocked',
+            'field1-0-0': 'flagtypes.name',
+            'field2-0-0': 'cf_qa_whiteboard',
+            'field3-0-0': 'cf_devel_whiteboard',
+            'include_fields': ['assigned_to', 'id', 'status', 'summary'],
         }
 
         import bugzilla
