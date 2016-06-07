@@ -261,12 +261,6 @@ class RHTest(BaseTest):
         self.assertTrue(bug.bug_id == 720773)
 
     def testQuerySubComponent(self):
-        # As of this writing, the feature is quite new and
-        # partner-bugzilla doesn't seem to have any actual bugs
-        # with sub components set. After a few months and a
-        # partner-bugzilla refresh we should be able to find something
-        # to check
-
         out = self.clicomm("query --product 'Red Hat Enterprise Linux 7' "
             "--component lvm2 --sub-component 'Thin Provisioning'")
         self.assertTrue(len(out.splitlines()) >= 5)
