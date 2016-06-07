@@ -908,7 +908,7 @@ class Bugzilla(object):
     _getbug_extra_fields = []
     _supports_getbug_extra_fields = False
 
-    def _getbugs(self, idlist, permissive=True,
+    def _getbugs(self, idlist, permissive,
             include_fields=None, exclude_fields=None, extra_fields=None):
         '''
         Return a list of dicts of full bug info for each given bug id.
@@ -978,12 +978,14 @@ class Bugzilla(object):
         return Bug(self, dict=data, autorefresh=self.bug_autorefresh)
 
     def getbugs(self, idlist,
-                include_fields=None, exclude_fields=None, extra_fields=None):
+                include_fields=None, exclude_fields=None, extra_fields=None,
+                permissive=True):
         '''Return a list of Bug objects with the full complement of bug data
         already loaded. If there's a problem getting the data for a given id,
         the corresponding item in the returned list will be None.'''
         data = self._getbugs(idlist, include_fields=include_fields,
-            exclude_fields=exclude_fields, extra_fields=extra_fields)
+            exclude_fields=exclude_fields, extra_fields=extra_fields,
+            permissive=permissive)
         return [(b and Bug(self, dict=b,
                            autorefresh=self.bug_autorefresh)) or None
                 for b in data]
