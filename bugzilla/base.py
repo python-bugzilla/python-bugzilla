@@ -574,6 +574,7 @@ class Bugzilla(object):
 
         if not user:
             sys.stdout.write('Bugzilla Username: ')
+            sys.stdout.flush()
             user = sys.stdin.readline().strip()
         if not password:
             password = getpass.getpass('Bugzilla Password: ')
