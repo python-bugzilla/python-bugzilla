@@ -351,8 +351,9 @@ bugzilla attach --type=TYPE BUGID [BUGID...]"""
 
     p.add_argument('-f', '--file', metavar="FILENAME",
             help='File to attach, or filename for data provided on stdin')
-    p.add_argument('-d', '--description', metavar="DESCRIPTION", dest='desc',
-            help="A short description of the file being attached")
+    p.add_argument('-d', '--description', '--summary',
+            metavar="SUMMARY", dest='desc',
+            help="A short summary of the file being attached")
     p.add_argument('-t', '--type', metavar="MIMETYPE",
             help="Mime-type for the file being attached")
     p.add_argument('-g', '--get', metavar="ATTACHID", action="append",

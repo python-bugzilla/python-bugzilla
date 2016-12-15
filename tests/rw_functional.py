@@ -526,7 +526,7 @@ class RHPartnerTest(BaseTest):
                              (setbugid, desc1, testfile), bz)
 
         desc2 = "python-bugzilla cli upload %s" % datetime.datetime.today()
-        out2 = tests.clicomm(cmd + "%s --file test --description \"%s\"" %
+        out2 = tests.clicomm(cmd + "%s --file test --summary \"%s\"" %
                              (setbugid, desc2), bz, stdin=open(testfile))
 
         # Expected output format:
@@ -534,10 +534,10 @@ class RHPartnerTest(BaseTest):
 
         setbug.refresh()
         self.assertEquals(len(setbug.attachments), orignumattach + 2)
-        self.assertEquals(setbug.attachments[-2]["description"], desc1)
+        self.assertEquals(setbug.attachments[-2]["summary"], desc1)
         self.assertEquals(setbug.attachments[-2]["id"],
                           int(out1.splitlines()[2].split()[2]))
-        self.assertEquals(setbug.attachments[-1]["description"], desc2)
+        self.assertEquals(setbug.attachments[-1]["summary"], desc2)
         self.assertEquals(setbug.attachments[-1]["id"],
                           int(out2.splitlines()[2].split()[2]))
         attachid = setbug.attachments[-2]["id"]
