@@ -251,7 +251,7 @@ class RHTest(BaseTest):
     def testQueryFlags(self):
         bz = self.bzclass(url=self.url)
         if not bz.logged_in:
-            print "not logged in, skipping testQueryFlags"
+            print("not logged in, skipping testQueryFlags")
             return
 
         out = self.clicomm("query --product 'Red Hat Enterprise Linux 5' "
