@@ -94,8 +94,7 @@ def open_without_clobber(name, *args):
 
 def _setup_root_parser():
     epilog = 'Try "bugzilla COMMAND --help" for command-specific help.'
-    p = argparse.ArgumentParser(version=bugzilla.__version__,
-        epilog=epilog)
+    p = argparse.ArgumentParser(epilog=epilog)
 
     # General bugzilla connection options
     p.add_argument('--bugzilla', default=default_bz,
@@ -129,6 +128,8 @@ def _setup_root_parser():
             help="give more info about what's going on")
     p.add_argument('--debug', action='store_true',
             help="output bunches of debugging info")
+    p.add_argument('--version', action='version',
+                   version=bugzilla.__version__)
 
     # Allow user to specify BZClass to initialize. Kinda weird for the
     # CLI, I'd rather people file bugs about this so we can fix our detection.
