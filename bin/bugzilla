@@ -772,6 +772,12 @@ def _do_modify(bz, parser, opt, args):
     if opt.close:
         status = "CLOSED"
 
+    flags = []
+    if opt.flag:
+        # Convert "foo+" to tuple ("foo", "+")
+        for f in opt.flag:
+            flags.append({"name": f[:-1], "status": f[-1]})
+
     update = bz.build_update(
         assigned_to=opt.assigned_to or None,
         comment=opt.comment or None,
@@ -813,13 +819,8 @@ def _do_modify(bz, parser, opt, args):
         qa_whiteboard=set_qawb and set_qawb[0] or None,
         sub_component=opt.sub_component or None,
         alias=opt.alias or None,
+        flags=flags or None,
     )
-
-    flags = []
-    if opt.flag:
-        # Convert "foo+" to tuple ("foo", "+")
-        for f in opt.flag:
-            flags.append({"name": f[:-1], "status": f[-1]})
 
     # We make this a little convoluted to facilitate unit testing
     wbmap = {
@@ -836,18 +837,14 @@ def _do_modify(bz, parser, opt, args):
     _merge_field_opts(update, opt, parser)
 
     log.debug("update bug dict=%s", update)
-    log.debug("update flags dict=%s", flags)
     log.debug("update whiteboard dict=%s", wbmap)
 
-    if not any([flags, update, wbmap, add_tags, rm_tags]):
+    if not any([update, wbmap, add_tags, rm_tags]):
         parser.error("'modify' command requires additional arguments")
 
     if opt.test_return_result:
-        return (update, flags, wbmap, add_tags, rm_tags)
+        return (update, wbmap, add_tags, rm_tags)
 
-    if flags:
-        ret = bz.update_flags(bugid_list, flags)
-        log.debug("bz.update_flags returned=%s", ret)
     if add_tags or rm_tags:
         ret = bz.update_tags(bugid_list,
             tags_add=add_tags, tags_remove=rm_tags)

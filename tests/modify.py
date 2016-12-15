@@ -27,21 +27,18 @@ class ModifyTest(unittest.TestCase):
             return unittest.TestCase.assertDictEqual(self, *args, **kwargs)
         return self.assertEqual(*args, **kwargs)
 
-    def clicomm(self, argstr, out, flagsout=None, wbout=None,
-                tags_add=None, tags_rm=None):
+    def clicomm(self, argstr, out, wbout=None, tags_add=None, tags_rm=None):
         comm = "bugzilla modify --test-return-result 123456 224466 " + argstr
         # pylint: disable=unpacking-non-sequence
 
         if out is None:
             self.assertRaises(RuntimeError, tests.clicomm, comm, self.bz)
         else:
-            (mdict, fdict, wdict, tagsa, tagsr) = tests.clicomm(
+            (mdict, wdict, tagsa, tagsr) = tests.clicomm(
                 comm, self.bz, returnmain=True)
 
             if wbout:
                 self.assertDictEqual(wbout, wdict)
-            if flagsout:
-                self.assertEqual(flagsout, fdict)
             if out:
                 self.assertDictEqual(out, mdict)
             if tags_add:
@@ -81,10 +78,11 @@ class ModifyTest(unittest.TestCase):
     def testFlags(self):
         self.clicomm(
             "--flag needinfoX --flag dev_ack+ --flag qa_ack-",
-            {},
-            [{'status': 'X', 'name': 'needinfo'},
-             {'status': '+', 'name': 'dev_ack'},
-             {'status': '-', 'name': 'qa_ack'}]
+            {"flags": [
+                {'status': 'X', 'name': 'needinfo'},
+                {'status': '+', 'name': 'dev_ack'},
+                {'status': '-', 'name': 'qa_ack'}
+            ]}
         )
 
     def testWhiteboard(self):

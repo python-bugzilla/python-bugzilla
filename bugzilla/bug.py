@@ -338,13 +338,11 @@ class Bug(object):
         return f[0]['status']
 
     def updateflags(self, flags):
-        '''
-        Think wrapper around bugzilla.update_flags()
-        '''
         flaglist = []
         for key, value in flags.items():
             flaglist.append({"name": key, "status": value})
-        return self.bugzilla.update_flags(self.bug_id, flaglist)
+        return self.bugzilla.update_bugs([self.bug_id],
+            self.bugzilla.build_update(flags=flaglist))
 
 
     ########################

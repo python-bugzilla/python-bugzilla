@@ -1217,17 +1217,6 @@ class Bugzilla(object):
         log.debug("Calling Bug.update with: %s", tmp)
         return self._proxy.Bug.update(tmp)
 
-    def update_flags(self, idlist, flags):
-        '''
-        Updates the flags associated with a bug report.
-        Format of flags is:
-        [{"name": "needinfo", "status": "+", "requestee": "foo@bar.com"},
-         {"name": "devel_ack", "status": "-"}, ...]
-        '''
-        d = {"ids": self._listify(idlist), "updates": flags}
-        log.debug("Calling Flag.update with: %s", d)
-        return self._proxy.Flag.update(d)
-
     def update_tags(self, idlist, tags_add=None, tags_remove=None):
         '''
         Updates the 'tags' field for a bug.
@@ -1295,7 +1284,8 @@ class Bugzilla(object):
                      qa_whiteboard=None,
                      devel_whiteboard=None,
                      internal_whiteboard=None,
-                     sub_component=None):
+                     sub_component=None,
+                     flags=None):
         # pylint: disable=W0221
         # Argument number differs from overridden method
         # Base defines it with *args, **kwargs, so we don't have to maintain
@@ -1367,6 +1357,7 @@ class Bugzilla(object):
         s("version", version)
         s("whiteboard", whiteboard)
         s("work_time", work_time, float)
+        s("flags", flags)
 
         add_dict("blocks", blocks_add, blocks_remove, blocks_set,
                  convert=int)
