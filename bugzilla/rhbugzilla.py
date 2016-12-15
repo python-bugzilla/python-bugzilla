@@ -151,6 +151,8 @@ class RHBugzilla(Bugzilla):
             'bug_ids': self._listify(bug_ids),
             'external_bugs': [param_dict],
         }
+
+        log.debug("Calling ExternalBugs.add_external_bug(%s)", params)
         return self._proxy.ExternalBugs.add_external_bug(params)
 
     def update_external_tracker(self, ids=None, ext_type_id=None,
@@ -198,6 +200,8 @@ class RHBugzilla(Bugzilla):
             params['ext_description'] = ext_description
         if ext_priority is not None:
             params['ext_priority'] = ext_priority
+
+        log.debug("Calling ExternalBugs.update_external_bug(%s)", params)
         return self._proxy.ExternalBugs.update_external_bug(params)
 
     def remove_external_tracker(self, ids=None, ext_type_id=None,
@@ -234,6 +238,8 @@ class RHBugzilla(Bugzilla):
             params['ext_bz_bug_id'] = self._listify(ext_bz_bug_id)
         if bug_ids is not None:
             params['bug_ids'] = self._listify(bug_ids)
+
+        log.debug("Calling ExternalBugs.remove_external_bug(%s)", params)
         return self._proxy.ExternalBugs.remove_external_bug(params)
 
 
