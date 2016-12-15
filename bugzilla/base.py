@@ -1510,16 +1510,16 @@ class Bugzilla(object):
             status:    new status for the flag ('-', '+', '?', 'X')
             requestee: new requestee for the flag
         '''
-        update = {
-            'name': flagname,
-            'attach_id': int(attachid),
-        }
-        update.update(kwargs.items())
+        # Bug ID was used for the original custom redhat API, no longer
+        # needed though
+        ignore = bugid
 
-        result = self._proxy.Flag.update({
-            'ids': [int(bugid)],
-            'updates': [update]})
-        return result['flag_updates'][str(bugid)]
+        flags = {"name": flagname}
+        flags.update(kwargs)
+        update = {'ids': [int(attachid)], 'flags': [flags]}
+
+        log.debug("Calling Bug.update_attachment(%s)", update)
+        return self._proxy.Bug.update_attachment(update)
 
 
     #####################
