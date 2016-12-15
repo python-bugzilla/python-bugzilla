@@ -824,7 +824,7 @@ class RHPartnerTest(BaseTest):
             self.assertTrue("Sorry, you aren't a member" in str(e))
 
     def test12SetCookie(self):
-        bz = self.bzclass("partner-bugzilla.redhat.com",
+        bz = self.bzclass(self.url,
             cookiefile=-1, tokenfile=None)
 
         try:

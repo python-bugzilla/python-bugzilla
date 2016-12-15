@@ -38,8 +38,11 @@ class BaseTest(unittest.TestCase):
     def _testBZVersion(self):
         bz = Bugzilla(self.url, use_creds=False)
         self.assertEquals(bz.__class__, self.bzclass)
-        self.assertEquals(bz.bz_ver_major, self.bzversion[0])
-        self.assertEquals(bz.bz_ver_minor, self.bzversion[1])
+        if tests.REDHAT_URL:
+            print("BZ version=%s.%s" % (bz.bz_ver_major, bz.bz_ver_minor))
+        else:
+            self.assertEquals(bz.bz_ver_major, self.bzversion[0])
+            self.assertEquals(bz.bz_ver_minor, self.bzversion[1])
 
     # Since we are running these tests against bugzilla instances in
     # the wild, we can't depend on certain data like product lists
@@ -112,7 +115,12 @@ class BaseTest(unittest.TestCase):
         out = self.clicomm("query %s" % args)
         self.assertTrue(expectstr in out)
 
-    def _testQueryURL(self, url, count, expectstr):
+    def _testQueryURL(self, querystr, count, expectstr):
+        url = self.url
+        if "/xmlrpc.cgi" in self.url:
+            url = url.replace("/xmlrpc.cgi", querystr)
+        else:
+            url += querystr
         out = self.clicomm("query --from-url \"%s\"" % url)
         self.assertEqual(len(out.splitlines()), count)
         self.assertTrue(expectstr in out)
@@ -222,7 +230,7 @@ class RHTest(BaseTest):
             "sum=%{summary}\"",
             "id=307471 sw= bzcl34nup needinfo= ")
     test11 = lambda s: BaseTest._testQueryURL(s,
-            "https://bugzilla.redhat.com/buglist.cgi?f1=creation_ts"
+            "/buglist.cgi?f1=creation_ts"
             "&list_id=973582&o1=greaterthaneq&classification=Fedora&"
             "o2=lessthaneq&query_format=advanced&f2=creation_ts"
             "&v1=2010-01-01&component=python-bugzilla&v2=2011-01-01"
