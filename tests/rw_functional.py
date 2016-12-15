@@ -876,10 +876,14 @@ class RHPartnerTest(BaseTest):
         # Delete any existing external trackers to get to a known state
         self._deleteAllExistingExternalTrackers(bugid)
 
+        url = "https://bugzilla.mozilla.org"
+        if bz.bz_ver_major < 5:
+            url = "http://bugzilla.mozilla.org"
+
         # test adding tracker
         kwargs = {
             'ext_type_id': 6,
-            'ext_type_url': 'http://bugzilla.mozilla.org',
+            'ext_type_url': url,
             'ext_type_description': 'Mozilla Foundation',
             'ext_status': 'Original Status',
             'ext_description': 'the description',
