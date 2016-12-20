@@ -32,6 +32,9 @@ class TestCommand(Command):
          "Run only tests whose name contains the passed string"),
         ("redhat-url=", None,
          "Redhat bugzilla URL to use for ro/rw_functional tests"),
+        ("debug", None,
+         "Enable python-bugzilla debug output. This may break output "
+         "comparison tests."),
     ]
 
     def initialize_options(self):
@@ -39,6 +42,7 @@ class TestCommand(Command):
         self.rw_functional = False
         self.only = None
         self.redhat_url = None
+        self.debug = False
 
     def finalize_options(self):
         pass
@@ -81,6 +85,11 @@ class TestCommand(Command):
 
         import tests as testsmodule
         testsmodule.REDHAT_URL = self.redhat_url
+        if self.debug:
+            import logging
+            import bugzilla
+            logging.getLogger(bugzilla.__name__).setLevel(logging.DEBUG)
+            os.environ["__BUGZILLA_UNITTEST_DEBUG"] = "1"
 
         tests = unittest.TestLoader().loadTestsFromNames(testfiles)
         if self.only:

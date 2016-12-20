@@ -36,6 +36,7 @@ import bugzilla
 default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
 _is_unittest = bool(os.getenv("__BUGZILLA_UNITTEST"))
+_is_unittest_debug = bool(os.getenv("__BUGZILLA_UNITTEST_DEBUG"))
 format_field_re = re.compile("%{([a-z0-9_]+)(?::([^}]*))?}")
 
 log = getLogger(bugzilla.__name__)
@@ -1013,6 +1014,9 @@ def main(unittest_bz_instance=None):
         log.setLevel(INFO)
     else:
         log.setLevel(WARN)
+
+    if _is_unittest_debug:
+        log.setLevel(DEBUG)
 
     log.debug("Launched with command line: %s", " ".join(sys.argv))
 
