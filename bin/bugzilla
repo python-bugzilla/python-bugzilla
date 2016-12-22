@@ -983,10 +983,10 @@ def _handle_login(opt, parser, args, action, bz):
         elif len(args) > 2:
             parser.error("Too many arguments for login")
 
-    if bz.url:
-        print("Logging into %s" % urlparse(bz.url)[1])
     try:
         if do_interactive_login:
+            if bz.url:
+                print("Logging into %s" % urlparse(bz.url)[1])
             bz.interactive_login(
                 opt.username, opt.password)
     except bugzilla.BugzillaError:
