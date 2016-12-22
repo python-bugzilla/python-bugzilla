@@ -23,11 +23,13 @@ import sys
 import tempfile
 
 if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
-    # pylint: disable=F0401,W0622
+    # pylint: disable=F0401,W0622,E0611
     from xmlrpc.client import Fault, ProtocolError
+    from urllib.parse import urlparse
     basestring = (str, bytes)
 else:
     from xmlrpclib import Fault, ProtocolError
+    from urlparse import urlparse
 
 import requests.exceptions
 
@@ -981,6 +983,8 @@ def _handle_login(opt, parser, args, action, bz):
         elif len(args) > 2:
             parser.error("Too many arguments for login")
 
+    if bz.url:
+        print("Logging into %s" % urlparse(bz.url)[1])
     try:
         if do_interactive_login:
             bz.interactive_login(
