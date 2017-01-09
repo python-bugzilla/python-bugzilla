@@ -819,12 +819,6 @@ class Bugzilla(object):
         return r['values']
 
     def _getcomponentsdetails(self, product):
-        # Originally this was a RH extension getProdCompDetails
-        # Upstream support has been available since 4.2
-        if not self._check_version(4, 2):
-            raise RuntimeError("This bugzilla version does not support "
-                               "fetching component details.")
-
         def _find_comps():
             for p in self._cache.products:
                 if p["name"] != product:
