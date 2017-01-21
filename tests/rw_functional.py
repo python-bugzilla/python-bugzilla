@@ -757,7 +757,7 @@ class RHPartnerTest(BaseTest):
         component = ("python-bugzilla-testcomponent-%s" %
                      str(random.randint(1, 1024 * 1024 * 1024)))
         basedata = {
-            "product": "Virtualization Tools",
+            "product": "Fedora Documentation",
             "component": component,
         }
 
