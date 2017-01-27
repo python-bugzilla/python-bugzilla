@@ -510,6 +510,7 @@ def _do_query(bz, opt, parser):
         boolean_query=opt.boolean_query or None,
         bug_severity=opt.severity or None,
         priority=opt.priority or None,
+        target_release=opt.target_release or None,
         target_milestone=opt.target_milestone or None,
         emailtype=opt.emailtype or None,
         booleantype=opt.booleantype or None,
