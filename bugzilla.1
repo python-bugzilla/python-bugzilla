@@ -1,4 +1,4 @@
-.TH bugzilla 1  "May 25, 2016" "version 1.2.2" "User Commands"
+.TH bugzilla 1  "Feb 8, 2017" "version 2.0.0" "User Commands"
 .SH NAME
 bugzilla \- command-line interface to Bugzilla over XML-RPC
 .SH SYNOPSIS
@@ -50,146 +50,74 @@ token file to use for bugzilla authentication
 give more info about what's going on
 .IP "--debug"
 output bunches of debugging info
-.SH \[oq]NEW\[cq] OPTIONS
+.IP "--version"
+show program's version number and exit
+
+.SH Standard bugzilla options
+.PP
+These options are shared by some combination of the 'new', 'query', and 'modify' sub commands. Not every option works for each command though.
+
 .IP "--product=PRODUCT, -p PRODUCT"
-REQUIRED: product name
+Product name
 .IP "--version=VERSION, -v VERSION"
-REQUIRED: product version
+Product version
 .IP "--component=COMPONENT, -c COMPONENT"
-REQUIRED: component name
-.IP "--sub-component=SUB_COMPONENT"
-Optional sub component name
-.IP "--short_desc=SUMMARY, --summary=SUMMARY, -s SUMMARY"
-REQUIRED: bug summary
+Component name
+.IP "--summary=SUMMARY, -s SUMMARY, --short_desc=SUMMARY"
+Bug summary
 .IP "--comment=DESCRIPTION, -l DESCRIPTION"
-initial bug comment
+Set initial bug comment/description
+.IP "--sub-component=SUB_COMPONENT"
+RHBZ sub component name
 .IP "--os=OS, -o OS"
 Operating system
-.IP "--arch=ARCH, -a ARCH"
+.IP "--arch=ARCH"
 Arch this bug occurs on
-.IP "--severity=SEVERITY"
+.IP "--severity=SEVERITY, -x SEVERITY"
 Bug severity
-.IP "--priority=PRIORITY"
-Bug priority
-.IP "--url=URL, -u URL"
-URL for further bug info
-.IP "--cc=CC[, CC, ...]"
-add emails to initial CC list
-.IP "--blocked=BUGID[, BUGID, ...]"
-add bug_ids blocked by this bug
-.IP "--dependson=BUGID[, BUGID, ...]"
-add bug_ids that this bug depends on
-.IP "--groups=GROUP[, GROUP, ...]"
-add groups to which bug is visible
-.IP "--assigned_to=ASSIGNED_TO"
-Assign bugzilla to specified email address
-.IP "--qa_contact=QA_CONTACT"
-Set QA contact to specified email address
-.IP "--keywords=KEYWORD[, KEYWORD, ...]"
-Set specified keywords on new bugzilla
-.IP "--alias=ALIAS"
-An alias (name) for the bug (must be unique)
-.IP "--field=FIELD=VALUE"
-Set a specified field. FIELD is expected to be                      the raw name used by the bugzilla instance. No safety                      checks are perfomed when using this option.
-
-.SH OUTPUT FORMAT \[oq]NEW\[cq] OPTIONS
-.IP "--full, -f"
-output detailed bug info
-.IP "--ids, -i"
-output only bug IDs
-.IP "--extra, -e"
-output additional bug information (keywords, Whiteboards, etc.)
-.IP "--oneline"
-one line summary of the bug (useful for scripts)
-.IP "--raw"
-raw output of the bugzilla contents
-.IP "--outputformat=OUTPUTFORMAT"
-Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{id}: %{summary}'. See the man page section 'OUTPUT FORMAT' for more details.
-.SH \[oq]QUERY\[cq] OPTIONS
-.IP "--bug_id=BUG_ID, -b BUG_ID"
-specify individual bugs by IDs, separated with commas
-.IP "--product=PRODUCT, -p PRODUCT"
-product name, comma-separated (list with 'bugzilla info --products')
-.IP "--version=VERSION, -v VERSION"
-product version, comma-separated
-.IP "--component=COMPONENT, -c COMPONENT"
-component name(s), comma-separated (list with 'bugzilla info --components PRODUCT')
-.IP "--sub-component=SUB_COMPONENT"
-Sub component. Can be specified multiple times
-.IP "--components_file=COMPONENTS_FILE"
-list of component names from a file, one component per line (list with 'bugzilla info -c PRODUCT')
-.IP "--long_desc=LONG_DESC, -l LONG_DESC"
-search inside bug comments
-.IP "--target_milestone=TARGET_MILESTONE, -m TARGET_MILESTONE"
-search for a target milestone
-.IP "--short_desc=SHORT_DESC, -s SHORT_DESC"
-search bug summaries
-.IP "--bug_status=BUG_STATUS, -t BUG_STATUS"
-comma-separated list of bug statuses to accept [Default:all]
-.IP "--bug_severity=BUG_SEVERITY, --severity=BUG_SEVERITY, -x BUG_SEVERITY"
-search severities, comma-separated
 .IP "--priority=PRIORITY, -z PRIORITY"
-search priorities, comma-separated
-.IP "--from-url=FROM_URL"
-Use the query given by a query.cgi URL. (Use quotes!)
-.IP "--quicksearch=QUICKSEARCH"
-Search using bugzilla's quicksearch functionality.
-.IP "--savedsearch=SAVEDSEARCH"
-Name of a bugzilla saved search. If you don't own this saved search, you must passed --savedsearch_sharer_id.
-.IP "--savedsearch-sharer-id=SAVEDSEARCH_SHARER_ID"
-Owner ID of the --savedsearch. You can get this ID from the URL bugzilla generates when running the saved search from the web UI.
-.IP "--field=FIELD=VALUE"
-Query a specified field. FIELD is expected to be                      the raw name used by the bugzilla instance. No safety                      checks are perfomed when using this option.
-
-.SH EMAIL \[oq]QUERY\[cq] OPTIONS
-.IP "--emailtype=EMAILTYPE, -E EMAILTYPE"
-Email: specify searching option for emails, ie. substring, notsubstring, exact, ... [Default: substring]
-.IP "--cc=CC, -o CC"
-Email: search cc lists for given address
-.IP "--reporter=REPORTER, -r REPORTER"
-Email: search reporter email for given address
-.IP "--assigned_to=ASSIGNED_TO, -a ASSIGNED_TO"
-Email: search for bugs assigned to this address
-.IP "--qa_contact=QA_CONTACT, -q QA_CONTACT"
-Email: search for bugs which have QA Contact assigned to this address
-
-.SH STRING SEARCH \[oq]QUERY\[cq] OPTIONS
-.IP "--url=URL, -u URL"
-search keywords field for given url
-.IP "--url_type=URL_TYPE, -U URL_TYPE"
-specify searching option for urls, ie. anywords, allwords, nowords
-.IP "--keywords=KEYWORDS, -k KEYWORDS"
-search keywords field for specified words
-.IP "--keywords_type=KEYWORDS_TYPE, -K KEYWORDS_TYPE"
-specify searching option for keywords, ie. anywords, allwords, nowords
-.IP "--status_whiteboard=STATUS_WHITEBOARD, -w STATUS_WHITEBOARD"
-search Status Whiteboard field for specified words
-.IP "--status_whiteboard_type=STATUS_WHITEBOARD_TYPE, -W STATUS_WHITEBOARD_TYPE"
-specify searching option for Status Whiteboard, ie. anywords, allwords, nowords
-.IP "--tags=TAGS"
-Search bug 'tags' field
-
-.SH BOOLEAN \[oq]QUERY\[cq] OPTIONS
-.IP "--booleantype=BOOLEANTYPE, -B BOOLEANTYPE"
-specify searching option for booleans, ie. substring, notsubstring, exact, ... [Default: substring]
-.IP "--boolean_query=BOOLEAN_QUERY"
-Create your own query. Format: BooleanName-Condition-Parameter &/| ... . ie, keywords-substring-Partner & keywords-notsubstring-OtherQA
-.IP "--blocked=BLOCKED"
-Search for bugs that block this bug ID
-.IP "--dependson=DEPENDSON"
-Search for bugs that depend on this bug ID
-.IP "--flag=FLAG"
-Search for bugs that have certain flag states present. Ex --flags=dev_ack+
-.IP "--qa_whiteboard=QA_WHITEBOARD"
-search for bugs that have certain QA Whiteboard text present
-.IP "--devel_whiteboard=DEVEL_WHITEBOARD"
-search for bugs that have certain Devel Whiteboard text present
+Bug priority
 .IP "--alias=ALIAS"
-search for bugs that have the provided alias
-.IP "--fixed_in=FIXED_IN"
-search Status Whiteboard field for specified words
+Bug alias (name)
+.IP "--status=STATUS, -s STATUS, --bug_status=STATUS"
+Bug status (NEW, ASSIGNED, etc.)
+.IP "--url=URL, -u URL"
+URL for further bug info
+.IP "--target_milestone=TARGET_MILESTONE, -m TARGET_MILESTONE"
+Target milestone
+.IP "--target_release=TARGET_RELEASE"
+RHBZ Target release
+.IP "--blocked=BUGID[, BUGID, ...]"
+Bug IDs that this bug blocks
+.IP "--dependson=BUGID[, BUGID, ...]"
+Bug IDs that this bug depends on
+.IP "--keywords=KEYWORD[, KEYWORD, ...]"
+Bug keywords
+.IP "--groups=GROUP[, GROUP, ...]"
+Which user groups can view this bug
+.IP "--cc=CC[, CC, ...]"
+CC list
+.IP "--assigned_to=ASSIGNED_TO, -a ASSIGNED_TO, --assignee ASSIGNED_TO"
+Bug assignee
+.IP "--qa_contact=QA_CONTACT, -q QA_CONTACT"
+QA contact
+.IP "--whiteboard WHITEBOARD, -w WHITEBOARD, --status_whiteboard WHITEBOARD"
+Whiteboard field
+.IP "--devel_whiteboard DEVEL_WHITEBOARD"
+RHBZ devel whiteboard field
+.IP "--internal_whiteboard INTERNAL_WHITEBOARD"
+RHBZ internal whiteboard field
+.IP "--qa_whiteboard QA_WHITEBOARD"
+RHBZ QA whiteboard field
+.IP "--fixed_in FIXED_IN, -F FIXED_IN
+RHBZ 'Fixed in version' field
+.IP "--field=FIELD=VALUE"
+Manually specify a bugzilla XMLRPC field. FIELD is the raw name used by the bugzilla instance. For example if your bugzilla instance has a custom field cf_my_field, do: --field cf_my_field=VALUE
 
-.SH OUTPUT FORMAT \[oq]QUERY\[cq] OPTIONS
+
+.SH Output options
+.PP
+These options are shared by several commands, for tweaking the text output of the command results.
 .IP "--full, -f"
 output detailed bug info
 .IP "--ids, -i"
@@ -201,109 +129,7 @@ one line summary of the bug (useful for scripts)
 .IP "--raw"
 raw output of the bugzilla contents
 .IP "--outputformat=OUTPUTFORMAT"
-Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{id}: %{summary}'. See the man page section 'OUTPUT FORMAT' for more details.
-.SH \[oq]MODIFY\[cq] OPTIONS
-.IP "--field=FIELD=VALUE"
-Modify a specified field. FIELD is expected to be                      the raw name used by the bugzilla instance. No safety                      checks are perfomed when using this option.
-
-.SH BUG DETAILS
-.IP "--product=PRODUCT"
-Reassign bug to different product
-.IP "--component=COMPONENT, -c COMPONENT"
-Reassign bug to different component
-.IP "--sub-component=SUB_COMPONENT"
-Reassign bug to different sub-component (rhbz extension)
-.IP "--version=VERSION, -v VERSION"
-Reassign bug to different version
-.IP "--os=OS, -o OS"
-Change operating system this bug occurs on
-.IP "--arch=ARCH, -a ARCH"
-Change arch this bug occurs on
-.IP "--url=URL, -u URL"
-URL for further bug info
-.IP "--alias=ALIAS"
-An alias (name) for the bug (must be unique)
-
-.SH BUG STATUS \[oq]MODIFY\[cq] OPTIONS
-.IP "--status=STATUS, -s STATUS"
-Change status of bug
-.IP "--close=RESOLUTION, -k RESOLUTION"
-Close with the given resolution
-.IP "--dupeid=ORIGINAL, -d ORIGINAL"
-ID of original bug (implies -k DUPLICATE)
-.IP "--fixed_in=VERSION, -F VERSION"
-"Fixed in version" field
-
-.SH COMMENT \[oq]MODIFY\[cq] OPTIONS
-.IP "--comment=COMMENT, -l COMMENT"
-Add a comment
-.IP "--private, -p"
-Mark new comment as private
-.IP "--summary=SUMMARY"
-Change bug summary
-
-.SH CONTACT \[oq]MODIFY\[cq] OPTIONS
-.IP "--assignee=ASSIGNEE"
-Assign bugzilla to assignee
-.IP "--cc=EMAIL"
-Alter CC list. EMAIL appends, -EMAIL removes.
-.IP "--qa_contact=QA_CONTACT"
-Change QA contact
-.IP "--reset-assignee"
-Reset assignee to component default
-.IP "--reset-qa-contact"
-Reset QA contact to component default
-.IP "--groups=GROUP[, GROUP, ...]"
-add groups to which bug is visible
-
-.SH TRACKING \[oq]MODIFY\[cq] OPTIONS
-.IP "--flag=FLAG, -f FLAG"
-Update bugzilla flags with requested type, ie fedora-cvs?, or needinfoX to clear (Use a new option for each flag)
-.IP "--severity=SEVERITY"
-Change bug severity
-.IP "--priority=PRIORITY"
-Change bug priority
-.IP "--target_milestone=TARGET_MILESTONE"
-Set target milestone
-.IP "--target_release=TARGET_RELEASE"
-Set target release
-.IP "--blocked=BUGID[, BUGID, ...]"
-Add bug_ids blocked by this bug. BUGID appends, -BUGID removes, =BUGID overwrites
-.IP "--dependson=BUGID[, BUGID, ...]"
-Alter depends_on list.  BUGID appends, -BUGID removes, =BUGID overwrites
-.IP "--keywords=KEYWORD"
-Alter bug keywords list. KEYWORD appends, -KEYWORD removes, =KEYWORD overwrites
-.IP "--whiteboard=TEXT"
-Alter status whiteboard text. TEXT appends, -TEXT removes, =TEXT overwrites
-.IP "--devel_whiteboard=TEXT"
-Alter devel whiteboard text. TEXT appends, -TEXT removes, =TEXT overwrites
-.IP "--internal_whiteboard=TEXT"
-Alter internal whiteboard text. TEXT appends, -TEXT removes, =TEXT overwrites
-.IP "--qa_whiteboard=TEXT"
-Alter QA whiteboard. TEXT appends, -TEXT removes, =TEXT overwrites
-.IP "--tags=TEXT"
-Alter bug 'tags' fieldTEXT appends, -TEXT removes
-.SH \[oq]ATTACH\[cq] OPTIONS
-.IP "--file=FILENAME, -f FILENAME"
-File to attach, or filename for data provided on stdin
-.IP "--description=DESCRIPTION, -d DESCRIPTION"
-A short description of the file being attached
-.IP "--type=MIMETYPE, -t MIMETYPE"
-Mime-type for the file being attached
-.IP "--get=ATTACHID, -g ATTACHID"
-Download the attachment with the given ID
-.IP "--getall=BUGID, --get-all=BUGID"
-Download all attachments on the given bug
-.SH \[oq]INFO\[cq] OPTIONS
-.IP "--products, -p"
-Get a list of products
-.IP "--components=PRODUCT, -c PRODUCT"
-List the components in the given product
-.IP "--component_owners=PRODUCT, -o PRODUCT"
-List components (and their owners)
-.IP "--versions=VERSION, -v VERSION"
-List the versions for the given product
-.SH OUTPUT FORMAT
+Print output in the form given. You can use RPM-style tags that match bug fields, e.g.: '%{id}: %{summary}'.
 
 The output of the bugzilla tool should NEVER BE PARSED unless you are using a
 custom --outputformat. For everything else, just don't parse it, the formats
@@ -321,6 +147,69 @@ documentation in the 'SEE ALSO' section. Alternatively, run a 'bugzilla
 --debug query ...' and look at the key names returned in the query results.
 Also, in most cases, using the name of the associated command line switch
 should work, like --bug_status becomes %{bug_status}, etc.
+
+
+.SH \[oq]query\[cq] specific options
+Certain options can accept a comma separated list to query multiple values, including --status, --component, --product, --version, --id.
+
+Note: querying via explicit command line options will only get you so far. See the --from-url option for a way to use powerful Web UI queries from the command line.
+.IP "--id ID, -b ID, --bug_id ID"
+specify individual bugs by IDs, separated with commas
+.IP "--reporter REPORTER, -r REPORTER"
+Email: search reporter email for given address
+.IP "--quicksearch QUICKSEARCH"
+Search using bugzilla's quicksearch functionality.
+.IP "--savedsearch SAVEDSEARCH"
+Name of a bugzilla saved search. If you don't own this saved search, you must passed --savedsearch_sharer_id.
+.IP "--savedsearch-sharer-id SAVEDSEARCH_SHARER_ID"
+Owner ID of the --savedsearch. You can get this ID from the URL bugzilla generates when running the saved search from the web UI.
+.IP "--from-url WEB_QUERY_URL"
+Make a working query via bugzilla's 'Advanced search' web UI, grab the url from your browser (the string with query.cgi or buglist.cgi in it), and --from-url will run it via the bugzilla API. Don't forget to quote the string! This only works for Bugzilla 5 and Red Hat bugzilla
+
+
+.SH \[oq]modify\[cq] specific options
+Fields that take multiple values have a special input format.
+
+ Append:    --cc=foo@example.com
+ Overwrite: --cc==foo@example.com
+ Remove:    --cc=-foo@example.com
+
+Options that accept this format: --cc, --blocked, --dependson, --groups, --tags, whiteboard fields.
+.IP "--close RESOLUTION, -k RESOLUTION"
+Close with the given resolution (WONTFIX, NOTABUG, etc.)
+.IP "--dupeid ORIGINAL, -d ORIGINAL"
+ID of original bug. Implies --close DUPLICATE
+.IP "--private"
+Mark new comment as private
+.IP "--reset-assignee"
+Reset assignee to component default
+.IP "--reset-qa-contact"
+Reset QA contact to component default
+
+
+.SH \[oq]attach\[cq] options
+.IP "--file=FILENAME, -f FILENAME"
+File to attach, or filename for data provided on stdin
+.IP "--description=DESCRIPTION, -d DESCRIPTION"
+A short description of the file being attached
+.IP "--type=MIMETYPE, -t MIMETYPE"
+Mime-type for the file being attached
+.IP "--get=ATTACHID, -g ATTACHID"
+Download the attachment with the given ID
+.IP "--getall=BUGID, --get-all=BUGID"
+Download all attachments on the given bug
+
+
+.SH \[oq]info\[cq] options
+.IP "--products, -p"
+Get a list of products
+.IP "--components=PRODUCT, -c PRODUCT"
+List the components in the given product
+.IP "--component_owners=PRODUCT, -o PRODUCT"
+List components (and their owners)
+.IP "--versions=VERSION, -v VERSION"
+List the versions for the given product
+
 
 .SH AUTHENTICATION COOKIES AND TOKENS
 

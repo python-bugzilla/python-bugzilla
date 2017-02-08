@@ -162,7 +162,7 @@ def _parser_add_output_options(p):
             help="Print output in the form given. "
                  "You can use RPM-style tags that match bug "
                  "fields, e.g.: '%%{id}: %%{summary}'. See the man page "
-                 "section 'OUTPUT FORMAT' for more details.")
+                 "section 'Output options' for more details.")
 
 
 def _parser_add_bz_fields(rootp, command):
@@ -194,7 +194,7 @@ def _parser_add_bz_fields(rootp, command):
         help='Bug status (NEW, ASSIGNED, etc.)')
     p.add_argument('-u', '--url', help="URL field")
     p.add_argument('-m', '--target_milestone', help="Target milestone")
-    p.add_argument('--target_release', help="Target release")
+    p.add_argument('--target_release', help="RHBZ Target release")
 
     p.add_argument('--blocked', action="append",
         help="Bug IDs that this bug blocks")
@@ -334,7 +334,7 @@ def _setup_action_modify_parser(subparsers):
 
     g = p.add_argument_group("'modify' specific options")
     g.add_argument('-k', '--close', metavar="RESOLUTION",
-        help='Close with the given resolution')
+        help='Close with the given resolution (WONTFIX, NOTABUG, etc.)')
     g.add_argument('-d', '--dupeid', metavar="ORIGINAL",
         help='ID of original bug. Implies --close DUPLICATE')
     g.add_argument('--private', action='store_true', default=False,
