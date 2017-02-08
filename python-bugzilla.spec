@@ -18,6 +18,9 @@ BuildArch:      noarch
 BuildRequires: python2-devel
 BuildRequires: python-requests
 BuildRequires: python-setuptools
+%if 0%{?rhel} <= 6
+BuildRequires: python-argparse
+%endif
 
 %if 0%{?with_python3}
 BuildRequires: python3-devel
@@ -27,6 +30,9 @@ BuildRequires: python3-setuptools
 
 Requires: python-requests
 Requires: python-magic
+%if 0%{?rhel} <= 6
+Requires: python-argparse
+%endif
 
 
 %description
