@@ -7,5 +7,5 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-version = "1.2.2"
+version = "2.0.0"
 __version__ = version
