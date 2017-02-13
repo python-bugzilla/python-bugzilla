@@ -28,7 +28,12 @@ class BugzillaError(Exception):
     pass
 
 
-class _BugzillaToken(object):
+class _BugzillaTokenCache(object):
+    """
+    Cache for tokens, including, with apologies for the duplicative
+    terminology, both Bugzilla Tokens and API Keys.
+    """
+
     def __init__(self, uri, tokenfilename):
         self.tokenfilename = tokenfilename
         self.tokenfile = SafeConfigParser()
@@ -63,7 +68,7 @@ class _BugzillaToken(object):
                 self.tokenfile.write(tokenfile)
 
     def __repr__(self):
-        return '<Bugzilla Token :: %s>' % (self.value)
+        return '<Bugzilla Token Cache :: %s>' % self.value
 
 
 class _BugzillaServerProxy(ServerProxy):
@@ -71,25 +76,25 @@ class _BugzillaServerProxy(ServerProxy):
         # pylint: disable=super-init-not-called
         # No idea why pylint complains here, must be a bug
         ServerProxy.__init__(self, uri, *args, **kwargs)
-        self.token = _BugzillaToken(uri, tokenfile)
+        self.token_cache = _BugzillaTokenCache(uri, tokenfile)
 
     def clear_token(self):
-        self.token.value = None
+        self.token_cache.value = None
 
     def _ServerProxy__request(self, methodname, params):
-        if self.token.value is not None:
+        if self.token_cache.value is not None:
             if len(params) == 0:
                 params = ({}, )
 
             if 'Bugzilla_token' not in params[0]:
-                params[0]['Bugzilla_token'] = self.token.value
+                params[0]['Bugzilla_token'] = self.token_cache.value
 
         # pylint: disable=maybe-no-member
         ret = ServerProxy._ServerProxy__request(self, methodname, params)
         # pylint: enable=maybe-no-member
 
         if isinstance(ret, dict) and 'token' in ret.keys():
-            self.token.value = ret.get('token')
+            self.token_cache.value = ret.get('token')
         return ret
 
 
