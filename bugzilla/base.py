@@ -486,7 +486,7 @@ class Bugzilla(object):
         If 'user' and 'password' are both set, we'll run login(). Otherwise
         you'll have to login() yourself before some methods will work.
         '''
-        if self._proxy:
+        if self._transport:
             self.disconnect()
 
         if url is None and self.url:

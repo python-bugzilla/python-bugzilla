@@ -248,6 +248,10 @@ class RHTest(BaseTest):
     test14 = lambda s: BaseTest._testQueryOneline(s, "720784",
             " CVE-2011-2527")
 
+    def testDoubleConnect(self):
+        bz = self.bzclass(url=self.url)
+        bz.connect(self.url)
+
     def testQueryFlags(self):
         bz = self.bzclass(url=self.url)
         if not bz.logged_in:
