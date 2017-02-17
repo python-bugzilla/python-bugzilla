@@ -78,15 +78,22 @@ class _BugzillaServerProxy(ServerProxy):
         # No idea why pylint complains here, must be a bug
         ServerProxy.__init__(self, uri, *args, **kwargs)
         self.token_cache = _BugzillaTokenCache(uri, tokenfile)
+        self.api_key = None
+
+    def use_api_key(self, api_key):
+        self.api_key = api_key
 
     def clear_token(self):
         self.token_cache.token = None
 
     def _ServerProxy__request(self, methodname, params):
-        if self.token_cache.token is not None:
-            if len(params) == 0:
-                params = ({}, )
+        if len(params) == 0:
+            params = ({}, )
 
+        if self.api_key is not None:
+            if 'Bugzilla_api_key' not in params[0]:
+                params[0]['Bugzilla_api_key'] = self.api_key
+        elif self.token_cache.token is not None:
             if 'Bugzilla_token' not in params[0]:
                 params[0]['Bugzilla_token'] = self.token_cache.token
 
