@@ -164,6 +164,10 @@ class Bugzilla(object):
       [bugzilla.yoursite.com]
       user = username
       password = password
+    Or
+      [bugzilla.yoursite.com]
+      api_key = key
+
     You can also use the [DEFAULT] section to set defaults that apply to
     any site without a specific section of its own.
     Be sure to set appropriate permissions on bugzillarc if you choose to
@@ -458,7 +462,10 @@ class Bugzilla(object):
             return
 
         for key, val in cfg.items(section):
-            if key == "user":
+            if key == "api_key":
+                log.debug("bugzillarc: setting api_key")
+                self.api_key = val
+            elif key == "user":
                 log.debug("bugzillarc: setting user=%s", val)
                 self.user = val
             elif key == "password":
