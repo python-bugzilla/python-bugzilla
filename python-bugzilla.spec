@@ -18,7 +18,7 @@ BuildArch:      noarch
 BuildRequires: python2-devel
 BuildRequires: python-requests
 BuildRequires: python-setuptools
-%if 0%{?rhel} <= 6
+%if 0%{?el6}
 BuildRequires: python-argparse
 %endif
 
