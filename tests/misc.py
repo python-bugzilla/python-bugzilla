@@ -75,6 +75,7 @@ class MiscAPI(unittest.TestCase):
         tests.make_bz("3.0.0", cookiefile=cookiesmoz)
 
     def test_readconfig(self):
+        # Testing for bugzillarc handling
         bzapi = tests.make_bz("4.4.0", rhbz=True)
         bzapi.url = "foo.example.com"
         temp = tempfile.NamedTemporaryFile(mode="w")
@@ -89,23 +90,29 @@ password=test2"""
         bzapi.readconfig(temp.name)
         self.assertEquals(bzapi.user, "test1")
         self.assertEquals(bzapi.password, "test2")
+        self.assertEquals(bzapi.api_key, None)
 
         content = """
 [foo.example.com]
 user=test3
-password=test4"""
+password=test4
+api_key=123abc
+"""
         temp.write(content)
         temp.flush()
         bzapi.readconfig(temp.name)
         self.assertEquals(bzapi.user, "test3")
         self.assertEquals(bzapi.password, "test4")
+        self.assertEquals(bzapi.api_key, "123abc")
 
         bzapi.url = "bugzilla.redhat.com"
         bzapi.user = None
         bzapi.password = None
+        bzapi.api_key = None
         bzapi.readconfig(temp.name)
         self.assertEquals(bzapi.user, None)
         self.assertEquals(bzapi.password, None)
+        self.assertEquals(bzapi.api_key, None)
 
 
     def testPostTranslation(self):
