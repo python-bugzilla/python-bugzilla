@@ -164,6 +164,10 @@ class Bugzilla(object):
       [bugzilla.yoursite.com]
       user = username
       password = password
+    Or
+      [bugzilla.yoursite.com]
+      api_key = key
+
     You can also use the [DEFAULT] section to set defaults that apply to
     any site without a specific section of its own.
     Be sure to set appropriate permissions on bugzillarc if you choose to
@@ -235,7 +239,7 @@ class Bugzilla(object):
         return url
 
     def __init__(self, url=-1, user=None, password=None, cookiefile=-1,
-                 sslverify=True, tokenfile=-1, use_creds=True):
+                 sslverify=True, tokenfile=-1, use_creds=True, api_key=None):
         """
         :param url: The bugzilla instance URL, which we will connect
             to immediately. Most users will want to specify this at
@@ -258,6 +262,7 @@ class Bugzilla(object):
         # Settings the user might want to tweak
         self.user = user or ''
         self.password = password or ''
+        self.api_key = api_key
         self.url = ''
 
         self._proxy = None
@@ -457,6 +462,9 @@ class Bugzilla(object):
             return
 
         for key, val in cfg.items(section):
+            if key == "api_key":
+                log.debug("bugzillarc: setting api_key")
+                self.api_key = val
             if key == "user":
                 log.debug("bugzillarc: setting user=%s", val)
                 self.user = val
@@ -507,6 +515,10 @@ class Bugzilla(object):
             log.info("user and password present - doing login()")
             self.login()
 
+        if self.api_key:
+            log.debug("using API key")
+            self._proxy.use_api_key(self.api_key)
+
         version = self._proxy.Bugzilla.version()["version"]
         log.debug("Bugzilla version string: %s", version)
         self._set_bz_version(version)
@@ -542,6 +554,9 @@ class Bugzilla(object):
         and password are both set. So under most circumstances you won't need
         to call this yourself.
         '''
+        if self.api_key:
+            raise ValueError("cannot login when using an API key")
+
         if user:
             self.user = user
         if password:
