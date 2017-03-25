@@ -186,7 +186,7 @@ class Bugzilla(object):
         cookies persistently.
     '''
 
-    # bugzilla version that the class is targetting. filled in by
+    # bugzilla version that the class is targeting. filled in by
     # subclasses
     bz_ver_major = 0
     bz_ver_minor = 0
