@@ -338,6 +338,14 @@ class Bug(object):
         return f[0]['status']
 
     def updateflags(self, flags):
+        """
+        Thin wrapper around build_update(flags=X). This only handles simple
+        status changes, anything like needinfo requestee needs to call
+        build_update + update_bugs directly
+
+        :param flags: Dictionary of the form {"flagname": "status"}, example
+            {"needinfo": "?", "devel_ack": "+"}
+        """
         flaglist = []
         for key, value in flags.items():
             flaglist.append({"name": key, "status": value})
