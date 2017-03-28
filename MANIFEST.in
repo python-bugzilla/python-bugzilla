@@ -1,4 +1,4 @@
-include COPYING CONTRIBUTING.md MANIFEST.in README.md
+include COPYING CONTRIBUTING.md MANIFEST.in README.md NEWS.md
 include bugzilla.1
 include xmlrpc-api-notes.txt
 include python-bugzilla.spec
