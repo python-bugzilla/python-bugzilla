@@ -343,18 +343,30 @@ class RHPartnerTest(BaseTest):
                 ret.append(flag["name"] + flag["status"])
             return " ".join(sorted(ret))
 
-        def cleardict(b):
+        def cleardict_old(b):
+            """
+            Clear flag dictionary, for format meant for bug.updateflags
+            """
             clearflags = {}
             for flag in b.flags:
                 clearflags[flag["name"]] = "X"
             return clearflags
 
+        def cleardict_new(b):
+            """
+            Clear flag dictionary, for format meant for update_bugs
+            """
+            clearflags = []
+            for flag in b.flags:
+                clearflags.append({"name": flag["name"], "status": "X"})
+            return clearflags
+
         bug1 = bz.getbug(bugid1)
-        if cleardict(bug1):
-            bug1.updateflags(cleardict(bug1))
+        if cleardict_old(bug1):
+            bug1.updateflags(cleardict_old(bug1))
         bug2 = bz.getbug(bugid2)
-        if cleardict(bug2):
-            bug2.updateflags(cleardict(bug2))
+        if cleardict_old(bug2):
+            bug2.updateflags(cleardict_old(bug2))
 
 
         # Set flags and confirm
@@ -371,15 +383,15 @@ class RHPartnerTest(BaseTest):
         self.assertEquals(bug1.get_flag_status("requires_doc_text"), "-")
 
         # Clear flags
-        if cleardict(bug1):
-            bug1.updateflags(cleardict(bug1))
+        if cleardict_new(bug1):
+            bz.update_flags(bug1.id, cleardict_new(bug1))
         bug1.refresh()
-        if cleardict(bug2):
-            bug2.updateflags(cleardict(bug2))
+        if cleardict_new(bug2):
+            bz.update_flags(bug2.id, cleardict_new(bug2))
         bug2.refresh()
 
-        self.assertEquals(cleardict(bug1), {})
-        self.assertEquals(cleardict(bug2), {})
+        self.assertEquals(cleardict_old(bug1), {})
+        self.assertEquals(cleardict_old(bug2), {})
 
         # Set "Fixed In" field
         origfix1 = bug1.fixed_in
