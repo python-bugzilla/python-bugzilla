@@ -1063,6 +1063,9 @@ class Bugzilla(object):
         Bugzilla.url_to_query
 
         Then pass the output to Bugzilla.query()
+
+        For details about the specific argument formats, see the bugzilla docs:
+        https://bugzilla.readthedocs.io/en/latest/api/core/v1/bug.html#search-bugs
         """
         if boolean_query or booleantype:
             raise RuntimeError("boolean_query format is no longer supported. "
@@ -1297,6 +1300,13 @@ class Bugzilla(object):
                      internal_whiteboard=None,
                      sub_component=None,
                      flags=None):
+        """
+        Returns a python dict() with properly formatted parameters to
+        pass to update_bugs(). See bugzilla documentation for the format
+        of the individual fields:
+
+        https://bugzilla.readthedocs.io/en/latest/api/core/v1/bug.html#create-bug
+        """
         # pylint: disable=W0221
         # Argument number differs from overridden method
         # Base defines it with *args, **kwargs, so we don't have to maintain
@@ -1556,6 +1566,13 @@ class Bugzilla(object):
         url=None,
         sub_component=None,
         alias=None):
+        """"
+        Returns a python dict() with properly formatted parameters to
+        pass to createbug(). See bugzilla documentation for the format
+        of the individual fields:
+
+        https://bugzilla.readthedocs.io/en/latest/api/core/v1/bug.html#update-bug
+        """
 
         localdict = {}
         if blocks:
