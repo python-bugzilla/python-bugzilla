@@ -1249,6 +1249,12 @@ class Bugzilla(object):
         log.debug("Calling Bug.update_tags with: %s", d)
         return self._proxy.Bug.update_tags(d)
 
+    def update_flags(self, idlist, flags):
+        """
+        A thin back compat wrapper around build_update(flags=X)
+        """
+        return self.update_bugs(idlist, self.build_update(flags=flags))
+
 
     def build_update(self,
                      alias=None,
