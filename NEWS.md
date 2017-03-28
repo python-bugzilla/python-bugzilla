@@ -1,0 +1,74 @@
+# python-bugzilla release news
+
+## Release 2.0.0 (Feb 08 2017)
+
+This release contains several small to medium API breaks. I expect most users
+won't notice any difference. I previously outlined the changes here:
+
+https://lists.fedorahosted.org/archives/list/python-bugzilla@lists.fedorahosted.org/thread/WCYPOKJZFYOW7RRT44FCM5GQU26O56K4/
+
+The major changes are:
+
+- Several fixes for use with bugzilla 5
+- Bugzilla.bug_autorefresh now defaults to False
+- Credentials are now cached in ~/.cache/python-bugzilla/
+- bin/bugzilla was converted to argparse
+- bugzilla query --boolean_chart option is removed
+- Unify command line flags across sub commands
+
+## Release 1.2.2 (Sep 23 2015)
+
+- Switch hosting to http://github.com/python-bugzilla/python-bugzilla
+- Fix requests usage when ndg-httpsclient is installed (Arun Babu
+  Neelicattu)
+- Add non-rhbz support for getting bug comments (AJ Lewis)
+- Misc bugfixes and improvements
+
+## Release 1.2.1 (May 22 2015)
+
+- bin/bugzilla: Add --ensure-logged-in option
+- Fix get_products with bugzilla.redhat.com
+- A few other minor improvements
+
+## Release 1.2.0 (Apr 08 2015)
+
+- Add bugzilla new/query/modify --field flag (Arun Babu Neelicattu)
+- API support for ExternalBugs (Arun Babu Neelicattu, Brian Bouterse)
+- Add new/modify --alias support (Adam Williamson)
+- Bugzilla.logged_in now returns live state (Arun Babu Neelicattu)
+- Fix getbugs API with latest Bugzilla releases
+
+## Release 1.1.0 (Jun 01 2014)
+
+- Support for bugzilla tokens (Arun Babu Nelicattu)
+- bugzilla: Add query/modify --tags
+- bugzilla --login: Allow to login and run a command in one shot
+- bugzilla --no-cache-credentials: Don't use or save cached credentials
+  when using the CLI
+- Show bugzilla errors when login fails
+- Don't pull down attachments in bug.refresh(), need to get
+  bug.attachments manually
+- Add Bugzilla bug_autorefresh parameter.
+
+## Release 1.0.0 (Mar 25 2014)
+
+- Python 3 support (Arun Babu Neelicattu)
+- Port to python-requests (Arun Babu Neelicattu)
+- bugzilla: new: Add --keywords, --assigned_to, --qa_contact (Lon Hohberger)
+- bugzilla: query: Add --quicksearch, --savedsearch
+- bugzilla: query: Support saved searches with --from-url
+- bugzilla: --sub-component support for all relevant commands
+
+## Release 0.9.0 (Jun 19 2013)
+
+- CVE-2013-2191: Switch to pycurl to get SSL host and cert validation
+- bugzilla: modify: add --dependson (Don Zickus)
+- bugzilla: new: add --groups option (Paul Frields)
+- bugzilla: modify: Allow setting nearly every bug parameter
+- NovellBugzilla implementation removed, can't get it to work
+
+## Release 0.8.0 (Feb 16 2013)
+
+- Replace usage of non-upstream Red Hat bugzilla APIs with upstream replacements
+- Test suite improvements, nearly complete code coverage
+- Fix all open bug reports and RFEs
