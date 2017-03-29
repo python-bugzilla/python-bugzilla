@@ -8,7 +8,7 @@
 Name:           python-bugzilla
 Version:        2.0.0
 Release:        1%{?dist}
-Summary:        A python library and tool for interacting with Bugzilla
+Summary:        python2 library for interacting with Bugzilla
 
 License:        GPLv2+
 URL:            https://github.com/python-bugzilla/python-bugzilla
@@ -33,17 +33,19 @@ Requires: python-magic
 %if 0%{?el6}
 Requires: python-argparse
 %endif
+# This dep is for back compat, so that installing python-bugzilla continues
+# to give the cli tool
+Requires: python-bugzilla-cli
 
 
 %description
 python-bugzilla is a python 2 library for interacting with bugzilla instances
-over XML-RPC. This package also includes the 'bugzilla' command-line tool
-for interacting with bugzilla from shell scripts.
+over XML-RPC.
 
 
 %if 0%{?with_python3}
 %package -n python3-bugzilla
-Summary: A python 3 library for interacting with Bugzilla
+Summary: python 3 library for interacting with Bugzilla
 Requires: python3-requests
 Requires: python3-magic
 
@@ -51,6 +53,15 @@ Requires: python3-magic
 python3-bugzilla is a python 3 library for interacting with bugzilla instances
 over XML-RPC.
 %endif # if with_python3
+
+
+%package cli
+Summary: Command line tool for interacting with Bugzilla
+Requires: python-bugzilla
+
+%description cli
+This package includes the 'bugzilla' command-line tool for interacting with bugzilla. Uses the python-bugzilla API
+
 
 
 %prep
@@ -98,11 +109,13 @@ done
 %files
 %doc COPYING README.md NEWS.md
 %{python2_sitelib}/*
-%{_bindir}/bugzilla
-%{_mandir}/man1/bugzilla.1.gz
 
 %if 0%{?with_python3}
 %files -n python3-bugzilla
 %doc COPYING README.md NEWS.md
 %{python3_sitelib}/*
 %endif # with_python3
+
+%files cli
+%{_bindir}/bugzilla
+%{_mandir}/man1/bugzilla.1.gz
