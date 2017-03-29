@@ -73,6 +73,7 @@ cp -a . %{py3dir}
 %endif # with_python3
 
 
+
 %build
 %if 0%{?with_python3}
 pushd %{py3dir}
@@ -81,6 +82,7 @@ popd
 %endif # with_python3
 
 %{__python2} setup.py build
+
 
 
 %install
@@ -96,9 +98,15 @@ popd
 # Replace '#!/usr/bin/env python' with '#!/usr/bin/python2'
 # The format is ideal for upstream, but not a distro. See:
 # https://fedoraproject.org/wiki/Features/SystemPythonExecutablesUseSystemPython
+%if 0%{?with_python3}
+%global python_env_path %{__python3}
+%else
+%global python_env_path %{__python2}
+%endif
 for f in $(find %{buildroot} -type f -executable -print); do
-    sed -i "1 s|^#!/usr/bin/env python|#!%{__python2}|" $f || :
+    sed -i "1 s|^#!/usr/bin/.*|#!%{python_env_path}|" $f || :
 done
+
 
 
 %check
