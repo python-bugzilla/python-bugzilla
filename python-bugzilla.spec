@@ -82,6 +82,13 @@ popd
 
 %{__python2} setup.py install -O1 --skip-build --root %{buildroot}
 
+# Replace '#!/usr/bin/env python' with '#!/usr/bin/python2'
+# The format is ideal for upstream, but not a distro. See:
+# https://fedoraproject.org/wiki/Features/SystemPythonExecutablesUseSystemPython
+for f in $(find %{buildroot} -type f -executable -print); do
+    sed -i "1 s|^#!/usr/bin/env python|#!%{__python2}|" $f || :
+done
+
 
 %check
 %{__python2} setup.py test
