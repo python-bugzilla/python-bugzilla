@@ -144,47 +144,29 @@ class _BugzillaAPICache(object):
 
 
 class Bugzilla(object):
-    '''An object which represents the data and methods exported by a Bugzilla
-    instance. Uses xmlrpclib to do its thing. You'll want to create one thusly:
-    bz=Bugzilla(url='https://bugzilla.redhat.com/xmlrpc.cgi',
-                user=u, password=p)
+    """
+    The main API object. Connects to a bugzilla instance over XMLRPC, and
+    provides wrapper functions to simplify dealing with API calls.
 
-    You can get authentication cookies by calling the login() method. These
-    cookies will be stored in a MozillaCookieJar-style file specified by the
-    'cookiefile' attribute (which defaults to ~/.bugzillacookies). Once you
-    get cookies this way, you will be considered logged in until the cookie
-    expires.
+    The most common invocation here will just be with just a URL:
 
-    You may also specify 'user' and 'password' in a bugzillarc file. The
-    locations are preferred in this order:
-      ~/.config/python-bugzilla/bugzillarc
-      ~/.bugzillarc
-      /etc/bugzillarc
-    It has content like:
-      [bugzilla.yoursite.com]
-      user = username
-      password = password
-    Or
-      [bugzilla.yoursite.com]
-      api_key = key
+        bzapi = Bugzilla("http://bugzilla.example.com")
 
-    You can also use the [DEFAULT] section to set defaults that apply to
-    any site without a specific section of its own.
-    Be sure to set appropriate permissions on bugzillarc if you choose to
-    store your password in it!
+    If you have previously logged into that URL, and have cached login
+    cookies/tokens, you will automatically be logged in. Otherwise to
+    log in, you can either pass auth options to __init__, or call a login
+    helper like interactive_login().
 
-    This is an abstract class; it must be implemented by a concrete subclass
-    which actually connects the methods provided here to the appropriate
-    methods on the bugzilla instance.
+    If you are not logged in, you won be able to access restricted data like
+    user email, or perform write actions like bug create/update. But simple
+    querys will work correctly.
 
-    :kwarg url: base url for the bugzilla instance
-    :kwarg user: usename to connect with
-    :kwarg password: password for the connecting user
-    :kwarg cookiefile: Location to save the session cookies so you don't have
-        to keep giving the library your username and password.  This defaults
-        to ~/.bugzillacookies.  If set to None, the library won't save the
-        cookies persistently.
-    '''
+    If you are unsure if you are logged in, you can check the .logged_in
+    property.
+
+    Another way to specify auth credentials is via a 'bugzillarc' file.
+    See readconfig() documentation for details.
+    """
 
     # bugzilla version that the class is targeting. filled in by
     # subclasses
@@ -245,9 +227,18 @@ class Bugzilla(object):
             to immediately. Most users will want to specify this at
             __init__ time, but you can defer connecting by passing
             url=None and calling connect(URL) manually
-        :param cookiefile: If -1, use the default path. If None, don't use
-            or save any cookiefile.
-        :param tokenfile: If -1, use the default path. If None, don't use
+        :param user: optional username to connect with
+        :param password: optional password for the connecting user
+        :param cookiefile: Location to cache the login session cookies so you
+            don't have to keep specifying username/password. Bugzilla 5+ will
+            use tokens instead of cookies.
+            If -1, use the default path. If None, don't use or save
+            any cookiefile.
+        :param sslverify: Set this to False to skip SSL hostname and CA
+            validation checks, like out of date certificate
+        :param tokenfile: Location to cache the API login token so youi
+            don't have to keep specifying username/password.
+            If -1, use the default path. If None, don't use
             or save any tokenfile.
         :param use_creds: If False, this disables cookiefile, tokenfile,
             and any bugzillarc reading. This overwrites any tokenfile
@@ -255,6 +246,7 @@ class Bugzilla(object):
         :param sslverify: Maps to 'requests' sslverify parameter. Set to
             False to disable SSL verification, but it can also be a path
             to file or directory for custom certs.
+        :param api_key: A bugzilla
         """
         if url is -1:
             raise TypeError("Specify a valid bugzilla url, or pass url=None")
@@ -433,9 +425,35 @@ class Bugzilla(object):
     #############################
 
     def readconfig(self, configpath=None):
-        '''
-        Read bugzillarc file(s) into memory.
-        '''
+        """
+        :param configpath: Optional bugzillarc path to read, instead of
+            the default list.
+
+        This function is called automatically from Bugzilla connect(), which
+        is called at __init__ if a URL is passed. Calling it manually is
+        just for passing in a non-standard configpath.
+
+        The locations for the bugzillarc file are preferred in this order:
+
+            ~/.config/python-bugzilla/bugzillarc
+            ~/.bugzillarc
+            /etc/bugzillarc
+
+        It has content like:
+          [bugzilla.yoursite.com]
+          user = username
+          password = password
+        Or
+          [bugzilla.yoursite.com]
+          api_key = key
+
+        The file can have multiple sections for different bugzilla instances.
+        You can also use the [DEFAULT] section to set defaults that apply to
+        any site without a specific section of its own.
+
+        Be sure to set appropriate permissions on bugzillarc if you choose to
+        store your password in it!
+        """
         if not configpath:
             configpath = self.configpath
 
@@ -486,10 +504,12 @@ class Bugzilla(object):
 
     def connect(self, url=None):
         '''
-        Connect to the bugzilla instance with the given url.
+        Connect to the bugzilla instance with the given url. This is
+        called by __init__ if a URL is passed. Or it can be called manually
+        at any time with a passed URL.
 
         This will also read any available config files (see readconfig()),
-        which may set 'user' and 'password'.
+        which may set 'user' and 'password', and others.
 
         If 'user' and 'password' are both set, we'll run login(). Otherwise
         you'll have to login() yourself before some methods will work.
