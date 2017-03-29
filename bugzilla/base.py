@@ -109,6 +109,28 @@ def _build_cookiejar(cookiefile):
                             cookiefile)
 
 
+_default_configpaths = [
+    '/etc/bugzillarc',
+    '~/.bugzillarc',
+    '~/.config/python-bugzilla/bugzillarc',
+]
+
+
+def _open_bugzillarc(configpaths=-1):
+    if configpaths == -1:
+        configpaths = _default_configpaths[:]
+
+    configpaths = [os.path.expanduser(p) for p in
+                   Bugzilla._listify(configpaths)]
+    cfg = SafeConfigParser()
+    read_files = cfg.read(configpaths)
+    if not read_files:
+        return
+
+    log.info("Found bugzillarc files: %s", read_files)
+    return cfg
+
+
 class _FieldAlias(object):
     """
     Track API attribute names that differ from what we expose in users.
@@ -220,6 +242,15 @@ class Bugzilla(object):
             url = url + '/xmlrpc.cgi'
         return url
 
+    @staticmethod
+    def _listify(val):
+        if val is None:
+            return val
+        if isinstance(val, list):
+            return val
+        return [val]
+
+
     def __init__(self, url=-1, user=None, password=None, cookiefile=-1,
                  sslverify=True, tokenfile=-1, use_creds=True, api_key=None):
         """
@@ -267,8 +298,7 @@ class Bugzilla(object):
         self._field_aliases = []
         self._init_field_aliases()
 
-        self.configpath = ['/etc/bugzillarc', '~/.bugzillarc',
-                           '~/.config/python-bugzilla/bugzillarc']
+        self.configpath = _default_configpaths[:]
         if not use_creds:
             cookiefile = None
             tokenfile = None
@@ -360,13 +390,6 @@ class Bugzilla(object):
             return True
         return False
 
-    def _listify(self, val):
-        if val is None:
-            return val
-        if isinstance(val, list):
-            return val
-        return [val]
-
     def _product_id_to_name(self, productid):
         '''Convert a product ID (int) to a product name (str).'''
         for p in self.products:
@@ -448,23 +471,15 @@ class Bugzilla(object):
           api_key = key
 
         The file can have multiple sections for different bugzilla instances.
-        You can also use the [DEFAULT] section to set defaults that apply to
-        any site without a specific section of its own.
+        A 'url' field in the [DEFAULT] section can be used to set a default
+        URL for the bugzilla command line tool.
 
         Be sure to set appropriate permissions on bugzillarc if you choose to
         store your password in it!
         """
-        if not configpath:
-            configpath = self.configpath
-
-        configpath = [os.path.expanduser(p) for p in
-                      self._listify(configpath)]
-        cfg = SafeConfigParser()
-        read_files = cfg.read(configpath)
-        if not read_files:
+        cfg = _open_bugzillarc(configpath or self.configpath)
+        if not cfg:
             return
-
-        log.info("Found bugzillarc files: %s", read_files)
 
         section = ""
         log.debug("bugzillarc: Searching for config section matching %s",

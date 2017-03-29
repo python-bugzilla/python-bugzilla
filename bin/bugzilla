@@ -35,7 +35,7 @@ import requests.exceptions
 
 import bugzilla
 
-default_bz = 'https://bugzilla.redhat.com/xmlrpc.cgi'
+DEFAULT_BZ = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
 _is_unittest = bool(os.getenv("__BUGZILLA_UNITTEST"))
 _is_unittest_debug = bool(os.getenv("__BUGZILLA_UNITTEST_DEBUG"))
@@ -91,6 +91,20 @@ def open_without_clobber(name, *args):
     return fobj
 
 
+def get_default_url():
+    """
+    Grab a default URL from bugzillarc [DEFAULT] url=X
+    """
+    from bugzilla.base import _open_bugzillarc
+    cfg = _open_bugzillarc()
+    if cfg:
+        cfgurl = cfg.defaults().get("url", None)
+        if cfgurl is not None:
+            log.debug("bugzillarc: found cli url=%s", cfgurl)
+            return cfgurl
+    return DEFAULT_BZ
+
+
 ##################
 # Option parsing #
 ##################
@@ -99,9 +113,11 @@ def _setup_root_parser():
     epilog = 'Try "bugzilla COMMAND --help" for command-specific help.'
     p = argparse.ArgumentParser(epilog=epilog)
 
+    default_url = get_default_url()
+
     # General bugzilla connection options
-    p.add_argument('--bugzilla', default=default_bz,
-            help="bugzilla XMLRPC URI. default: %s" % default_bz)
+    p.add_argument('--bugzilla', default=default_url,
+            help="bugzilla XMLRPC URI. default: %s" % default_url)
     p.add_argument("--nosslverify", dest="sslverify",
                  action="store_false", default=True,
                  help="Don't error on invalid bugzilla SSL certificate")
