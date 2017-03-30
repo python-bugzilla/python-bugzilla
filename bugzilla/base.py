@@ -120,8 +120,10 @@ def _open_bugzillarc(configpaths=-1):
     if configpaths == -1:
         configpaths = _default_configpaths[:]
 
+    # pylint: disable=protected-access
     configpaths = [os.path.expanduser(p) for p in
                    Bugzilla._listify(configpaths)]
+    # pylint: enable=protected-access
     cfg = SafeConfigParser()
     read_files = cfg.read(configpaths)
     if not read_files:
