@@ -6,15 +6,6 @@ dependencies, running the command line from git is as simple as doing:
     cd python-bugzilla.git
     ./bugzilla-cli [arguments]
 
-If you want to use pip and virtualenv to install a local development
-environment, use the following command.
-
-    source contrib/activate-dev-env [python2|python3]
-
-Then you can manually activate an environment with:
-
-    source dev-env-${NAME}/bin/activate
-
 
 # Running tests
 
@@ -54,8 +45,7 @@ To test for pylint or pep8 violations, you can run:
 
     python setup.py pylint
 
-Note: This expects that you already have pylint and pep8 (installed when setting
-up virtualenv) installed.
+Note: This expects that you already have pylint and pep8 installed.
 
 
 # Patch Submission
