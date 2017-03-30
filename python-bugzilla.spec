@@ -57,7 +57,11 @@ over XML-RPC.
 
 %package cli
 Summary: Command line tool for interacting with Bugzilla
-Requires: python-bugzilla
+%if 0%{?with_python3}
+Requires: python3-bugzilla = %{version}-%{release}
+%else
+Requires: python-bugzilla = %{version}-%{release}
+%endif
 
 %description cli
 This package includes the 'bugzilla' command-line tool for interacting with bugzilla. Uses the python-bugzilla API
