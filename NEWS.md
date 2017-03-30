@@ -1,5 +1,11 @@
 # python-bugzilla release news
 
+## Release 2.1.0 (March 30, 2017)
+- Support for bugzilla 5 API Keys (Dustin J. Mitchell)
+- bugzillarc can be used to set default URL for the cli tool
+- Revive update_flags wrapper
+- Bug fixes and minor improvements
+
 ## Release 2.0.0 (Feb 08 2017)
 
 This release contains several small to medium API breaks. I expect most users
