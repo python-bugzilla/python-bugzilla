@@ -324,6 +324,8 @@ class Bugzilla(object):
         Detect if we should use RHBugzilla class, and if so, set it
         """
         from bugzilla import RHBugzilla
+        if isinstance(self, RHBugzilla):
+            return
 
         c = None
         if "bugzilla.redhat.com" in self.url:
