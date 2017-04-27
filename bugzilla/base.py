@@ -996,7 +996,7 @@ class Bugzilla(object):
             else:
                 # Need to map an alias
                 for valdict in bugdict.values():
-                    if i in valdict.get("alias", []):
+                    if i in self._listify(valdict.get("alias", None)):
                         found = valdict
                         break
 
