@@ -162,8 +162,8 @@ class _RequestsTransport(Transport):
 
             # escape illegal utf-8 characters
             import re
-            response._content = re.sub(b'[\x01-\x1f]+', '', response.content)
-            response._content = re.sub(b'&', '&amp;', response.content)
+            response._content = re.sub(b'[\x01-\x1f]+', b'', response.content)
+            response._content = re.sub(b'&', b'&amp;', response.content)
 
             # update/set any cookies
             if self._cookiejar is not None:
