@@ -162,7 +162,7 @@ class _RequestsTransport(Transport):
 
             # escape illegal utf-8 characters
             import re
-            response._content = re.sub("[\x01-\x1f]+", "", response.content)
+            response._content = re.sub(b'[\x01-\x1f]+', '', response.content)
             response._content = response.content.replace('&', '&amp;')
 
             # update/set any cookies
