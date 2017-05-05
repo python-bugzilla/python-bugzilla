@@ -9,6 +9,7 @@
 # create.py: Create a new bug report
 
 from __future__ import print_function
+import sys
 
 import bugzilla
 
@@ -16,11 +17,14 @@ import bugzilla
 # users or anything. It's what landfill.bugzilla.org is for!
 URL = "https://landfill.bugzilla.org/bugzilla-5.0-branch/xmlrpc.cgi"
 
-print("You can get an API key at "
-      "https://landfill.bugzilla.org/bugzilla-5.0-branch/userprefs.cgi")
-print("after creating an account, if necessary.  "
-      "This is a test site, so no harm will come!")
-api_key = raw_input("Enter Bugzilla API Key: ")
+print("You can get an API key at:\n "
+      "    https://landfill.bugzilla.org/bugzilla-5.0-branch/userprefs.cgi")
+print("This is a test site, so no harm will come!\n")
+
+if sys.version_info[0] >= 3:
+    api_key = input("Enter Bugzilla API Key: ")
+else:
+    api_key = raw_input("Enter Bugzilla API Key: ")
 
 # API key usage assumes the API caller is storing the API key; if you would
 # like to use one of the login options that stores credentials on-disk for
