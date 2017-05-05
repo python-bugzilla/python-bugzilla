@@ -8,7 +8,7 @@ import os
 import shlex
 import sys
 
-if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
+if sys.version_info[0] >= 3:
     from io import StringIO
 else:
     from StringIO import StringIO

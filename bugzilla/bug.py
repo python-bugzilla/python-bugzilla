@@ -51,7 +51,7 @@ class Bug(object):
         'print(bug)' is not recommended because of potential encoding issues.
         Please use unicode(bug) where possible.
         '''
-        if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
+        if sys.version_info[0] >= 3:
             return self.__unicode__()
         else:
             return self.__unicode__().encode(

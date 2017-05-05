@@ -7,7 +7,7 @@
 from logging import getLogger
 import sys
 
-if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
+if sys.version_info[0] >= 3:
     # pylint: disable=import-error,no-name-in-module
     from configparser import SafeConfigParser
     from urllib.parse import urlparse

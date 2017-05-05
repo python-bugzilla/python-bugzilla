@@ -63,7 +63,7 @@ class BugTest(unittest.TestCase):
         dir(bug)
 
         # Test special pickle support
-        if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
+        if sys.version_info[0] >= 3:
             from io import BytesIO
             fd = BytesIO()
         else:

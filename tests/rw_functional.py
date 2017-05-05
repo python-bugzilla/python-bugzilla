@@ -17,7 +17,7 @@ import random
 import sys
 import unittest
 
-if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
+if sys.version_info[0] >= 3:
     # pylint: disable=F0401,E0611
     from urllib.parse import urlparse
 else:

@@ -18,7 +18,7 @@ import sys
 from io import BytesIO
 
 # pylint: disable=ungrouped-imports
-if hasattr(sys.version_info, "major") and sys.version_info.major >= 3:
+if sys.version_info[0] >= 3:
     # pylint: disable=F0401,E0611
     from configparser import SafeConfigParser
     from http.cookiejar import LoadError, MozillaCookieJar
