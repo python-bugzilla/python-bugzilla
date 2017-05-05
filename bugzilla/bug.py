@@ -357,7 +357,7 @@ class Bug(object):
     # Experimental methods #
     ########################
 
-    def get_attachment_ids(self):
+    def get_attachments_metadata (self):
         # pylint: disable=protected-access
         proxy = self.bugzilla._proxy
         # pylint: enable=protected-access
@@ -369,7 +369,10 @@ class Bug(object):
                 {"ids": [self.bug_id], "exclude_fields": ["data"]})
             attachments = rawret["bugs"][str(self.bug_id)]
 
-        return [a["id"] for a in attachments]
+        return attachments
+
+    def get_attachment_ids(self):
+        return [a["id"] for a in self.get_attachments_metadata()]
 
     def get_history_raw(self):
         '''
