@@ -330,7 +330,7 @@ class RHBugzilla(Bugzilla):
                 for s in value.split(" "):
                     if s not in ["|", "&", "!"]:
                         continue
-                    log.warn("%s value '%s' appears to use the now "
+                    log.warning("%s value '%s' appears to use the now "
                         "unsupported boolean formatting, your query may "
                         "be incorrect. If you need complicated URL queries, "
                         "look into bugzilla --from-url/url_to_query().",
