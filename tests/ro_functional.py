@@ -37,12 +37,12 @@ class BaseTest(unittest.TestCase):
 
     def _testBZVersion(self):
         bz = Bugzilla(self.url, use_creds=False)
-        self.assertEquals(bz.__class__, self.bzclass)
+        self.assertEqual(bz.__class__, self.bzclass)
         if tests.REDHAT_URL:
             print("BZ version=%s.%s" % (bz.bz_ver_major, bz.bz_ver_minor))
         else:
-            self.assertEquals(bz.bz_ver_major, self.bzversion[0])
-            self.assertEquals(bz.bz_ver_minor, self.bzversion[1])
+            self.assertEqual(bz.bz_ver_major, self.bzversion[0])
+            self.assertEqual(bz.bz_ver_minor, self.bzversion[1])
 
     # Since we are running these tests against bugzilla instances in
     # the wild, we can't depend on certain data like product lists
@@ -131,7 +131,7 @@ class BZMozilla(BaseTest):
         # bugzilla.mozilla.org returns version values in YYYY-MM-DD
         # format, so just try to confirm that
         bz = Bugzilla("bugzilla.mozilla.org", use_creds=False)
-        self.assertEquals(bz.__class__, Bugzilla)
+        self.assertEqual(bz.__class__, Bugzilla)
         self.assertTrue(bz.bz_ver_major >= 2016)
         self.assertTrue(bz.bz_ver_minor in range(1, 13))
 
@@ -267,7 +267,7 @@ class RHTest(BaseTest):
 
     def testQueryFixedIn(self):
         out = self.clicomm("query --fixed_in anaconda-15.29-1")
-        self.assertEquals(len(out.splitlines()), 6)
+        self.assertEqual(len(out.splitlines()), 6)
         self.assertTrue("#629311 CLOSED" in out)
 
     def testComponentsDetails(self):

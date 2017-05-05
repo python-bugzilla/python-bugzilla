@@ -88,9 +88,9 @@ password=test2"""
         temp.write(content)
         temp.flush()
         bzapi.readconfig(temp.name)
-        self.assertEquals(bzapi.user, "test1")
-        self.assertEquals(bzapi.password, "test2")
-        self.assertEquals(bzapi.api_key, None)
+        self.assertEqual(bzapi.user, "test1")
+        self.assertEqual(bzapi.password, "test2")
+        self.assertEqual(bzapi.api_key, None)
 
         content = """
 [foo.example.com]
@@ -101,18 +101,18 @@ api_key=123abc
         temp.write(content)
         temp.flush()
         bzapi.readconfig(temp.name)
-        self.assertEquals(bzapi.user, "test3")
-        self.assertEquals(bzapi.password, "test4")
-        self.assertEquals(bzapi.api_key, "123abc")
+        self.assertEqual(bzapi.user, "test3")
+        self.assertEqual(bzapi.password, "test4")
+        self.assertEqual(bzapi.api_key, "123abc")
 
         bzapi.url = "bugzilla.redhat.com"
         bzapi.user = None
         bzapi.password = None
         bzapi.api_key = None
         bzapi.readconfig(temp.name)
-        self.assertEquals(bzapi.user, None)
-        self.assertEquals(bzapi.password, None)
-        self.assertEquals(bzapi.api_key, None)
+        self.assertEqual(bzapi.user, None)
+        self.assertEqual(bzapi.password, None)
+        self.assertEqual(bzapi.api_key, None)
 
 
     def testPostTranslation(self):

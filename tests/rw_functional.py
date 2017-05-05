@@ -117,16 +117,16 @@ class RHPartnerTest(BaseTest):
         self.assertTrue(hasattr(bug, "id"))
         self.assertTrue(hasattr(bug, "bug_id"))
 
-        self.assertEquals(bug.component, component)
-        self.assertEquals(bug.version, version)
-        self.assertEquals(bug.summary, summary)
+        self.assertEqual(bug.component, component)
+        self.assertEqual(bug.version, version)
+        self.assertEqual(bug.summary, summary)
 
         # Close the bug
         tests.clicomm("bugzilla modify --close NOTABUG %s" % bugid,
                       bz)
         bug.refresh()
-        self.assertEquals(bug.status, "CLOSED")
-        self.assertEquals(bug.resolution, "NOTABUG")
+        self.assertEqual(bug.status, "CLOSED")
+        self.assertEqual(bug.resolution, "NOTABUG")
 
 
     def test04NewBugAllFields(self):
@@ -163,15 +163,15 @@ class RHPartnerTest(BaseTest):
         bug = bz.getbug(bugid, extra_fields=["sub_components"])
         print("\nCreated bugid: %s" % bugid)
 
-        self.assertEquals(bug.summary, summary)
-        self.assertEquals(bug.bug_file_loc, url)
-        self.assertEquals(bug.op_sys, osval)
-        self.assertEquals(bug.blocks, _split_int(blocked))
-        self.assertEquals(bug.depends_on, _split_int(dependson))
+        self.assertEqual(bug.summary, summary)
+        self.assertEqual(bug.bug_file_loc, url)
+        self.assertEqual(bug.op_sys, osval)
+        self.assertEqual(bug.blocks, _split_int(blocked))
+        self.assertEqual(bug.depends_on, _split_int(dependson))
         self.assertTrue(all([e in bug.cc for e in cc.split(",")]))
-        self.assertEquals(bug.longdescs[0]["text"], comment)
-        self.assertEquals(bug.sub_components, {"lvm2": [sub_component]})
-        self.assertEquals(bug.alias, [alias])
+        self.assertEqual(bug.longdescs[0]["text"], comment)
+        self.assertEqual(bug.sub_components, {"lvm2": [sub_component]})
+        self.assertEqual(bug.alias, [alias])
 
         # Close the bug
 
@@ -183,9 +183,9 @@ class RHPartnerTest(BaseTest):
             "--close WONTFIX %s " %
             bugid, bz)
         bug.refresh()
-        self.assertEquals(bug.status, "CLOSED")
-        self.assertEquals(bug.resolution, "WONTFIX")
-        self.assertEquals(bug.alias, [alias])
+        self.assertEqual(bug.status, "CLOSED")
+        self.assertEqual(bug.resolution, "WONTFIX")
+        self.assertEqual(bug.alias, [alias])
 
         # Check bug's minimal history
         ret = bug.get_history_raw()
@@ -207,7 +207,7 @@ class RHPartnerTest(BaseTest):
         if bug.status == "CLOSED":
             tests.clicomm(cmd + "--status ASSIGNED", bz)
             bug.refresh()
-            self.assertEquals(bug.status, "ASSIGNED")
+            self.assertEqual(bug.status, "ASSIGNED")
 
         origstatus = bug.status
 
@@ -219,9 +219,9 @@ class RHPartnerTest(BaseTest):
             "--status %s --comment \"%s\" --private" % (status, comment), bz)
 
         bug.refresh()
-        self.assertEquals(bug.status, status)
-        self.assertEquals(bug.longdescs[-1]["is_private"], 1)
-        self.assertEquals(bug.longdescs[-1]["text"], comment)
+        self.assertEqual(bug.status, status)
+        self.assertEqual(bug.longdescs[-1]["is_private"], 1)
+        self.assertEqual(bug.longdescs[-1]["text"], comment)
 
         # Close bug as DEFERRED with a private comment
         resolution = "DEFERRED"
@@ -232,10 +232,10 @@ class RHPartnerTest(BaseTest):
             (resolution, comment), bz)
 
         bug.refresh()
-        self.assertEquals(bug.status, "CLOSED")
-        self.assertEquals(bug.resolution, resolution)
-        self.assertEquals(bug.comments[-1]["is_private"], 1)
-        self.assertEquals(bug.comments[-1]["text"], comment)
+        self.assertEqual(bug.status, "CLOSED")
+        self.assertEqual(bug.resolution, resolution)
+        self.assertEqual(bug.comments[-1]["is_private"], 1)
+        self.assertEqual(bug.comments[-1]["text"], comment)
 
         # Close bug as dup with no comment
         dupeid = "461686"
@@ -244,40 +244,40 @@ class RHPartnerTest(BaseTest):
             "--close DUPLICATE --dupeid %s" % dupeid, bz)
 
         bug.refresh()
-        self.assertEquals(bug.dupe_of, int(dupeid))
-        self.assertEquals(len(bug.longdescs), desclen + 1)
+        self.assertEqual(bug.dupe_of, int(dupeid))
+        self.assertEqual(len(bug.longdescs), desclen + 1)
         self.assertTrue("marked as a duplicate" in bug.longdescs[-1]["text"])
 
         # bz.setstatus test
         comment = ("adding lone comment at %s" % datetime.datetime.today())
         bug.setstatus("POST", comment=comment, private=True)
         bug.refresh()
-        self.assertEquals(bug.longdescs[-1]["is_private"], 1)
-        self.assertEquals(bug.longdescs[-1]["text"], comment)
-        self.assertEquals(bug.status, "POST")
+        self.assertEqual(bug.longdescs[-1]["is_private"], 1)
+        self.assertEqual(bug.longdescs[-1]["text"], comment)
+        self.assertEqual(bug.status, "POST")
 
         # bz.close test
         fixed_in = str(datetime.datetime.today())
         bug.close("ERRATA", fixedin=fixed_in)
         bug.refresh()
-        self.assertEquals(bug.status, "CLOSED")
-        self.assertEquals(bug.resolution, "ERRATA")
-        self.assertEquals(bug.fixed_in, fixed_in)
+        self.assertEqual(bug.status, "CLOSED")
+        self.assertEqual(bug.resolution, "ERRATA")
+        self.assertEqual(bug.fixed_in, fixed_in)
 
         # bz.addcomment test
         comment = ("yet another test comment %s" % datetime.datetime.today())
         bug.addcomment(comment, private=False)
         bug.refresh()
-        self.assertEquals(bug.longdescs[-1]["text"], comment)
-        self.assertEquals(bug.longdescs[-1]["is_private"], 0)
+        self.assertEqual(bug.longdescs[-1]["text"], comment)
+        self.assertEqual(bug.longdescs[-1]["is_private"], 0)
 
         # Confirm comments is same as getcomments
-        self.assertEquals(bug.comments, bug.getcomments())
+        self.assertEqual(bug.comments, bug.getcomments())
 
         # Reset state
         tests.clicomm(cmd + "--status %s" % origstatus, bz)
         bug.refresh()
-        self.assertEquals(bug.status, origstatus)
+        self.assertEqual(bug.status, origstatus)
 
 
     def test06ModifyEmails(self):
@@ -302,7 +302,7 @@ class RHPartnerTest(BaseTest):
         bug.refresh()
         self.assertTrue(email1 in bug.cc)
         self.assertTrue(email2 in bug.cc)
-        self.assertEquals(len(bug.cc), 2)
+        self.assertEqual(len(bug.cc), 2)
 
         tests.clicomm(cmd + "--cc=-%s" % email1, bz)
         bug.refresh()
@@ -311,21 +311,21 @@ class RHPartnerTest(BaseTest):
         # Test assigned target
         tests.clicomm(cmd + "--assignee %s" % email1, bz)
         bug.refresh()
-        self.assertEquals(bug.assigned_to, email1)
+        self.assertEqual(bug.assigned_to, email1)
 
         # Test QA target
         tests.clicomm(cmd + "--qa_contact %s" % email1, bz)
         bug.refresh()
-        self.assertEquals(bug.qa_contact, email1)
+        self.assertEqual(bug.qa_contact, email1)
 
         # Reset values
         bug.deletecc(bug.cc)
         tests.clicomm(cmd + "--reset-qa-contact --reset-assignee", bz)
 
         bug.refresh()
-        self.assertEquals(bug.cc, [])
-        self.assertEquals(bug.assigned_to, "crobinso@redhat.com")
-        self.assertEquals(bug.qa_contact, "extras-qa@fedoraproject.org")
+        self.assertEqual(bug.cc, [])
+        self.assertEqual(bug.assigned_to, "crobinso@redhat.com")
+        self.assertEqual(bug.qa_contact, "extras-qa@fedoraproject.org")
 
 
     def test07ModifyMultiFlags(self):
@@ -377,10 +377,10 @@ class RHPartnerTest(BaseTest):
         bug1.refresh()
         bug2.refresh()
 
-        self.assertEquals(flagstr(bug1), setflags)
-        self.assertEquals(flagstr(bug2), setflags)
-        self.assertEquals(bug1.get_flags("needinfo")[0]["status"], "?")
-        self.assertEquals(bug1.get_flag_status("requires_doc_text"), "-")
+        self.assertEqual(flagstr(bug1), setflags)
+        self.assertEqual(flagstr(bug2), setflags)
+        self.assertEqual(bug1.get_flags("needinfo")[0]["status"], "?")
+        self.assertEqual(bug1.get_flag_status("requires_doc_text"), "-")
 
         # Clear flags
         if cleardict_new(bug1):
@@ -390,8 +390,8 @@ class RHPartnerTest(BaseTest):
             bz.update_flags(bug2.id, cleardict_new(bug2))
         bug2.refresh()
 
-        self.assertEquals(cleardict_old(bug1), {})
-        self.assertEquals(cleardict_old(bug2), {})
+        self.assertEqual(cleardict_old(bug1), {})
+        self.assertEqual(cleardict_old(bug2), {})
 
         # Set "Fixed In" field
         origfix1 = bug1.fixed_in
@@ -405,16 +405,16 @@ class RHPartnerTest(BaseTest):
 
         bug1.refresh()
         bug2.refresh()
-        self.assertEquals(bug1.fixed_in, newfix)
-        self.assertEquals(bug2.fixed_in, newfix)
+        self.assertEqual(bug1.fixed_in, newfix)
+        self.assertEqual(bug2.fixed_in, newfix)
 
         # Reset fixed_in
         tests.clicomm(cmd + "--fixed_in=\"-\"", bz)
 
         bug1.refresh()
         bug2.refresh()
-        self.assertEquals(bug1.fixed_in, "-")
-        self.assertEquals(bug2.fixed_in, "-")
+        self.assertEqual(bug1.fixed_in, "-")
+        self.assertEqual(bug2.fixed_in, "-")
 
 
     def test07ModifyMisc(self):
@@ -429,27 +429,27 @@ class RHPartnerTest(BaseTest):
         self.assertTrue(123456 in bug.depends_on)
         tests.clicomm(cmd + "--dependson =111222", bz)
         bug.refresh()
-        self.assertEquals([111222], bug.depends_on)
+        self.assertEqual([111222], bug.depends_on)
         tests.clicomm(cmd + "--dependson=-111222", bz)
         bug.refresh()
-        self.assertEquals([], bug.depends_on)
+        self.assertEqual([], bug.depends_on)
 
         # modify --blocked
         tests.clicomm(cmd + "--blocked 123,456", bz)
         bug.refresh()
-        self.assertEquals([123, 456], bug.blocks)
+        self.assertEqual([123, 456], bug.blocks)
         tests.clicomm(cmd + "--blocked =", bz)
         bug.refresh()
-        self.assertEquals([], bug.blocks)
+        self.assertEqual([], bug.blocks)
 
         # modify --keywords
         tests.clicomm(cmd + "--keywords +Documentation --keywords EasyFix", bz)
         bug.refresh()
-        self.assertEquals(["Documentation", "EasyFix"], bug.keywords)
+        self.assertEqual(["Documentation", "EasyFix"], bug.keywords)
         tests.clicomm(cmd + "--keywords=-EasyFix --keywords=-Documentation",
                       bz)
         bug.refresh()
-        self.assertEquals([], bug.keywords)
+        self.assertEqual([], bug.keywords)
 
         # modify --target_release
         # modify --target_milestone
@@ -459,24 +459,24 @@ class RHPartnerTest(BaseTest):
         tests.clicomm(targetcmd +
                       "--target_milestone beta --target_release 6.2", bz)
         targetbug.refresh()
-        self.assertEquals(targetbug.target_milestone, "beta")
-        self.assertEquals(targetbug.target_release, ["6.2"])
+        self.assertEqual(targetbug.target_milestone, "beta")
+        self.assertEqual(targetbug.target_release, ["6.2"])
         tests.clicomm(targetcmd +
                       "--target_milestone rc --target_release 6.0", bz)
         targetbug.refresh()
-        self.assertEquals(targetbug.target_milestone, "rc")
-        self.assertEquals(targetbug.target_release, ["6.0"])
+        self.assertEqual(targetbug.target_milestone, "rc")
+        self.assertEqual(targetbug.target_release, ["6.0"])
 
         # modify --priority
         # modify --severity
         tests.clicomm(cmd + "--priority low --severity high", bz)
         bug.refresh()
-        self.assertEquals(bug.priority, "low")
-        self.assertEquals(bug.severity, "high")
+        self.assertEqual(bug.priority, "low")
+        self.assertEqual(bug.severity, "high")
         tests.clicomm(cmd + "--priority medium --severity medium", bz)
         bug.refresh()
-        self.assertEquals(bug.priority, "medium")
-        self.assertEquals(bug.severity, "medium")
+        self.assertEqual(bug.priority, "medium")
+        self.assertEqual(bug.severity, "medium")
 
         # modify --os
         # modify --platform
@@ -484,25 +484,25 @@ class RHPartnerTest(BaseTest):
         tests.clicomm(cmd + "--version rawhide --os Windows --arch ppc "
                             "--url http://example.com", bz)
         bug.refresh()
-        self.assertEquals(bug.version, "rawhide")
-        self.assertEquals(bug.op_sys, "Windows")
-        self.assertEquals(bug.platform, "ppc")
-        self.assertEquals(bug.url, "http://example.com")
+        self.assertEqual(bug.version, "rawhide")
+        self.assertEqual(bug.op_sys, "Windows")
+        self.assertEqual(bug.platform, "ppc")
+        self.assertEqual(bug.url, "http://example.com")
         tests.clicomm(cmd + "--version rawhide --os Linux --arch s390 "
                             "--url http://example.com/fribby", bz)
         bug.refresh()
-        self.assertEquals(bug.version, "rawhide")
-        self.assertEquals(bug.op_sys, "Linux")
-        self.assertEquals(bug.platform, "s390")
-        self.assertEquals(bug.url, "http://example.com/fribby")
+        self.assertEqual(bug.version, "rawhide")
+        self.assertEqual(bug.op_sys, "Linux")
+        self.assertEqual(bug.platform, "s390")
+        self.assertEqual(bug.url, "http://example.com/fribby")
 
         # modify --field
         tests.clicomm(cmd + "--field cf_fixed_in=foo-bar-1.2.3 \
                       --field=cf_release_notes=baz", bz)
 
         bug.refresh()
-        self.assertEquals(bug.fixed_in, "foo-bar-1.2.3")
-        self.assertEquals(bug.cf_release_notes, "baz")
+        self.assertEqual(bug.fixed_in, "foo-bar-1.2.3")
+        self.assertEqual(bug.cf_release_notes, "baz")
 
 
     def test08Attachments(self):
@@ -545,29 +545,29 @@ class RHPartnerTest(BaseTest):
         #   Created attachment <attachid> on bug <bugid>
 
         setbug.refresh()
-        self.assertEquals(len(setbug.attachments), orignumattach + 2)
-        self.assertEquals(setbug.attachments[-2]["summary"], desc1)
-        self.assertEquals(setbug.attachments[-2]["id"],
-                          int(out1.splitlines()[2].split()[2]))
-        self.assertEquals(setbug.attachments[-1]["summary"], desc2)
-        self.assertEquals(setbug.attachments[-1]["id"],
-                          int(out2.splitlines()[2].split()[2]))
+        self.assertEqual(len(setbug.attachments), orignumattach + 2)
+        self.assertEqual(setbug.attachments[-2]["summary"], desc1)
+        self.assertEqual(setbug.attachments[-2]["id"],
+                         int(out1.splitlines()[2].split()[2]))
+        self.assertEqual(setbug.attachments[-1]["summary"], desc2)
+        self.assertEqual(setbug.attachments[-1]["id"],
+                         int(out2.splitlines()[2].split()[2]))
         attachid = setbug.attachments[-2]["id"]
 
         # Set attachment flags
-        self.assertEquals(setbug.attachments[-1]["flags"], [])
+        self.assertEqual(setbug.attachments[-1]["flags"], [])
         bz.updateattachmentflags(setbug.id, setbug.attachments[-1]["id"],
                                  "review", status="+")
         setbug.refresh()
 
-        self.assertEquals(len(setbug.attachments[-1]["flags"]), 1)
-        self.assertEquals(setbug.attachments[-1]["flags"][0]["name"], "review")
-        self.assertEquals(setbug.attachments[-1]["flags"][0]["status"], "+")
+        self.assertEqual(len(setbug.attachments[-1]["flags"]), 1)
+        self.assertEqual(setbug.attachments[-1]["flags"][0]["name"], "review")
+        self.assertEqual(setbug.attachments[-1]["flags"][0]["status"], "+")
 
         bz.updateattachmentflags(setbug.id, setbug.attachments[-1]["id"],
                                  "review", status="X")
         setbug.refresh()
-        self.assertEquals(setbug.attachments[-1]["flags"], [])
+        self.assertEqual(setbug.attachments[-1]["flags"], [])
 
 
         # Get attachment, verify content
@@ -577,10 +577,10 @@ class RHPartnerTest(BaseTest):
         #   Wrote <filename>
         fname = out[2].split()[1].strip()
 
-        self.assertEquals(len(out), 3)
-        self.assertEquals(fname, "bz-attach-get1.txt")
-        self.assertEquals(open(fname).read(),
-                          open(testfile).read())
+        self.assertEqual(len(out), 3)
+        self.assertEqual(fname, "bz-attach-get1.txt")
+        self.assertEqual(open(fname).read(),
+                         open(testfile).read())
         os.unlink(fname)
 
         # Get all attachments
@@ -589,9 +589,9 @@ class RHPartnerTest(BaseTest):
         numattach = len(getbug.attachments)
         out = tests.clicomm(cmd + "--getall %s" % getallbugid, bz).splitlines()
 
-        self.assertEquals(len(out), numattach + 2)
+        self.assertEqual(len(out), numattach + 2)
         fnames = [l.split(" ", 1)[1].strip() for l in out[2:]]
-        self.assertEquals(len(fnames), numattach)
+        self.assertEqual(len(fnames), numattach)
         for f in fnames:
             if not os.path.exists(f):
                 raise AssertionError("filename '%s' not found" % f)
@@ -614,11 +614,11 @@ class RHPartnerTest(BaseTest):
                 (initval, initval, initval, initval), bz)
 
         bug.refresh()
-        self.assertEquals(bug.whiteboard, initval + "status")
-        self.assertEquals(bug.qa_whiteboard, initval + "qa")
-        self.assertEquals(bug.devel_whiteboard, initval + "devel")
-        self.assertEquals(bug.internal_whiteboard,
-                          initval + "internal, security, foo security1")
+        self.assertEqual(bug.whiteboard, initval + "status")
+        self.assertEqual(bug.qa_whiteboard, initval + "qa")
+        self.assertEqual(bug.devel_whiteboard, initval + "devel")
+        self.assertEqual(bug.internal_whiteboard,
+                         initval + "internal, security, foo security1")
 
         # Modify whiteboards
         tests.clicomm(cmd +
@@ -627,9 +627,9 @@ class RHPartnerTest(BaseTest):
                       "--devel_whiteboard =pre-%s" % bug.devel_whiteboard, bz)
 
         bug.refresh()
-        self.assertEquals(bug.qa_whiteboard, initval + "qa" + " _app")
-        self.assertEquals(bug.devel_whiteboard, "pre-" + initval + "devel")
-        self.assertEquals(bug.status_whiteboard, "foobar")
+        self.assertEqual(bug.qa_whiteboard, initval + "qa" + " _app")
+        self.assertEqual(bug.devel_whiteboard, "pre-" + initval + "devel")
+        self.assertEqual(bug.status_whiteboard, "foobar")
 
         # Verify that tag manipulation is smart about separator
         tests.clicomm(cmd +
@@ -637,9 +637,9 @@ class RHPartnerTest(BaseTest):
                       "--internal_whiteboard=-security,", bz)
         bug.refresh()
 
-        self.assertEquals(bug.qa_whiteboard, initval + "qa")
-        self.assertEquals(bug.internal_whiteboard,
-                          initval + "internal, foo security1")
+        self.assertEqual(bug.qa_whiteboard, initval + "qa")
+        self.assertEqual(bug.internal_whiteboard,
+                         initval + "internal, foo security1")
 
         # Clear whiteboards
         update = bz.build_update(
@@ -648,10 +648,10 @@ class RHPartnerTest(BaseTest):
         bz.update_bugs(bug.id, update)
 
         bug.refresh()
-        self.assertEquals(bug.whiteboard, "")
-        self.assertEquals(bug.qa_whiteboard, "")
-        self.assertEquals(bug.devel_whiteboard, "")
-        self.assertEquals(bug.internal_whiteboard, "")
+        self.assertEqual(bug.whiteboard, "")
+        self.assertEqual(bug.qa_whiteboard, "")
+        self.assertEqual(bug.devel_whiteboard, "")
+        self.assertEqual(bug.internal_whiteboard, "")
 
 
     def test10Login(self):
@@ -857,7 +857,7 @@ class RHPartnerTest(BaseTest):
         # Long closed RHEL5 lvm2 bug. This component has sub_components
         bug = bz.getbug("185526")
         bug.autorefresh = True
-        self.assertEquals(bug.component, "lvm2")
+        self.assertEqual(bug.component, "lvm2")
 
         bz.update_bugs(bug.id, bz.build_update(
             component="lvm2", sub_component="Command-line tools (RHEL5)"))
@@ -946,16 +946,16 @@ class RHPartnerTest(BaseTest):
         if bug.tags:
             bz.update_tags(bug.id, tags_remove=bug.tags)
             bug.refresh()
-            self.assertEquals(bug.tags, [])
+            self.assertEqual(bug.tags, [])
 
         tests.clicomm(cmd + "--tags foo --tags +bar --tags baz", bz)
         bug.refresh()
-        self.assertEquals(bug.tags, ["foo", "bar", "baz"])
+        self.assertEqual(bug.tags, ["foo", "bar", "baz"])
 
         tests.clicomm(cmd + "--tags=-bar", bz)
         bug.refresh()
-        self.assertEquals(bug.tags, ["foo", "baz"])
+        self.assertEqual(bug.tags, ["foo", "baz"])
 
         bz.update_tags(bug.id, tags_remove=bug.tags)
         bug.refresh()
-        self.assertEquals(bug.tags, [])
+        self.assertEqual(bug.tags, [])
