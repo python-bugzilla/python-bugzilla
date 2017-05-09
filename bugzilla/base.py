@@ -1578,6 +1578,28 @@ class Bugzilla(object):
         log.debug("Calling Bug.update_attachment(%s)", update)
         return self._proxy.Bug.update_attachment(update)
 
+    def get_attachments(self, ids, attachment_ids,
+                        include_fields=None, exclude_fields=None):
+        """
+        Wrapper for Bug.attachments. One of ids or attachment_ids is required
+
+        :param ids: Get attachments for this bug ID
+        :param attachment_ids: Specific attachment ID to get
+
+        https://bugzilla.readthedocs.io/en/latest/api/core/v1/attachment.html#get-attachment
+        """
+        params = {
+            "ids": self._listify(ids) or [],
+            "attachment_ids": self._listify(attachment_ids) or [],
+        }
+        if include_fields:
+            params["include_fields"] = self._listify(include_fields)
+        if exclude_fields:
+            params["exclude_fields"] = self._listify(exclude_fields)
+
+        log.debug("Calling Bug.attachments(%s)", params)
+        return self._proxy.Bug.attachments(params)
+
 
     #####################
     # createbug methods #

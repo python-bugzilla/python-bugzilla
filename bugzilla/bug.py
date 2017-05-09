@@ -357,19 +357,23 @@ class Bug(object):
     # Experimental methods #
     ########################
 
-    def get_attachment_ids(self):
-        # pylint: disable=protected-access
-        proxy = self.bugzilla._proxy
-        # pylint: enable=protected-access
-
+    def get_attachments(self, include_fields=None, exclude_fields=None):
+        """
+        Helper call to Bugzilla.get_attachments. If you want to fetch
+        specific attachment IDs, use that function instead
+        """
         if "attachments" in self.__dict__:
-            attachments = self.attachments
-        else:
-            rawret = proxy.Bug.attachments(
-                {"ids": [self.bug_id], "exclude_fields": ["data"]})
-            attachments = rawret["bugs"][str(self.bug_id)]
+            return self.attachments
 
-        return [a["id"] for a in attachments]
+        data = self.bugzilla.get_attachments([self.bug_id], None,
+                include_fields, exclude_fields)
+        return data["bugs"][str(self.bug_id)]
+
+    def get_attachment_ids(self):
+        """
+        Helper function to return only the attachment IDs for this bug
+        """
+        return [a["id"] for a in self.get_attachments(exclude_fields=["data"])]
 
     def get_history_raw(self):
         '''
