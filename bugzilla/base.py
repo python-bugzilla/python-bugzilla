@@ -652,7 +652,9 @@ class Bugzilla(object):
 
         We test if this session is authenticated by calling the User.get()
         XMLRPC method with ids set. Logged-out users cannot pass the 'ids'
-        parameter and will result in a 505 error.
+        parameter and will result in a 505 error. If we tried to login with a
+        token, but the token was incorrect or expired, the server returns a
+        32000 error.
 
         For Bugzilla 5 and later, a new method, User.valid_login is available
         to test the validity of the token. However, this will require that the
@@ -667,7 +669,7 @@ class Bugzilla(object):
             return True
         except Fault:
             e = sys.exc_info()[1]
-            if e.faultCode == 505:
+            if e.faultCode == 505 or e.faultCode == 32000:
                 return False
             raise e
 
