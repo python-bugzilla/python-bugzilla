@@ -160,6 +160,11 @@ class _RequestsTransport(Transport):
             # We expect utf-8 from the server
             response.encoding = 'UTF-8'
 
+            # escape illegal utf-8 characters
+            import re
+            response._content = re.sub(b'[\x01-\x1f]+', b'', response.content)
+            response._content = re.sub(b'&', b'&amp;', response.content)
+
             # update/set any cookies
             if self._cookiejar is not None:
                 for cookie in response.cookies:
