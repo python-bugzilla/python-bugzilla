@@ -22,6 +22,7 @@ class ModifyTest(unittest.TestCase):
     bz = rhbz
 
     def assertDictEqual(self, *args, **kwargs):
+        # pylint: disable=arguments-differ
         # EPEL5 back compat
         if hasattr(unittest.TestCase, "assertDictEqual"):
             return unittest.TestCase.assertDictEqual(self, *args, **kwargs)

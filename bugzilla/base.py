@@ -281,7 +281,7 @@ class Bugzilla(object):
             to file or directory for custom certs.
         :param api_key: A bugzilla
         """
-        if url is -1:
+        if url == -1:
             raise TypeError("Specify a valid bugzilla url, or pass url=None")
 
         # Settings the user might want to tweak

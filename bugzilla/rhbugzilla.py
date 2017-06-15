@@ -61,6 +61,7 @@ class RHBugzilla(Bugzilla):
     ######################
 
     def build_update(self, **kwargs):
+        # pylint: disable=arguments-differ
         adddict = {}
 
         def pop(key, destkey):
@@ -320,6 +321,8 @@ class RHBugzilla(Bugzilla):
 
 
     def build_query(self, **kwargs):
+        # pylint: disable=arguments-differ
+
         # We previously accepted a text format to approximate boolean
         # queries, and only for RHBugzilla. Upstream bz has --from-url
         # support now, so point people to that instead so we don't have

@@ -478,7 +478,6 @@ def _do_query(bz, opt, parser):
     elif opt.outputformat:
         include_fields = []
         for fieldname, rest in format_field_re.findall(opt.outputformat):
-            # pylint: disable=redefined-variable-type
             if fieldname == "whiteboard" and rest:
                 fieldname = rest + "_" + fieldname
             elif fieldname == "flag":
