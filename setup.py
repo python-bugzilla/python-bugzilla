@@ -138,7 +138,10 @@ class PylintCommand(Command):
         files = ["bugzilla/", "bin-bugzilla", "examples/*.py", "tests/*.py"]
         output_format = sys.stdout.isatty() and "colorized" or "text"
 
-        cmd = "pylint "
+        if os.path.exists("/usr/bin/pylint-2"):
+            cmd = "pylint-2 "
+        else:
+            cmd = "pylint "
         cmd += "--output-format=%s " % output_format
         cmd += " ".join(files)
         os.system(cmd + " --rcfile tests/pylint.cfg")
