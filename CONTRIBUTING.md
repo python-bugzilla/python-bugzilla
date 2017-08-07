@@ -65,3 +65,19 @@ at python-bugzilla@lists.fedorahosted.org using 'git send-email'.
 # Bug reports
 
 Bug reports should be submitted as github issues, or sent to the mailing list
+
+# Release and tag management
+
+This project uses [bumpversion](https://github.com/peritus/bumpversion) to manage releases.
+
+## Example release steps
+```sh
+# release the current version, eg: 2.2.0-dev -> 2.2.0
+bumpversion release
+
+# prepare the next patch (z-stream) version, eg: 2.2.0 -> 2.2.1-dev
+bumpversion --no-tag patch
+
+# else, prepare the next minor (y-stream) version, eg: 2.2.0 -> 2.3.0-dev
+bumpversion --no-tag minor
+```
