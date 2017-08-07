@@ -37,6 +37,17 @@ jobs:
           branches:
             - master
       script: sonar-scanner
+    - stage: deploy
+      python: 3.6
+      script: ignore
+      deploy:
+        provider: pypi
+        user: python-bugzilla-admin
+        password:
+          secure: "hQKQ/EAD/zPndc+wL/wLiJXsP9lqXfSlousP5YuemaUenQNVrR5wXRDGr+Jm+S2rdaqVMq+1/lVcW3Mnd5MgqzFc8pL7Mg+6OpNZ8PAP3XLFZulc/Fyt0q98KVBQCQgHLXaQfMpitaC6/XYrOE22DfTyL2UbidWWcPMz+fLsM3jKcItv8jVLB8LlFVnDNpUt/HlTkatc9maNG+zR/aaWVsVPD5QEl+Ss01gnCj1yAoKSKxKF2A1PYh23Oue/yYb+n2dnaWqRGB3gUatFM+7cadEf7qfaRVwyghtso+CP4t9inldNugPuqBv3Ji7wZWA2+vLV18cWonPd7H7LJofRQmhDHDU+deGRtR0WYyZ2qjGi1b7ufP0ofU0NeqHlT3gTivzXXWviAjiYyYwN8Fa9AVsgietaLrxLo/HFYdr7fA6QS106Era1IlwQDgc32fOR+gpW03LuSFVEFEsfm2Vj8hvgxQZSLeL/Xb3YZDvAGd1ieLAvwotZgUd+QLlw1KMiZ141Kp63hz03Us6rftAhcOEYb/w2DnM/WsEwNNjuJSJZdKRyeV/rCMUH8MPx3bdooXPYNZcPOMEnbKYep4lvmDfhG8dO6A5N8IHXc4Yhu2TpRTafLd9DyvIZOBJuJdDN8Y0Z5NwBrjXlqLTCmrWpuCpFwJyat7zd+pWYFzb7gp0="
+        distributions: "sdist bdist_wheel"
+        on:
+          tags: true
 
 notifications:
     email: true
