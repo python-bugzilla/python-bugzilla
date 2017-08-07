@@ -11,6 +11,15 @@ from distutils.core import Command
 from setuptools import setup
 
 
+def unsupported_python_version():
+    return sys.version_info < (2, 7) \
+        or (sys.version_info > (3,) and sys.version_info < (3, 3))
+
+
+if unsupported_python_version():
+    raise ImportError("python-bugzilla does not support this python version")
+
+
 def get_version():
     f = open("bugzilla/apiversion.py")
     for line in f:
@@ -200,6 +209,20 @@ setup(name='python-bugzilla',
       author_email='python-bugzilla@lists.fedorahosted.org',
       license="GPLv2",
       url='https://github.com/python-bugzilla/python-bugzilla',
+      classifiers=[
+          'Topic :: Software Development :: Libraries :: Python Modules',
+          'Intended Audience :: Developers',
+          'License :: OSI Approved :: Apache Software License',
+          'Operating System :: OS Independent',
+          'Programming Language :: Python',
+          'Programming Language :: Python :: 2',
+          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3',
+          'Programming Language :: Python :: 3.3',
+          'Programming Language :: Python :: 3.4',
+          'Programming Language :: Python :: 3.5',
+          'Programming Language :: Python :: 3.6',
+      ],
       packages = ['bugzilla'],
       scripts=['bin/bugzilla'],
       data_files=[('share/man/man1', ['bugzilla.1'])],
