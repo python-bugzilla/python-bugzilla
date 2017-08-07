@@ -9,6 +9,7 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
+from __future__ import unicode_literals
 import locale
 from logging import getLogger
 import sys
@@ -59,7 +60,7 @@ class Bug(object):
 
     def __unicode__(self):
         '''Return a simple unicode string representation of this bug'''
-        return u"#%-6s %-10s - %s - %s" % (self.bug_id, self.bug_status,
+        return "#%-6s %-10s - %s - %s" % (self.bug_id, self.bug_status,
                                           self.assigned_to, self.summary)
 
     def __repr__(self):
