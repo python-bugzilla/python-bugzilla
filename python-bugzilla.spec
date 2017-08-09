@@ -28,6 +28,14 @@ BuildRequires: python3-requests
 BuildRequires: python3-setuptools
 %endif # if with_python3
 
+%global _description\
+python-bugzilla is a python library for interacting with bugzilla instances\
+over XML-RPC.\
+
+%description %_description
+
+%package -n python2-bugzilla
+Summary: %summary
 Requires: python-requests
 Requires: python-magic
 %if 0%{?el6}
@@ -36,22 +44,18 @@ Requires: python-argparse
 # This dep is for back compat, so that installing python-bugzilla continues
 # to give the cli tool
 Requires: python-bugzilla-cli
+%{?python_provide:%python_provide python2-bugzilla}
 
-
-%description
-python-bugzilla is a python 2 library for interacting with bugzilla instances
-over XML-RPC.
-
+%description -n python2-bugzilla %_description
 
 %if 0%{?with_python3}
 %package -n python3-bugzilla
-Summary: python 3 library for interacting with Bugzilla
+Summary: %summary
 Requires: python3-requests
 Requires: python3-magic
+%{?python_provide:%python_provide python3-bugzilla}
 
-%description -n python3-bugzilla
-python3-bugzilla is a python 3 library for interacting with bugzilla instances
-over XML-RPC.
+%description -n python3-bugzilla %_description
 %endif # if with_python3
 
 
@@ -118,7 +122,7 @@ done
 
 
 
-%files
+%files -n python2-bugzilla
 %doc COPYING README.md NEWS.md
 %{python2_sitelib}/*
 
