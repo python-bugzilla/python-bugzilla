@@ -111,6 +111,8 @@ RHBZ internal whiteboard field
 RHBZ QA whiteboard field
 .IP "--fixed_in FIXED_IN, -F FIXED_IN
 RHBZ 'Fixed in version' field
+.IP "--flag=FLAG"
+Set or unset a flag. For example, to set a flag named devel_ack, do --flag devel_ack+  Unset a flag with the 'X' value, like --flag needinfoX
 .IP "--field=FIELD=VALUE"
 Manually specify a bugzilla XMLRPC field. FIELD is the raw name used by the bugzilla instance. For example if your bugzilla instance has a custom field cf_my_field, do: --field cf_my_field=VALUE
 

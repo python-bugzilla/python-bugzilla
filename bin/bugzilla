@@ -230,7 +230,8 @@ def _parser_add_bz_fields(rootp, command):
         p.add_argument('-f', '--flag', action='append',
             help="Bug flags state. Ex:\n"
                  "  --flag needinfo?\n"
-                 "  --flag dev_ack+")
+                 "  --flag dev_ack+ \n"
+                 "  clear with --flag needinfoX")
         p.add_argument("--tags", action="append", help="Tags field.")
 
         p.add_argument('-w', "--whiteboard", '--status_whiteboard',
