@@ -1481,7 +1481,7 @@ class Bugzilla(object):
         attachment was added, we return the single int ID for back compat
         '''
         if isinstance(attachfile, str):
-            f = open(attachfile)
+            f = open(attachfile, "rb")
         elif hasattr(attachfile, 'read'):
             f = attachfile
         else:

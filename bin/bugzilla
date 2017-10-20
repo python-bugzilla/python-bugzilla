@@ -929,7 +929,7 @@ def _do_set_attach(bz, opt, parser, args):
     if sys.stdin.isatty():
         if not opt.file:
             parser.error("--file must be specified")
-        fileobj = open(opt.file)
+        fileobj = open(opt.file, "rb")
     else:
         # piped input on stdin
         if not opt.desc:
