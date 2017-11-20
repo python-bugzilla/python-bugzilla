@@ -43,7 +43,8 @@ class RHBugzilla(Bugzilla):
 
         self._add_field_alias('component', 'components', is_bug=False)
         self._add_field_alias('version', 'versions', is_bug=False)
-        self._add_field_alias('sub_component', 'sub_components', is_bug=False)
+        # Yes, sub_components is the field name the API expects
+        self._add_field_alias('sub_components', 'sub_component', is_bug=False)
 
         # flags format isn't exactly the same but it's the closest approx
         self._add_field_alias('flags', 'flag_types')
