@@ -392,7 +392,8 @@ def _setup_action_login_parser(subparsers):
 
 def setup_parser():
     rootparser = _setup_root_parser()
-    subparsers = rootparser.add_subparsers(dest="command_name")
+    subparsers = rootparser.add_subparsers(dest="command")
+    subparsers.required = True
     _setup_action_new_parser(subparsers)
     _setup_action_query_parser(subparsers)
     _setup_action_info_parser(subparsers)
@@ -1028,7 +1029,7 @@ def _handle_login(opt, parser, args, action, bz):
 def main(unittest_bz_instance=None):
     parser = setup_parser()
     opt, args = parser.parse_known_args()
-    action = opt.command_name
+    action = opt.command
 
     if opt.debug:
         log.setLevel(DEBUG)
