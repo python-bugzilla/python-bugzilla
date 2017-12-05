@@ -686,7 +686,7 @@ def _format_output(bz, opt, buglist):
             val = ""
             for c in getattr(b, "comments", []):
                 val += ("\n* %s - %s:\n%s\n" %
-                        (c['time'], bz.get("creator", bz.get("author", "")), c['text']))
+                        (c['time'], c.get("creator", c.get("author", "")), c['text']))
 
         elif fieldname == "__unicode__":
             val = b.__unicode__()
