@@ -83,7 +83,7 @@ class _BugzillaServerProxy(ServerProxy, object):
     def clear_token(self):
         self.token_cache.value = None
 
-    def __request(self, methodname, params):
+    def _ServerProxy__request(self, methodname, params):
         if len(params) == 0:
             params = ({}, )
 
@@ -94,7 +94,7 @@ class _BugzillaServerProxy(ServerProxy, object):
             if 'Bugzilla_token' not in params[0]:
                 params[0]['Bugzilla_token'] = self.token_cache.value
 
-        ret = super(_BugzillaServerProxy, self).__request(methodname, params)
+        ret = super(_BugzillaServerProxy, self)._ServerProxy__request(methodname, params)
 
         if isinstance(ret, dict) and 'token' in ret.keys():
             self.token_cache.value = ret.get('token')
