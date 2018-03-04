@@ -120,7 +120,10 @@ class TestCommand(Command):
             print()
 
 
-        t = unittest.TextTestRunner(verbosity=1)
+        verbosity = 1
+        if self.ro_functional or self.rw_functional:
+            verbosity = 2
+        t = unittest.TextTestRunner(verbosity=verbosity)
 
         result = t.run(tests)
 
