@@ -959,3 +959,17 @@ class RHPartnerTest(BaseTest):
         bz.update_tags(bug.id, tags_remove=bug.tags)
         bug.refresh()
         self.assertEqual(bug.tags, [])
+
+    def test17LoginAPIKey(self):
+        api_key = "somefakeapikey1234"
+        bz = self.bzclass(url=self.url, use_creds=False, api_key=api_key)
+        if bz.bz_ver_major < 5:
+            self.skipTest("can only test apikey on bugzilla 5+")
+
+        try:
+            self.assertTrue(bz.logged_in, False)
+
+            # Use this to trigger a warning about api_key
+            bz.createbug(bz.build_createbug())
+        except Exception as e:
+            self.assertTrue("The API key you specified is invalid" in str(e))
