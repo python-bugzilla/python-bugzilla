@@ -1,3 +1,7 @@
-#!/bin/sh
+#!/usr/bin/env python3
 
-PYTHONPATH=. exec bin/bugzilla "$@"
+# This is a small wrapper script to simplify running the 'bugzilla'
+# cli tool from a git checkout
+
+from bugzilla import _cli
+_cli.main()

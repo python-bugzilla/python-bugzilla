@@ -3,7 +3,6 @@ from __future__ import print_function
 
 import atexit
 import difflib
-import imp
 import os
 import shlex
 import sys
@@ -15,25 +14,8 @@ else:
     from StringIO import StringIO
 # pylint: enable=import-error
 
-from bugzilla import Bugzilla, RHBugzilla
+from bugzilla import Bugzilla, RHBugzilla, _cli
 
-
-_cleanup = []
-
-
-def _import(name, path):
-    _cleanup.append(path + "c")
-    return imp.load_source(name, path)
-
-
-def _cleanup_cb():
-    for f in _cleanup:
-        if os.path.exists(f):
-            os.unlink(f)
-
-
-atexit.register(_cleanup_cb)
-bugzillascript = _import("bugzillascript", "bin/bugzilla")
 
 # This is overwritten by python setup.py test --redhat-url, and then
 # used in ro/rw tests
@@ -102,7 +84,7 @@ def clicomm(argv, bzinstance, returnmain=False, printcliout=False,
             print(" ".join(argv))
             print()
 
-            mainout = bugzillascript.main(unittest_bz_instance=bzinstance)
+            mainout = _cli.main(unittest_bz_instance=bzinstance)
         except SystemExit as sys_e:
             ret = sys_e.code
 

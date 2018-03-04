@@ -45,11 +45,6 @@ _is_unittest_debug = bool(os.getenv("__BUGZILLA_UNITTEST_DEBUG"))
 format_field_re = re.compile("%{([a-z0-9_]+)(?::([^}]*))?}")
 
 log = getLogger(bugzilla.__name__)
-handler = StreamHandler(sys.stderr)
-handler.setFormatter(Formatter(
-    "[%(asctime)s] %(levelname)s (%(module)s:%(lineno)d) %(message)s",
-    "%H:%M:%S"))
-log.addHandler(handler)
 
 
 ################
@@ -105,6 +100,24 @@ def get_default_url():
             log.debug("bugzillarc: found cli url=%s", cfgurl)
             return cfgurl
     return DEFAULT_BZ
+
+
+def setup_logging(debug, verbose):
+    handler = StreamHandler(sys.stderr)
+    handler.setFormatter(Formatter(
+        "[%(asctime)s] %(levelname)s (%(module)s:%(lineno)d) %(message)s",
+        "%H:%M:%S"))
+    log.addHandler(handler)
+
+    if debug:
+        log.setLevel(DEBUG)
+    elif verbose:
+        log.setLevel(INFO)
+    else:
+        log.setLevel(WARN)
+
+    if _is_unittest_debug:
+        log.setLevel(DEBUG)
 
 
 ##################
@@ -1027,20 +1040,11 @@ def _handle_login(opt, parser, args, action, bz):
         sys.exit(0)
 
 
-def main(unittest_bz_instance=None):
+def _main(unittest_bz_instance):
     parser = setup_parser()
     opt, args = parser.parse_known_args()
     action = opt.command
-
-    if opt.debug:
-        log.setLevel(DEBUG)
-    elif opt.verbose:
-        log.setLevel(INFO)
-    else:
-        log.setLevel(WARN)
-
-    if _is_unittest_debug:
-        log.setLevel(DEBUG)
+    setup_logging(opt.debug, opt.verbose)
 
     log.debug("Launched with command line: %s", " ".join(sys.argv))
 
@@ -1114,9 +1118,9 @@ def main(unittest_bz_instance=None):
         _format_output(bz, opt, buglist)
 
 
-if __name__ == '__main__':
+def main(unittest_bz_instance=None):
     try:
-        main()
+        return _main(unittest_bz_instance)
     except KeyboardInterrupt:
         log.debug("", exc_info=True)
         print("\nExited at user request.")

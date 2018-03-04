@@ -146,11 +146,11 @@ class PylintCommand(Command):
     def finalize_options(self):
         pass
 
-    def _run(self):
+    def run(self):
         import pylint.lint
         import pycodestyle
 
-        files = (["bugzilla/", "bin-bugzilla"] +
+        files = (["bugzilla-cli", "bugzilla"] +
             glob.glob("examples/*.py") +
             glob.glob("tests/*.py"))
         output_format = sys.stdout.isatty() and "colorized" or "text"
@@ -173,16 +173,6 @@ class PylintCommand(Command):
             "--output-format=%s" % output_format,
         ]
         pylint.lint.Run(files + pylint_opts)
-
-    def run(self):
-        os.link("bin/bugzilla", "bin-bugzilla")
-        try:
-            self._run()
-        finally:
-            try:
-                os.unlink("bin-bugzilla")
-            except:
-                pass
 
 
 class RPMCommand(Command):
@@ -238,7 +228,7 @@ setup(name='python-bugzilla',
           'Programming Language :: Python :: 3.6',
       ],
       packages = ['bugzilla'],
-      scripts=['bin/bugzilla'],
+      entry_points={'console_scripts': ['bugzilla = bugzilla._cli:main']},
       data_files=[('share/man/man1', ['bugzilla.1'])],
 
       install_requires=_parse_requirements("requirements.txt"),
