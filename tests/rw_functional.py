@@ -800,6 +800,7 @@ class RHPartnerTest(BaseTest):
             "initialcclist": ["wwoods@redhat.com", "toshio@fedoraproject.org"],
             "is_active": True,
         })
+        newid = None
         try:
             newid = bz.addcomponent(data)['id']
             print("Created product=%s component=%s" % (
@@ -808,7 +809,10 @@ class RHPartnerTest(BaseTest):
         except Exception as e:
             if have_admin:
                 raise
-            self.assertTrue("Sorry, you aren't a member" in str(e))
+            self.assertTrue(
+                    ("Sorry, you aren't a member" in str(e)) or
+                    # bugzilla 5 error string
+                    ("You are not allowed" in str(e)))
 
 
         # Edit component
@@ -823,11 +827,15 @@ class RHPartnerTest(BaseTest):
         })
         try:
             bz.editcomponent(data)
-            compare(data, newid)
+            if newid is not None:
+                compare(data, newid)
         except Exception as e:
             if have_admin:
                 raise
-            self.assertTrue("Sorry, you aren't a member" in str(e))
+            self.assertTrue(
+                    ("Sorry, you aren't a member" in str(e)) or
+                    # bugzilla 5 error string
+                    ("You are not allowed" in str(e)))
 
     def test12SetCookie(self):
         bz = self.bzclass(self.url,
