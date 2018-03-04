@@ -1531,34 +1531,13 @@ class Bugzilla(object):
     def openattachment(self, attachid):
         '''Get the contents of the attachment with the given attachment ID.
         Returns a file-like object.'''
-
-        def get_filename(headers):
-            import re
-
-            match = re.search(
-                r'^.*filename="?(.*)"$',
-                headers.get('content-disposition', '')
-            )
-
-            # default to attchid if no match was found
-            return match.group(1) if match else attachid
-
-        att_uri = self._attachment_uri(attachid)
-
-        defaults = self._transport.request_defaults.copy()
-        defaults["headers"] = defaults["headers"].copy()
-        del(defaults["headers"]["Content-Type"])
-
-        response = self._transport.session.get(
-            att_uri, stream=True, **defaults)
+        attachments = self.get_attachments(None, attachid)
+        data = attachments["attachments"][str(attachid)]
+        xmlrpcbinary = data["data"]
 
         ret = BytesIO()
-        for chunk in response.iter_content(chunk_size=1024):
-            if chunk:
-                ret.write(chunk)
-        ret.name = get_filename(response.headers)
-
-        # Hooray, now we have a file-like object with .read() and .name
+        ret.write(xmlrpcbinary.data)
+        ret.name = data["file_name"]
         ret.seek(0)
         return ret
 
