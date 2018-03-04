@@ -144,21 +144,32 @@ class PylintCommand(Command):
         pass
 
     def _run(self):
-        files = ["bugzilla/", "bin-bugzilla", "examples/*.py", "tests/*.py"]
+        import pylint.lint
+        import pycodestyle
+
+        files = (["bugzilla/", "bin-bugzilla"] +
+            glob.glob("examples/*.py") +
+            glob.glob("tests/*.py"))
         output_format = sys.stdout.isatty() and "colorized" or "text"
 
-        if os.path.exists("/usr/bin/pylint-2"):
-            cmd = "pylint-2 "
-        else:
-            cmd = "pylint "
-        cmd += "--output-format=%s " % output_format
-        cmd += " ".join(files)
-        os.system(cmd + " --rcfile tests/pylint.cfg")
+        print("running pycodestyle")
+        style_guide = pycodestyle.StyleGuide(
+            config_file='tests/pycodestyle.cfg',
+            paths=files,
+        )
+        style_guide.options.exclude = pycodestyle.normalize_paths(
+            "bugzilla/oldclasses.py",
+        )
+        report = style_guide.check_files()
+        if style_guide.options.count:
+            sys.stderr.write(str(report.total_errors) + '\n')
 
-        print("running pep8")
-        cmd = "pep8 "
-        cmd += " ".join(files)
-        os.system(cmd + " --config tests/pep8.cfg --exclude oldclasses.py")
+        print("running pylint")
+        pylint_opts = [
+            "--rcfile", "tests/pylint.cfg",
+            "--output-format=%s" % output_format,
+        ]
+        pylint.lint.Run(files + pylint_opts)
 
     def run(self):
         os.link("bin/bugzilla", "bin-bugzilla")

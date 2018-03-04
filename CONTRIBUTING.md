@@ -39,19 +39,19 @@ To test all supported python versions, run tox using any of the following.
     tox -- --rw-functional
 
 
-# pylint and pep8
+# pylint and pycodestyle
 
-To test for pylint or pep8 violations, you can run:
+To test for pylint or pycodestyle violations, you can run:
 
     python setup.py pylint
 
-Note: This expects that you already have pylint and pep8 installed.
+Note: This expects that you already have pylint and pycodestyle installed.
 
 
 # Patch Submission
 
 If you are submitting a patch, ensure the following:
-    [REQ] verify that no new pylint or pep8 violations
+    [REQ] verify that no new pylint or pycodestyle violations
     [REQ] run basic unit test suite across all python versions as described
         above.
 
