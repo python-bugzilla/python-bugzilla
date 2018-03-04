@@ -39,10 +39,9 @@ class BaseTest(unittest.TestCase):
         bz = Bugzilla(self.url, use_creds=False)
         self.assertEqual(bz.__class__, self.bzclass)
         if tests.REDHAT_URL:
-            print("BZ version=%s.%s" % (bz.bz_ver_major, bz.bz_ver_minor))
-        else:
-            self.assertEqual(bz.bz_ver_major, self.bzversion[0])
-            self.assertEqual(bz.bz_ver_minor, self.bzversion[1])
+            return
+        self.assertEqual(bz.bz_ver_major, self.bzversion[0])
+        self.assertEqual(bz.bz_ver_minor, self.bzversion[1])
 
     # Since we are running these tests against bugzilla instances in
     # the wild, we can't depend on certain data like product lists
