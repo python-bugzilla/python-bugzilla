@@ -720,8 +720,7 @@ class RHPartnerTest(BaseTest):
             bz.updateperms(email, "remove", [group])
             user.refresh()
             self.assertTrue(group not in user.groupnames)
-        except:
-            e = sys.exc_info()[1]
+        except Exception as e:
             if have_admin:
                 raise
             self.assertTrue("Sorry, you aren't a member" in str(e))
@@ -731,8 +730,7 @@ class RHPartnerTest(BaseTest):
             bz.updateperms(email, "add", group)
             user.refresh()
             self.assertTrue(group in user.groupnames)
-        except:
-            e = sys.exc_info()[1]
+        except Exception as e:
             if have_admin:
                 raise
             self.assertTrue("Sorry, you aren't a member" in str(e))
@@ -745,8 +743,7 @@ class RHPartnerTest(BaseTest):
             bz.updateperms(email, "set", newgroups)
             user.refresh()
             self.assertTrue(group not in user.groupnames)
-        except:
-            e = sys.exc_info()[1]
+        except Exception as e:
             if have_admin:
                 raise
             self.assertTrue("Sorry, you aren't a member" in str(e))
@@ -754,8 +751,7 @@ class RHPartnerTest(BaseTest):
         # Reset everything
         try:
             bz.updateperms(email, "set", origgroups)
-        except:
-            e = sys.exc_info()[1]
+        except Exception as e:
             if have_admin:
                 raise
             self.assertTrue("Sorry, you aren't a member" in str(e))
@@ -809,8 +805,7 @@ class RHPartnerTest(BaseTest):
             print("Created product=%s component=%s" % (
                 basedata["product"], basedata["component"]))
             compare(data, newid)
-        except:
-            e = sys.exc_info()[1]
+        except Exception as e:
             if have_admin:
                 raise
             self.assertTrue("Sorry, you aren't a member" in str(e))
@@ -829,8 +824,7 @@ class RHPartnerTest(BaseTest):
         try:
             bz.editcomponent(data)
             compare(data, newid)
-        except:
-            e = sys.exc_info()[1]
+        except Exception as e:
             if have_admin:
                 raise
             self.assertTrue("Sorry, you aren't a member" in str(e))
@@ -843,8 +837,7 @@ class RHPartnerTest(BaseTest):
             bz.cookiefile = None
             raise AssertionError("Setting cookiefile for active connection "
                                  "should fail.")
-        except RuntimeError:
-            e = sys.exc_info()[1]
+        except RuntimeError as e:
             self.assertTrue("disconnect()" in str(e))
 
         bz.disconnect()

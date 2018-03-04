@@ -54,8 +54,7 @@ def _detect_filetype(fname):
             import magic
             mimemagic = magic.open(getattr(magic, "MAGIC_MIME_TYPE", 16))
             mimemagic.load()
-        except ImportError:
-            e = sys.exc_info()[1]
+        except ImportError as e:
             log.debug("Could not load python-magic: %s", e)
             mimemagic = None
     if not mimemagic:
@@ -66,8 +65,7 @@ def _detect_filetype(fname):
 
     try:
         return mimemagic.file(fname)
-    except Exception:
-        e = sys.exc_info()[1]
+    except Exception as e:
         log.debug("Could not detect content_type: %s", e)
     return None
 
@@ -611,8 +609,7 @@ class Bugzilla(object):
             self.password = ''
             log.info("login successful for user=%s", self.user)
             return ret
-        except Fault:
-            e = sys.exc_info()[1]
+        except Fault as e:
             raise BugzillaError("Login failed: %s" % str(e.faultString))
 
     def interactive_login(self, user=None, password=None, force=False):
@@ -667,8 +664,7 @@ class Bugzilla(object):
         try:
             self._proxy.User.get({'ids': []})
             return True
-        except Fault:
-            e = sys.exc_info()[1]
+        except Fault as e:
             if e.faultCode == 505 or e.faultCode == 32000:
                 return False
             raise e
@@ -1215,8 +1211,7 @@ class Bugzilla(object):
         log.debug("Calling Bug.search with: %s", query)
         try:
             r = self._proxy.Bug.search(query)
-        except Fault:
-            e = sys.exc_info()[1]
+        except Fault as e:
 
             # Try to give a hint in the error message if url_to_query
             # isn't supported by this bugzilla instance

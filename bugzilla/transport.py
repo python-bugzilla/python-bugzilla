@@ -167,14 +167,13 @@ class _RequestsTransport(Transport):
 
             response.raise_for_status()
             return self.parse_response(response)
-        except requests.RequestException:
-            e = sys.exc_info()[1]
+        except requests.RequestException as e:
             if not response:
                 raise
             raise ProtocolError(
                 url, response.status_code, str(e), response.headers)
         except Fault:
-            raise sys.exc_info()[1]
+            raise
         except Exception:
             # pylint: disable=W0201
             e = BugzillaError(str(sys.exc_info()[1]))

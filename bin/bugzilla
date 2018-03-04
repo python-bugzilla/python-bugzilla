@@ -79,8 +79,7 @@ def open_without_clobber(name, *args):
     while fd is None:
         try:
             fd = os.open(name, os.O_CREAT | os.O_EXCL, 0o666)
-        except OSError:
-            err = sys.exc_info()[1]
+        except OSError as err:
             if err.errno == os.errno.EEXIST:
                 name = "%s.%i" % (orig_name, count)
                 count += 1
@@ -1008,8 +1007,8 @@ def _handle_login(opt, parser, args, action, bz):
                 print("Logging into %s" % urlparse(bz.url)[1])
             bz.interactive_login(
                 opt.username, opt.password)
-    except bugzilla.BugzillaError:
-        print(str(sys.exc_info()[1]))
+    except bugzilla.BugzillaError as e:
+        print(str(e))
         sys.exit(1)
 
     if opt.ensure_logged_in and not bz.logged_in:
@@ -1120,13 +1119,11 @@ if __name__ == '__main__':
         log.debug("", exc_info=True)
         print("\nExited at user request.")
         sys.exit(1)
-    except (Fault, bugzilla.BugzillaError):
-        e = sys.exc_info()[1]
+    except (Fault, bugzilla.BugzillaError) as e:
         log.debug("", exc_info=True)
         print("\nServer error: %s" % str(e))
         sys.exit(3)
-    except ProtocolError:
-        e = sys.exc_info()[1]
+    except ProtocolError as e:
         log.debug("", exc_info=True)
         print("\nInvalid server response: %d %s" % (e.errcode, e.errmsg))
         # Detect redirect
@@ -1135,8 +1132,7 @@ if __name__ == '__main__':
             print("\nServer was attempting a redirect. Try: "
                   "  bugzilla --bugzilla %s ..." % redir)
         sys.exit(4)
-    except requests.exceptions.SSLError:
-        e = sys.exc_info()[1]
+    except requests.exceptions.SSLError as e:
         log.debug("", exc_info=True)
 
         # Give SSL recommendations
@@ -1147,8 +1143,7 @@ if __name__ == '__main__':
         sys.exit(4)
     except (socket.error,
             requests.exceptions.HTTPError,
-            requests.exceptions.ConnectionError):
-        e = sys.exc_info()[1]
+            requests.exceptions.ConnectionError) as e:
         log.debug("", exc_info=True)
         print("\nConnection lost/failed: %s" % str(e))
         sys.exit(2)
