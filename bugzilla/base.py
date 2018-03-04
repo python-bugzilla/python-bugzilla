@@ -784,7 +784,7 @@ class Bugzilla(object):
             names = {"product": data.pop("product"),
                      "component": data.pop("component")}
             updates = {}
-            for k in data.keys():
+            for k in list(data.keys()):
                 updates[k] = data.pop(k)
 
             data["names"] = [names]
