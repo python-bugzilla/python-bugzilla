@@ -17,11 +17,12 @@ import random
 import sys
 import unittest
 
+# pylint: disable=import-error
 if sys.version_info[0] >= 3:
-    # pylint: disable=F0401,E0611
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse  # pylint: disable=no-name-in-module
 else:
     from urlparse import urlparse
+# pylint: enable=import-error
 
 import bugzilla
 from bugzilla import Bugzilla
@@ -122,8 +123,7 @@ class RHPartnerTest(BaseTest):
         self.assertEqual(bug.summary, summary)
 
         # Close the bug
-        tests.clicomm("bugzilla modify --close NOTABUG %s" % bugid,
-                      bz)
+        tests.clicomm("bugzilla modify --close NOTABUG %s" % bugid, bz)
         bug.refresh()
         self.assertEqual(bug.status, "CLOSED")
         self.assertEqual(bug.resolution, "NOTABUG")
@@ -810,9 +810,9 @@ class RHPartnerTest(BaseTest):
             if have_admin:
                 raise
             self.assertTrue(
-                    ("Sorry, you aren't a member" in str(e)) or
-                    # bugzilla 5 error string
-                    ("You are not allowed" in str(e)))
+                ("Sorry, you aren't a member" in str(e)) or
+                # bugzilla 5 error string
+                ("You are not allowed" in str(e)))
 
 
         # Edit component
@@ -833,9 +833,9 @@ class RHPartnerTest(BaseTest):
             if have_admin:
                 raise
             self.assertTrue(
-                    ("Sorry, you aren't a member" in str(e)) or
-                    # bugzilla 5 error string
-                    ("You are not allowed" in str(e)))
+                ("Sorry, you aren't a member" in str(e)) or
+                # bugzilla 5 error string
+                ("You are not allowed" in str(e)))
 
     def test12SetCookie(self):
         bz = self.bzclass(self.url,

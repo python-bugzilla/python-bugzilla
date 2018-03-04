@@ -17,9 +17,9 @@ import sys
 
 from io import BytesIO
 
-# pylint: disable=ungrouped-imports
+# pylint: disable=import-error
 if sys.version_info[0] >= 3:
-    # pylint: disable=F0401,E0611
+    # pylint: disable=no-name-in-module
     from configparser import SafeConfigParser
     from http.cookiejar import LoadError, MozillaCookieJar
     from urllib.parse import urlparse, parse_qsl
@@ -29,6 +29,7 @@ else:
     from cookielib import LoadError, MozillaCookieJar
     from urlparse import urlparse, parse_qsl
     from xmlrpclib import Binary, Fault
+# pylint: enable=import-error
 
 
 from .apiversion import __version__
@@ -42,15 +43,11 @@ mimemagic = None
 
 
 def _detect_filetype(fname):
-    # pylint: disable=E1103
-    # E1103: Instance of 'bool' has no '%s' member
-    # pylint confuses mimemagic to be of type 'bool'
     global mimemagic
 
     if mimemagic is None:
         try:
-            # pylint: disable=F0401
-            # F0401: Unable to import 'magic' (import-error)
+            # pylint: disable=import-error
             import magic
             mimemagic = magic.open(getattr(magic, "MAGIC_MIME_TYPE", 16))
             mimemagic.load()
@@ -513,7 +510,7 @@ class Bugzilla(object):
         try:
             self.bz_ver_major, self.bz_ver_minor = [
                 int(i) for i in version.split(".")[0:2]]
-        except:
+        except Exception:
             log.debug("version doesn't match expected format X.Y.Z, "
                     "assuming 5.0", exc_info=True)
             self.bz_ver_major = 5
@@ -1349,10 +1346,6 @@ class Bugzilla(object):
 
         https://bugzilla.readthedocs.io/en/latest/api/core/v1/bug.html#create-bug
         """
-        # pylint: disable=W0221
-        # Argument number differs from overridden method
-        # Base defines it with *args, **kwargs, so we don't have to maintain
-        # the master argument list in 2 places
         ret = {}
 
         # These are only supported for rhbugzilla

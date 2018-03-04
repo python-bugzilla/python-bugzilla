@@ -7,15 +7,16 @@
 from logging import getLogger
 import sys
 
+# pylint: disable=import-error
 if sys.version_info[0] >= 3:
-    # pylint: disable=import-error,no-name-in-module
     from configparser import SafeConfigParser
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse  # pylint: disable=no-name-in-module
     from xmlrpc.client import Fault, ProtocolError, ServerProxy, Transport
 else:
     from ConfigParser import SafeConfigParser
-    from urlparse import urlparse  # pylint: disable=ungrouped-imports
+    from urlparse import urlparse
     from xmlrpclib import Fault, ProtocolError, ServerProxy, Transport
+# pylint: enable=import-error
 
 import requests
 
@@ -94,7 +95,10 @@ class _BugzillaServerProxy(ServerProxy, object):
             if 'Bugzilla_token' not in params[0]:
                 params[0]['Bugzilla_token'] = self.token_cache.value
 
-        ret = super(_BugzillaServerProxy, self)._ServerProxy__request(methodname, params)
+        # pylint: disable=no-member
+        ret = super(_BugzillaServerProxy,
+                self)._ServerProxy__request(methodname, params)
+        # pylint: enable=no-member
 
         if isinstance(ret, dict) and 'token' in ret.keys():
             self.token_cache.value = ret.get('token')
@@ -106,8 +110,6 @@ class _RequestsTransport(Transport):
 
     def __init__(self, url, cookiejar=None,
                  sslverify=True, sslcafile=None, debug=0):
-        # pylint: disable=W0231
-        # pylint does not handle multiple import of Transport well
         if hasattr(Transport, "__init__"):
             Transport.__init__(self, use_datetime=False)
 
@@ -175,9 +177,10 @@ class _RequestsTransport(Transport):
         except Fault:
             raise
         except Exception:
-            # pylint: disable=W0201
             e = BugzillaError(str(sys.exc_info()[1]))
+            # pylint: disable=attribute-defined-outside-init
             e.__traceback__ = sys.exc_info()[2]
+            # pylint: enable=attribute-defined-outside-init
             raise e
 
     def request(self, host, handler, request_body, verbose=0):

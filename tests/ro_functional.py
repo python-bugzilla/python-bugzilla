@@ -11,7 +11,6 @@
 Unit tests that do readonly functional tests against real bugzilla instances.
 '''
 
-import sys
 import unittest
 
 from bugzilla import Bugzilla, BugzillaError, RHBugzilla
@@ -80,13 +79,14 @@ class BaseTest(unittest.TestCase):
             return
 
         self.assertTrue(len(out.splitlines()) >= mincount)
-        self.assertTrue(bool([l for l in out.splitlines() if
-                              l.startswith("#" + expectbug)]))
+        self.assertTrue(bool([l1 for l1 in out.splitlines() if
+                              l1.startswith("#" + expectbug)]))
 
         # Check --ids output option
         out2 = self.clicomm(cli + " --ids")
         self.assertTrue(len(out.splitlines()) == len(out2.splitlines()))
-        self.assertTrue(bool([l for l in out2.splitlines() if l == expectbug]))
+        self.assertTrue(bool([l2 for l2 in out2.splitlines() if
+                              l2 == expectbug]))
 
 
     def _testQueryFull(self, bugid, mincount, expectstr):
@@ -173,8 +173,7 @@ class BZGnome(BaseTest):
         bz = Bugzilla(url=self.url, use_creds=False)
         try:
             bz.query(bz.url_to_query(query_url))
-        except BugzillaError:
-            e = sys.exc_info()[1]
+        except BugzillaError as e:
             self.assertTrue("derived from bugzilla" in str(e))
 
 
@@ -316,8 +315,7 @@ class RHTest(BaseTest):
         self.assertFalse(hasattr(bug, "component"))
         try:
             self.assertFalse(bool(bug.component))
-        except:
-            e = sys.exc_info()[1]
+        except Exception as e:
             self.assertTrue("adjust your include_fields" in str(e))
 
     def testExtraFields(self):

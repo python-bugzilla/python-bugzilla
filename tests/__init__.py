@@ -8,10 +8,12 @@ import os
 import shlex
 import sys
 
+# pylint: disable=import-error
 if sys.version_info[0] >= 3:
     from io import StringIO
 else:
     from StringIO import StringIO
+# pylint: enable=import-error
 
 from bugzilla import Bugzilla, RHBugzilla
 

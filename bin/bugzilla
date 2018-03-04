@@ -23,14 +23,16 @@ import socket
 import sys
 import tempfile
 
+# pylint: disable=import-error
 if sys.version_info[0] >= 3:
-    # pylint: disable=F0401,W0622,E0611
+    # pylint: disable=no-name-in-module,redefined-builtin
     from xmlrpc.client import Fault, ProtocolError
     from urllib.parse import urlparse
     basestring = (str, bytes)
 else:
     from xmlrpclib import Fault, ProtocolError
     from urlparse import urlparse
+# pylint: enable=import-error
 
 import requests.exceptions
 
@@ -415,7 +417,7 @@ def _merge_field_opts(query, opt, parser):
         try:
             f, v = f.split('=', 1)
             query[f] = v
-        except:
+        except Exception:
             parser.error("Invalid field argument provided: %s" % (f))
 
 
@@ -685,8 +687,8 @@ def _format_output(bz, opt, buglist):
         elif fieldname == "comments":
             val = ""
             for c in getattr(b, "comments", []):
-                val += ("\n* %s - %s:\n%s\n" %
-                        (c['time'], c.get("creator", c.get("author", "")), c['text']))
+                val += ("\n* %s - %s:\n%s\n" % (c['time'],
+                         c.get("creator", c.get("author", "")), c['text']))
 
         elif fieldname == "__unicode__":
             val = b.__unicode__()
