@@ -713,6 +713,14 @@ def _format_output(bz, opt, buglist):
                 val += ("\n* %s - %s:\n%s\n" % (c['time'],
                          c.get("creator", c.get("author", "")), c['text']))
 
+        elif fieldname == "external_bugs":
+            val = ""
+            for e in getattr(b, "external_bugs", []):
+                url = e["type"]["full_url"].replace("%id%", e["ext_bz_bug_id"])
+                if not val:
+                    val += "\n"
+                val += "External bug: %s\n" % url
+
         elif fieldname == "__unicode__":
             val = b.__unicode__()
         else:

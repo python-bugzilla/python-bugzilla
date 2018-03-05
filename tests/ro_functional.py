@@ -337,3 +337,10 @@ class RHTest(BaseTest):
         bug = bz.getbug(720773, include_fields=["summary"])
         self.assertTrue("summary" in dir(bug))
         self.assertTrue("comments" not in dir(bug))
+
+    def testExternalBugsOutput(self):
+        out = self.clicomm('query --bug_id 989253 '
+            '--outputformat="%{external_bugs}"')
+        expect = ("http://bugzilla.gnome.org/show_bug.cgi?id=703421\n" +
+            "External bug: https://bugs.launchpad.net/bugs/1203576")
+        self.assertTrue(expect in out)
