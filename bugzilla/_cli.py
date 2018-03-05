@@ -246,7 +246,8 @@ def _parser_add_bz_fields(rootp, command):
                  "  --flag needinfo?\n"
                  "  --flag dev_ack+ \n"
                  "  clear with --flag needinfoX")
-        p.add_argument("--tags", action="append", help="Tags field.")
+        p.add_argument("--tags", action="append",
+                help="Tags/Personal Tags field.")
 
         p.add_argument('-w', "--whiteboard", '--status_whiteboard',
             action="append", help='Whiteboard field')
