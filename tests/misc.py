@@ -38,6 +38,16 @@ class MiscCLI(unittest.TestCase):
         out = tests.clicomm("bugzilla --version", None)
         self.assertTrue(len(out.splitlines()) >= 2)
 
+    def testPositionalArgs(self):
+        # Make sure cli correctly rejects ambiguous positional args
+        out = tests.clicomm("bugzilla login --xbadarg foo",
+                None, expectfail=True)
+        self.assertTrue("unrecognized arguments: --xbadarg" in out)
+
+        out = tests.clicomm("bugzilla modify 123456 --foobar --status NEW",
+                None, expectfail=True)
+        self.assertTrue("unrecognized arguments: --foobar" in out)
+
 
 class MiscAPI(unittest.TestCase):
     """

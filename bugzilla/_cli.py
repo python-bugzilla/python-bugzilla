@@ -365,6 +365,7 @@ def _setup_action_modify_parser(subparsers):
     _parser_add_bz_fields(p, "modify")
 
     g = p.add_argument_group("'modify' specific options")
+    g.add_argument("ids", nargs="+", help="Bug IDs to modify")
     g.add_argument('-k', '--close', metavar="RESOLUTION",
         help='Close with the given resolution (WONTFIX, NOTABUG, etc.)')
     g.add_argument('-d', '--dupeid', metavar="ORIGINAL",
@@ -385,6 +386,7 @@ bugzilla attach --type=TYPE BUGID [BUGID...]"""
     description = "Attach files or download attachments."
     p = subparsers.add_parser("attach", description=description, usage=usage)
 
+    p.add_argument("ids", nargs="*", help="BUGID references")
     p.add_argument('-f', '--file', metavar="FILENAME",
             help='File to attach, or filename for data provided on stdin')
     p.add_argument('-d', '--description', '--summary',
@@ -401,7 +403,11 @@ bugzilla attach --type=TYPE BUGID [BUGID...]"""
 def _setup_action_login_parser(subparsers):
     usage = 'bugzilla login [username [password]]'
     description = "Log into bugzilla and save a login cookie or token."
-    subparsers.add_parser("login", description=description, usage=usage)
+    p = subparsers.add_parser("login", description=description, usage=usage)
+    p.add_argument("pos_username", nargs="?", help="Optional username",
+            metavar="username")
+    p.add_argument("pos_password", nargs="?", help="Optional password",
+            metavar="password")
 
 
 def setup_parser():
@@ -784,8 +790,8 @@ def _do_new(bz, opt, parser):
     return [b]
 
 
-def _do_modify(bz, parser, opt, args):
-    bugid_list = [bugid for a in args for bugid in a.split(',')]
+def _do_modify(bz, parser, opt):
+    bugid_list = [bugid for a in opt.ids for bugid in a.split(',')]
 
     add_wb, rm_wb, set_wb = _parse_triset(opt.whiteboard)
     add_devwb, rm_devwb, set_devwb = _parse_triset(opt.devel_whiteboard)
@@ -917,11 +923,7 @@ def _do_modify(bz, parser, opt, args):
                                bz.build_update(**{wb: " ".join(newval)}))
 
 
-def _do_get_attach(bz, opt, parser, args):
-    if args:
-        parser.error("Extra args '%s' not used for getting attachments" %
-                     args)
-
+def _do_get_attach(bz, opt):
     for bug in bz.getbugs(opt.getall):
         opt.get += bug.get_attachment_ids()
 
@@ -937,8 +939,8 @@ def _do_get_attach(bz, opt, parser, args):
     return
 
 
-def _do_set_attach(bz, opt, parser, args):
-    if not args:
+def _do_set_attach(bz, opt, parser):
+    if not opt.ids:
         parser.error("Bug ID must be specified for setting attachments")
 
     if sys.stdin.isatty():
@@ -969,7 +971,7 @@ def _do_set_attach(bz, opt, parser, args):
     desc = opt.desc or os.path.basename(fileobj.name)
 
     # Upload attachments
-    for bugid in args:
+    for bugid in opt.ids:
         attid = bz.attachfile(bugid, fileobj, desc, **kwargs)
         print("Created attachment %i on bug %s" % (attid, bugid))
 
@@ -999,7 +1001,7 @@ def _make_bz_instance(opt):
     return bz
 
 
-def _handle_login(opt, parser, args, action, bz):
+def _handle_login(opt, action, bz):
     """
     Handle all login related bits
     """
@@ -1007,21 +1009,14 @@ def _handle_login(opt, parser, args, action, bz):
 
     do_interactive_login = (is_login_command or
         opt.login or opt.username or opt.password)
-
-    if is_login_command:
-        if len(args) == 2:
-            (opt.username, opt.password) = args
-        elif len(args) == 1:
-            (opt.username, ) = args
-        elif len(args) > 2:
-            parser.error("Too many arguments for login")
+    username = getattr(opt, "pos_username", None) or opt.username
+    password = getattr(opt, "pos_password", None) or opt.password
 
     try:
         if do_interactive_login:
             if bz.url:
                 print("Logging into %s" % urlparse(bz.url)[1])
-            bz.interactive_login(
-                opt.username, opt.password)
+            bz.interactive_login(username, password)
     except bugzilla.BugzillaError as e:
         print(str(e))
         sys.exit(1)
@@ -1042,7 +1037,7 @@ def _handle_login(opt, parser, args, action, bz):
 
 def _main(unittest_bz_instance):
     parser = setup_parser()
-    opt, args = parser.parse_known_args()
+    opt = parser.parse_args()
     action = opt.command
     setup_logging(opt.debug, opt.verbose)
 
@@ -1057,7 +1052,7 @@ def _main(unittest_bz_instance):
         bz = _make_bz_instance(opt)
 
     # Handle login options
-    _handle_login(opt, parser, args, action, bz)
+    _handle_login(opt, action, bz)
 
 
     ###########################
@@ -1070,9 +1065,6 @@ def _main(unittest_bz_instance):
 
     buglist = []
     if action == 'info':
-        if args:
-            parser.error("Extra arguments '%s'" % args)
-
         if not (opt.products or
                 opt.components or
                 opt.component_owners or
@@ -1082,32 +1074,26 @@ def _main(unittest_bz_instance):
         _do_info(bz, opt)
 
     elif action == 'query':
-        if args:
-            parser.error("Extra arguments '%s'" % args)
-
         buglist = _do_query(bz, opt, parser)
         if opt.test_return_result:
             return buglist
 
     elif action == 'new':
-        if args:
-            parser.error("Extra arguments '%s'" % args)
         buglist = _do_new(bz, opt, parser)
         if opt.test_return_result:
             return buglist
 
     elif action == 'attach':
         if opt.get or opt.getall:
-            _do_get_attach(bz, opt, parser, args)
+            if opt.ids:
+                parser.error("Bug IDs '%s' not used for "
+                    "getting attachments" % opt.ids)
+            _do_get_attach(bz, opt)
         else:
-            _do_set_attach(bz, opt, parser, args)
+            _do_set_attach(bz, opt, parser)
 
     elif action == 'modify':
-        if not args:
-            parser.error('No bug IDs given '
-                         '(maybe you forgot an argument somewhere?)')
-
-        modout = _do_modify(bz, parser, opt, args)
+        modout = _do_modify(bz, parser, opt)
         if opt.test_return_result:
             return modout
     else:
