@@ -59,10 +59,12 @@ class CreatebugTest(unittest.TestCase):
         )
 
     def testMisc(self):
-        self.clicomm(
-            "--alias some-alias",
+        self.clicomm("--alias some-alias",
             {"alias": "some-alias"}
         )
+        self.clicomm("--comment 'foo bar' --comment-tag tag1 "
+                "--comment-tag tag2",
+                {'comment_tags': ['tag1', 'tag2'], 'description': 'foo bar'})
 
     def testMultiOpts(self):
         # Test all opts that can take lists

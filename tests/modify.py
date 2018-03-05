@@ -139,6 +139,8 @@ class ModifyTest(unittest.TestCase):
             "--alias some-alias",
             {"alias": "some-alias"}
         )
+        self.clicomm("--comment 'foo bar' --comment-tag tag1 ",
+                {'comment': {'comment': 'foo bar'}, 'comment_tags': ['tag1']})
 
 
     def testField(self):

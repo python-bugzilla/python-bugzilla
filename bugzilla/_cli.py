@@ -214,6 +214,9 @@ def _parser_add_bz_fields(rootp, command):
     p.add_argument('-c', '--component', help="Component name")
     p.add_argument('-t', '--summary', '--short_desc', help="Bug summary")
     p.add_argument('-l', '--comment', '--long_desc', help=comment_help)
+    if not cmd_query:
+        p.add_argument("--comment-tag", action="append",
+                help="Comment tag for the new comment")
     p.add_argument("--sub-component", action="append",
         help="RHBZ sub component field")
     p.add_argument('-o', '--os', help="Operating system")
@@ -779,6 +782,7 @@ def _do_new(bz, opt, parser):
         qa_contact=opt.qa_contact or None,
         sub_component=opt.sub_component or None,
         alias=opt.alias or None,
+        comment_tags=opt.comment_tag or None,
     )
 
     _merge_field_opts(ret, opt, parser)
@@ -864,6 +868,7 @@ def _do_modify(bz, parser, opt):
         sub_component=opt.sub_component or None,
         alias=opt.alias or None,
         flags=flags or None,
+        comment_tags=opt.comment_tag or None,
     )
 
     # We make this a little convoluted to facilitate unit testing

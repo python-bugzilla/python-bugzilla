@@ -1338,7 +1338,8 @@ class Bugzilla(object):
                      devel_whiteboard=None,
                      internal_whiteboard=None,
                      sub_component=None,
-                     flags=None):
+                     flags=None,
+                     comment_tags=None):
         """
         Returns a python dict() with properly formatted parameters to
         pass to update_bugs(). See bugzilla documentation for the format
@@ -1414,6 +1415,7 @@ class Bugzilla(object):
         s("whiteboard", whiteboard)
         s("work_time", work_time, float)
         s("flags", flags)
+        s("comment_tags", comment_tags, self._listify)
 
         add_dict("blocks", blocks_add, blocks_remove, blocks_set,
                  convert=int)
@@ -1601,7 +1603,8 @@ class Bugzilla(object):
         target_release=None,
         url=None,
         sub_component=None,
-        alias=None):
+        alias=None,
+        comment_tags=None):
         """"
         Returns a python dict() with properly formatted parameters to
         pass to createbug(). See bugzilla documentation for the format
@@ -1635,7 +1638,7 @@ class Bugzilla(object):
                 target_milestone=target_milestone,
                 target_release=target_release, url=url,
                 assigned_to=assigned_to, sub_component=sub_component,
-                alias=alias)
+                alias=alias, comment_tags=comment_tags)
 
         ret.update(localdict)
         return ret
