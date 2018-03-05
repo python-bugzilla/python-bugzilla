@@ -97,7 +97,7 @@ Bugzilla 4.4:
     Util.params_to_objects
 
 Bugzilla 5.0: (July 2015)
-    https://www.bugzilla.org/docs/5.0/en/html/integrating/api/index.html
+    https://bugzilla.readthedocs.io/en/5.0/api/index.html
     Bug.update_attachment
     Bug.search/update_comment_tags
     Bug.search:
