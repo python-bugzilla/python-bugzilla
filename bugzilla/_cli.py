@@ -581,43 +581,37 @@ def _do_info(bz, opt):
     """
     # All these commands call getproducts internally, so do it up front
     # with minimal include_fields for speed
+    productname = (opt.components or opt.component_owners or opt.versions)
     include_fields = ["name", "id"]
     if opt.versions:
         include_fields.append("versions")
-    products = bz.getproducts(include_fields=include_fields)
+    if opt.component_owners:
+        include_fields += [
+            "components.default_assigned_to",
+            "components.name",
+        ]
+
+    bz.refresh_products(names=productname and [productname] or None,
+            include_fields=include_fields)
 
     if opt.products:
-        for name in sorted([p["name"] for p in products]):
+        for name in sorted([p["name"] for p in bz.getproducts()]):
             print(name)
 
-    if opt.components:
-        for name in sorted(bz.getcomponents(opt.components)):
+    elif opt.components:
+        for name in sorted(bz.getcomponents(productname)):
             print(name)
 
-    if opt.component_owners:
-        # Looking up this info for rhbz 'Fedora' product is sloooow
-        # since there are so many components. So delay getting this
-        # info until as late as possible
-        bz.refresh_products(names=[opt.component_owners],
-                            include_fields=include_fields + [
-                                "components.default_assigned_to",
-                                "components.default_qa_contact",
-                                "components.name",
-                                "components.description"])
+    elif opt.versions:
+        proddict = bz.getproducts()[0]
+        for v in proddict['versions']:
+            print(to_encoding(v["name"]))
 
-        component_details = bz.getcomponentsdetails(opt.component_owners)
+    elif opt.component_owners:
+        component_details = bz.getcomponentsdetails(productname)
         for c in sorted(component_details):
             print(to_encoding(u"%s: %s" % (c,
                 component_details[c]['default_assigned_to'])))
-
-    if opt.versions:
-        for p in products:
-            if p['name'] != opt.versions:
-                continue
-            if "versions" in p:
-                for v in p['versions']:
-                    print(to_encoding(v["name"]))
-            break
 
 
 def _convert_to_outputformat(output):
