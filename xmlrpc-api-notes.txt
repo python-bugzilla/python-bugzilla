@@ -120,3 +120,8 @@ Redhat Bugzilla: 4.4 based with extensions. Bits on top of 4.4
     Bug.update has more hashing support
     extra_fields for fetching comments, attachments, etc at Bug.get time
     ExternalBugs extension: https://bugzilla.redhat.com/docs/en/html/api/extensions/ExternalBugs/lib/WebService.html
+
+
+Fedora infrastructure python-bugzilla consumers:
+    https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/roles/distgit/pagure/templates/pagure-sync-bugzilla.py.j2
+    https://github.com/fedora-infra/bodhi/blob/develop/bodhi/server/bugs.py
