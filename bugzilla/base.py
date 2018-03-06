@@ -879,16 +879,6 @@ class Bugzilla(object):
     ############################
 
     def _component_data_convert(self, data, update=False):
-        def product_id_to_name(productid):
-            '''Convert a product ID (int) to a product name (str).'''
-            for p in self.products:
-                if p['id'] == productid:
-                    return p['name']
-            raise ValueError('No product with id #%i' % productid)
-
-        if isinstance(data['product'], int):
-            data['product'] = product_id_to_name(data['product'])
-
         # Back compat for the old RH interface
         convert_fields = [
             ("initialowner", "default_assignee"),
