@@ -213,7 +213,7 @@ class RHTest(BaseTest):
     test01 = lambda s: BaseTest._testInfoProducts(s, 125,
                                                  "Virtualization Tools")
     test02 = lambda s: BaseTest._testInfoComps(s, "Virtualization Tools",
-                                              10, "virt-manager")
+                                              10, "virtinst")
     test03 = lambda s: BaseTest._testInfoVers(s, "Fedora", 19, "rawhide")
     test04 = lambda s: BaseTest._testInfoCompOwners(s, "Virtualization Tools",
                                          "libvirt: Libvirt Maintainers")
@@ -344,3 +344,11 @@ class RHTest(BaseTest):
         expect = ("http://bugzilla.gnome.org/show_bug.cgi?id=703421\n" +
             "External bug: https://bugs.launchpad.net/bugs/1203576")
         self.assertTrue(expect in out)
+
+    def testActiveComps(self):
+        out = self.clicomm("info --components 'Virtualization Tools' "
+                "--active-components")
+        self.assertTrue("virtinst" not in out)
+        out = self.clicomm("info --component_owners 'Virtualization Tools' "
+                "--active-components")
+        self.assertTrue("virtinst" not in out)

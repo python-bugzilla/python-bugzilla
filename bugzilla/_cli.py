@@ -346,7 +346,7 @@ def _setup_action_info_parser(subparsers):
         "bugzilla server.")
     p = subparsers.add_parser("info", description=description)
 
-    x = p.add_mutually_exclusive_group()
+    x = p.add_mutually_exclusive_group(required=True)
     x.add_argument('-p', '--products', action='store_true',
             help='Get a list of products')
     x.add_argument('-c', '--components', metavar="PRODUCT",
@@ -355,6 +355,9 @@ def _setup_action_info_parser(subparsers):
             help='List components (and their owners)')
     x.add_argument('-v', '--versions', metavar="PRODUCT",
             help='List the versions for the given product')
+    p.add_argument('--active-components', action="store_true",
+            help='Only show active components. Combine with --components*')
+
 
 
 def _setup_action_modify_parser(subparsers):
@@ -581,15 +584,26 @@ def _do_info(bz, opt):
     """
     # All these commands call getproducts internally, so do it up front
     # with minimal include_fields for speed
+    def _filter_components(compdetails):
+        ret = {}
+        for k, v in compdetails.items():
+            if v.get("is_active", True):
+                ret[k] = v
+        return ret
+
     productname = (opt.components or opt.component_owners or opt.versions)
     include_fields = ["name", "id"]
+    fastcomponents = (opt.components and not opt.active_components)
     if opt.versions:
-        include_fields.append("versions")
+        include_fields += ["versions"]
     if opt.component_owners:
         include_fields += [
             "components.default_assigned_to",
             "components.name",
         ]
+    if (opt.active_components and
+        any(["components" in i for i in include_fields])):
+        include_fields += ["components.is_active"]
 
     bz.refresh_products(names=productname and [productname] or None,
             include_fields=include_fields)
@@ -598,8 +612,13 @@ def _do_info(bz, opt):
         for name in sorted([p["name"] for p in bz.getproducts()]):
             print(name)
 
-    elif opt.components:
+    elif fastcomponents:
         for name in sorted(bz.getcomponents(productname)):
+            print(name)
+
+    elif opt.components:
+        details = bz.getcomponentsdetails(productname)
+        for name in sorted(_filter_components(details)):
             print(name)
 
     elif opt.versions:
@@ -608,10 +627,10 @@ def _do_info(bz, opt):
             print(to_encoding(v["name"]))
 
     elif opt.component_owners:
-        component_details = bz.getcomponentsdetails(productname)
-        for c in sorted(component_details):
+        details = bz.getcomponentsdetails(productname)
+        for c in sorted(_filter_components(details)):
             print(to_encoding(u"%s: %s" % (c,
-                component_details[c]['default_assigned_to'])))
+                details[c]['default_assigned_to'])))
 
 
 def _convert_to_outputformat(output):
