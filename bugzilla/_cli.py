@@ -606,8 +606,8 @@ def _do_info(bz, opt):
 
         component_details = bz.getcomponentsdetails(opt.component_owners)
         for c in sorted(component_details):
-            print(to_encoding(u"%s: %s" %
-                              (c, component_details[c]['initialowner'])))
+            print(to_encoding(u"%s: %s" % (c,
+                component_details[c]['default_assigned_to'])))
 
     if opt.versions:
         for p in products:

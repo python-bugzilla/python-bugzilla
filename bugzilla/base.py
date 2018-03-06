@@ -9,6 +9,7 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
+import collections
 import getpass
 import locale
 from logging import getLogger
@@ -65,6 +66,17 @@ def _detect_filetype(fname):
     except Exception as e:
         log.debug("Could not detect content_type: %s", e)
     return None
+
+
+def _nested_update(d, u):
+    # Helper for nested dict update()
+    # https://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
+    for k, v in list(u.items()):
+        if isinstance(v, collections.Mapping):
+            d[k] = _nested_update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
 
 
 def _default_auth_location(filename):
@@ -157,9 +169,8 @@ class _BugzillaAPICache(object):
     """
     def __init__(self):
         self.products = []
+        self.component_names = {}
         self.bugfields = []
-        self.components = {}
-        self.components_details = {}
 
 
 class Bugzilla(object):
@@ -388,20 +399,6 @@ class Bugzilla(object):
         if (major == self.bz_ver_major and minor <= self.bz_ver_minor):
             return True
         return False
-
-    def _product_id_to_name(self, productid):
-        '''Convert a product ID (int) to a product name (str).'''
-        for p in self.products:
-            if p['id'] == productid:
-                return p['name']
-        raise ValueError('No product with id #%i' % productid)
-
-    def _product_name_to_id(self, product):
-        '''Convert a product name (str) to a product ID (int).'''
-        for p in self.products:
-            if p['name'] == product:
-                return p['id']
-        raise ValueError('No product named "%s"' % product)
 
     def _add_field_alias(self, *args, **kwargs):
         self._field_aliases.append(_FieldAlias(*args, **kwargs))
@@ -667,9 +664,9 @@ class Bugzilla(object):
             raise e
 
 
-    #############################################
-    # Fetching info about the bugzilla instance #
-    #############################################
+    ######################
+    # Bugfields querying #
+    ######################
 
     def _getbugfields(self):
         '''
@@ -695,73 +692,202 @@ class Bugzilla(object):
                          fdel=lambda self: setattr(self, '_bugfields', None))
 
 
+    ####################
+    # Product querying #
+    ####################
+
+    def product_get(self, ids=None, names=None,
+                    include_fields=None, exclude_fields=None,
+                    ptype=None):
+        """
+        Raw wrapper around Product.get
+        https://bugzilla.readthedocs.io/en/latest/api/core/v1/product.html#get-product
+
+        This does not perform any caching like other product API calls.
+        If ids, names, or ptype is not specified, we default to
+        ptype=accessible for historical reasons
+
+        @ids: List of product IDs to lookup
+        @names: List of product names to lookup
+        @ptype: Either 'accessible', 'selectable', or 'enterable'. If
+            specified, we return data for all those
+        @include_fields: Only include these fields in the output
+        @exclude_fields: Do not include these fields in the output
+        """
+        if ids is None and names is None and ptype is None:
+            ptype = "accessible"
+
+        if ptype:
+            raw = None
+            if ptype == "accessible":
+                raw = self._proxy.Product.get_accessible_products()
+            elif ptype == "selectable":
+                raw = self._proxy.Product.get_selectable_products()
+            elif ptype == "enterable":
+                raw = self._proxy.Product.get_enterable_products()
+
+            if raw is None:
+                raise RuntimeError("Unknown ptype=%s" % ptype)
+            ids = raw['ids']
+            log.debug("For ptype=%s found ids=%s", ptype, ids)
+
+        kwargs = {}
+        if ids:
+            kwargs["ids"] = self._listify(ids)
+        if names:
+            kwargs["names"] = self._listify(names)
+        if include_fields:
+            kwargs["include_fields"] = include_fields
+        if exclude_fields:
+            kwargs["exclude_fields"] = exclude_fields
+
+        log.debug("Calling Product.get with: %s", kwargs)
+        ret = self._proxy.Product.get(kwargs)
+        return ret['products']
+
     def refresh_products(self, **kwargs):
         """
-        Refresh a product's cached info
-        Takes same arguments as _getproductinfo
+        Refresh a product's cached info. Basically calls product_get
+        with the passed arguments, and tries to intelligently update
+        our product cache.
+
+        For example, if we already have cached info for product=foo,
+        and you pass in names=["bar", "baz"], the new cache will have
+        info for products foo, bar, baz. Individual product fields are
+        also updated.
         """
-        for product in self._getproductinfo(**kwargs):
-            added = False
+        for product in self.product_get(**kwargs):
+            updated = False
             for current in self._cache.products[:]:
                 if (current.get("id", -1) != product.get("id", -2) and
                     current.get("name", -1) != product.get("name", -2)):
                     continue
 
-                self._cache.products.remove(current)
-                self._cache.products.append(product)
-                added = True
+                _nested_update(current, product)
+                updated = True
                 break
-            if not added:
+            if not updated:
                 self._cache.products.append(product)
 
     def getproducts(self, force_refresh=False, **kwargs):
-        '''Get product data: names, descriptions, etc.
-        The data varies between Bugzilla versions but the basic format is a
-        list of dicts, where the dicts will have at least the following keys:
-        {'id':1, 'name':"Some Product", 'description':"This is a product"}
+        """
+        Query all products and return the raw dict info. Takes all the
+        same arguments as product_get.
 
-        Any method that requires a 'product' can be given either the
-        id or the name.'''
+        On first invocation this will contact bugzilla and internally
+        cache the results. Subsequent getproducts calls or accesses to
+        self.products will return this cached data only.
+
+        :param force_refresh: force refreshing via refresh_products()
+        """
         if force_refresh or not self._cache.products:
-            self._cache.products = self._getproducts(**kwargs)
+            self.refresh_products(**kwargs)
         return self._cache.products
 
-    products = property(fget=lambda self: self.getproducts(),
-                        fdel=lambda self: setattr(self, '_products', None))
+    products = property(
+        fget=lambda self: self.getproducts(),
+        fdel=lambda self: setattr(self, '_products', None),
+        doc="Helper for accessing the products cache. If nothing "
+            "has been cached yet, this calls getproducts()")
 
+
+    #######################
+    # components querying #
+    #######################
+
+    def _lookup_product_in_cache(self, productname):
+        prodstr = isinstance(productname, str) and productname or None
+        prodint = isinstance(productname, int) and productname or None
+        for proddict in self._cache.products:
+            if prodstr == proddict.get("name", -1):
+                return proddict
+            if prodint == proddict.get("id", "nope"):
+                return proddict
+        return {}
 
     def getcomponentsdetails(self, product, force_refresh=False):
-        '''Returns a dict of dicts, containing detailed component information
-        for the given product. The keys of the dict are component names. For
-        each component, the value is a dict with the following keys:
-        description, initialowner, initialqacontact'''
-        if force_refresh or product not in self._cache.components_details:
-            clist = self._getcomponentsdetails(product)
-            cdict = {}
-            for item in clist:
-                name = item['component']
-                del item['component']
-                cdict[name] = item
-            self._cache.components_details[product] = cdict
+        """
+        Wrapper around Product.get(include_fields=["components"]),
+        returning only the "components" data for the requested product,
+        slightly reworked to a dict mapping of components.name: components,
+        for historical reasons.
 
-        return self._cache.components_details[product]
+        This uses the product cache, but will update it if the product
+        isn't found or "components" isn't cached for the product.
+
+        In cases like bugzilla.redhat.com where there are tons of
+        components for some products, this API will time out. You
+        should use product_get instead.
+        """
+        proddict = self._lookup_product_in_cache(product)
+
+        if (force_refresh or not proddict or "components" not in proddict):
+            self.refresh_products(names=[product],
+                                  include_fields=["name", "id", "components"])
+            proddict = self._lookup_product_in_cache(product)
+
+        ret = {}
+        for compdict in proddict["components"]:
+            ret[compdict["name"]] = compdict
+        return ret
 
     def getcomponentdetails(self, product, component, force_refresh=False):
-        '''Get details for a single component. See bugzilla documentation
-        for a list of returned keys.'''
+        """
+        Helper for accessing a single component's info. This is a wrapper
+        around getcomponentsdetails, see that for explanation
+        """
         d = self.getcomponentsdetails(product, force_refresh)
         return d[component]
 
     def getcomponents(self, product, force_refresh=False):
-        '''Return a dict of components:descriptions for the given product.'''
-        if force_refresh or product not in self._cache.components:
-            self._cache.components[product] = self._getcomponents(product)
-        return self._cache.components[product]
+        """
+        Return a list of component names for the passed product.
+
+        This can be implemented with Product.get, but behind the
+        scenes it uses Bug.legal_values. Reason being that on bugzilla
+        instances with tons of components, like bugzilla.redhat.com
+        Product=Fedora for example, there's a 10x speed difference
+        even with properly limited Product.get calls.
+
+        On first invocation the value is cached, and subsequent calls
+        will return the cached data.
+
+        :param force_refresh: Force refreshing the cache, and return
+            the new data
+        """
+        proddict = self._lookup_product_in_cache(product)
+        product_id = proddict.get("id", None)
+
+        if (force_refresh or
+            product_id is None or
+            product_id not in self._cache.component_names):
+            self.refresh_products(names=[product],
+                                  include_fields=["names", "id"])
+            proddict = self._lookup_product_in_cache(product)
+            product_id = proddict["id"]
+
+            opts = {'product_id': product_id, 'field': 'component'}
+            log.debug("Calling Bug.legal_values with: %s", opts)
+            names = self._proxy.Bug.legal_values(opts)["values"]
+            self._cache.component_names[product_id] = names
+
+        return self._cache.component_names[product_id]
+
+
+    ############################
+    # component adding/editing #
+    ############################
 
     def _component_data_convert(self, data, update=False):
-        if isinstance(data['product'], int):
-            data['product'] = self._product_id_to_name(data['product'])
+        def product_id_to_name(productid):
+            '''Convert a product ID (int) to a product name (str).'''
+            for p in self.products:
+                if p['id'] == productid:
+                    return p['name']
+            raise ValueError('No product with id #%i' % productid)
 
+        if isinstance(data['product'], int):
+            data['product'] = product_id_to_name(data['product'])
 
         # Back compat for the old RH interface
         convert_fields = [
@@ -817,83 +943,6 @@ class Bugzilla(object):
         self._component_data_convert(data, update=True)
         log.debug("Calling Component.update with: %s", data)
         return self._proxy.Component.update(data)
-
-
-    def _getproductinfo(self, ids=None, names=None,
-                        include_fields=None, exclude_fields=None):
-        '''
-        Get all info for the requested products.
-
-        @ids: List of product IDs to lookup
-        @names: List of product names to lookup (since bz 4.2,
-            though we emulate it for older versions)
-        @include_fields: Only include these fields in the output (since bz 4.2)
-        @exclude_fields: Do not include these fields in the output (since
-            bz 4.2)
-        '''
-        if ids is None and names is None:
-            raise RuntimeError("Products must be specified")
-
-        kwargs = {}
-        if not self._check_version(4, 2):
-            if names:
-                ids = [self._product_name_to_id(name) for name in names]
-                names = None
-            include_fields = None
-            exclude_fields = None
-
-        if ids:
-            kwargs["ids"] = self._listify(ids)
-        if names:
-            kwargs["names"] = self._listify(names)
-        if include_fields:
-            kwargs["include_fields"] = include_fields
-        if exclude_fields:
-            kwargs["exclude_fields"] = exclude_fields
-
-        log.debug("Calling Product.get with: %s", kwargs)
-        ret = self._proxy.Product.get(kwargs)
-        return ret['products']
-
-    def _getproducts(self, **kwargs):
-        product_ids = self._proxy.Product.get_accessible_products()
-        r = self._getproductinfo(product_ids['ids'], **kwargs)
-        return r
-
-    def _getcomponents(self, product):
-        if isinstance(product, str):
-            product = self._product_name_to_id(product)
-        r = self._proxy.Bug.legal_values({'product_id': product,
-                                          'field': 'component'})
-        return r['values']
-
-    def _getcomponentsdetails(self, product):
-        def _find_comps():
-            for p in self._cache.products:
-                if p["name"] != product:
-                    continue
-                return p.get("components", None)
-
-        comps = _find_comps()
-        if comps is None:
-            self.refresh_products(names=[product],
-                                  include_fields=["name", "id", "components"])
-            comps = _find_comps()
-
-        if comps is None:
-            raise ValueError("Unknown product '%s'" % product)
-
-        # Convert to old style dictionary to maintain back compat
-        # with original RH bugzilla call
-        ret = []
-        for comp in comps:
-            row = {}
-            row["component"] = comp["name"]
-            row["initialqacontact"] = comp["default_qa_contact"]
-            row["initialowner"] = comp["default_assigned_to"]
-            row["description"] = comp["description"]
-            ret.append(row)
-        return ret
 
 
     ###################
