@@ -346,13 +346,14 @@ def _setup_action_info_parser(subparsers):
         "bugzilla server.")
     p = subparsers.add_parser("info", description=description)
 
-    p.add_argument('-p', '--products', action='store_true',
+    x = p.add_mutually_exclusive_group()
+    x.add_argument('-p', '--products', action='store_true',
             help='Get a list of products')
-    p.add_argument('-c', '--components', metavar="PRODUCT",
+    x.add_argument('-c', '--components', metavar="PRODUCT",
             help='List the components in the given product')
-    p.add_argument('-o', '--component_owners', metavar="PRODUCT",
+    x.add_argument('-o', '--component_owners', metavar="PRODUCT",
             help='List components (and their owners)')
-    p.add_argument('-v', '--versions', metavar="VERSION",
+    x.add_argument('-v', '--versions', metavar="PRODUCT",
             help='List the versions for the given product')
 
 
