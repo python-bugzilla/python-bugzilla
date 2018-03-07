@@ -18,9 +18,6 @@ BuildArch:      noarch
 BuildRequires: python2-devel
 BuildRequires: python-requests
 BuildRequires: python-setuptools
-%if 0%{?el6}
-BuildRequires: python-argparse
-%endif
 
 %if 0%{?with_python3}
 BuildRequires: python3-devel
@@ -38,9 +35,6 @@ over XML-RPC.\
 Summary: %summary
 Requires: python-requests
 Requires: python-magic
-%if 0%{?el6}
-Requires: python-argparse
-%endif
 # This dep is for back compat, so that installing python-bugzilla continues
 # to give the cli tool
 Requires: python-bugzilla-cli
