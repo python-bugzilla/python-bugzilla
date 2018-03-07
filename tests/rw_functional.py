@@ -20,8 +20,10 @@ import unittest
 # pylint: disable=import-error
 if sys.version_info[0] >= 3:
     from urllib.parse import urlparse  # pylint: disable=no-name-in-module
+    from io import StringIO
 else:
     from urlparse import urlparse
+    from StringIO import StringIO
 # pylint: enable=import-error
 
 import bugzilla
@@ -691,9 +693,9 @@ class RHPartnerTest(BaseTest):
 
 
             # bare 'login'
-            stdinstr = "foobar@example.com\n\rfoobar\n\r"
+            stdinstr = StringIO("foobar@example.com\n\rfoobar\n\r")
             ret = tests.clicomm("bugzilla --bugzilla %s login" % self.url,
-                                None, expectfail=True, stdinstr=stdinstr)
+                                None, expectfail=True, stdin=stdinstr)
             self.assertTrue("Bugzilla Username:" in ret)
             self.assertTrue("Bugzilla Password:" in ret)
             self.assertTrue("Login failed: " in ret)
