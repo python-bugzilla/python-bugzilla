@@ -68,7 +68,7 @@ class RHPartnerTest(BaseTest):
     # Despite its name, this instance is simply for bugzilla testing,
     # doesn't send out emails and is blown away occasionally. The front
     # page has some info.
-    url = tests.REDHAT_URL or "partner-bugzilla.redhat.com"
+    url = tests.CLICONFIG.REDHAT_URL or "partner-bugzilla.redhat.com"
     bzclass = bugzilla.RHBugzilla
 
 

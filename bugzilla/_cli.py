@@ -40,8 +40,6 @@ import bugzilla
 
 DEFAULT_BZ = 'https://bugzilla.redhat.com/xmlrpc.cgi'
 
-_is_unittest = bool(os.getenv("__BUGZILLA_UNITTEST"))
-_is_unittest_debug = bool(os.getenv("__BUGZILLA_UNITTEST_DEBUG"))
 format_field_re = re.compile("%{([a-z0-9_]+)(?::([^}]*))?}")
 
 log = getLogger(bugzilla.__name__)
@@ -50,6 +48,14 @@ log = getLogger(bugzilla.__name__)
 ################
 # Util helpers #
 ################
+
+def _is_unittest():
+    return bool(os.getenv("__BUGZILLA_UNITTEST"))
+
+
+def _is_unittest_debug():
+    return bool(os.getenv("__BUGZILLA_UNITTEST_DEBUG"))
+
 
 def to_encoding(ustring):
     string = ''
@@ -62,7 +68,7 @@ def to_encoding(ustring):
         return string
 
     preferred = locale.getpreferredencoding()
-    if _is_unittest:
+    if _is_unittest():
         preferred = "UTF-8"
     return string.encode(preferred, 'replace')
 
@@ -116,7 +122,7 @@ def setup_logging(debug, verbose):
     else:
         log.setLevel(WARN)
 
-    if _is_unittest_debug:
+    if _is_unittest_debug():
         log.setLevel(DEBUG)
 
 

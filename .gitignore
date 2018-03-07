@@ -3,6 +3,7 @@
 MANIFEST
 dist
 build
+.cache
 .coverage
 .tox
 

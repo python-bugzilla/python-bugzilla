@@ -18,11 +18,13 @@ BuildArch:      noarch
 BuildRequires: python2-devel
 BuildRequires: python-requests
 BuildRequires: python-setuptools
+BuildRequires: pytest
 
 %if 0%{?with_python3}
 BuildRequires: python3-devel
 BuildRequires: python3-requests
 BuildRequires: python3-setuptools
+BuildRequires: python3-pytest
 %endif # if with_python3
 
 %global _description\
@@ -112,7 +114,10 @@ done
 
 
 %check
-%{__python2} setup.py test
+pytest
+%if 0%{?with_python3}
+pytest-3
+%endif
 
 
 

@@ -9,27 +9,33 @@ dependencies, running the command line from git is as simple as doing:
 
 # Running tests
 
-Once you have already activated an environment, you can use the following.
+Our test suite uses pytest. If your system has dependencies already, the
+quick unit test suite is invoked simply with:
 
-## Basic unit test suite
-
-    python setup.py test
+    pytest
 
 ## Read-Only Functional tests
-There are more comprehensive tests that are disabled by default. Readonly
-functional tests that run against several public bugzilla instances. No
-login account is required:
 
-    python setup.py test --ro-functional
+There are more comprehensive, readonly functional tests that run against
+several public bugzilla instances, but they are not run by default. No
+login account is required. Run them with:
+
+     pytest --ro-functional
 
 ## Read/Write Functional Tests.
 
-Before running rw-functional tests, make sure you have logged into bugzilla
-using. These currently run against the test bugzilla instance at
-partner-bugzilla.redhat.com, and requires a valid login there:
+Read/Write functional tests use partner-bugzilla.redhat.com, which is a
+bugzilla instance specifically for this type of testing. Data is occasionally
+hard synced with regular bugzilla.redhat.com, and all local edits are
+removed. Login accounts are also synced. If you want access to
+partner-bugzilla.redhat.com, sign up for a regular bugzilla.redhat.com login
+and wait for the next sync period.
+
+Before running these tests, you'll need to cache login credentials.
+Example:
 
     ./bugzilla-cli --bugzilla=partner-bugzilla.redhat.com --username=$USER login
-    python setup.py test --rw-functional
+    pytest --rw-functional
 
 ## Testing across python versions
 To test all supported python versions, run tox using any of the following.
@@ -43,7 +49,7 @@ To test all supported python versions, run tox using any of the following.
 
 To test for pylint or pycodestyle violations, you can run:
 
-    python setup.py pylint
+    ./setup.py pylint
 
 Note: This expects that you already have pylint and pycodestyle installed.
 

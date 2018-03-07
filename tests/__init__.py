@@ -15,9 +15,13 @@ else:
 from bugzilla import Bugzilla, RHBugzilla, _cli
 
 
-# This is overwritten by python setup.py test --redhat-url, and then
-# used in ro/rw tests
-REDHAT_URL = None
+class _CLICONFIG(object):
+    def __init__(self):
+        self.REDHAT_URL = None
+
+
+CLICONFIG = _CLICONFIG()
+os.environ["__BUGZILLA_UNITTEST"] = "1"
 
 
 def make_bz(version, *args, **kwargs):

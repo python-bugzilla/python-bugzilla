@@ -1,2 +1,2 @@
 # additional packages needed for testing
-coverage
+pytest

@@ -37,7 +37,7 @@ class BaseTest(unittest.TestCase):
     def _testBZVersion(self):
         bz = Bugzilla(self.url, use_creds=False)
         self.assertEqual(bz.__class__, self.bzclass)
-        if tests.REDHAT_URL:
+        if tests.CLICONFIG.REDHAT_URL:
             return
         self.assertEqual(bz.bz_ver_major, self.bzversion[0])
         self.assertEqual(bz.bz_ver_minor, self.bzversion[1])
@@ -205,7 +205,8 @@ class BZFDO(BaseTest):
 
 
 class RHTest(BaseTest):
-    url = tests.REDHAT_URL or "https://bugzilla.redhat.com/xmlrpc.cgi"
+    url = (tests.CLICONFIG.REDHAT_URL or
+        "https://bugzilla.redhat.com/xmlrpc.cgi")
     bzclass = RHBugzilla
     bzversion = (4, 4)
 
