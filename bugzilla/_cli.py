@@ -1134,27 +1134,22 @@ def _main(unittest_bz_instance):
 
 def main(unittest_bz_instance=None):
     try:
-        return _main(unittest_bz_instance)
-    except KeyboardInterrupt:
-        log.debug("", exc_info=True)
-        print("\nExited at user request.")
-        sys.exit(1)
+        try:
+            return _main(unittest_bz_instance)
+        except (Exception, KeyboardInterrupt):
+            log.debug("", exc_info=True)
+            raise
     except (Fault, bugzilla.BugzillaError) as e:
-        log.debug("", exc_info=True)
         print("\nServer error: %s" % str(e))
         sys.exit(3)
     except ProtocolError as e:
-        log.debug("", exc_info=True)
         print("\nInvalid server response: %d %s" % (e.errcode, e.errmsg))
-        # Detect redirect
         redir = (e.headers and 'location' in e.headers)
         if redir:
             print("\nServer was attempting a redirect. Try: "
                   "  bugzilla --bugzilla %s ..." % redir)
         sys.exit(4)
     except requests.exceptions.SSLError as e:
-        log.debug("", exc_info=True)
-
         # Give SSL recommendations
         print("SSL error: %s" % e)
         print("\nIf you trust the remote server, you can work "
@@ -1164,6 +1159,13 @@ def main(unittest_bz_instance=None):
     except (socket.error,
             requests.exceptions.HTTPError,
             requests.exceptions.ConnectionError) as e:
-        log.debug("", exc_info=True)
         print("\nConnection lost/failed: %s" % str(e))
         sys.exit(2)
+
+def cli():
+    try:
+        main()
+    except KeyboardInterrupt:
+        log.debug("", exc_info=True)
+        print("\nExited at user request.")
+        sys.exit(1)

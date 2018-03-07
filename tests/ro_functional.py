@@ -352,3 +352,21 @@ class RHTest(BaseTest):
         out = self.clicomm("info --component_owners 'Virtualization Tools' "
                 "--active-components")
         self.assertTrue("virtinst" not in out)
+
+    def testFaults(self):
+        # Test special error wrappers in bugzilla/_cli.py
+        bzinstance = Bugzilla(self.url, use_creds=False)
+        out = tests.clicomm("bugzilla query --field=IDONTEXIST=FOO",
+            bzinstance, expectfail=True)
+        self.assertTrue("Server error:" in out)
+
+        out = tests.clicomm("bugzilla "
+            "--bugzilla https://example.com/xmlrpc.cgi "
+            "query --field=IDONTEXIST=FOO", None, expectfail=True)
+        self.assertTrue("Connection lost/failed" in out)
+
+        out = tests.clicomm("bugzilla "
+            "--bugzilla https://expired.badssl.com/ "
+            "query --bug_id 1234", None, expectfail=True)
+        self.assertTrue(("trust the remote server" in out) and
+                ("--nosslverify" in out))
