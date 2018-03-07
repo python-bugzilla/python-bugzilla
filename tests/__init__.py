@@ -1,8 +1,6 @@
 
 from __future__ import print_function
 
-import atexit
-import difflib
 import os
 import shlex
 import sys
@@ -33,25 +31,6 @@ def make_bz(version, *args, **kwargs):
     bz = cls(*args, **kwargs)
     bz._set_bz_version(version)  # pylint: disable=protected-access
     return bz
-
-
-def diff(orig, new):
-    """
-    Return a unified diff string between the passed strings
-    """
-    return "".join(difflib.unified_diff(orig.splitlines(1),
-                                        new.splitlines(1),
-                                        fromfile="Orig",
-                                        tofile="New"))
-
-
-def difffile(expect, filename):
-    expect += '\n'
-    if not os.path.exists(filename) or os.getenv("__BUGZILLA_UNITTEST_REGEN"):
-        open(filename, "w").write(expect)
-    ret = diff(open(filename).read(), expect)
-    if ret:
-        raise AssertionError("Output was different:\n%s" % ret)
 
 
 def clicomm(argv, bzinstance, returnmain=False, stdin=None, expectfail=False):
