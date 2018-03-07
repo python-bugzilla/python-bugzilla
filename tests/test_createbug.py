@@ -18,24 +18,12 @@ bz4 = tests.make_bz("4.0.0")
 
 
 class CreatebugTest(unittest.TestCase):
-    maxDiff = None
     bz = bz4
-
-    def assertDictEqual(self, *args, **kwargs):
-        # pylint: disable=arguments-differ
-        # EPEL5 back compat
-        if hasattr(unittest.TestCase, "assertDictEqual"):
-            return unittest.TestCase.assertDictEqual(self, *args, **kwargs)
-        return self.assertEqual(*args, **kwargs)
 
     def clicomm(self, argstr, out):
         comm = "bugzilla new --__test-return-result " + argstr
-
-        if out is None:
-            self.assertRaises(RuntimeError, tests.clicomm, comm, self.bz)
-        else:
-            q = tests.clicomm(comm, self.bz, returnmain=True)
-            self.assertDictEqual(out, q)
+        q = tests.clicomm(comm, self.bz, returnmain=True)
+        assert out == q
 
     def testBasic(self):
         self.clicomm(
@@ -88,6 +76,6 @@ class CreatebugTest(unittest.TestCase):
         out = vc(product="foo", component="bar",
             version="12", description="foo", short_desc="bar",
             check_args=False)
-        self.assertDictEqual(out,
-            {'component': 'bar', 'description': 'foo', 'product': 'foo',
-             'summary': 'bar', 'version': '12'})
+        assert out == {
+            'component': 'bar', 'description': 'foo', 'product': 'foo',
+            'summary': 'bar', 'version': '12'}

@@ -19,58 +19,36 @@ import unittest
 
 # pylint: disable=import-error
 if sys.version_info[0] >= 3:
-    from urllib.parse import urlparse  # pylint: disable=no-name-in-module
     from io import StringIO
 else:
-    from urlparse import urlparse
     from StringIO import StringIO
 # pylint: enable=import-error
 
+import pytest
+
 import bugzilla
 from bugzilla import Bugzilla
-from bugzilla.transport import _BugzillaTokenCache
-
 import tests
 
-cf = os.path.expanduser("~/.bugzillacookies")
-tf = os.path.expanduser("~/.bugzillatoken")
+
+RHURL = tests.CLICONFIG.REDHAT_URL or "partner-bugzilla.redhat.com"
 
 
 def _split_int(s):
     return [int(i) for i in s.split(",")]
 
 
-class BaseTest(unittest.TestCase):
-    url = None
-    bzclass = None
-
-    def _testBZClass(self):
-        bz = Bugzilla(url=self.url, use_creds=False)
-        self.assertTrue(bz.__class__ is self.bzclass)
-
-    def _testCookieOrToken(self):
-        domain = urlparse(self.url)[1]
-        if os.path.exists(cf):
-            out = open(cf).read(1024)
-            if domain in out:
-                return
-
-        if os.path.exists(tf):
-            token = _BugzillaTokenCache(self.url, tokenfilename=tf)
-            if token.value is not None:
-                return
-
-        raise RuntimeError("%s or %s must exist and contain domain '%s'" %
-                           (cf, tf, domain))
+if not bugzilla.RHBugzilla(url=RHURL).logged_in:
+    print("R/W tests require cached login credentials for url=%s" % RHURL)
+    sys.exit(1)
 
 
-class RHPartnerTest(BaseTest):
+class RHPartnerTest(unittest.TestCase):
     # Despite its name, this instance is simply for bugzilla testing,
     # doesn't send out emails and is blown away occasionally. The front
     # page has some info.
-    url = tests.CLICONFIG.REDHAT_URL or "partner-bugzilla.redhat.com"
+    url = RHURL
     bzclass = bugzilla.RHBugzilla
-
 
     def _check_have_admin(self, bz, funcname):
         # groupnames is empty for any user if our logged in user does not
@@ -81,18 +59,13 @@ class RHPartnerTest(BaseTest):
             print("\nNo admin privs, reduced testing of %s" % funcname)
         return ret
 
-    test2 = BaseTest._testBZClass
-
-
-    def test00LoginState(self):
-        bz = self.bzclass(url=self.url)
-        self.assertTrue(bz.logged_in,
-            "R/W tests require cached login credentials for url=%s" % self.url)
-
+    def test0LoggedInNoCreds(self):
         bz = self.bzclass(url=self.url, use_creds=False)
-        self.assertFalse(bz.logged_in,
-            "Login state check failed for logged out user.")
+        assert not bz.logged_in
 
+    def test2(self):
+        bz = Bugzilla(url=self.url, use_creds=False)
+        assert bz.__class__ is self.bzclass
 
     def test03NewBugBasic(self):
         """
@@ -110,25 +83,25 @@ class RHPartnerTest(BaseTest):
             "--outputformat \"%%{bug_id}\"" %
             (component, version, summary), bz)
 
-        self.assertTrue(len(newout.splitlines()) == 3)
+        assert len(newout.splitlines()) == 3
 
         bugid = int(newout.splitlines()[2])
         bug = bz.getbug(bugid)
         print("\nCreated bugid: %s" % bugid)
 
         # Verify hasattr works
-        self.assertTrue(hasattr(bug, "id"))
-        self.assertTrue(hasattr(bug, "bug_id"))
+        assert hasattr(bug, "id")
+        assert hasattr(bug, "bug_id")
 
-        self.assertEqual(bug.component, component)
-        self.assertEqual(bug.version, version)
-        self.assertEqual(bug.summary, summary)
+        assert bug.component == component
+        assert bug.version == version
+        assert bug.summary == summary
 
         # Close the bug
         tests.clicomm("bugzilla modify --close NOTABUG %s" % bugid, bz)
         bug.refresh()
-        self.assertEqual(bug.status, "CLOSED")
-        self.assertEqual(bug.resolution, "NOTABUG")
+        assert bug.status == "CLOSED"
+        assert bug.resolution == "NOTABUG"
 
 
     def test04NewBugAllFields(self):
@@ -159,21 +132,21 @@ class RHPartnerTest(BaseTest):
             (sub_component, summary, comment, url,
              osval, cc, blocked, dependson, alias), bz)
 
-        self.assertTrue(len(newout.splitlines()) == 3)
+        assert len(newout.splitlines()) == 3
 
         bugid = int(newout.splitlines()[2])
         bug = bz.getbug(bugid, extra_fields=["sub_components"])
         print("\nCreated bugid: %s" % bugid)
 
-        self.assertEqual(bug.summary, summary)
-        self.assertEqual(bug.bug_file_loc, url)
-        self.assertEqual(bug.op_sys, osval)
-        self.assertEqual(bug.blocks, _split_int(blocked))
-        self.assertEqual(bug.depends_on, _split_int(dependson))
-        self.assertTrue(all([e in bug.cc for e in cc.split(",")]))
-        self.assertEqual(bug.longdescs[0]["text"], comment)
-        self.assertEqual(bug.sub_components, {"lvm2": [sub_component]})
-        self.assertEqual(bug.alias, [alias])
+        assert bug.summary == summary
+        assert bug.bug_file_loc == url
+        assert bug.op_sys == osval
+        assert bug.blocks == _split_int(blocked)
+        assert bug.depends_on == _split_int(dependson)
+        assert all([e in bug.cc for e in cc.split(",")])
+        assert bug.longdescs[0]["text"] == comment
+        assert bug.sub_components == {"lvm2": [sub_component]}
+        assert bug.alias == [alias]
 
         # Close the bug
 
@@ -185,14 +158,14 @@ class RHPartnerTest(BaseTest):
             "--close WONTFIX %s " %
             bugid, bz)
         bug.refresh()
-        self.assertEqual(bug.status, "CLOSED")
-        self.assertEqual(bug.resolution, "WONTFIX")
-        self.assertEqual(bug.alias, [alias])
+        assert bug.status == "CLOSED"
+        assert bug.resolution == "WONTFIX"
+        assert bug.alias == [alias]
 
         # Check bug's minimal history
         ret = bug.get_history_raw()
-        self.assertTrue(len(ret["bugs"]) == 1)
-        self.assertTrue(len(ret["bugs"][0]["history"]) == 1)
+        assert len(ret["bugs"]) == 1
+        assert len(ret["bugs"][0]["history"]) == 1
 
 
     def test05ModifyStatus(self):
@@ -209,7 +182,7 @@ class RHPartnerTest(BaseTest):
         if bug.status == "CLOSED":
             tests.clicomm(cmd + "--status ASSIGNED", bz)
             bug.refresh()
-            self.assertEqual(bug.status, "ASSIGNED")
+            assert bug.status == "ASSIGNED"
 
         origstatus = bug.status
 
@@ -221,9 +194,9 @@ class RHPartnerTest(BaseTest):
             "--status %s --comment \"%s\" --private" % (status, comment), bz)
 
         bug.refresh()
-        self.assertEqual(bug.status, status)
-        self.assertEqual(bug.longdescs[-1]["is_private"], 1)
-        self.assertEqual(bug.longdescs[-1]["text"], comment)
+        assert bug.status == status
+        assert bug.longdescs[-1]["is_private"] == 1
+        assert bug.longdescs[-1]["text"] == comment
 
         # Close bug as DEFERRED with a private comment
         resolution = "DEFERRED"
@@ -234,10 +207,10 @@ class RHPartnerTest(BaseTest):
             (resolution, comment), bz)
 
         bug.refresh()
-        self.assertEqual(bug.status, "CLOSED")
-        self.assertEqual(bug.resolution, resolution)
-        self.assertEqual(bug.comments[-1]["is_private"], 1)
-        self.assertEqual(bug.comments[-1]["text"], comment)
+        assert bug.status == "CLOSED"
+        assert bug.resolution == resolution
+        assert bug.comments[-1]["is_private"] == 1
+        assert bug.comments[-1]["text"] == comment
 
         # Close bug as dup with no comment
         dupeid = "461686"
@@ -246,40 +219,40 @@ class RHPartnerTest(BaseTest):
             "--close DUPLICATE --dupeid %s" % dupeid, bz)
 
         bug.refresh()
-        self.assertEqual(bug.dupe_of, int(dupeid))
-        self.assertEqual(len(bug.longdescs), desclen + 1)
-        self.assertTrue("marked as a duplicate" in bug.longdescs[-1]["text"])
+        assert bug.dupe_of == int(dupeid)
+        assert len(bug.longdescs) == (desclen + 1)
+        assert "marked as a duplicate" in bug.longdescs[-1]["text"]
 
         # bz.setstatus test
         comment = ("adding lone comment at %s" % datetime.datetime.today())
         bug.setstatus("POST", comment=comment, private=True)
         bug.refresh()
-        self.assertEqual(bug.longdescs[-1]["is_private"], 1)
-        self.assertEqual(bug.longdescs[-1]["text"], comment)
-        self.assertEqual(bug.status, "POST")
+        assert bug.longdescs[-1]["is_private"] == 1
+        assert bug.longdescs[-1]["text"] == comment
+        assert bug.status == "POST"
 
         # bz.close test
         fixed_in = str(datetime.datetime.today())
         bug.close("ERRATA", fixedin=fixed_in)
         bug.refresh()
-        self.assertEqual(bug.status, "CLOSED")
-        self.assertEqual(bug.resolution, "ERRATA")
-        self.assertEqual(bug.fixed_in, fixed_in)
+        assert bug.status == "CLOSED"
+        assert bug.resolution == "ERRATA"
+        assert bug.fixed_in == fixed_in
 
         # bz.addcomment test
         comment = ("yet another test comment %s" % datetime.datetime.today())
         bug.addcomment(comment, private=False)
         bug.refresh()
-        self.assertEqual(bug.longdescs[-1]["text"], comment)
-        self.assertEqual(bug.longdescs[-1]["is_private"], 0)
+        assert bug.longdescs[-1]["text"] == comment
+        assert bug.longdescs[-1]["is_private"] == 0
 
         # Confirm comments is same as getcomments
-        self.assertEqual(bug.comments, bug.getcomments())
+        assert bug.comments == bug.getcomments()
 
         # Reset state
         tests.clicomm(cmd + "--status %s" % origstatus, bz)
         bug.refresh()
-        self.assertEqual(bug.status, origstatus)
+        assert bug.status == origstatus
 
 
     def test06ModifyEmails(self):
@@ -302,32 +275,32 @@ class RHPartnerTest(BaseTest):
         bug.addcc(email1)
 
         bug.refresh()
-        self.assertTrue(email1 in bug.cc)
-        self.assertTrue(email2 in bug.cc)
-        self.assertEqual(len(bug.cc), 2)
+        assert email1 in bug.cc
+        assert email2 in bug.cc
+        assert len(bug.cc) == 2
 
         tests.clicomm(cmd + "--cc=-%s" % email1, bz)
         bug.refresh()
-        self.assertTrue(email1 not in bug.cc)
+        assert email1 not in bug.cc
 
         # Test assigned target
         tests.clicomm(cmd + "--assignee %s" % email1, bz)
         bug.refresh()
-        self.assertEqual(bug.assigned_to, email1)
+        assert bug.assigned_to == email1
 
         # Test QA target
         tests.clicomm(cmd + "--qa_contact %s" % email1, bz)
         bug.refresh()
-        self.assertEqual(bug.qa_contact, email1)
+        assert bug.qa_contact == email1
 
         # Reset values
         bug.deletecc(bug.cc)
         tests.clicomm(cmd + "--reset-qa-contact --reset-assignee", bz)
 
         bug.refresh()
-        self.assertEqual(bug.cc, [])
-        self.assertEqual(bug.assigned_to, "crobinso@redhat.com")
-        self.assertEqual(bug.qa_contact, "extras-qa@fedoraproject.org")
+        assert bug.cc == []
+        assert bug.assigned_to == "crobinso@redhat.com"
+        assert bug.qa_contact == "extras-qa@fedoraproject.org"
 
 
     def test07ModifyMultiFlags(self):
@@ -379,10 +352,10 @@ class RHPartnerTest(BaseTest):
         bug1.refresh()
         bug2.refresh()
 
-        self.assertEqual(flagstr(bug1), setflags)
-        self.assertEqual(flagstr(bug2), setflags)
-        self.assertEqual(bug1.get_flags("needinfo")[0]["status"], "?")
-        self.assertEqual(bug1.get_flag_status("requires_doc_text"), "-")
+        assert flagstr(bug1) == setflags
+        assert flagstr(bug2) == setflags
+        assert bug1.get_flags("needinfo")[0]["status"] == "?"
+        assert bug1.get_flag_status("requires_doc_text") == "-"
 
         # Clear flags
         if cleardict_new(bug1):
@@ -392,8 +365,8 @@ class RHPartnerTest(BaseTest):
             bz.update_flags(bug2.id, cleardict_new(bug2))
         bug2.refresh()
 
-        self.assertEqual(cleardict_old(bug1), {})
-        self.assertEqual(cleardict_old(bug2), {})
+        assert cleardict_old(bug1) == {}
+        assert cleardict_old(bug2) == {}
 
         # Set "Fixed In" field
         origfix1 = bug1.fixed_in
@@ -407,16 +380,16 @@ class RHPartnerTest(BaseTest):
 
         bug1.refresh()
         bug2.refresh()
-        self.assertEqual(bug1.fixed_in, newfix)
-        self.assertEqual(bug2.fixed_in, newfix)
+        assert bug1.fixed_in == newfix
+        assert bug2.fixed_in == newfix
 
         # Reset fixed_in
         tests.clicomm(cmd + "--fixed_in=\"-\"", bz)
 
         bug1.refresh()
         bug2.refresh()
-        self.assertEqual(bug1.fixed_in, "-")
-        self.assertEqual(bug2.fixed_in, "-")
+        assert bug1.fixed_in == "-"
+        assert bug2.fixed_in == "-"
 
 
     def test07ModifyMisc(self):
@@ -428,30 +401,30 @@ class RHPartnerTest(BaseTest):
         # modify --dependson
         tests.clicomm(cmd + "--dependson 123456", bz)
         bug.refresh()
-        self.assertTrue(123456 in bug.depends_on)
+        assert 123456 in bug.depends_on
         tests.clicomm(cmd + "--dependson =111222", bz)
         bug.refresh()
-        self.assertEqual([111222], bug.depends_on)
+        assert [111222] == bug.depends_on
         tests.clicomm(cmd + "--dependson=-111222", bz)
         bug.refresh()
-        self.assertEqual([], bug.depends_on)
+        assert [] == bug.depends_on
 
         # modify --blocked
         tests.clicomm(cmd + "--blocked 123,456", bz)
         bug.refresh()
-        self.assertEqual([123, 456], bug.blocks)
+        assert [123, 456] == bug.blocks
         tests.clicomm(cmd + "--blocked =", bz)
         bug.refresh()
-        self.assertEqual([], bug.blocks)
+        assert [] == bug.blocks
 
         # modify --keywords
         tests.clicomm(cmd + "--keywords +Documentation --keywords EasyFix", bz)
         bug.refresh()
-        self.assertEqual(["Documentation", "EasyFix"], bug.keywords)
+        assert ["Documentation", "EasyFix"] == bug.keywords
         tests.clicomm(cmd + "--keywords=-EasyFix --keywords=-Documentation",
                       bz)
         bug.refresh()
-        self.assertEqual([], bug.keywords)
+        assert [] == bug.keywords
 
         # modify --target_release
         # modify --target_milestone
@@ -461,24 +434,24 @@ class RHPartnerTest(BaseTest):
         tests.clicomm(targetcmd +
                       "--target_milestone beta --target_release 6.2", bz)
         targetbug.refresh()
-        self.assertEqual(targetbug.target_milestone, "beta")
-        self.assertEqual(targetbug.target_release, ["6.2"])
+        assert targetbug.target_milestone == "beta"
+        assert targetbug.target_release == ["6.2"]
         tests.clicomm(targetcmd +
                       "--target_milestone rc --target_release 6.0", bz)
         targetbug.refresh()
-        self.assertEqual(targetbug.target_milestone, "rc")
-        self.assertEqual(targetbug.target_release, ["6.0"])
+        assert targetbug.target_milestone == "rc"
+        assert targetbug.target_release == ["6.0"]
 
         # modify --priority
         # modify --severity
         tests.clicomm(cmd + "--priority low --severity high", bz)
         bug.refresh()
-        self.assertEqual(bug.priority, "low")
-        self.assertEqual(bug.severity, "high")
+        assert bug.priority == "low"
+        assert bug.severity == "high"
         tests.clicomm(cmd + "--priority medium --severity medium", bz)
         bug.refresh()
-        self.assertEqual(bug.priority, "medium")
-        self.assertEqual(bug.severity, "medium")
+        assert bug.priority == "medium"
+        assert bug.severity == "medium"
 
         # modify --os
         # modify --platform
@@ -486,25 +459,25 @@ class RHPartnerTest(BaseTest):
         tests.clicomm(cmd + "--version rawhide --os Windows --arch ppc "
                             "--url http://example.com", bz)
         bug.refresh()
-        self.assertEqual(bug.version, "rawhide")
-        self.assertEqual(bug.op_sys, "Windows")
-        self.assertEqual(bug.platform, "ppc")
-        self.assertEqual(bug.url, "http://example.com")
+        assert bug.version == "rawhide"
+        assert bug.op_sys == "Windows"
+        assert bug.platform == "ppc"
+        assert bug.url == "http://example.com"
         tests.clicomm(cmd + "--version rawhide --os Linux --arch s390 "
                             "--url http://example.com/fribby", bz)
         bug.refresh()
-        self.assertEqual(bug.version, "rawhide")
-        self.assertEqual(bug.op_sys, "Linux")
-        self.assertEqual(bug.platform, "s390")
-        self.assertEqual(bug.url, "http://example.com/fribby")
+        assert bug.version == "rawhide"
+        assert bug.op_sys == "Linux"
+        assert bug.platform == "s390"
+        assert bug.url == "http://example.com/fribby"
 
         # modify --field
         tests.clicomm(cmd + "--field cf_fixed_in=foo-bar-1.2.3 \
                       --field=cf_release_notes=baz", bz)
 
         bug.refresh()
-        self.assertEqual(bug.fixed_in, "foo-bar-1.2.3")
-        self.assertEqual(bug.cf_release_notes, "baz")
+        assert bug.fixed_in == "foo-bar-1.2.3"
+        assert bug.cf_release_notes == "baz"
 
 
     def test08Attachments(self):
@@ -537,7 +510,8 @@ class RHPartnerTest(BaseTest):
         # Add attachment from CLI with mime guessing
         desc1 = "python-bugzilla cli upload %s" % datetime.datetime.today()
         out1 = tests.clicomm(cmd + "%s --description \"%s\" --file %s" %
-                             (setbugid, desc1, testfile), bz)
+                             (setbugid, desc1, testfile), bz,
+                             stdin=open("/dev/tty", "rb"))
 
         desc2 = "python-bugzilla cli upload %s" % datetime.datetime.today()
         out2 = tests.clicomm(cmd + "%s --file test --summary \"%s\"" %
@@ -547,29 +521,29 @@ class RHPartnerTest(BaseTest):
         #   Created attachment <attachid> on bug <bugid>
 
         setbug.refresh()
-        self.assertEqual(len(setbug.attachments), orignumattach + 2)
-        self.assertEqual(setbug.attachments[-2]["summary"], desc1)
-        self.assertEqual(setbug.attachments[-2]["id"],
-                         int(out1.splitlines()[2].split()[2]))
-        self.assertEqual(setbug.attachments[-1]["summary"], desc2)
-        self.assertEqual(setbug.attachments[-1]["id"],
-                         int(out2.splitlines()[2].split()[2]))
+        assert len(setbug.attachments) == (orignumattach + 2)
+        assert setbug.attachments[-2]["summary"] == desc1
+        assert (setbug.attachments[-2]["id"] ==
+                int(out1.splitlines()[2].split()[2]))
+        assert setbug.attachments[-1]["summary"] == desc2
+        assert (setbug.attachments[-1]["id"] ==
+                int(out2.splitlines()[2].split()[2]))
         attachid = setbug.attachments[-2]["id"]
 
         # Set attachment flags
-        self.assertEqual(setbug.attachments[-1]["flags"], [])
+        assert setbug.attachments[-1]["flags"] == []
         bz.updateattachmentflags(setbug.id, setbug.attachments[-1]["id"],
                                  "review", status="+")
         setbug.refresh()
 
-        self.assertEqual(len(setbug.attachments[-1]["flags"]), 1)
-        self.assertEqual(setbug.attachments[-1]["flags"][0]["name"], "review")
-        self.assertEqual(setbug.attachments[-1]["flags"][0]["status"], "+")
+        assert len(setbug.attachments[-1]["flags"]) == 1
+        assert setbug.attachments[-1]["flags"][0]["name"] == "review"
+        assert setbug.attachments[-1]["flags"][0]["status"] == "+"
 
         bz.updateattachmentflags(setbug.id, setbug.attachments[-1]["id"],
                                  "review", status="X")
         setbug.refresh()
-        self.assertEqual(setbug.attachments[-1]["flags"], [])
+        assert setbug.attachments[-1]["flags"] == []
 
 
         # Get attachment, verify content
@@ -579,10 +553,9 @@ class RHPartnerTest(BaseTest):
         #   Wrote <filename>
         fname = out[2].split()[1].strip()
 
-        self.assertEqual(len(out), 3)
-        self.assertEqual(fname, "bz-attach-get1.txt")
-        self.assertEqual(open(fname).read(),
-                         open(testfile).read())
+        assert len(out) == 3
+        assert fname == "bz-attach-get1.txt"
+        assert open(fname).read() == open(testfile).read()
         os.unlink(fname)
 
         # Get all attachments
@@ -591,9 +564,9 @@ class RHPartnerTest(BaseTest):
         numattach = len(getbug.attachments)
         out = tests.clicomm(cmd + "--getall %s" % getallbugid, bz).splitlines()
 
-        self.assertEqual(len(out), numattach + 2)
+        assert len(out) == (numattach + 2)
         fnames = [l.split(" ", 1)[1].strip() for l in out[2:]]
-        self.assertEqual(len(fnames), numattach)
+        assert len(fnames) == numattach
         for f in fnames:
             if not os.path.exists(f):
                 raise AssertionError("filename '%s' not found" % f)
@@ -616,11 +589,11 @@ class RHPartnerTest(BaseTest):
                 (initval, initval, initval, initval), bz)
 
         bug.refresh()
-        self.assertEqual(bug.whiteboard, initval + "status")
-        self.assertEqual(bug.qa_whiteboard, initval + "qa")
-        self.assertEqual(bug.devel_whiteboard, initval + "devel")
-        self.assertEqual(bug.internal_whiteboard,
-                         initval + "internal, security, foo security1")
+        assert bug.whiteboard == (initval + "status")
+        assert bug.qa_whiteboard == (initval + "qa")
+        assert bug.devel_whiteboard == (initval + "devel")
+        assert (bug.internal_whiteboard ==
+                (initval + "internal, security, foo security1"))
 
         # Modify whiteboards
         tests.clicomm(cmd +
@@ -629,9 +602,9 @@ class RHPartnerTest(BaseTest):
                       "--devel_whiteboard =pre-%s" % bug.devel_whiteboard, bz)
 
         bug.refresh()
-        self.assertEqual(bug.qa_whiteboard, initval + "qa" + " _app")
-        self.assertEqual(bug.devel_whiteboard, "pre-" + initval + "devel")
-        self.assertEqual(bug.status_whiteboard, "foobar")
+        assert bug.qa_whiteboard == (initval + "qa" + " _app")
+        assert bug.devel_whiteboard == ("pre-" + initval + "devel")
+        assert bug.status_whiteboard == "foobar"
 
         # Verify that tag manipulation is smart about separator
         tests.clicomm(cmd +
@@ -639,9 +612,8 @@ class RHPartnerTest(BaseTest):
                       "--internal_whiteboard=-security,", bz)
         bug.refresh()
 
-        self.assertEqual(bug.qa_whiteboard, initval + "qa")
-        self.assertEqual(bug.internal_whiteboard,
-                         initval + "internal, foo security1")
+        assert bug.qa_whiteboard == (initval + "qa")
+        assert bug.internal_whiteboard == (initval + "internal, foo security1")
 
         # Clear whiteboards
         update = bz.build_update(
@@ -650,10 +622,10 @@ class RHPartnerTest(BaseTest):
         bz.update_bugs(bug.id, update)
 
         bug.refresh()
-        self.assertEqual(bug.whiteboard, "")
-        self.assertEqual(bug.qa_whiteboard, "")
-        self.assertEqual(bug.devel_whiteboard, "")
-        self.assertEqual(bug.internal_whiteboard, "")
+        assert bug.whiteboard == ""
+        assert bug.qa_whiteboard == ""
+        assert bug.devel_whiteboard == ""
+        assert bug.internal_whiteboard == ""
 
 
     def test10Login(self):
@@ -676,29 +648,29 @@ class RHPartnerTest(BaseTest):
                                 "--user foobar@example.com "
                                 "--password foobar query -b 123456" % self.url,
                                 None, expectfail=True)
-            self.assertTrue("Login failed: " in ret)
+            assert "Login failed: " in ret
 
             # 'login' with explicit options
             ret = tests.clicomm("bugzilla --bugzilla %s "
                                 "--user foobar@example.com "
                                 "--password foobar login" % self.url,
                                 None, expectfail=True)
-            self.assertTrue("Login failed: " in ret)
+            assert "Login failed: " in ret
 
             # 'login' with positional options
             ret = tests.clicomm("bugzilla --bugzilla %s "
                                 "login foobar@example.com foobar" % self.url,
                                 None, expectfail=True)
-            self.assertTrue("Login failed: " in ret)
+            assert "Login failed: " in ret
 
 
             # bare 'login'
             stdinstr = StringIO("foobar@example.com\n\rfoobar\n\r")
             ret = tests.clicomm("bugzilla --bugzilla %s login" % self.url,
                                 None, expectfail=True, stdin=stdinstr)
-            self.assertTrue("Bugzilla Username:" in ret)
-            self.assertTrue("Bugzilla Password:" in ret)
-            self.assertTrue("Login failed: " in ret)
+            assert "Bugzilla Username:" in ret
+            assert "Bugzilla Password:" in ret
+            assert "Login failed: " in ret
         finally:
             getpass.getpass = oldgetpass
 
@@ -714,28 +686,28 @@ class RHPartnerTest(BaseTest):
 
         user = bz.getuser(email)
         if have_admin:
-            self.assertTrue(group in user.groupnames)
+            assert group in user.groupnames
         origgroups = user.groupnames
 
         # Remove the group
         try:
             bz.updateperms(email, "remove", [group])
             user.refresh()
-            self.assertTrue(group not in user.groupnames)
+            assert group not in user.groupnames
         except Exception as e:
             if have_admin:
                 raise
-            self.assertTrue("Sorry, you aren't a member" in str(e))
+            assert "Sorry, you aren't a member" in str(e)
 
         # Re add it
         try:
             bz.updateperms(email, "add", group)
             user.refresh()
-            self.assertTrue(group in user.groupnames)
+            assert group in user.groupnames
         except Exception as e:
             if have_admin:
                 raise
-            self.assertTrue("Sorry, you aren't a member" in str(e))
+            assert "Sorry, you aren't a member" in str(e)
 
         # Set groups
         try:
@@ -744,11 +716,11 @@ class RHPartnerTest(BaseTest):
                 newgroups.remove(group)
             bz.updateperms(email, "set", newgroups)
             user.refresh()
-            self.assertTrue(group not in user.groupnames)
+            assert group not in user.groupnames
         except Exception as e:
             if have_admin:
                 raise
-            self.assertTrue("Sorry, you aren't a member" in str(e))
+            assert "Sorry, you aren't a member" in str(e)
 
         # Reset everything
         try:
@@ -756,10 +728,10 @@ class RHPartnerTest(BaseTest):
         except Exception as e:
             if have_admin:
                 raise
-            self.assertTrue("Sorry, you aren't a member" in str(e))
+            assert "Sorry, you aren't a member" in str(e)
 
         user.refresh()
-        self.assertEqual(user.groupnames, origgroups)
+        assert user.groupnames == origgroups
 
 
     def test11ComponentEditing(self):
@@ -783,14 +755,12 @@ class RHPartnerTest(BaseTest):
                     compdata = c
                     break
 
-            self.assertTrue(bool(compdata))
-            self.assertEqual(data["component"], compdata["name"])
-            self.assertEqual(data["description"], compdata["description"])
-            self.assertEqual(data["initialowner"],
-                             compdata["default_assigned_to"])
-            self.assertEqual(data["initialqacontact"],
-                             compdata["default_qa_contact"])
-            self.assertEqual(data["is_active"], compdata["is_active"])
+            assert bool(compdata)
+            assert data["component"] == compdata["name"]
+            assert data["description"] == compdata["description"]
+            assert data["initialowner"] == compdata["default_assigned_to"]
+            assert data["initialqacontact"] == compdata["default_qa_contact"]
+            assert data["is_active"] == compdata["is_active"]
 
 
         # Create component
@@ -811,8 +781,7 @@ class RHPartnerTest(BaseTest):
         except Exception as e:
             if have_admin:
                 raise
-            self.assertTrue(
-                ("Sorry, you aren't a member" in str(e)) or
+            assert (("Sorry, you aren't a member" in str(e)) or
                 # bugzilla 5 error string
                 ("You are not allowed" in str(e)))
 
@@ -834,8 +803,7 @@ class RHPartnerTest(BaseTest):
         except Exception as e:
             if have_admin:
                 raise
-            self.assertTrue(
-                ("Sorry, you aren't a member" in str(e)) or
+            assert (("Sorry, you aren't a member" in str(e)) or
                 # bugzilla 5 error string
                 ("You are not allowed" in str(e)))
 
@@ -848,34 +816,33 @@ class RHPartnerTest(BaseTest):
             raise AssertionError("Setting cookiefile for active connection "
                                  "should fail.")
         except RuntimeError as e:
-            self.assertTrue("disconnect()" in str(e))
+            assert "disconnect()" in str(e)
 
         bz.disconnect()
         bz.cookiefile = None
         bz.connect()
-        self.assertFalse(bz.logged_in)
+        assert not bz.logged_in
 
     def test13SubComponents(self):
         bz = self.bzclass(url=self.url)
         # Long closed RHEL5 lvm2 bug. This component has sub_components
         bug = bz.getbug("185526")
         bug.autorefresh = True
-        self.assertEqual(bug.component, "lvm2")
+        assert bug.component == "lvm2"
 
         bz.update_bugs(bug.id, bz.build_update(
             component="lvm2", sub_component="Command-line tools (RHEL5)"))
         bug.refresh()
-        self.assertEqual(bug.sub_components,
-            {"lvm2": ["Command-line tools (RHEL5)"]})
+        assert bug.sub_components == {"lvm2": ["Command-line tools (RHEL5)"]}
 
         bz.update_bugs(bug.id, bz.build_update(sub_component={}))
         bug.refresh()
-        self.assertEqual(bug.sub_components, {})
+        assert bug.sub_components == {}
 
     def test13ExternalTrackerQuery(self):
         bz = self.bzclass(url=self.url)
-        self.assertRaises(RuntimeError,
-                          bz.build_external_tracker_boolean_query)
+        with pytest.raises(RuntimeError):
+            bz.build_external_tracker_boolean_query()
 
     def _deleteAllExistingExternalTrackers(self, bugid):
         bz = self.bzclass(url=self.url)
@@ -949,19 +916,19 @@ class RHPartnerTest(BaseTest):
         if bug.tags:
             bz.update_tags(bug.id, tags_remove=bug.tags)
             bug.refresh()
-            self.assertEqual(bug.tags, [])
+            assert bug.tags == []
 
         tests.clicomm(cmd + "--tags foo --tags +bar --tags baz", bz)
         bug.refresh()
-        self.assertEqual(bug.tags, ["foo", "bar", "baz"])
+        assert bug.tags, ["foo", "bar" == "baz"]
 
         tests.clicomm(cmd + "--tags=-bar", bz)
         bug.refresh()
-        self.assertEqual(bug.tags, ["foo", "baz"])
+        assert bug.tags, ["foo" == "baz"]
 
         bz.update_tags(bug.id, tags_remove=bug.tags)
         bug.refresh()
-        self.assertEqual(bug.tags, [])
+        assert bug.tags == []
 
     def test17LoginAPIKey(self):
         api_key = "somefakeapikey1234"
@@ -970,9 +937,9 @@ class RHPartnerTest(BaseTest):
             self.skipTest("can only test apikey on bugzilla 5+")
 
         try:
-            self.assertTrue(bz.logged_in, False)
+            assert bz.logged_in is False
 
             # Use this to trigger a warning about api_key
             bz.createbug(bz.build_createbug())
         except Exception as e:
-            self.assertTrue("The API key you specified is invalid" in str(e))
+            assert "The API key you specified is invalid" in str(e)

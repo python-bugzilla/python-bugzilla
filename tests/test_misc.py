@@ -15,8 +15,9 @@ import os
 import tempfile
 import unittest
 
-import bugzilla
+import pytest
 
+import bugzilla
 import tests
 
 
@@ -28,25 +29,25 @@ class MiscCLI(unittest.TestCase):
 
     def testHelp(self):
         out = tests.clicomm("bugzilla --help", None)
-        self.assertTrue(len(out.splitlines()) > 18)
+        assert len(out.splitlines()) > 18
 
     def testCmdHelp(self):
         out = tests.clicomm("bugzilla query --help", None)
-        self.assertTrue(len(out.splitlines()) > 40)
+        assert len(out.splitlines()) > 40
 
     def testVersion(self):
         out = tests.clicomm("bugzilla --version", None)
-        self.assertTrue(len(out.splitlines()) >= 2)
+        assert len(out.splitlines()) >= 2
 
     def testPositionalArgs(self):
         # Make sure cli correctly rejects ambiguous positional args
         out = tests.clicomm("bugzilla login --xbadarg foo",
                 None, expectfail=True)
-        self.assertTrue("unrecognized arguments: --xbadarg" in out)
+        assert "unrecognized arguments: --xbadarg" in out
 
         out = tests.clicomm("bugzilla modify 123456 --foobar --status NEW",
                 None, expectfail=True)
-        self.assertTrue("unrecognized arguments: --foobar" in out)
+        assert "unrecognized arguments: --foobar" in out
 
 
 class MiscAPI(unittest.TestCase):
@@ -55,7 +56,7 @@ class MiscAPI(unittest.TestCase):
     """
     def testUserAgent(self):
         b3 = tests.make_bz("3.0.0")
-        self.assertTrue("python-bugzilla" in b3.user_agent)
+        assert "python-bugzilla" in b3.user_agent
 
     def testCookies(self):
         cookiesbad = os.path.join(os.getcwd(), "tests/data/cookies-bad.txt")
@@ -64,22 +65,11 @@ class MiscAPI(unittest.TestCase):
 
         # We used to convert LWP cookies, but it shouldn't matter anymore,
         # so verify they fail at least
-        try:
+        with pytest.raises(bugzilla.BugzillaError):
             tests.make_bz("3.0.0", cookiefile=cookieslwp)
-            raise AssertionError("Expected BugzillaError from parsing %s" %
-                                 os.path.basename(cookieslwp))
-        except bugzilla.BugzillaError:
-            # Expected result
-            pass
 
-        # Make sure bad cookies raise an error
-        try:
+        with pytest.raises(bugzilla.BugzillaError):
             tests.make_bz("3.0.0", cookiefile=cookiesbad)
-            raise AssertionError("Expected BugzillaError from parsing %s" %
-                                 os.path.basename(cookiesbad))
-        except bugzilla.BugzillaError:
-            # Expected result
-            pass
 
         # Mozilla should 'just work'
         tests.make_bz("3.0.0", cookiefile=cookiesmoz)
@@ -98,9 +88,9 @@ password=test2"""
         temp.write(content)
         temp.flush()
         bzapi.readconfig(temp.name)
-        self.assertEqual(bzapi.user, "test1")
-        self.assertEqual(bzapi.password, "test2")
-        self.assertEqual(bzapi.api_key, None)
+        assert bzapi.user == "test1"
+        assert bzapi.password == "test2"
+        assert bzapi.api_key is None
 
         content = """
 [foo.example.com]
@@ -111,29 +101,29 @@ api_key=123abc
         temp.write(content)
         temp.flush()
         bzapi.readconfig(temp.name)
-        self.assertEqual(bzapi.user, "test3")
-        self.assertEqual(bzapi.password, "test4")
-        self.assertEqual(bzapi.api_key, "123abc")
+        assert bzapi.user == "test3"
+        assert bzapi.password == "test4"
+        assert bzapi.api_key == "123abc"
 
         bzapi.url = "bugzilla.redhat.com"
         bzapi.user = None
         bzapi.password = None
         bzapi.api_key = None
         bzapi.readconfig(temp.name)
-        self.assertEqual(bzapi.user, None)
-        self.assertEqual(bzapi.password, None)
-        self.assertEqual(bzapi.api_key, None)
+        assert bzapi.user is None
+        assert bzapi.password is None
+        assert bzapi.api_key is None
 
 
     def testPostTranslation(self):
         def _testPostCompare(bz, indict, outexpect):
             outdict = indict.copy()
             bz.post_translation({}, outdict)
-            self.assertTrue(outdict == outexpect)
+            assert outdict == outexpect
 
             # Make sure multiple calls don't change anything
             bz.post_translation({}, outdict)
-            self.assertTrue(outdict == outexpect)
+            assert outdict == outexpect
 
         bug3 = tests.make_bz("3.4.0")
         rhbz = tests.make_bz("4.4.0", rhbz=True)

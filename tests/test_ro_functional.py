@@ -13,8 +13,9 @@ Unit tests that do readonly functional tests against real bugzilla instances.
 
 import unittest
 
-from bugzilla import Bugzilla, BugzillaError, RHBugzilla
+import pytest
 
+from bugzilla import Bugzilla, BugzillaError, RHBugzilla
 import tests
 
 
@@ -30,17 +31,18 @@ class BaseTest(unittest.TestCase):
         if not bz:
             bz = Bugzilla(url=self.url, use_creds=False)
         if expectexc:
-            self.assertRaises(Exception, tests.clicomm, comm, bz)
+            with pytest.raises(Exception):
+                tests.clicomm(comm, bz)
         else:
             return tests.clicomm(comm, bz)
 
     def _testBZVersion(self):
         bz = Bugzilla(self.url, use_creds=False)
-        self.assertEqual(bz.__class__, self.bzclass)
+        assert bz.__class__ == self.bzclass
         if tests.CLICONFIG.REDHAT_URL:
             return
-        self.assertEqual(bz.bz_ver_major, self.bzversion[0])
-        self.assertEqual(bz.bz_ver_minor, self.bzversion[1])
+        assert bz.bz_ver_major == self.bzversion[0]
+        assert bz.bz_ver_minor == self.bzversion[1]
 
     # Since we are running these tests against bugzilla instances in
     # the wild, we can't depend on certain data like product lists
@@ -48,19 +50,19 @@ class BaseTest(unittest.TestCase):
 
     def _testInfoProducts(self, mincount, expectstr):
         out = self.clicomm("info --products").splitlines()
-        self.assertTrue(len(out) >= mincount)
-        self.assertTrue(expectstr in out)
+        assert len(out) >= mincount
+        assert expectstr in out
 
     def _testInfoComps(self, comp, mincount, expectstr):
         out = self.clicomm("info --components \"%s\"" % comp).splitlines()
-        self.assertTrue(len(out) >= mincount)
-        self.assertTrue(expectstr in out)
+        assert len(out) >= mincount
+        assert expectstr in out
 
     def _testInfoVers(self, comp, mincount, expectstr):
         out = self.clicomm("info --versions \"%s\"" % comp).splitlines()
-        self.assertTrue(len(out) >= mincount)
+        assert len(out) >= mincount
         if expectstr:
-            self.assertTrue(expectstr in out)
+            assert expectstr in out
 
     def _testInfoCompOwners(self, comp, expectstr):
         expectexc = (expectstr == "FAIL")
@@ -69,7 +71,7 @@ class BaseTest(unittest.TestCase):
         if expectexc:
             return
 
-        self.assertTrue(expectstr in out.splitlines())
+        assert expectstr in out.splitlines()
 
     def _testQuery(self, args, mincount, expectbug):
         expectexc = (expectbug == "FAIL")
@@ -78,41 +80,41 @@ class BaseTest(unittest.TestCase):
         if expectexc:
             return
 
-        self.assertTrue(len(out.splitlines()) >= mincount)
-        self.assertTrue(bool([l1 for l1 in out.splitlines() if
-                              l1.startswith("#" + expectbug)]))
+        assert len(out.splitlines()) >= mincount
+        assert bool([l1 for l1 in out.splitlines() if
+                     l1.startswith("#" + expectbug)])
 
         # Check --ids output option
         out2 = self.clicomm(cli + " --ids")
-        self.assertTrue(len(out.splitlines()) == len(out2.splitlines()))
-        self.assertTrue(bool([l2 for l2 in out2.splitlines() if
-                              l2 == expectbug]))
+        assert len(out.splitlines()) == len(out2.splitlines())
+        assert bool([l2 for l2 in out2.splitlines() if
+                     l2 == expectbug])
 
 
     def _testQueryFull(self, bugid, mincount, expectstr):
         out = self.clicomm("query --full --bug_id %s" % bugid)
-        self.assertTrue(len(out.splitlines()) >= mincount)
-        self.assertTrue(expectstr in out)
+        assert len(out.splitlines()) >= mincount
+        assert expectstr in out
 
     def _testQueryRaw(self, bugid, mincount, expectstr):
         out = self.clicomm("query --raw --bug_id %s" % bugid)
-        self.assertTrue(len(out.splitlines()) >= mincount)
-        self.assertTrue(expectstr in out)
+        assert len(out.splitlines()) >= mincount
+        assert expectstr in out
 
     def _testQueryOneline(self, bugid, expectstr):
         out = self.clicomm("query --oneline --bug_id %s" % bugid)
-        self.assertTrue(len(out.splitlines()) == 3)
-        self.assertTrue(out.splitlines()[2].startswith("#%s" % bugid))
-        self.assertTrue(expectstr in out)
+        assert len(out.splitlines()) == 3
+        assert out.splitlines()[2].startswith("#%s" % bugid)
+        assert expectstr in out
 
     def _testQueryExtra(self, bugid, expectstr):
         out = self.clicomm("query --extra --bug_id %s" % bugid)
-        self.assertTrue(("#%s" % bugid) in out)
-        self.assertTrue(expectstr in out)
+        assert ("#%s" % bugid) in out
+        assert expectstr in out
 
     def _testQueryFormat(self, args, expectstr):
         out = self.clicomm("query %s" % args)
-        self.assertTrue(expectstr in out)
+        assert expectstr in out
 
     def _testQueryURL(self, querystr, count, expectstr):
         url = self.url
@@ -121,8 +123,8 @@ class BaseTest(unittest.TestCase):
         else:
             url += querystr
         out = self.clicomm("query --from-url \"%s\"" % url)
-        self.assertEqual(len(out.splitlines()), count)
-        self.assertTrue(expectstr in out)
+        assert len(out.splitlines()) == count
+        assert expectstr in out
 
 
 class BZMozilla(BaseTest):
@@ -131,9 +133,9 @@ class BZMozilla(BaseTest):
         # format, so just try to confirm that
         try:
             bz = Bugzilla("bugzilla.mozilla.org", use_creds=False)
-            self.assertEqual(bz.__class__, Bugzilla)
-            self.assertTrue(bz.bz_ver_major >= 2016)
-            self.assertTrue(bz.bz_ver_minor in range(1, 13))
+            assert bz.__class__ == Bugzilla
+            assert bz.bz_ver_major >= 2016
+            assert bz.bz_ver_minor in range(1, 13)
         except Exception as e:
             # travis environment throws SSL errors here
             # https://travis-ci.org/python-bugzilla/python-bugzilla/builds/304713566
@@ -154,7 +156,7 @@ class BZGentoo(BaseTest):
             "&query_format=advanced&resolution=FIXED")
         bz = Bugzilla(url=self.url, use_creds=False)
         ret = bz.query(bz.url_to_query(query_url))
-        self.assertTrue(len(ret) > 0)
+        assert len(ret) > 0
 
 
 class BZGnome(BaseTest):
@@ -181,7 +183,7 @@ class BZGnome(BaseTest):
         try:
             bz.query(bz.url_to_query(query_url))
         except BugzillaError as e:
-            self.assertTrue("derived from bugzilla" in str(e))
+            assert "derived from bugzilla" in str(e)
 
 
 class BZFDO(BaseTest):
@@ -267,22 +269,21 @@ class RHTest(BaseTest):
         out = self.clicomm("query --product 'Red Hat Enterprise Linux 5' "
             "--component virt-manager --bug_status CLOSED "
             "--flag rhel-5.4.0+", bz=bz)
-        self.assertTrue(len(out.splitlines()) > 15)
-        self.assertTrue(len(out.splitlines()) < 28)
-        self.assertTrue("223805" in out)
+        assert len(out.splitlines()) > 15
+        assert len(out.splitlines()) < 28
+        assert "223805" in out
 
     def testQueryFixedIn(self):
         out = self.clicomm("query --fixed_in anaconda-15.29-1")
-        self.assertEqual(len(out.splitlines()), 6)
-        self.assertTrue("#629311 CLOSED" in out)
+        assert len(out.splitlines()) == 6
+        assert "#629311 CLOSED" in out
 
     def testComponentsDetails(self):
         """
         Fresh call to getcomponentsdetails should properly refresh
         """
         bz = self.bzclass(url=self.url, use_creds=False)
-        self.assertTrue(
-            bool(bz.getcomponentsdetails("Red Hat Developer Toolset")))
+        assert bool(bz.getcomponentsdetails("Red Hat Developer Toolset"))
 
     def testGetBugAlias(self):
         """
@@ -290,21 +291,20 @@ class RHTest(BaseTest):
         """
         bz = self.bzclass(url=self.url, use_creds=False)
         bug = bz.getbug("CVE-2011-2527")
-        self.assertTrue(bug.bug_id == 720773)
+        assert bug.bug_id == 720773
 
     def testQuerySubComponent(self):
         out = self.clicomm("query --product 'Red Hat Enterprise Linux 7' "
             "--component lvm2 --sub-component 'Thin Provisioning'")
-        self.assertTrue(len(out.splitlines()) >= 5)
-        self.assertTrue("#1060931 " in out)
+        assert len(out.splitlines()) >= 5
+        assert "#1060931 " in out
 
     def testBugFields(self):
         bz = self.bzclass(url=self.url, use_creds=False)
         fields1 = bz.getbugfields()[:]
         fields2 = bz.getbugfields(force_refresh=True)[:]
-        self.assertTrue(bool([f for f in fields1 if
-            f.startswith("attachments")]))
-        self.assertEqual(fields1, fields2)
+        assert bool([f for f in fields1 if f.startswith("attachments")])
+        assert fields1 == fields2
 
     def testBugAutoRefresh(self):
         bz = self.bzclass(self.url, use_creds=False)
@@ -313,61 +313,61 @@ class RHTest(BaseTest):
 
         bug = bz.query(bz.build_query(bug_id=720773,
             include_fields=["summary"]))[0]
-        self.assertTrue(hasattr(bug, "component"))
-        self.assertTrue(bool(bug.component))
+        assert hasattr(bug, "component")
+        assert bool(bug.component)
 
         bz.bug_autorefresh = False
 
         bug = bz.query(bz.build_query(bug_id=720773,
             include_fields=["summary"]))[0]
-        self.assertFalse(hasattr(bug, "component"))
+        assert not hasattr(bug, "component")
         try:
-            self.assertFalse(bool(bug.component))
+            assert bool(bug.component)
         except Exception as e:
-            self.assertTrue("adjust your include_fields" in str(e))
+            assert "adjust your include_fields" in str(e)
 
     def testExtraFields(self):
         bz = self.bzclass(self.url, cookiefile=None, tokenfile=None)
 
         # Check default extra_fields will pull in comments
         bug = bz.getbug(720773, exclude_fields=["product"])
-        self.assertTrue("comments" in dir(bug))
-        self.assertTrue("product" not in dir(bug))
+        assert "comments" in dir(bug)
+        assert "product" not in dir(bug)
 
         # Ensure that include_fields overrides default extra_fields
         bug = bz.getbug(720773, include_fields=["summary"])
-        self.assertTrue("summary" in dir(bug))
-        self.assertTrue("comments" not in dir(bug))
+        assert "summary" in dir(bug)
+        assert "comments" not in dir(bug)
 
     def testExternalBugsOutput(self):
         out = self.clicomm('query --bug_id 989253 '
             '--outputformat="%{external_bugs}"')
         expect = ("http://bugzilla.gnome.org/show_bug.cgi?id=703421\n" +
             "External bug: https://bugs.launchpad.net/bugs/1203576")
-        self.assertTrue(expect in out)
+        assert expect in out
 
     def testActiveComps(self):
         out = self.clicomm("info --components 'Virtualization Tools' "
                 "--active-components")
-        self.assertTrue("virtinst" not in out)
+        assert "virtinst" not in out
         out = self.clicomm("info --component_owners 'Virtualization Tools' "
                 "--active-components")
-        self.assertTrue("virtinst" not in out)
+        assert "virtinst" not in out
 
     def testFaults(self):
         # Test special error wrappers in bugzilla/_cli.py
         bzinstance = Bugzilla(self.url, use_creds=False)
         out = tests.clicomm("bugzilla query --field=IDONTEXIST=FOO",
             bzinstance, expectfail=True)
-        self.assertTrue("Server error:" in out)
+        assert "Server error:" in out
 
         out = tests.clicomm("bugzilla "
             "--bugzilla https://example.com/xmlrpc.cgi "
             "query --field=IDONTEXIST=FOO", None, expectfail=True)
-        self.assertTrue("Connection lost/failed" in out)
+        assert "Connection lost/failed" in out
 
         out = tests.clicomm("bugzilla "
             "--bugzilla https://expired.badssl.com/ "
             "query --bug_id 1234", None, expectfail=True)
-        self.assertTrue(("trust the remote server" in out) and
-                ("--nosslverify" in out))
+        assert "trust the remote server" in out
+        assert "--nosslverify" in out

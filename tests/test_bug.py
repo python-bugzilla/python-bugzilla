@@ -23,7 +23,6 @@ rhbz = tests.make_bz("4.4.0", rhbz=True)
 
 
 class BugTest(unittest.TestCase):
-    maxDiff = None
     bz = rhbz
 
     def testBasic(self):
@@ -42,22 +41,20 @@ class BugTest(unittest.TestCase):
         bug = Bug(bugzilla=self.bz, dict=data)
 
         def _assert_bug():
-            self.assertEqual(hasattr(bug, "component"), True)
-            self.assertEqual(getattr(bug, "components"), ["foo"])
-            self.assertEqual(getattr(bug, "product"), "bar")
-            self.assertEqual(hasattr(bug, "short_desc"), True)
-            self.assertEqual(getattr(bug, "summary"), "some short desc")
-            self.assertEqual(bool(getattr(bug, "cf_fixed_in")), True)
-            self.assertEqual(getattr(bug, "fixed_in"), "1.2.3.4")
-            self.assertEqual(bool(getattr(bug, "cf_devel_whiteboard")), True)
-            self.assertEqual(getattr(bug, "devel_whiteboard"),
-                "some status value")
+            assert hasattr(bug, "component") is True
+            assert getattr(bug, "components") == ["foo"]
+            assert getattr(bug, "product") == "bar"
+            assert hasattr(bug, "short_desc") is True
+            assert getattr(bug, "summary") == "some short desc"
+            assert bool(getattr(bug, "cf_fixed_in")) is True
+            assert getattr(bug, "fixed_in") == "1.2.3.4"
+            assert bool(getattr(bug, "cf_devel_whiteboard")) is True
+            assert getattr(bug, "devel_whiteboard") == "some status value"
 
         _assert_bug()
 
-        self.assertEqual(str(bug),
-            "#123456 NEW        - foo@bar.com - some short desc")
-        self.assertTrue(repr(bug).startswith("<Bug #123456"))
+        assert str(bug) == "#123456 NEW        - foo@bar.com - some short desc"
+        assert repr(bug).startswith("<Bug #123456")
 
         # This triggers some code in __getattr__
         dir(bug)
@@ -72,7 +69,7 @@ class BugTest(unittest.TestCase):
         pickle.dump(bug, fd)
         fd.seek(0)
         bug = pickle.load(fd)
-        self.assertEqual(getattr(bug, "bugzilla"), None)
+        assert getattr(bug, "bugzilla") is None
         bug.bugzilla = self.bz
         _assert_bug()
 

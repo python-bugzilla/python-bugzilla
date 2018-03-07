@@ -11,41 +11,30 @@ Unit tests for building update dictionaries with 'bugzilla modify'
 
 import unittest
 
-import tests
+import pytest
 
+import tests
 
 rhbz = tests.make_bz("4.4.0", rhbz=True)
 
 
 class ModifyTest(unittest.TestCase):
-    maxDiff = None
     bz = rhbz
-
-    def assertDictEqual(self, *args, **kwargs):
-        # pylint: disable=arguments-differ
-        # EPEL5 back compat
-        if hasattr(unittest.TestCase, "assertDictEqual"):
-            return unittest.TestCase.assertDictEqual(self, *args, **kwargs)
-        return self.assertEqual(*args, **kwargs)
 
     def clicomm(self, argstr, out, wbout=None, tags_add=None, tags_rm=None):
         comm = "bugzilla modify --__test-return-result 123456 224466 " + argstr
-        # pylint: disable=unpacking-non-sequence
 
-        if out is None:
-            self.assertRaises(RuntimeError, tests.clicomm, comm, self.bz)
-        else:
-            (mdict, wdict, tagsa, tagsr) = tests.clicomm(
-                comm, self.bz, returnmain=True)
+        (mdict, wdict, tagsa, tagsr) = tests.clicomm(
+            comm, self.bz, returnmain=True)
 
-            if wbout:
-                self.assertDictEqual(wbout, wdict)
-            if out:
-                self.assertDictEqual(out, mdict)
-            if tags_add:
-                self.assertEqual(tags_add, tagsa)
-            if tags_rm:
-                self.assertEqual(tags_rm, tagsr)
+        if wbout:
+            assert wbout == wdict
+        if out:
+            assert out == mdict
+        if tags_add:
+            assert tags_add == tagsa
+        if tags_rm:
+            assert tags_rm == tagsr
 
     def testBasic(self):
         self.clicomm(
@@ -204,5 +193,5 @@ class ModifyTest(unittest.TestCase):
             {"component": "foo", "sub_components": {"foo": ["bar baz"]}})
 
     def testSubComponentFail(self):
-        self.assertRaises(ValueError, self.bz.build_update,
-            sub_component="some sub component")
+        with pytest.raises(ValueError):
+            self.bz.build_update(sub_component="some sub component")

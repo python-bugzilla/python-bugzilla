@@ -13,6 +13,8 @@ import copy
 import os
 import unittest
 
+import pytest
+
 import tests
 
 bz34 = tests.make_bz("3.4.0")
@@ -25,23 +27,16 @@ class BZ34Test(unittest.TestCase):
     This is the base query class, but it's also functional on its
     own.
     """
-    maxDiff = None
-
-    def assertDictEqual(self, *args, **kwargs):
-        # pylint: disable=arguments-differ
-        # EPEL5 back compat
-        if hasattr(unittest.TestCase, "assertDictEqual"):
-            return unittest.TestCase.assertDictEqual(self, *args, **kwargs)
-        return self.assertEqual(*args, **kwargs)
-
     def clicomm(self, argstr, out):
         comm = "bugzilla query --__test-return-result " + argstr
 
-        if out is None:
-            self.assertRaises(RuntimeError, tests.clicomm, comm, self.bz)
+        if not out:
+            with pytest.raises(RuntimeError):
+                tests.clicomm(comm, self.bz)
+
         else:
             q = tests.clicomm(comm, self.bz, returnmain=True)
-            self.assertDictEqual(out, q)
+            assert out == q
 
     def testBasicQuery(self):
         self.clicomm("--product foo --component foo,bar --bug_id 1234,2480",
@@ -239,21 +234,21 @@ class RHBZTest(BZ4Test):
 
         in_query["include_fields"] = [
             "cf_devel_whiteboard", "cf_fixed_in", "component", "id"]
-        self.assertDictEqual(in_query, out_query)
+        assert in_query == out_query
 
         in_query = {"bug_id": "123,456", "component": "foo,bar"}
         out_query = translate(in_query)
-        self.assertEqual(out_query["id"], ["123", "456"])
-        self.assertEqual(out_query["component"], ["foo", "bar"])
+        assert out_query["id"] == ["123", "456"]
+        assert out_query["component"] == ["foo", "bar"]
 
         in_query = {"bug_id": [123, 124], "column_list": ["id"]}
         out_query = translate(in_query)
-        self.assertEqual(out_query["id"], [123, 124])
-        self.assertEqual(out_query["include_fields"], in_query["column_list"])
+        assert out_query["id"] == [123, 124]
+        assert out_query["include_fields"] == in_query["column_list"]
 
     def testInvalidBoolean(self):
-        self.assertRaises(RuntimeError, self.bz.build_query,
-            boolean_query="foobar")
+        with pytest.raises(RuntimeError):
+            self.bz.build_query(boolean_query="foobar")
 
     def testBooleans(self):
         out = {
@@ -288,9 +283,6 @@ class RHBZTest(BZ4Test):
 
 
 class TestURLToQuery(BZ34Test):
-    def _check(self, url, query):
-        self.assertDictEqual(bz4.url_to_query(url), query)
-
     def testSavedSearch(self):
         url = ("https://bugzilla.redhat.com/buglist.cgi?"
             "cmdtype=dorem&list_id=2342312&namedcmd="
@@ -300,7 +292,7 @@ class TestURLToQuery(BZ34Test):
             'sharer_id': '321167',
             'savedsearch': 'RHEL7 new assigned virt-maint'
         }
-        self._check(url, query)
+        assert bz4.url_to_query(url) == query
 
     def testStandardQuery(self):
         url = ("https://bugzilla.redhat.com/buglist.cgi?"
@@ -318,4 +310,4 @@ class TestURLToQuery(BZ34Test):
             'component': 'virt-manager',
             'order': 'bug_status,bug_id'
         }
-        self._check(url, query)
+        assert bz4.url_to_query(url) == query
