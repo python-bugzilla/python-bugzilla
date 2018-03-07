@@ -1142,13 +1142,6 @@ def main(unittest_bz_instance=None):
     except (Fault, bugzilla.BugzillaError) as e:
         print("\nServer error: %s" % str(e))
         sys.exit(3)
-    except ProtocolError as e:
-        print("\nInvalid server response: %d %s" % (e.errcode, e.errmsg))
-        redir = (e.headers and 'location' in e.headers)
-        if redir:
-            print("\nServer was attempting a redirect. Try: "
-                  "  bugzilla --bugzilla %s ..." % redir)
-        sys.exit(4)
     except requests.exceptions.SSLError as e:
         # Give SSL recommendations
         print("SSL error: %s" % e)
@@ -1158,9 +1151,11 @@ def main(unittest_bz_instance=None):
         sys.exit(4)
     except (socket.error,
             requests.exceptions.HTTPError,
-            requests.exceptions.ConnectionError) as e:
+            requests.exceptions.ConnectionError,
+            ProtocolError) as e:
         print("\nConnection lost/failed: %s" % str(e))
         sys.exit(2)
+
 
 def cli():
     try:
