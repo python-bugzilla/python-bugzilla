@@ -29,7 +29,7 @@ class CreatebugTest(unittest.TestCase):
         return self.assertEqual(*args, **kwargs)
 
     def clicomm(self, argstr, out):
-        comm = "bugzilla new --test-return-result " + argstr
+        comm = "bugzilla new --__test-return-result " + argstr
 
         if out is None:
             self.assertRaises(RuntimeError, tests.clicomm, comm, self.bz)

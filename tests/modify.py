@@ -29,7 +29,7 @@ class ModifyTest(unittest.TestCase):
         return self.assertEqual(*args, **kwargs)
 
     def clicomm(self, argstr, out, wbout=None, tags_add=None, tags_rm=None):
-        comm = "bugzilla modify --test-return-result 123456 224466 " + argstr
+        comm = "bugzilla modify --__test-return-result 123456 224466 " + argstr
         # pylint: disable=unpacking-non-sequence
 
         if out is None:

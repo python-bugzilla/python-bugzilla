@@ -272,8 +272,8 @@ def _parser_add_bz_fields(rootp, command):
         "  --field cf_my_field=VALUE")
 
     # Used by unit tests, not for end user consumption
-    p.add_argument('--test-return-result', action="store_true",
-        help=argparse.SUPPRESS)
+    p.add_argument('--__test-return-result', action="store_true",
+        dest="test_return_result", help=argparse.SUPPRESS)
 
     if not cmd_modify:
         _parser_add_output_options(rootp)
