@@ -6,6 +6,3 @@ build
 .cache
 .coverage
 .tox
-
-#python-bugzilla venvs
-dev-env*
