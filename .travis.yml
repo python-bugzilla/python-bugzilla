@@ -9,31 +9,11 @@ python:
   - pypy-5.3.1
 
 install:
-  - pip install tox || true
-  - pip install tox-travis || true
+  - pip install tox
+  - pip install tox-travis
 
 script:
   - tox -- --ro-functional
-
-jobs:
-  include:
-
-    # https://sonarcloud.io/dashboard?id=com.github%3Apython-bugzilla%3Apython-bugzilla
-    - stage: sonar
-      dist: trusty
-      language: java
-      addons:
-        sonarcloud:
-          organization: "python-bugzilla"
-          token:
-            secure: "fk6YMhht7X5a60QWeeLWOrUu6zjS/1fhVfM7PicaDhkhwOaadzjuKgVj+xAmQL8cMh98hK8wk1aE9uDuwTbKMMydDqY9pH8agtyk3j/2ArbOl1hphYWo3FeoB6q8FTiKN1fiT+8hPy7MIjjFthe3e6dyUR2Le5QtH2B+BCYrDMdqbvN+GXLyBPTAvzbDerpnw1j5o2QWjaLu+juznaR+q/PL58796P6GU2WmpfkpOaMYJA2CA/w0Ehivp4zlbZpmuC/v6NopSjuT6RpO3ppPtTRmlwMZEGTAwXhxlU2CHlIyCq44Rsm0kxf1+xQK2aL/SWJzCDk6rHAd16B10r3AKwYW05Rclw49x9HV29zGeUTJD3qgRscf0v5yYyCISv1r9D4jJ+y9tIVHvMzuMvl6G0rZNiwxu6OwlzpyzQkgPbO183HGCyjYKaBn6jQmCWHzxnk+FRUt7Rvbd53Mz3TYbx7LeTnRDPNc69nIbybjzIRXEw/4SVsncue3whrj4s81NJzkvDaABzLdnd1X9G2aG8h1Vk1XpuUnP7wVyKr1L1wcSdvtIbZ7ekgOA8xQG9XHh4E+5FTZEKOYeb7ZeDKijvUnl1Qo3dXKMS2/Y+18Ogl+4M9w7c3PCjxhDAsuv42uNyxH66qxdzrzckjsyJVS6VTwTBf8fsjzgQ5hmHjKPYA="
-          branches:
-            - master
-      script:
-        - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then sonar-scanner; fi'
-      branches:
-        only:
-          - master
 
 notifications:
     email: true
