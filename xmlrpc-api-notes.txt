@@ -125,3 +125,4 @@ Redhat Bugzilla: 4.4 based with extensions. Bits on top of 4.4
 Fedora infrastructure python-bugzilla consumers:
     https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/roles/distgit/pagure/templates/pagure-sync-bugzilla.py.j2
     https://github.com/fedora-infra/bodhi/blob/develop/bodhi/server/bugs.py
+    https://github.com/fedora-infra/fas/blob/develop/tools/export-bugzilla.py
