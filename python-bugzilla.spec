@@ -29,9 +29,6 @@ BuildRequires: python2-devel
 BuildRequires: python2-requests
 BuildRequires: python2-setuptools
 BuildRequires: python2-pytest
-%if 0%{?el6}
-BuildRequires: python-argparse
-%endif
 %endif # with python2
 
 %if %{with python3}
@@ -53,9 +50,6 @@ over XML-RPC.\
 Summary: %summary
 Requires: python2-requests
 Requires: python2-magic
-%if 0%{?el6}
-Requires: python-argparse
-%endif
 # This dep is for back compat, so that installing python-bugzilla continues
 # to give the cli tool
 Requires: python-bugzilla-cli
