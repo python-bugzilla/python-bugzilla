@@ -148,6 +148,8 @@ def _setup_root_parser():
              'specified command.')
     p.add_argument('--username', help="Log in with this username")
     p.add_argument('--password', help="Log in with this password")
+    p.add_argument('--cert', default=None, help="Log in with this "
+            "certificate")
 
     p.add_argument('--ensure-logged-in', action="store_true",
         help="Raise an error if we aren't logged in to bugzilla. "
@@ -1031,7 +1033,8 @@ def _make_bz_instance(opt):
         url=opt.bugzilla,
         cookiefile=cookiefile,
         tokenfile=tokenfile,
-        sslverify=opt.sslverify)
+        sslverify=opt.sslverify,
+        cert=opt.cert)
     return bz
 
 
