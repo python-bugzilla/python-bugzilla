@@ -260,7 +260,8 @@ class Bugzilla(object):
 
 
     def __init__(self, url=-1, user=None, password=None, cookiefile=-1,
-                 sslverify=True, tokenfile=-1, use_creds=True, api_key=None, cert=None):
+                 sslverify=True, tokenfile=-1, use_creds=True, api_key=None,
+                 cert=None):
         """
         :param url: The bugzilla instance URL, which we will connect
             to immediately. Most users will want to specify this at

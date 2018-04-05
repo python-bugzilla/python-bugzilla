@@ -11,6 +11,7 @@
 Unit tests that do readonly functional tests against real bugzilla instances.
 '''
 
+import os
 import unittest
 
 import pytest
@@ -371,3 +372,12 @@ class RHTest(BaseTest):
             "query --bug_id 1234", None, expectfail=True)
         assert "trust the remote server" in out
         assert "--nosslverify" in out
+
+    def testCertFail(self):
+        # No public setup that I know of to test cert succeeds, so
+        # let's give it a bogus file and ensure it fails
+        badcert = os.path.join(os.path.dirname(__file__), "..", "README.md")
+        out = tests.clicomm(
+            "bugzilla --cert %s query --bug_id 123456" % badcert,
+            None, expectfail=True)
+        assert "PEM" in out

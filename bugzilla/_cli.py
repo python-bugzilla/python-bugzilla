@@ -142,14 +142,14 @@ def _setup_root_parser():
     p.add_argument("--nosslverify", dest="sslverify",
                  action="store_false", default=True,
                  help="Don't error on invalid bugzilla SSL certificate")
+    p.add_argument('--cert',
+            help="client side certificate file needed by the webserver")
 
     p.add_argument('--login', action="store_true",
         help='Run interactive "login" before performing the '
              'specified command.')
     p.add_argument('--username', help="Log in with this username")
     p.add_argument('--password', help="Log in with this password")
-    p.add_argument('--cert', default=None, help="Log in with this "
-            "certificate")
 
     p.add_argument('--ensure-logged-in', action="store_true",
         help="Raise an error if we aren't logged in to bugzilla. "
