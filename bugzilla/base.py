@@ -260,7 +260,7 @@ class Bugzilla(object):
 
 
     def __init__(self, url=-1, user=None, password=None, cookiefile=-1,
-                 sslverify=True, tokenfile=-1, use_creds=True, api_key=None):
+                 sslverify=True, tokenfile=-1, use_creds=True, api_key=None, cert=None):
         """
         :param url: The bugzilla instance URL, which we will connect
             to immediately. Most users will want to specify this at
@@ -268,6 +268,8 @@ class Bugzilla(object):
             url=None and calling connect(URL) manually
         :param user: optional username to connect with
         :param password: optional password for the connecting user
+        :param cert: optional certificate file for client side certificate
+            authentication
         :param cookiefile: Location to cache the login session cookies so you
             don't have to keep specifying username/password. Bugzilla 5+ will
             use tokens instead of cookies.
@@ -294,6 +296,7 @@ class Bugzilla(object):
         self.user = user or ''
         self.password = password or ''
         self.api_key = api_key
+        self.cert = cert or ''
         self.url = ''
 
         self._proxy = None
@@ -500,6 +503,9 @@ class Bugzilla(object):
             elif key == "password":
                 log.debug("bugzillarc: setting password")
                 self.password = val
+            elif key == "cert":
+                log.debug("bugzillarc: setting cert")
+                self.cert = val
             else:
                 log.debug("bugzillarc: unknown key=%s", key)
 
@@ -533,7 +539,7 @@ class Bugzilla(object):
         url = self.fix_url(url)
 
         self._transport = _RequestsTransport(
-            url, self._cookiejar, sslverify=self._sslverify)
+            url, self._cookiejar, sslverify=self._sslverify, cert=self.cert)
         self._transport.user_agent = self.user_agent
         self._proxy = _BugzillaServerProxy(url, self.tokenfile,
             self._transport)
