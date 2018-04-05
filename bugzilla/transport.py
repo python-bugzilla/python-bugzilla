@@ -109,7 +109,7 @@ class _RequestsTransport(Transport):
     user_agent = 'Python/Bugzilla'
 
     def __init__(self, url, cookiejar=None,
-                 sslverify=True, sslcafile=None, debug=0):
+                 sslverify=True, sslcafile=None, debug=True, cert=None):
         if hasattr(Transport, "__init__"):
             Transport.__init__(self, use_datetime=False)
 
@@ -137,6 +137,8 @@ class _RequestsTransport(Transport):
         # Using an explicit Session, rather than requests.get, will use
         # HTTP KeepAlive if the server supports it.
         self.session = requests.Session()
+        if cert:
+            self.session.cert = cert
 
     def parse_response(self, response):
         """ Parse XMLRPC response """
@@ -167,6 +169,7 @@ class _RequestsTransport(Transport):
                     # Save is required only if we have a filename
                     self._cookiejar.save()
 
+            log.debug(response.text)
             response.raise_for_status()
             return self.parse_response(response)
         except requests.RequestException as e:
