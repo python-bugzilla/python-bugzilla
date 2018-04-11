@@ -414,6 +414,8 @@ bugzilla attach --type=TYPE BUGID [BUGID...]"""
             default=[], help="Download the attachment with the given ID")
     p.add_argument("--getall", "--get-all", metavar="BUGID", action="append",
             default=[], help="Download all attachments on the given bug")
+    p.add_argument('-l', '--comment', '--long_desc',
+            help="Add comment with attachment")
 
 
 def _setup_action_login_parser(subparsers):
@@ -1004,6 +1006,8 @@ def _do_set_attach(bz, opt, parser):
         kwargs["contenttype"] = opt.type
     if opt.type in ["text/x-patch"]:
         kwargs["ispatch"] = True
+    if opt.comment:
+        kwargs["comment"] = opt.comment
     desc = opt.desc or os.path.basename(fileobj.name)
 
     # Upload attachments
