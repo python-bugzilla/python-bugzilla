@@ -1137,6 +1137,9 @@ def _main(unittest_bz_instance):
         modout = _do_modify(bz, parser, opt)
         if opt.test_return_result:
             return modout
+
+    elif action == None:
+        parser.print_help()
     else:
         raise RuntimeError("Unexpected action '%s'" % action)
 
