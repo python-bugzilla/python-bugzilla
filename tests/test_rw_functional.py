@@ -67,11 +67,7 @@ class RHPartnerTest(unittest.TestCase):
         bz = Bugzilla(url=self.url, use_creds=False)
         assert bz.__class__ is self.bzclass
 
-    def test03NewBugBasic(self):
-        """
-        Create a bug with minimal amount of fields, then close it
-        """
-        bz = self.bzclass(url=self.url)
+    def _makebug(self, bz):
         component = "python-bugzilla"
         version = "rawhide"
         summary = ("python-bugzilla test basic bug %s" %
@@ -84,21 +80,29 @@ class RHPartnerTest(unittest.TestCase):
             (component, version, summary), bz)
 
         assert len(newout.splitlines()) == 3
-
         bugid = int(newout.splitlines()[2])
         bug = bz.getbug(bugid)
-        print("\nCreated bugid: %s" % bugid)
-
-        # Verify hasattr works
-        assert hasattr(bug, "id")
-        assert hasattr(bug, "bug_id")
+        print("\nCreated bugid: %s" % bug.id)
 
         assert bug.component == component
         assert bug.version == version
         assert bug.summary == summary
 
+        return bug
+
+    def test03NewBugBasic(self):
+        """
+        Create a bug with minimal amount of fields, then close it
+        """
+        bz = self.bzclass(url=self.url)
+        bug = self._makebug(bz)
+
+        # Verify hasattr works
+        assert hasattr(bug, "id")
+        assert hasattr(bug, "bug_id")
+
         # Close the bug
-        tests.clicomm("bugzilla modify --close NOTABUG %s" % bugid, bz)
+        tests.clicomm("bugzilla modify --close NOTABUG %s" % bug.id, bz)
         bug.refresh()
         assert bug.status == "CLOSED"
         assert bug.resolution == "NOTABUG"
@@ -498,24 +502,23 @@ class RHPartnerTest(unittest.TestCase):
         Get and set attachments for a bug
         """
         bz = self.bzclass(url=self.url)
-        getallbugid = "663674"
-        setbugid = "461686"
         cmd = "bugzilla attach "
         testfile = "../tests/data/bz-attach-get1.txt"
 
         # Add attachment as CLI option
-        setbug = bz.getbug(setbugid, extra_fields=["attachments"])
+        setbug = self._makebug(bz)
+        setbug = bz.getbug(setbug.id, extra_fields=["attachments"])
         orignumattach = len(setbug.attachments)
 
         # Add attachment from CLI with mime guessing
         desc1 = "python-bugzilla cli upload %s" % datetime.datetime.today()
         out1 = tests.clicomm(cmd + "%s --description \"%s\" --file %s" %
-                             (setbugid, desc1, testfile), bz,
+                             (setbug.id, desc1, testfile), bz,
                              stdin=open("/dev/tty", "rb"))
 
         desc2 = "python-bugzilla cli upload %s" % datetime.datetime.today()
         out2 = tests.clicomm(cmd + "%s --file test --summary \"%s\"" %
-                             (setbugid, desc2), bz, stdin=open(testfile))
+                             (setbug.id, desc2), bz, stdin=open(testfile))
 
         # Expected output format:
         #   Created attachment <attachid> on bug <bugid>
@@ -559,10 +562,10 @@ class RHPartnerTest(unittest.TestCase):
         os.unlink(fname)
 
         # Get all attachments
-        getbug = bz.getbug(getallbugid)
+        getbug = bz.getbug(setbug.id)
         getbug.autorefresh = True
         numattach = len(getbug.attachments)
-        out = tests.clicomm(cmd + "--getall %s" % getallbugid, bz).splitlines()
+        out = tests.clicomm(cmd + "--getall %s" % getbug.id, bz).splitlines()
 
         assert len(out) == (numattach + 2)
         fnames = [l.split(" ", 1)[1].strip() for l in out[2:]]
