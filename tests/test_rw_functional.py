@@ -437,10 +437,10 @@ class RHPartnerTest(unittest.TestCase):
         assert targetbug.target_milestone == "beta"
         assert targetbug.target_release == ["6.2"]
         tests.clicomm(targetcmd +
-                      "--target_milestone rc --target_release 6.0", bz)
+                      "--target_milestone rc --target_release 6.10", bz)
         targetbug.refresh()
         assert targetbug.target_milestone == "rc"
-        assert targetbug.target_release == ["6.0"]
+        assert targetbug.target_release == ["6.10"]
 
         # modify --priority
         # modify --severity

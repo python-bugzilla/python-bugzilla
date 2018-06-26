@@ -343,9 +343,8 @@ class RHTest(BaseTest):
     def testExternalBugsOutput(self):
         out = self.clicomm('query --bug_id 989253 '
             '--outputformat="%{external_bugs}"')
-        expect = ("http://bugzilla.gnome.org/show_bug.cgi?id=703421\n" +
-            "External bug: https://bugs.launchpad.net/bugs/1203576")
-        assert expect in out
+        assert "bugzilla.gnome.org/show_bug.cgi?id=703421" in out
+        assert "External bug: https://bugs.launchpad.net/bugs/1203576" in out
 
     def testActiveComps(self):
         out = self.clicomm("info --components 'Virtualization Tools' "
