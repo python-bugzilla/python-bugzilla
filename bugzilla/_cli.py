@@ -1083,6 +1083,7 @@ def _main(unittest_bz_instance):
     setup_logging(opt.debug, opt.verbose)
 
     log.debug("Launched with command line: %s", " ".join(sys.argv))
+    log.debug("Bugzilla module: %s", bugzilla)
 
     # Connect to bugzilla
     log.info('Connecting to %s', opt.bugzilla)
