@@ -169,7 +169,6 @@ class _RequestsTransport(Transport):
                     # Save is required only if we have a filename
                     self._cookiejar.save()
 
-            log.debug(response.text)
             response.raise_for_status()
             return self.parse_response(response)
         except requests.RequestException as e:
