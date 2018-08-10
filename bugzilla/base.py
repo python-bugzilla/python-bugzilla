@@ -34,9 +34,10 @@ else:
 from ._util import listify
 from ._rc import DEFAULT_CONFIGPATHS, open_bugzillarc
 from .apiversion import __version__
+from ._backendxmlrpc import _BackendXMLRPC
 from .bug import Bug, User
 from .exceptions import BugzillaError
-from .transport import _BugzillaSession, _BugzillaXMLRPCProxy
+from .transport import _BugzillaSession
 
 
 log = getLogger(__name__)
@@ -294,7 +295,7 @@ class Bugzilla(object):
         self.cert = cert or ''
         self.url = ''
 
-        self._proxy = None
+        self._backend = None
         self._session = None
         self._cookiejar = None
         self._sslverify = sslverify
@@ -342,7 +343,7 @@ class Bugzilla(object):
             c = RHBugzilla
         else:
             try:
-                extensions = self._proxy.Bugzilla.extensions()
+                extensions = self._backend.bugzilla_extensions()
                 if "RedHat" in extensions.get('extensions', {}):
                     log.info("Found RedHat bugzilla extension, "
                         "using RHBugzilla")
@@ -432,7 +433,7 @@ class Bugzilla(object):
         if (self._cookiejar and cookiefile == self._cookiejar.filename):
             return
 
-        if self._proxy is not None:
+        if self._backend is not None:
             raise RuntimeError("Can't set cookies with an open connection, "
                                "disconnect() first.")
 
@@ -555,7 +556,7 @@ class Bugzilla(object):
                 cert=self.cert,
                 tokenfile=self.tokenfile,
                 api_key=self.api_key)
-        self._proxy = _BugzillaXMLRPCProxy(url, self._session)
+        self._backend = _BackendXMLRPC(url, self._session)
 
         self.url = url
         # we've changed URLs - reload config
@@ -568,36 +569,29 @@ class Bugzilla(object):
         if self.api_key:
             log.debug("using API key")
 
-        version = self._proxy.Bugzilla.version()["version"]
+        version = self._backend.bugzilla_version()
         log.debug("Bugzilla version string: %s", version)
         self._set_bz_version(version)
+
+
+    @property
+    def _proxy(self):
+        """
+        Return an xmlrpc ServerProxy instance that will work seamlessly
+        with bugzilla
+
+        Some apps have historically accessed _proxy directly, like
+        fedora infrastrucutre pieces. So we consider it part of the API
+        """
+        return self._backend.get_xmlrpc_proxy()
 
     def disconnect(self):
         """
         Disconnect from the given bugzilla instance.
         """
-        self._proxy = None
+        self._backend = None
         self._session = None
         self._cache = _BugzillaAPICache()
-
-    def _login(self, user, password, restrict_login=None):
-        """
-        Backend login method for Bugzilla3
-        """
-        if self._basic_auth:
-            self._session.set_basic_auth(user, password)
-
-        payload = {'login': user, 'password': password}
-        if restrict_login:
-            payload['restrict_login'] = True
-
-        return self._proxy.User.login(payload)
-
-    def _logout(self):
-        """
-        Backend login method for Bugzilla3
-        """
-        return self._proxy.User.logout()
 
     def login(self, user=None, password=None, restrict_login=None):
         """
@@ -634,7 +628,14 @@ class Bugzilla(object):
             log.info("logging in with restrict_login=True")
 
         try:
-            ret = self._login(self.user, self.password, restrict_login)
+            if self._basic_auth:
+                self._session.set_basic_auth(user, password)
+
+            payload = {'login': user, 'password': password}
+            if restrict_login:
+                payload['restrict_login'] = True
+
+            ret = self._backend.user_login(payload)
             self.password = ''
             log.info("login successful for user=%s", self.user)
             return ret
@@ -692,7 +693,7 @@ class Bugzilla(object):
         Log out of bugzilla. Drops server connection and user info, and
         destroys authentication cookies.
         """
-        self._logout()
+        self._backend.user_logout()
         self.disconnect()
         self.user = ''
         self.password = ''
@@ -717,7 +718,7 @@ class Bugzilla(object):
         http://bugzilla.readthedocs.org/en/latest/api/core/v1/user.html#valid-login
         """
         try:
-            self._proxy.User.get({'ids': []})
+            self._backend.user_get({"ids": []})
             return True
         except Fault as e:
             if e.faultCode == 505 or e.faultCode == 32000:
@@ -729,22 +730,19 @@ class Bugzilla(object):
     # Bugfields querying #
     ######################
 
-    def _getbugfields(self):
-        """
-        Get the list of valid fields for Bug objects
-        """
-        r = self._proxy.Bug.fields({'include_fields': ['name']})
-        return [f['name'] for f in r['fields']]
-
     def getbugfields(self, force_refresh=False):
         """
         Calls getBugFields, which returns a list of fields in each bug
         for this bugzilla instance. This can be used to set the list of attrs
         on the Bug object.
         """
+        def _fieldnames():
+            r = self._backend.bug_fields({'include_fields': ['name']})
+            return [f['name'] for f in r['fields']]
+
         if force_refresh or not self._cache.bugfields:
             log.debug("Refreshing bugfields")
-            self._cache.bugfields = self._getbugfields()
+            self._cache.bugfields = _fieldnames()
             self._cache.bugfields.sort()
             log.debug("bugfields = %s", self._cache.bugfields)
 
@@ -781,11 +779,11 @@ class Bugzilla(object):
         if ptype:
             raw = None
             if ptype == "accessible":
-                raw = self._proxy.Product.get_accessible_products()
-            elif ptype == "selectable":
-                raw = self._proxy.Product.get_selectable_products()
+                raw = self._backend.product_get_accessible()
             elif ptype == "enterable":
-                raw = self._proxy.Product.get_enterable_products()
+                raw = self._backend.product_get_enterable()
+            elif ptype == "selectable":
+                raw = self._backend.product_get_selectable()
 
             if raw is None:
                 raise RuntimeError("Unknown ptype=%s" % ptype)
@@ -802,7 +800,7 @@ class Bugzilla(object):
         if exclude_fields:
             kwargs["exclude_fields"] = exclude_fields
 
-        ret = self._proxy.Product.get(kwargs)
+        ret = self._backend.product_get(kwargs)
         return ret['products']
 
     def refresh_products(self, **kwargs):
@@ -929,7 +927,7 @@ class Bugzilla(object):
             product_id = proddict["id"]
 
             opts = {'product_id': product_id, 'field': 'component'}
-            names = self._proxy.Bug.legal_values(opts)["values"]
+            names = self._backend.bug_legal_values(opts)["values"]
             self._cache.component_names[product_id] = names
 
         return self._cache.component_names[product_id]
@@ -980,7 +978,7 @@ class Bugzilla(object):
         """
         data = data.copy()
         self._component_data_convert(data)
-        return self._proxy.Component.create(data)
+        return self._backend.component_create(data)
 
     def editcomponent(self, data):
         """
@@ -991,7 +989,7 @@ class Bugzilla(object):
         """
         data = data.copy()
         self._component_data_convert(data, update=True)
-        return self._proxy.Component.update(data)
+        return self._backend.component_update(data)
 
 
     ###################
@@ -1075,7 +1073,7 @@ class Bugzilla(object):
         getbugdata.update(self._process_include_fields(
             include_fields, exclude_fields, extra_fields))
 
-        r = self._proxy.Bug.get(getbugdata)
+        r = self._backend.bug_get(getbugdata)
 
         if self._check_version(4, 0):
             bugdict = dict([(b['id'], b) for b in r['bugs']])
@@ -1140,7 +1138,7 @@ class Bugzilla(object):
         Returns a dictionary of bugs and comments.  The comments key will
         be empty.  See bugzilla docs for details
         """
-        return self._proxy.Bug.comments({'ids': idlist})
+        return self._backend.bug_comments({'ids': idlist})
 
 
     #################
@@ -1310,7 +1308,7 @@ class Bugzilla(object):
         implementation.
         """
         try:
-            r = self._proxy.Bug.search(query)
+            r = self._backend.bug_search(query)
         except Fault as e:
 
             # Try to give a hint in the error message if url_to_query
@@ -1344,7 +1342,7 @@ class Bugzilla(object):
         Experimental. Gets the history of changes for
         particular bugs in the database.
         """
-        return self._proxy.Bug.history({'ids': bug_ids})
+        return self._backend.bug_history({'ids': bug_ids})
 
 
     #######################################
@@ -1364,7 +1362,7 @@ class Bugzilla(object):
         tmp = updates.copy()
         tmp["ids"] = listify(ids)
 
-        return self._proxy.Bug.update(tmp)
+        return self._backend.bug_update(tmp)
 
     def update_tags(self, idlist, tags_add=None, tags_remove=None):
         """
@@ -1381,7 +1379,7 @@ class Bugzilla(object):
             "tags": tags,
         }
 
-        return self._proxy.Bug.update_tags(d)
+        return self._backend.bug_update_tags(d)
 
     def update_flags(self, idlist, flags):
         """
@@ -1608,7 +1606,7 @@ class Bugzilla(object):
                     kwargs['file_name'], strict=False)[0]
             kwargs['content_type'] = ctype or 'application/octet-stream'
 
-        ret = self._proxy.Bug.add_attachment(kwargs)
+        ret = self._backend.bug_attachment_create(kwargs)
 
         if "attachments" in ret:
             # Up to BZ 4.2
@@ -1652,7 +1650,7 @@ class Bugzilla(object):
         flags.update(kwargs)
         update = {'ids': [int(attachid)], 'flags': [flags]}
 
-        return self._proxy.Bug.update_attachment(update)
+        return self._backend.bug_attachment_update(update)
 
     def get_attachments(self, ids, attachment_ids,
                         include_fields=None, exclude_fields=None):
@@ -1664,16 +1662,15 @@ class Bugzilla(object):
 
         https://bugzilla.readthedocs.io/en/latest/api/core/v1/attachment.html#get-attachment
         """
-        params = {
-            "ids": listify(ids) or [],
-            "attachment_ids": listify(attachment_ids) or [],
-        }
+        params = {}
         if include_fields:
             params["include_fields"] = listify(include_fields)
         if exclude_fields:
             params["exclude_fields"] = listify(exclude_fields)
 
-        return self._proxy.Bug.attachments(params)
+        if attachment_ids:
+            return self._backend.bug_attachment_get(attachment_ids, params)
+        return self._backend.bug_attachment_get_all(ids, params)
 
 
     #####################
@@ -1785,7 +1782,7 @@ class Bugzilla(object):
         be passed.
         """
         data = self._validate_createbug(*args, **kwargs)
-        rawbug = self._proxy.Bug.create(data)
+        rawbug = self._backend.bug_create(data)
         return Bug(self, bug_id=rawbug["id"],
                    autorefresh=self.bug_autorefresh)
 
@@ -1793,36 +1790,6 @@ class Bugzilla(object):
     ##############################
     # Methods for handling Users #
     ##############################
-
-    def _getusers(self, ids=None, names=None, match=None):
-        """
-        Return a list of users that match criteria.
-
-        :kwarg ids: list of user ids to return data on
-        :kwarg names: list of user names to return data on
-        :kwarg match: list of patterns.  Returns users whose real name or
-            login name match the pattern.
-        :raises XMLRPC Fault: Code 51: if a Bad Login Name was sent to the
-                names array.
-            Code 304: if the user was not authorized to see user they
-                requested.
-            Code 505: user is logged out and can't use the match or ids
-                parameter.
-
-        Available in Bugzilla-3.4+
-        """
-        params = {}
-        if ids:
-            params['ids'] = listify(ids)
-        if names:
-            params['names'] = listify(names)
-        if match:
-            params['match'] = listify(match)
-        if not params:
-            raise BugzillaError('_get() needs one of ids, '
-                                ' names, or match kwarg.')
-
-        return self._proxy.User.get(params)
 
     def getuser(self, username):
         """
@@ -1842,8 +1809,9 @@ class Bugzilla(object):
         :userlist: List of usernames to lookup
         :returns: List of User records
         """
+        rawusers = self._backend.user_get({"names": listify(userlist)})
         userobjs = [User(self, **rawuser) for rawuser in
-                    self._getusers(names=userlist).get('users', [])]
+                    rawusers.get('users', [])]
 
         # Return users in same order they were passed in
         ret = []
@@ -1864,8 +1832,9 @@ class Bugzilla(object):
         :arg pattern: List of patterns to match against.
         :returns: List of User records
         """
+        rawusers = self._backend.user_get({"match": listify(pattern)})
         return [User(self, **rawuser) for rawuser in
-                self._getusers(match=pattern).get('users', [])]
+                rawusers.get('users', [])]
 
     def createuser(self, email, name='', password=''):
         """
@@ -1880,7 +1849,12 @@ class Bugzilla(object):
             Code 503 if the password is too long
         :return: User record for the username
         """
-        self._proxy.User.create(email, name, password)
+        args = {"email": email}
+        if name:
+            args["name"] = name
+        if password:
+            args["password"] = password
+        self._backend.user_create(args)
         return self.getuser(email)
 
     def updateperms(self, user, action, groups):
@@ -1906,4 +1880,4 @@ class Bugzilla(object):
             }
         }
 
-        return self._proxy.User.update(update)
+        return self._backend.user_update(update)

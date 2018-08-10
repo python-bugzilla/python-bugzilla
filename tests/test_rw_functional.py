@@ -770,8 +770,8 @@ class RHPartnerTest(unittest.TestCase):
         have_admin = self._check_have_admin(bz, fn)
 
         def compare(data, newid):
-            proxy = bz._proxy  # pylint: disable=protected-access
-            products = proxy.Product.get({"names": [basedata["product"]]})
+            # pylint: disable=protected-access
+            products = bz._proxy.Product.get({"names": [basedata["product"]]})
             compdata = None
             for c in products["products"][0]["components"]:
                 if int(c["id"]) == int(newid):
