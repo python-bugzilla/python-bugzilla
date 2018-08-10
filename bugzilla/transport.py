@@ -88,6 +88,8 @@ class _BugzillaServerProxy(ServerProxy, object):
         if len(params) == 0:
             params = ({}, )
 
+        log.debug("XMLRPC call: %s(%s)", methodname, params[0])
+
         if self.api_key is not None:
             if 'Bugzilla_api_key' not in params[0]:
                 params[0]['Bugzilla_api_key'] = self.api_key

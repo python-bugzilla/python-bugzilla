@@ -748,7 +748,6 @@ class Bugzilla(object):
         if exclude_fields:
             kwargs["exclude_fields"] = exclude_fields
 
-        log.debug("Calling Product.get with: %s", kwargs)
         ret = self._proxy.Product.get(kwargs)
         return ret['products']
 
@@ -874,7 +873,6 @@ class Bugzilla(object):
             product_id = proddict["id"]
 
             opts = {'product_id': product_id, 'field': 'component'}
-            log.debug("Calling Bug.legal_values with: %s", opts)
             names = self._proxy.Bug.legal_values(opts)["values"]
             self._cache.component_names[product_id] = names
 
@@ -926,7 +924,6 @@ class Bugzilla(object):
         '''
         data = data.copy()
         self._component_data_convert(data)
-        log.debug("Calling Component.create with: %s", data)
         return self._proxy.Component.create(data)
 
     def editcomponent(self, data):
@@ -938,7 +935,6 @@ class Bugzilla(object):
         '''
         data = data.copy()
         self._component_data_convert(data, update=True)
-        log.debug("Calling Component.update with: %s", data)
         return self._proxy.Component.update(data)
 
 
@@ -1023,7 +1019,6 @@ class Bugzilla(object):
         getbugdata.update(self._process_include_fields(
             include_fields, exclude_fields, extra_fields))
 
-        log.debug("Calling Bug.get with: %s", getbugdata)
         r = self._proxy.Bug.get(getbugdata)
 
         if self._check_version(4, 0):
@@ -1251,7 +1246,6 @@ class Bugzilla(object):
         Also see the _query() method for details about the underlying
         implementation.
         '''
-        log.debug("Calling Bug.search with: %s", query)
         try:
             r = self._proxy.Bug.search(query)
         except Fault as e:
@@ -1307,7 +1301,6 @@ class Bugzilla(object):
         tmp = updates.copy()
         tmp["ids"] = self._listify(ids)
 
-        log.debug("Calling Bug.update with: %s", tmp)
         return self._proxy.Bug.update(tmp)
 
     def update_tags(self, idlist, tags_add=None, tags_remove=None):
@@ -1325,7 +1318,6 @@ class Bugzilla(object):
             "tags": tags,
         }
 
-        log.debug("Calling Bug.update_tags with: %s", d)
         return self._proxy.Bug.update_tags(d)
 
     def update_flags(self, idlist, flags):
@@ -1592,7 +1584,6 @@ class Bugzilla(object):
         flags.update(kwargs)
         update = {'ids': [int(attachid)], 'flags': [flags]}
 
-        log.debug("Calling Bug.update_attachment(%s)", update)
         return self._proxy.Bug.update_attachment(update)
 
     def get_attachments(self, ids, attachment_ids,
@@ -1614,7 +1605,6 @@ class Bugzilla(object):
         if exclude_fields:
             params["exclude_fields"] = self._listify(exclude_fields)
 
-        log.debug("Calling Bug.attachments(%s)", params)
         return self._proxy.Bug.attachments(params)
 
 
@@ -1727,7 +1717,6 @@ class Bugzilla(object):
         be passed.
         '''
         data = self._validate_createbug(*args, **kwargs)
-        log.debug("Calling Bug.create with: %s", data)
         rawbug = self._proxy.Bug.create(data)
         return Bug(self, bug_id=rawbug["id"],
                    autorefresh=self.bug_autorefresh)
@@ -1764,7 +1753,6 @@ class Bugzilla(object):
             raise BugzillaError('_get() needs one of ids, '
                                 ' names, or match kwarg.')
 
-        log.debug("Calling User.get with: %s", params)
         return self._proxy.User.get(params)
 
     def getuser(self, username):
@@ -1845,5 +1833,4 @@ class Bugzilla(object):
             }
         }
 
-        log.debug("Call User.update with: %s", update)
         return self._proxy.User.update(update)
