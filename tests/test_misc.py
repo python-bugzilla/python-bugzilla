@@ -5,9 +5,9 @@
 # See the COPYING file in the top-level directory.
 #
 
-'''
+"""
 Unit tests for building query strings with bin/bugzilla
-'''
+"""
 
 from __future__ import print_function
 

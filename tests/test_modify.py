@@ -5,9 +5,9 @@
 # See the COPYING file in the top-level directory.
 #
 
-'''
+"""
 Unit tests for building update dictionaries with 'bugzilla modify'
-'''
+"""
 
 import unittest
 

@@ -17,7 +17,7 @@ log = getLogger(__name__)
 
 
 class RHBugzilla(Bugzilla):
-    '''
+    """
     Bugzilla class for connecting Red Hat's forked bugzilla instance,
     bugzilla.redhat.com
 
@@ -30,7 +30,7 @@ class RHBugzilla(Bugzilla):
 
     This class was written using bugzilla.redhat.com's API docs:
     https://bugzilla.redhat.com/docs/en/html/api/
-    '''
+    """
     def _init_class_state(self):
         def _add_both_alias(newname, origname):
             self._add_field_alias(newname, origname, is_api=False)
@@ -250,7 +250,9 @@ class RHBugzilla(Bugzilla):
     #################
 
     def pre_translation(self, query):
-        '''Translates the query for possible aliases'''
+        """
+        Translates the query for possible aliases
+        """
         old = query.copy()
 
         if 'bug_id' in query:
@@ -282,10 +284,10 @@ class RHBugzilla(Bugzilla):
             log.debug("RHBugzilla pretranslated query to: %s", query)
 
     def post_translation(self, query, bug):
-        '''
+        """
         Convert the results of getbug back to the ancient RHBZ value
         formats
-        '''
+        """
         ignore = query
 
         # RHBZ _still_ returns component and version as lists, which

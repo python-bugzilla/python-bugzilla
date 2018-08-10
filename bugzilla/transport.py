@@ -25,7 +25,9 @@ log = getLogger(__name__)
 
 
 class BugzillaError(Exception):
-    '''Error raised in the Bugzilla client code.'''
+    """
+    Error raised in the Bugzilla client code.
+    """
     pass
 
 
@@ -143,7 +145,9 @@ class _RequestsTransport(Transport):
             self.session.cert = cert
 
     def parse_response(self, response):
-        """ Parse XMLRPC response """
+        """
+        Parse XMLRPC response
+        """
         parser, unmarshaller = self.getparser()
         parser.feed(response.text.encode('utf-8'))
         parser.close()

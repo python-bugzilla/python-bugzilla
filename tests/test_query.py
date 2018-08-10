@@ -5,9 +5,9 @@
 # See the COPYING file in the top-level directory.
 #
 
-'''
+"""
 Unit tests for building query strings with bin/bugzilla
-'''
+"""
 
 import copy
 import os

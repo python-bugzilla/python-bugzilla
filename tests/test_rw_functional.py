@@ -5,9 +5,9 @@
 # See the COPYING file in the top-level directory.
 #
 
-'''
+"""
 Unit tests that do permanent functional against a real bugzilla instances.
-'''
+"""
 
 from __future__ import print_function
 

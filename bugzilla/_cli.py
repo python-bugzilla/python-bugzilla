@@ -74,8 +74,10 @@ def to_encoding(ustring):
 
 
 def open_without_clobber(name, *args):
-    '''Try to open the given file with the given mode; if that filename exists,
-    try "name.1", "name.2", etc. until we find an unused filename.'''
+    """
+    Try to open the given file with the given mode; if that filename exists,
+    try "name.1", "name.2", etc. until we find an unused filename.
+    """
     fd = None
     count = 1
     orig_name = name

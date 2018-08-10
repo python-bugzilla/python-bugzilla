@@ -205,10 +205,10 @@ class Bugzilla(object):
 
     @staticmethod
     def url_to_query(url):
-        '''
+        """
         Given a big huge bugzilla query URL, returns a query dict that can
         be passed along to the Bugzilla.query() method.
-        '''
+        """
         q = {}
 
         # pylint: disable=unpacking-non-sequence
@@ -421,9 +421,10 @@ class Bugzilla(object):
     ###################
 
     def _getcookiefile(self):
-        '''cookiefile is the file that bugzilla session cookies are loaded
+        """
+        cookiefile is the file that bugzilla session cookies are loaded
         and saved from.
-        '''
+        """
         return self._cookiejar.filename
 
     def _delcookiefile(self):
@@ -521,7 +522,7 @@ class Bugzilla(object):
             self.bz_ver_minor = 0
 
     def connect(self, url=None):
-        '''
+        """
         Connect to the bugzilla instance with the given url. This is
         called by __init__ if a URL is passed. Or it can be called manually
         at any time with a passed URL.
@@ -531,7 +532,7 @@ class Bugzilla(object):
 
         If 'user' and 'password' are both set, we'll run login(). Otherwise
         you'll have to login() yourself before some methods will work.
-        '''
+        """
         if self._transport:
             self.disconnect()
 
@@ -562,24 +563,29 @@ class Bugzilla(object):
         self._set_bz_version(version)
 
     def disconnect(self):
-        '''
+        """
         Disconnect from the given bugzilla instance.
-        '''
+        """
         self._proxy = None
         self._transport = None
         self._cache = _BugzillaAPICache()
 
 
     def _login(self, user, password):
-        '''Backend login method for Bugzilla3'''
+        """
+        Backend login method for Bugzilla3
+        """
         return self._proxy.User.login({'login': user, 'password': password})
 
     def _logout(self):
-        '''Backend login method for Bugzilla3'''
+        """
+        Backend login method for Bugzilla3
+        """
         return self._proxy.User.logout()
 
     def login(self, user=None, password=None):
-        '''Attempt to log in using the given username and password. Subsequent
+        """
+        Attempt to log in using the given username and password. Subsequent
         method calls will use this username and password. Returns False if
         login fails, otherwise returns some kind of login info - typically
         either a numeric userid, or a dict of user info.
@@ -591,7 +597,7 @@ class Bugzilla(object):
         This method will be called implicitly at the end of connect() if user
         and password are both set. So under most circumstances you won't need
         to call this yourself.
-        '''
+        """
         if self.api_key:
             raise ValueError("cannot login when using an API key")
 
@@ -636,8 +642,10 @@ class Bugzilla(object):
         log.info('Authorization cookie received.')
 
     def logout(self):
-        '''Log out of bugzilla. Drops server connection and user info, and
-        destroys authentication cookies.'''
+        """
+        Log out of bugzilla. Drops server connection and user info, and
+        destroys authentication cookies.
+        """
         self._logout()
         self.disconnect()
         self.user = ''
@@ -676,18 +684,18 @@ class Bugzilla(object):
     ######################
 
     def _getbugfields(self):
-        '''
+        """
         Get the list of valid fields for Bug objects
-        '''
+        """
         r = self._proxy.Bug.fields({'include_fields': ['name']})
         return [f['name'] for f in r['fields']]
 
     def getbugfields(self, force_refresh=False):
-        '''
+        """
         Calls getBugFields, which returns a list of fields in each bug
         for this bugzilla instance. This can be used to set the list of attrs
         on the Bug object.
-        '''
+        """
         if force_refresh or not self._cache.bugfields:
             log.debug("Refreshing bugfields")
             self._cache.bugfields = self._getbugfields()
@@ -906,7 +914,7 @@ class Bugzilla(object):
 
 
     def addcomponent(self, data):
-        '''
+        """
         A method to create a component in Bugzilla. Takes a dict, with the
         following elements:
 
@@ -921,18 +929,18 @@ class Bugzilla(object):
                                new bugs for the component.
         is_active: (optional) If False, the component is hidden from
                               the component list when filing new bugs.
-        '''
+        """
         data = data.copy()
         self._component_data_convert(data)
         return self._proxy.Component.create(data)
 
     def editcomponent(self, data):
-        '''
+        """
         A method to edit a component in Bugzilla. Takes a dict, with
         mandatory elements of product. component, and initialowner.
         All other elements are optional and use the same names as the
         addcomponent() method.
-        '''
+        """
         data = data.copy()
         self._component_data_convert(data, update=True)
         return self._proxy.Component.update(data)
@@ -996,10 +1004,10 @@ class Bugzilla(object):
 
     def _getbugs(self, idlist, permissive,
             include_fields=None, exclude_fields=None, extra_fields=None):
-        '''
+        """
         Return a list of dicts of full bug info for each given bug id.
         bug ids that couldn't be found will return None instead of a dict.
-        '''
+        """
         oldidlist = idlist
         idlist = []
         for i in oldidlist:
@@ -1055,8 +1063,10 @@ class Bugzilla(object):
 
     def getbug(self, objid,
                include_fields=None, exclude_fields=None, extra_fields=None):
-        '''Return a Bug object with the full complement of bug data
-        already loaded.'''
+        """
+        Return a Bug object with the full complement of bug data
+        already loaded.
+        """
         data = self._getbug(objid,
             include_fields=include_fields, exclude_fields=exclude_fields,
             extra_fields=extra_fields)
@@ -1065,9 +1075,11 @@ class Bugzilla(object):
     def getbugs(self, idlist,
                 include_fields=None, exclude_fields=None, extra_fields=None,
                 permissive=True):
-        '''Return a list of Bug objects with the full complement of bug data
+        """
+        Return a list of Bug objects with the full complement of bug data
         already loaded. If there's a problem getting the data for a given id,
-        the corresponding item in the returned list will be None.'''
+        the corresponding item in the returned list will be None.
+        """
         data = self._getbugs(idlist, include_fields=include_fields,
             exclude_fields=exclude_fields, extra_fields=extra_fields,
             permissive=permissive)
@@ -1076,8 +1088,10 @@ class Bugzilla(object):
                 for b in data]
 
     def get_comments(self, idlist):
-        '''Returns a dictionary of bugs and comments.  The comments key will
-           be empty.  See bugzilla docs for details'''
+        """
+        Returns a dictionary of bugs and comments.  The comments key will
+        be empty.  See bugzilla docs for details
+        """
         return self._proxy.Bug.comments({'ids': idlist})
 
 
@@ -1240,12 +1254,13 @@ class Bugzilla(object):
         return query
 
     def query(self, query):
-        '''Query bugzilla and return a list of matching bugs.
+        """
+        Query bugzilla and return a list of matching bugs.
         query must be a dict with fields like those in in querydata['fields'].
         Returns a list of Bug objects.
         Also see the _query() method for details about the underlying
         implementation.
-        '''
+        """
         try:
             r = self._proxy.Bug.search(query)
         except Fault as e:
@@ -1265,22 +1280,24 @@ class Bugzilla(object):
                 autorefresh=self.bug_autorefresh) for b in r['bugs']]
 
     def pre_translation(self, query):
-        '''In order to keep the API the same, Bugzilla4 needs to process the
+        """
+        In order to keep the API the same, Bugzilla4 needs to process the
         query and the result. This also applies to the refresh() function
-        '''
+        """
         pass
 
     def post_translation(self, query, bug):
-        '''In order to keep the API the same, Bugzilla4 needs to process the
+        """
+        In order to keep the API the same, Bugzilla4 needs to process the
         query and the result. This also applies to the refresh() function
-        '''
+        """
         pass
 
     def bugs_history_raw(self, bug_ids):
-        '''
+        """
         Experimental. Gets the history of changes for
         particular bugs in the database.
-        '''
+        """
         return self._proxy.Bug.history({'ids': bug_ids})
 
 
@@ -1304,9 +1321,9 @@ class Bugzilla(object):
         return self._proxy.Bug.update(tmp)
 
     def update_tags(self, idlist, tags_add=None, tags_remove=None):
-        '''
+        """
         Updates the 'tags' field for a bug.
-        '''
+        """
         tags = {}
         if tags_add:
             tags["add"] = self._listify(tags_add)
@@ -1477,13 +1494,15 @@ class Bugzilla(object):
     ########################################
 
     def _attachment_uri(self, attachid):
-        '''Returns the URI for the given attachment ID.'''
+        """
+        Returns the URI for the given attachment ID.
+        """
         att_uri = self.url.replace('xmlrpc.cgi', 'attachment.cgi')
         att_uri = att_uri + '?id=%s' % attachid
         return att_uri
 
     def attachfile(self, idlist, attachfile, description, **kwargs):
-        '''
+        """
         Attach a file to the given bug IDs. Returns the ID of the attachment
         or raises XMLRPC Fault if something goes wrong.
 
@@ -1507,7 +1526,7 @@ class Bugzilla(object):
 
         Returns the list of attachment ids that were added. If only one
         attachment was added, we return the single int ID for back compat
-        '''
+        """
         if isinstance(attachfile, str):
             f = open(attachfile, "rb")
         elif hasattr(attachfile, 'read'):
@@ -1557,8 +1576,10 @@ class Bugzilla(object):
 
 
     def openattachment(self, attachid):
-        '''Get the contents of the attachment with the given attachment ID.
-        Returns a file-like object.'''
+        """
+        Get the contents of the attachment with the given attachment ID.
+        Returns a file-like object.
+        """
         attachments = self.get_attachments(None, attachid)
         data = attachments["attachments"][str(attachid)]
         xmlrpcbinary = data["data"]
@@ -1570,12 +1591,12 @@ class Bugzilla(object):
         return ret
 
     def updateattachmentflags(self, bugid, attachid, flagname, **kwargs):
-        '''
+        """
         Updates a flag for the given attachment ID.
         Optional keyword args are:
             status:    new status for the flag ('-', '+', '?', 'X')
             requestee: new requestee for the flag
-        '''
+        """
         # Bug ID was used for the original custom redhat API, no longer
         # needed though
         ignore = bugid
@@ -1641,7 +1662,7 @@ class Bugzilla(object):
         sub_component=None,
         alias=None,
         comment_tags=None):
-        """"
+        """
         Returns a python dict() with properly formatted parameters to
         pass to createbug(). See bugzilla documentation for the format
         of the individual fields:
@@ -1710,12 +1731,12 @@ class Bugzilla(object):
         return data
 
     def createbug(self, *args, **kwargs):
-        '''
+        """
         Create a bug with the given info. Returns a new Bug object.
         Check bugzilla API documentation for valid values, at least
         product, component, summary, version, and description need to
         be passed.
-        '''
+        """
         data = self._validate_createbug(*args, **kwargs)
         rawbug = self._proxy.Bug.create(data)
         return Bug(self, bug_id=rawbug["id"],
@@ -1727,7 +1748,8 @@ class Bugzilla(object):
     ##############################
 
     def _getusers(self, ids=None, names=None, match=None):
-        '''Return a list of users that match criteria.
+        """
+        Return a list of users that match criteria.
 
         :kwarg ids: list of user ids to return data on
         :kwarg names: list of user names to return data on
@@ -1741,7 +1763,7 @@ class Bugzilla(object):
                 parameter.
 
         Available in Bugzilla-3.4+
-        '''
+        """
         params = {}
         if ids:
             params['ids'] = self._listify(ids)
@@ -1756,21 +1778,23 @@ class Bugzilla(object):
         return self._proxy.User.get(params)
 
     def getuser(self, username):
-        '''Return a bugzilla User for the given username
+        """
+        Return a bugzilla User for the given username
 
         :arg username: The username used in bugzilla.
         :raises XMLRPC Fault: Code 51 if the username does not exist
         :returns: User record for the username
-        '''
+        """
         ret = self.getusers(username)
         return ret and ret[0]
 
     def getusers(self, userlist):
-        '''Return a list of Users from .
+        """
+        Return a list of Users from .
 
         :userlist: List of usernames to lookup
         :returns: List of User records
-        '''
+        """
         userobjs = [User(self, **rawuser) for rawuser in
                     self._getusers(names=userlist).get('users', [])]
 
@@ -1787,16 +1811,18 @@ class Bugzilla(object):
 
 
     def searchusers(self, pattern):
-        '''Return a bugzilla User for the given list of patterns
+        """
+        Return a bugzilla User for the given list of patterns
 
         :arg pattern: List of patterns to match against.
         :returns: List of User records
-        '''
+        """
         return [User(self, **rawuser) for rawuser in
                 self._getusers(match=pattern).get('users', [])]
 
     def createuser(self, email, name='', password=''):
-        '''Return a bugzilla User for the given username
+        """
+        Return a bugzilla User for the given username
 
         :arg email: The email address to use in bugzilla
         :kwarg name: Real name to associate with the account
@@ -1806,12 +1832,12 @@ class Bugzilla(object):
             Code 502 if the password is too short
             Code 503 if the password is too long
         :return: User record for the username
-        '''
+        """
         self._proxy.User.create(email, name, password)
         return self.getuser(email)
 
     def updateperms(self, user, action, groups):
-        '''
+        """
         A method to update the permissions (group membership) of a bugzilla
         user.
 
@@ -1819,7 +1845,7 @@ class Bugzilla(object):
             also be a list of emails.
         :arg action: add, remove, or set
         :arg groups: list of groups to be added to (i.e. ['fedora_contrib'])
-        '''
+        """
         groups = self._listify(groups)
         if action == "rem":
             action = "remove"

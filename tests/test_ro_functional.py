@@ -7,9 +7,9 @@
 # See the COPYING file in the top-level directory.
 #
 
-'''
+"""
 Unit tests that do readonly functional tests against real bugzilla instances.
-'''
+"""
 
 import os
 import unittest

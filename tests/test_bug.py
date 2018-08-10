@@ -5,9 +5,9 @@
 # See the COPYING file in the top-level directory.
 #
 
-'''
+"""
 Unit tests for testing some bug.py magic
-'''
+"""
 
 import pickle
 import sys
