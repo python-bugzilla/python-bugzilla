@@ -1,5 +1,13 @@
 # python-bugzilla release news
 
+## Release 2.2.0 (August 11, 2018)
+- Port tests to pytest
+- cli: --cert Client side certificate support (Tobias Wolter)
+- cli: add ability to post comment while sending attachment (Jeff Mahoney)
+- cli: Add --comment-tag option
+- cli: Add info --active-components
+- Add a raw Product.get wrapper API
+
 ## Release 2.1.0 (March 30, 2017)
 - Support for bugzilla 5 API Keys (Dustin J. Mitchell)
 - bugzillarc can be used to set default URL for the cli tool
