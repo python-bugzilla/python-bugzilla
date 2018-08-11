@@ -144,7 +144,8 @@ done
 
 %check
 %if %{with python2}
-pytest
+# py.test naming is needed for RHEL7 compat, works fine with Fedora
+py.test
 %endif # with python2
 %if %{with python3}
 pytest-3
