@@ -12,7 +12,7 @@ from setuptools import setup
 
 def unsupported_python_version():
     return sys.version_info < (2, 7) \
-        or (sys.version_info > (3,) and sys.version_info < (3, 3))
+        or (sys.version_info > (3,) and sys.version_info < (3, 4))
 
 
 if unsupported_python_version():
