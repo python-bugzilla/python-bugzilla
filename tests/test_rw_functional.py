@@ -525,18 +525,21 @@ class RHPartnerTest(unittest.TestCase):
 
         setbug.refresh()
         assert len(setbug.attachments) == (orignumattach + 2)
-        assert setbug.attachments[-2]["summary"] == desc1
-        assert (setbug.attachments[-2]["id"] ==
-                int(out1.splitlines()[2].split()[2]))
-        assert setbug.attachments[-1]["summary"] == desc2
-        assert (setbug.attachments[-1]["id"] ==
-                int(out2.splitlines()[2].split()[2]))
-        attachid = setbug.attachments[-2]["id"]
+
+        att1 = setbug.attachments[-2]
+        attachid = att1["id"]
+        assert att1["summary"] == desc1
+        assert att1["id"] == int(out1.splitlines()[2].split()[2])
+        assert att1["content_type"] == "application/octet-stream"
+
+        att2 = setbug.attachments[-1]
+        assert att2["summary"] == desc2
+        assert att2["id"] == int(out2.splitlines()[2].split()[2])
+        assert att2["content_type"] == "text/x-diff"
 
         # Set attachment flags
-        assert setbug.attachments[-1]["flags"] == []
-        bz.updateattachmentflags(setbug.id, setbug.attachments[-1]["id"],
-                                 "review", status="+")
+        assert att1["flags"] == []
+        bz.updateattachmentflags(setbug.id, att2["id"], "review", status="+")
         setbug.refresh()
 
         assert len(setbug.attachments[-1]["flags"]) == 1
