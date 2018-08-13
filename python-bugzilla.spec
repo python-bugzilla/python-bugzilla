@@ -21,7 +21,7 @@ Summary:        Python library for interacting with Bugzilla
 
 License:        GPLv2+
 URL:            https://github.com/python-bugzilla/python-bugzilla
-Source0:        https://github.com/python-bugzilla/python-bugzilla/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
+Source0:        https://github.com/python-bugzilla/python-bugzilla/archive/v%{version}/%{name}-%{version}.tar.gz
 BuildArch:      noarch
 
 %if %{with python2}
