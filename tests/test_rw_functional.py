@@ -530,12 +530,12 @@ class RHPartnerTest(unittest.TestCase):
         attachid = att1["id"]
         assert att1["summary"] == desc1
         assert att1["id"] == int(out1.splitlines()[2].split()[2])
-        assert att1["content_type"] == "application/octet-stream"
+        assert att1["content_type"] == "text/plain"
 
         att2 = setbug.attachments[-1]
         assert att2["summary"] == desc2
         assert att2["id"] == int(out2.splitlines()[2].split()[2])
-        assert att2["content_type"] == "text/x-diff"
+        assert att2["content_type"] == "application/octet-stream"
 
         # Set attachment flags
         assert att1["flags"] == []

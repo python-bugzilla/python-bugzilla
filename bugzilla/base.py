@@ -13,6 +13,7 @@ import collections
 import getpass
 import locale
 from logging import getLogger
+import mimetypes
 import os
 import sys
 
@@ -39,33 +40,6 @@ from .transport import BugzillaError, _BugzillaServerProxy, _RequestsTransport
 
 
 log = getLogger(__name__)
-
-mimemagic = None
-
-
-def _detect_filetype(fname):
-    global mimemagic
-
-    if mimemagic is None:
-        try:
-            # pylint: disable=import-error
-            import magic
-            mimemagic = magic.open(getattr(magic, "MAGIC_MIME_TYPE", 16))
-            mimemagic.load()
-        except ImportError as e:
-            log.debug("Could not load python-magic: %s", e)
-            mimemagic = None
-    if not mimemagic:
-        return None
-
-    if not os.path.isabs(fname):
-        return None
-
-    try:
-        return mimemagic.file(fname)
-    except Exception as e:
-        log.debug("Could not detect content_type: %s", e)
-    return None
 
 
 def _nested_update(d, u):
@@ -1556,10 +1530,11 @@ class Bugzilla(object):
         if 'file_name' not in kwargs and hasattr(f, "name"):
             kwargs['file_name'] = os.path.basename(f.name)
         if 'content_type' not in kwargs:
-            ctype = _detect_filetype(getattr(f, "name", None))
-            if not ctype:
-                ctype = 'application/octet-stream'
-            kwargs['content_type'] = ctype
+            ctype = None
+            if kwargs['file_name']:
+                ctype = mimetypes.guess_type(
+                    kwargs['file_name'], strict=False)[0]
+            kwargs['content_type'] = ctype or 'application/octet-stream'
 
         ret = self._proxy.Bug.add_attachment(kwargs)
 

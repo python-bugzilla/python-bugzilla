@@ -49,7 +49,6 @@ over XML-RPC.\
 %package -n python2-bugzilla
 Summary: %summary
 Requires: python2-requests
-Requires: python2-magic
 # This dep is for back compat, so that installing python-bugzilla continues
 # to give the cli tool
 Requires: python-bugzilla-cli
@@ -64,7 +63,6 @@ Requires: python-bugzilla-cli
 %package -n python3-bugzilla
 Summary: %summary
 Requires: python3-requests
-Requires: python3-magic
 %{?python_provide:%python_provide python3-bugzilla}
 
 %if %{without python2}
