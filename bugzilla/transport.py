@@ -9,11 +9,11 @@ import sys
 
 # pylint: disable=import-error
 if sys.version_info[0] >= 3:
-    from configparser import SafeConfigParser
+    from configparser import ConfigParser
     from urllib.parse import urlparse  # pylint: disable=no-name-in-module
     from xmlrpc.client import Fault, ProtocolError, ServerProxy, Transport
 else:
-    from ConfigParser import SafeConfigParser
+    from ConfigParser import SafeConfigParser as ConfigParser
     from urlparse import urlparse
     from xmlrpclib import Fault, ProtocolError, ServerProxy, Transport
 # pylint: enable=import-error
@@ -39,7 +39,7 @@ class _BugzillaTokenCache(object):
 
     def __init__(self, uri, tokenfilename):
         self.tokenfilename = tokenfilename
-        self.tokenfile = SafeConfigParser()
+        self.tokenfile = ConfigParser()
         self.domain = urlparse(uri)[1]
 
         if self.tokenfilename:

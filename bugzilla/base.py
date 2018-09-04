@@ -22,12 +22,12 @@ from io import BytesIO
 # pylint: disable=import-error
 if sys.version_info[0] >= 3:
     # pylint: disable=no-name-in-module
-    from configparser import SafeConfigParser
+    from configparser import ConfigParser
     from http.cookiejar import LoadError, MozillaCookieJar
     from urllib.parse import urlparse, parse_qsl
     from xmlrpc.client import Binary, Fault
 else:
-    from ConfigParser import SafeConfigParser
+    from ConfigParser import SafeConfigParser as ConfigParser
     from cookielib import LoadError, MozillaCookieJar
     from urlparse import urlparse, parse_qsl
     from xmlrpclib import Binary, Fault
@@ -105,7 +105,7 @@ def _open_bugzillarc(configpaths=-1):
     configpaths = [os.path.expanduser(p) for p in
                    Bugzilla._listify(configpaths)]
     # pylint: enable=protected-access
-    cfg = SafeConfigParser()
+    cfg = ConfigParser()
     read_files = cfg.read(configpaths)
     if not read_files:
         return
