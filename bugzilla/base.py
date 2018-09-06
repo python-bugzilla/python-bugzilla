@@ -544,12 +544,15 @@ class Bugzilla(object):
         self._transport = None
         self._cache = _BugzillaAPICache()
 
-
-    def _login(self, user, password):
+    def _login(self, user, password, restrict_login=None):
         """
         Backend login method for Bugzilla3
         """
-        return self._proxy.User.login({'login': user, 'password': password})
+        payload = {'login': user, 'password': password}
+        if restrict_login:
+            payload['restrict_login'] = True
+
+        return self._proxy.User.login(payload)
 
     def _logout(self):
         """
@@ -557,7 +560,7 @@ class Bugzilla(object):
         """
         return self._proxy.User.logout()
 
-    def login(self, user=None, password=None):
+    def login(self, user=None, password=None, restrict_login=None):
         """
         Attempt to log in using the given username and password. Subsequent
         method calls will use this username and password. Returns False if
@@ -567,6 +570,9 @@ class Bugzilla(object):
         If user is not set, the value of Bugzilla.user will be used. If *that*
         is not set, ValueError will be raised. If login fails, BugzillaError
         will be raised.
+
+        The login session can be restricted to current user IP address
+        with restrict_login argument. (Bugzilla 4.4+)
 
         This method will be called implicitly at the end of connect() if user
         and password are both set. So under most circumstances you won't need
@@ -585,8 +591,11 @@ class Bugzilla(object):
         if not self.password:
             raise ValueError("missing password")
 
+        if restrict_login:
+            log.info("logging in with restrict_login=True")
+
         try:
-            ret = self._login(self.user, self.password)
+            ret = self._login(self.user, self.password, restrict_login)
             self.password = ''
             log.info("login successful for user=%s", self.user)
             return ret
