@@ -152,6 +152,8 @@ def _setup_root_parser():
              'specified command.')
     p.add_argument('--username', help="Log in with this username")
     p.add_argument('--password', help="Log in with this password")
+    p.add_argument('--restrict-login', action="store_true",
+                   help="The session (login token) will be restricted to the current IP address.")
 
     p.add_argument('--ensure-logged-in', action="store_true",
         help="Raise an error if we aren't logged in to bugzilla. "
@@ -1059,7 +1061,7 @@ def _handle_login(opt, action, bz):
         if do_interactive_login:
             if bz.url:
                 print("Logging into %s" % urlparse(bz.url)[1])
-            bz.interactive_login(username, password)
+            bz.interactive_login(username, password, restrict=opt.restrict_login)
     except bugzilla.BugzillaError as e:
         print(str(e))
         sys.exit(1)
