@@ -40,6 +40,8 @@ Run interactive "login" before performing the specified command.
 Log in with this username
 .IP "--password=PASSWORD"
 Log in with this password
+.IP "--restrict-login"
+The session (login token) will be restricted to the current IP address.
 .IP "--ensure-logged-in"
 Raise an error if we aren't logged in to bugzilla. Consider using this if you are depending on cached credentials, to ensure that when they expire the tool errors, rather than subtly change output.
 .IP "--no-cache-credentials"
