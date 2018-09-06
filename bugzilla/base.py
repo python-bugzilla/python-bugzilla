@@ -602,13 +602,15 @@ class Bugzilla(object):
         except Fault as e:
             raise BugzillaError("Login failed: %s" % str(e.faultString))
 
-    def interactive_login(self, user=None, password=None, force=False):
+    def interactive_login(self, user=None, password=None, force=False,
+                          restrict_login=None):
         """
         Helper method to handle login for this bugzilla instance.
 
         :param user: bugzilla username. If not specified, prompt for it.
         :param password: bugzilla password. If not specified, prompt for it.
         :param force: Unused
+        :param restrict_login: restricts session to IP address
         """
         ignore = force
         log.debug('Calling interactive_login')
@@ -621,7 +623,7 @@ class Bugzilla(object):
             password = getpass.getpass('Bugzilla Password: ')
 
         log.info('Logging in... ')
-        self.login(user, password)
+        self.login(user, password, restrict_login)
         log.info('Authorization cookie received.')
 
     def logout(self):
