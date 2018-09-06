@@ -544,12 +544,15 @@ class Bugzilla(object):
         self._transport = None
         self._cache = _BugzillaAPICache()
 
-
-    def _login(self, user, password):
+    def _login(self, user, password, restrict=None):
         """
         Backend login method for Bugzilla3
         """
-        return self._proxy.User.login({'login': user, 'password': password})
+        payload = {'login': user, 'password': password}
+        if restrict:
+            payload['restrict_login'] = True
+
+        return self._proxy.User.login(payload)
 
     def _logout(self):
         """
@@ -557,7 +560,7 @@ class Bugzilla(object):
         """
         return self._proxy.User.logout()
 
-    def login(self, user=None, password=None):
+    def login(self, user=None, password=None, restrict=None):
         """
         Attempt to log in using the given username and password. Subsequent
         method calls will use this username and password. Returns False if
@@ -567,6 +570,9 @@ class Bugzilla(object):
         If user is not set, the value of Bugzilla.user will be used. If *that*
         is not set, ValueError will be raised. If login fails, BugzillaError
         will be raised.
+
+        The login session can be restricted to current user IP address
+        with restrict argument. (Bugzilla 4.4+)
 
         This method will be called implicitly at the end of connect() if user
         and password are both set. So under most circumstances you won't need
@@ -585,21 +591,29 @@ class Bugzilla(object):
         if not self.password:
             raise ValueError("missing password")
 
+        if restrict:
+            if self.bz_ver_major < 4 or (self.bz_ver_major == 4 and self.bz_ver_minor < 4):
+                BugzillaError("Your bugzilla instance does not "
+                              "support restricted login (supported since version 4.4).")
+
+            log.info("doing login restricted to IP address")
+
         try:
-            ret = self._login(self.user, self.password)
+            ret = self._login(self.user, self.password, restrict)
             self.password = ''
             log.info("login successful for user=%s", self.user)
             return ret
         except Fault as e:
             raise BugzillaError("Login failed: %s" % str(e.faultString))
 
-    def interactive_login(self, user=None, password=None, force=False):
+    def interactive_login(self, user=None, password=None, force=False, restrict=None):
         """
         Helper method to handle login for this bugzilla instance.
 
         :param user: bugzilla username. If not specified, prompt for it.
         :param password: bugzilla password. If not specified, prompt for it.
         :param force: Unused
+        :param restrict: restricts session to IP address
         """
         ignore = force
         log.debug('Calling interactive_login')
@@ -612,7 +626,7 @@ class Bugzilla(object):
             password = getpass.getpass('Bugzilla Password: ')
 
         log.info('Logging in... ')
-        self.login(user, password)
+        self.login(user, password, restrict)
         log.info('Authorization cookie received.')
 
     def logout(self):
