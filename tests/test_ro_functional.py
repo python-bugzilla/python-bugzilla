@@ -211,7 +211,7 @@ class RHTest(BaseTest):
     url = (tests.CLICONFIG.REDHAT_URL or
         "https://bugzilla.redhat.com/xmlrpc.cgi")
     bzclass = RHBugzilla
-    bzversion = (4, 4)
+    bzversion = (5, 0)
 
     test0 = BaseTest._testBZVersion
     test01 = lambda s: BaseTest._testInfoProducts(s, 125,
