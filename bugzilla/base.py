@@ -861,7 +861,7 @@ class Bugzilla(object):
             product_id is None or
             product_id not in self._cache.component_names):
             self.refresh_products(names=[product],
-                                  include_fields=["names", "id"])
+                                  include_fields=["name", "id"])
             proddict = self._lookup_product_in_cache(product)
             product_id = proddict["id"]
 
