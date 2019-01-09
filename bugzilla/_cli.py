@@ -14,6 +14,7 @@
 
 from __future__ import print_function
 
+import errno
 import locale
 from logging import getLogger, DEBUG, INFO, WARN, StreamHandler, Formatter
 import argparse
@@ -85,7 +86,7 @@ def open_without_clobber(name, *args):
         try:
             fd = os.open(name, os.O_CREAT | os.O_EXCL, 0o666)
         except OSError as err:
-            if err.errno == os.errno.EEXIST:
+            if err.errno == errno.EEXIST:
                 name = "%s.%i" % (orig_name, count)
                 count += 1
             else:
@@ -705,7 +706,7 @@ def _format_output(bz, opt, buglist):
         if fieldname == "flag" and rest:
             val = b.get_flag_status(rest)
 
-        elif fieldname == "flags" or fieldname == "flags_requestee":
+        elif fieldname in ["flags", "flags_requestee"]:
             tmpstr = []
             for f in getattr(b, "flags", []):
                 requestee = f.get('requestee', "")
@@ -978,8 +979,6 @@ def _do_get_attach(bz, opt):
             outfile.write(data)
             data = att.read(4096)
         print("Wrote %s" % outfile.name)
-
-    return
 
 
 def _do_set_attach(bz, opt, parser):

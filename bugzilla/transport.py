@@ -159,6 +159,7 @@ class _RequestsTransport(Transport):
         response.
         """
         response = None
+        # pylint: disable=try-except-raise
         try:
             response = self.session.post(
                 url, data=request_body, **self.request_defaults)
