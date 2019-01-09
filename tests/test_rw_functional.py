@@ -649,30 +649,28 @@ class RHPartnerTest(unittest.TestCase):
         getpass.getpass = fakegetpass
 
         try:
+            cmd = "bugzilla --no-cache-credentials --bugzilla %s" % self.url
             # Implied login with --username and --password
-            ret = tests.clicomm("bugzilla --bugzilla %s "
-                                "--user foobar@example.com "
-                                "--password foobar query -b 123456" % self.url,
+            ret = tests.clicomm("%s --user foobar@example.com "
+                                "--password foobar query -b 123456" % cmd,
                                 None, expectfail=True)
             assert "Login failed: " in ret
 
             # 'login' with explicit options
-            ret = tests.clicomm("bugzilla --bugzilla %s "
-                                "--user foobar@example.com "
-                                "--password foobar login" % self.url,
+            ret = tests.clicomm("%s --user foobar@example.com "
+                                "--password foobar login" % cmd,
                                 None, expectfail=True)
             assert "Login failed: " in ret
 
             # 'login' with positional options
-            ret = tests.clicomm("bugzilla --bugzilla %s "
-                                "login foobar@example.com foobar" % self.url,
+            ret = tests.clicomm("%s login foobar@example.com foobar" % cmd,
                                 None, expectfail=True)
             assert "Login failed: " in ret
 
 
             # bare 'login'
             stdinstr = StringIO("foobar@example.com\n\rfoobar\n\r")
-            ret = tests.clicomm("bugzilla --bugzilla %s login" % self.url,
+            ret = tests.clicomm("%s login" % cmd,
                                 None, expectfail=True, stdin=stdinstr)
             assert "Bugzilla Username:" in ret
             assert "Bugzilla Password:" in ret

@@ -1034,15 +1034,18 @@ def _make_bz_instance(opt):
 
     cookiefile = None
     tokenfile = None
+    use_creds = False
     if opt.cache_credentials:
         cookiefile = opt.cookiefile or -1
         tokenfile = opt.tokenfile or -1
+        use_creds = True
 
     bz = bugzilla.Bugzilla(
         url=opt.bugzilla,
         cookiefile=cookiefile,
         tokenfile=tokenfile,
         sslverify=opt.sslverify,
+        use_creds=use_creds,
         cert=opt.cert)
     return bz
 
