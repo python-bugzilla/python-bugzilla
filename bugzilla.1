@@ -225,23 +225,33 @@ List the versions for the given product
 Only show active components. Combine with --components*
 
 
-.SH AUTHENTICATION COOKIES AND TOKENS
+.SH AUTHENTICATION CACHE AND API KEYS
 
-Older bugzilla instances use cookie-based authentication, and
-newer bugzilla instances (around 5.0) use a non-cookie token system.
+Some command usage will require an active login to the bugzilla
+instance. For example, if the bugzilla instance has some private
+bugs, those bugs will be missing from 'query' output if you do
+not have an active login.
 
-When you log into bugzilla with the "login" subcommand or the "--login"
-argument, we cache the login credentials in ~/.cache/python-bugzilla/
-Previously we cached credentials in ~/.<filename>. If you want to see
-which file the tool is using, check --debug output.
+If you are connecting to a bugzilla 5.0 or later instance, the
+best option is to use bugzilla API keys. From the bugzilla
+web UI, log in, naviagte to Preferences->API Keys, and generate
+a key (it will be a long string of characters and numbers).
+Then create a ~/.config/python-bugzilla/bugzillarc like this:
 
-To perform an authenticated bugzilla command on a new machine, run a one time
-"bugzilla login" to cache credentials before running the desired command. You
-can also run "bugzilla --login" and the login process will be initiated before
-invoking the command.
+  $ cat ~/.config/python-bugzilla/bugzillarc
+  [bugzilla.example.com]
+  api_key=YOUR_API_KEY
 
-Additionally, the --no-cache-credentials option will tell the bugzilla tool to
-_not_ save any credentials in $HOME, or use any previously cached credentials.
+Replace 'bugzilla.example.com' with your bugzilla host name,
+and YOUR_API_KEY with the generated API Key from the Web UI.
+
+For older bugzilla instances, you will need to cache a login
+cookie or token with the "login" subcommand or the "--login"
+argument.
+
+Additionally, the --no-cache-credentials option will tell the
+bugzilla tool to _not_ save or use any authentication cache,
+including the bugzillarc file.
 
 .SH EXAMPLES
 .PP
