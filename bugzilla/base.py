@@ -235,7 +235,7 @@ class Bugzilla(object):
 
     def __init__(self, url=-1, user=None, password=None, cookiefile=-1,
                  sslverify=True, tokenfile=-1, use_creds=True, api_key=None,
-                 cert=None):
+                 cert=None, configpaths=-1):
         """
         :param url: The bugzilla instance URL, which we will connect
             to immediately. Most users will want to specify this at
@@ -262,7 +262,8 @@ class Bugzilla(object):
         :param sslverify: Maps to 'requests' sslverify parameter. Set to
             False to disable SSL verification, but it can also be a path
             to file or directory for custom certs.
-        :param api_key: A bugzilla
+        :param api_key: A bugzilla5+ API key
+        :param configpaths: A list of possible bugzillarc locations.
         """
         if url == -1:
             raise TypeError("Specify a valid bugzilla url, or pass url=None")
@@ -284,19 +285,22 @@ class Bugzilla(object):
         self._field_aliases = []
         self._init_field_aliases()
 
-        self.configpath = _default_configpaths[:]
         if not use_creds:
             cookiefile = None
             tokenfile = None
-            self.configpath = []
+            configpaths = []
 
         if cookiefile == -1:
             cookiefile = _default_auth_location("bugzillacookies")
         if tokenfile == -1:
             tokenfile = _default_auth_location("bugzillatoken")
+        if configpaths == -1:
+            configpaths = _default_configpaths[:]
+
         log.debug("Using tokenfile=%s", tokenfile)
         self.cookiefile = cookiefile
         self.tokenfile = tokenfile
+        self.configpath = configpaths
 
         if url:
             self.connect(url)

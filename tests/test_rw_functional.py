@@ -815,7 +815,7 @@ class RHPartnerTest(unittest.TestCase):
 
     def test12SetCookie(self):
         bz = self.bzclass(self.url,
-            cookiefile=-1, tokenfile=None)
+                cookiefile=-1, tokenfile=None, configpaths=[])
 
         try:
             bz.cookiefile = None
