@@ -114,7 +114,7 @@ Bugzilla latest/tip:
     https://bugzilla.readthedocs.io/en/latest/api/index.html
 
 
-Redhat Bugzilla: 4.4 based with extensions. Bits on top of 4.4
+Redhat Bugzilla: 5.0 based with extensions
     https://bugzilla.redhat.com/docs/en/html/api/
     Bug.search has --from-url extension
     Bug.update has more hashing support
