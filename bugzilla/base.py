@@ -863,6 +863,8 @@ class Bugzilla(object):
             self.refresh_products(names=[product],
                                   include_fields=["name", "id"])
             proddict = self._lookup_product_in_cache(product)
+            if "id" not in proddict:
+                raise BugzillaError("Product '%s' not found" % product)
             product_id = proddict["id"]
 
             opts = {'product_id': product_id, 'field': 'component'}
