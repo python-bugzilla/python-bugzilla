@@ -77,7 +77,7 @@ class MiscAPI(unittest.TestCase):
     def test_readconfig(self):
         # Testing for bugzillarc handling
         bzapi = tests.make_bz("4.4.0", rhbz=True)
-        bzapi.url = "foo.example.com"
+        bzapi.url = "example.com"
         temp = tempfile.NamedTemporaryFile(mode="w")
 
         content = """
@@ -91,6 +91,11 @@ password=test2"""
         assert bzapi.user == "test1"
         assert bzapi.password == "test2"
         assert bzapi.api_key is None
+
+        bzapi.url = "foo.example.com"
+        bzapi.user = None
+        bzapi.readconfig(temp.name)
+        assert bzapi.user is None
 
         content = """
 [foo.example.com]

@@ -463,11 +463,25 @@ class Bugzilla(object):
         section = ""
         log.debug("bugzillarc: Searching for config section matching %s",
             self.url)
-        for s in sorted(cfg.sections()):
-            # Substring match - prefer the longest match found
-            if s in self.url:
-                log.debug("bugzillarc: Found matching section: %s", s)
-                section = s
+
+        def _parse_hostname(_u):
+            # If http://example.com is passed, netloc=example.com path=""
+            # If just example.com is passed, netloc="" path=example.com
+            parsedbits = urlparse(self.url)
+            return parsedbits.netloc or parsedbits.path
+
+        urlhost = _parse_hostname(self.url)
+        for sectionhost in sorted(cfg.sections()):
+            # If the section is just a hostname, make it match
+            # If the section has a / in it, do a substring match
+            if "/" not in sectionhost:
+                if sectionhost == urlhost:
+                    section = sectionhost
+            elif sectionhost in self.url:
+                section = sectionhost
+            if section:
+                log.debug("bugzillarc: Found matching section: %s", section)
+                break
 
         if not section:
             log.debug("bugzillarc: No section found")
