@@ -161,7 +161,7 @@ class Bugzilla(object):
     log in, you can either pass auth options to __init__, or call a login
     helper like interactive_login().
 
-    If you are not logged in, you won be able to access restricted data like
+    If you are not logged in, you won't be able to access restricted data like
     user email, or perform write actions like bug create/update. But simple
     querys will work correctly.
 
