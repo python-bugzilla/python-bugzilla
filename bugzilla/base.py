@@ -925,7 +925,7 @@ class Bugzilla(object):
 
         product: The product to create the component in
         component: The name of the component to create
-        desription: A one sentence summary of the component
+        description: A one sentence summary of the component
         default_assignee: The bugzilla login (email address) of the initial
                           owner of the component
         default_qa_contact (optional): The bugzilla login of the
