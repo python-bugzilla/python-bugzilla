@@ -281,7 +281,7 @@ def _parser_add_bz_fields(rootp, command):
     p.add_argument('--field',
         metavar="FIELD=VALUE", action="append", dest="fields",
         help="Manually specify a bugzilla XMLRPC field. FIELD is "
-        "the raw name used by the bugzilla instance. For example if your "
+        "the raw name used by the bugzilla instance. For example, if your "
         "bugzilla instance has a custom field cf_my_field, do:\n"
         "  --field cf_my_field=VALUE")
 
