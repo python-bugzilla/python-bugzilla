@@ -58,7 +58,7 @@ class PylintCommand(Command):
 
         print("running pycodestyle")
         style_guide = pycodestyle.StyleGuide(
-            config_file='tests/pycodestyle.cfg',
+            config_file='tox.ini',
             paths=files,
         )
         style_guide.options.exclude = pycodestyle.normalize_paths(
