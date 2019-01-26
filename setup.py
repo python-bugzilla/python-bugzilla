@@ -23,7 +23,7 @@ def get_version():
     f = open("bugzilla/apiversion.py")
     for line in f:
         if line.startswith('version = '):
-            return eval(line.split('=')[-1])
+            return eval(line.split('=')[-1])  # pylint: disable=eval-used
 
 
 class TestCommand(Command):
@@ -51,7 +51,7 @@ class PylintCommand(Command):
         import pylint.lint
         import pycodestyle
 
-        files = (["bugzilla-cli", "bugzilla"] +
+        files = (["bugzilla-cli", "bugzilla", "setup.py"] +
             glob.glob("examples/*.py") +
             glob.glob("tests/*.py"))
         output_format = sys.stdout.isatty() and "colorized" or "text"
@@ -108,37 +108,38 @@ def _parse_requirements(fname):
     return ret
 
 
-setup(name='python-bugzilla',
-      version=get_version(),
-      description='Bugzilla XMLRPC access module',
-      author='Cole Robinson',
-      author_email='python-bugzilla@lists.fedorahosted.org',
-      license="GPLv2",
-      url='https://github.com/python-bugzilla/python-bugzilla',
-      classifiers=[
-          'Topic :: Software Development :: Libraries :: Python Modules',
-          'Intended Audience :: Developers',
-          'License :: OSI Approved :: Apache Software License',
-          'Operating System :: OS Independent',
-          'Programming Language :: Python',
-          'Programming Language :: Python :: 2',
-          'Programming Language :: Python :: 2.7',
-          'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.3',
-          'Programming Language :: Python :: 3.4',
-          'Programming Language :: Python :: 3.5',
-          'Programming Language :: Python :: 3.6',
-      ],
-      packages = ['bugzilla'],
-      entry_points={'console_scripts': ['bugzilla = bugzilla._cli:cli']},
-      data_files=[('share/man/man1', ['bugzilla.1'])],
+setup(
+    name='python-bugzilla',
+    version=get_version(),
+    description='Bugzilla XMLRPC access module',
+    author='Cole Robinson',
+    author_email='python-bugzilla@lists.fedorahosted.org',
+    license="GPLv2",
+    url='https://github.com/python-bugzilla/python-bugzilla',
+    classifiers=[
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+    ],
+    packages=['bugzilla'],
+    entry_points={'console_scripts': ['bugzilla = bugzilla._cli:cli']},
+    data_files=[('share/man/man1', ['bugzilla.1'])],
 
-      install_requires=_parse_requirements("requirements.txt"),
-      tests_require=_parse_requirements("test-requirements.txt"),
+    install_requires=_parse_requirements("requirements.txt"),
+    tests_require=_parse_requirements("test-requirements.txt"),
 
-      cmdclass={
-        "pylint" : PylintCommand,
-        "rpm" : RPMCommand,
-        "test" : TestCommand,
-      },
+    cmdclass={
+        "pylint": PylintCommand,
+        "rpm": RPMCommand,
+        "test": TestCommand,
+    },
 )
