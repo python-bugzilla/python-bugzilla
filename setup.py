@@ -62,9 +62,6 @@ class PylintCommand(Command):
             format="pylint",
             paths=files,
         )
-        style_guide.options.exclude = pycodestyle.normalize_paths(
-            "bugzilla/oldclasses.py",
-        )
         report = style_guide.check_files()
         if style_guide.options.count:
             sys.stderr.write(str(report.total_errors) + '\n')
