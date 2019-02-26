@@ -426,7 +426,10 @@ bugzilla attach --type=TYPE BUGID [BUGID...]"""
 
 def _setup_action_login_parser(subparsers):
     usage = 'bugzilla login [username [password]]'
-    description = "Log into bugzilla and save a login cookie or token."
+    description = """Log into bugzilla and save a login cookie or token.
+Note: These tokens are short-lived, and future Bugzilla versions will no
+longer support token authentication at all. Please use a
+~/.config/python-bugzilla/bugzillarc file with an API key instead."""
     p = subparsers.add_parser("login", description=description, usage=usage)
     p.add_argument("pos_username", nargs="?", help="Optional username",
             metavar="username")
