@@ -228,6 +228,18 @@ def _parser_add_bz_fields(rootp, command):
     p.add_argument('-c', '--component', help="Component name")
     p.add_argument('-t', '--summary', '--short_desc', help="Bug summary")
     p.add_argument('-l', '--comment', '--long_desc', help=comment_help)
+    p.add_argument('-L', '--comment-type', '--long_desc_type',
+        help='--comment/--long_desc search semantics',
+        choices=[
+            'allwordssubstr',
+            'anywordssubstr',
+            'substring',
+            'casesubstring',
+            'allwords',
+            'anywords',
+            'regexp',
+            'notregexp',
+        ])
     if not cmd_query:
         p.add_argument("--comment-tag", action="append",
                 help="Comment tag for the new comment")
@@ -554,6 +566,7 @@ def _do_query(bz, opt, parser):
         bug_id=opt.id or None,
         short_desc=opt.summary or None,
         long_desc=opt.comment or None,
+        long_desc_type=opt.comment_type or None,
         cc=opt.cc or None,
         assigned_to=opt.assigned_to or None,
         qa_contact=opt.qa_contact or None,
