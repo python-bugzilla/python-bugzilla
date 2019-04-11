@@ -244,6 +244,79 @@ class RHBugzilla(Bugzilla):
         log.debug("Calling ExternalBugs.remove_external_bug(%s)", params)
         return self._proxy.ExternalBugs.remove_external_bug(params)
 
+    def product_create_objects(self, id=None, name=None,
+                               versions=None, milestones=None,
+                               releases=None):
+        """
+        Wrapper method to create new product objects
+        RedHat::WebService::product_create_objects method.
+
+        This is documented at
+        https://bugzilla.redhat.com/docs/en/html/integrating/api/Bugzilla/Extension/RedHat/WebService/Bugzilla.html
+
+        id: The ID of the product that will be modified. Either the name or ID of the product must be specified
+
+        name: The name of the product that will be modified. Either the name or ID of the product must be specified
+
+        versions: An array of hashes describing each milestone to be created.
+                  The arguments for the versions hash is detailed below
+
+                  name: string The name of the version
+
+        milestones: An array of hashes describing each milestone to be created.
+                    The arguments for the versions hash is detailed below
+
+                    name: The name of the milestone
+
+        releases: An array of hashes describing each release to be created.
+                  The arguments for the release hash is detailed below
+
+                  name: The name of the release
+
+                  sortkey: The sort order of the release
+
+                  default: True if you want this to be the default release
+        """
+
+        params = {}
+
+        if id is not None:
+            params['id'] = id
+        if name is not None:
+            params['name'] = name
+        if versions is not None:
+            params['versions'] = self._listify(versions)
+        if milestones is not None:
+            params['milestones'] = self._listify(milestones)
+        if releases is not None:
+            params['releases'] = self._listify(releases)
+
+        params = {"data": [params]}
+
+        log.debug("Calling RedHat.product_create_objects(%s)", params)
+        return self._proxy.RedHat.product_create_objects(params)
+
+    def product_get_objects(self, ids=None, names=None):
+        """
+        Wrapper method to get product objects
+        RedHat::WebService::product_get_objects method.
+
+        This is documented at
+        https://bugzilla.redhat.com/docs/en/html/integrating/api/Bugzilla/Extension/RedHat/WebService/Bugzilla.html
+
+        ids: An array of product ids
+
+        names: An array of strings of the product names
+        """
+        params = {}
+
+        if ids is not None:
+            params['ids'] = self._listify(ids)
+        if names is not None:
+            params['names'] = self._listify(names)
+
+        log.debug("Calling RedHat.product_get_objects(%s)", params)
+        return self._proxy.RedHat.product_get_objects(params)
 
     #################
     # Query methods #
