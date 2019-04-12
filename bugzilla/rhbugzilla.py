@@ -278,20 +278,20 @@ class RHBugzilla(Bugzilla):
                   default: True if you want this to be the default release
         """
 
-        params = {}
+        data = {}
 
         if id is not None:
-            params['id'] = id
+            data['id'] = id
         if name is not None:
-            params['name'] = name
+            data['name'] = name
         if versions is not None:
-            params['versions'] = self._listify(versions)
+            data['versions'] = self._listify(versions)
         if milestones is not None:
-            params['milestones'] = self._listify(milestones)
+            data['milestones'] = self._listify(milestones)
         if releases is not None:
-            params['releases'] = self._listify(releases)
+            data['releases'] = self._listify(releases)
 
-        params = {"data": [params]}
+        params = {'data': [data]}
 
         log.debug("Calling RedHat.product_create_objects(%s)", params)
         return self._proxy.RedHat.product_create_objects(params)
