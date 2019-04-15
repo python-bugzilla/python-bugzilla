@@ -380,3 +380,10 @@ class RHTest(BaseTest):
             "bugzilla --cert %s query --bug_id 123456" % badcert,
             None, expectfail=True)
         assert "PEM" in out
+
+    def testGetVersions(self):
+        bz = self.bzclass(self.url)
+        versions = bz.product_get_objects(names='Container Native Virtualization (CNV)')
+        assert len(versions) == 1
+        assert versions[0]['name'] == 'Container Native Virtualization (CNV)'
+
