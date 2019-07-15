@@ -422,6 +422,8 @@ bugzilla attach --type=TYPE BUGID [BUGID...]"""
             default=[], help="Download all attachments on the given bug")
     p.add_argument('-l', '--comment', '--long_desc',
             help="Add comment with attachment")
+    p.add_argument('--private', action='store_true', default=False,
+        help='Mark new comment as private')
 
 
 def _setup_action_login_parser(subparsers):
@@ -1015,6 +1017,8 @@ def _do_set_attach(bz, opt, parser):
         kwargs["ispatch"] = True
     if opt.comment:
         kwargs["comment"] = opt.comment
+    if opt.private:
+        kwargs["is_private"] = True
     desc = opt.desc or os.path.basename(fileobj.name)
 
     # Upload attachments
