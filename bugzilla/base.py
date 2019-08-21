@@ -9,7 +9,6 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
-import collections
 import getpass
 import locale
 from logging import getLogger
@@ -22,11 +21,13 @@ from io import BytesIO
 # pylint: disable=import-error
 if sys.version_info[0] >= 3:
     # pylint: disable=no-name-in-module
+    from collections.abc import Mapping
     from configparser import ConfigParser
     from http.cookiejar import LoadError, MozillaCookieJar
     from urllib.parse import urlparse, parse_qsl
     from xmlrpc.client import Binary, Fault
 else:
+    from collections import Mapping
     from ConfigParser import SafeConfigParser as ConfigParser
     from cookielib import LoadError, MozillaCookieJar
     from urlparse import urlparse, parse_qsl
@@ -44,9 +45,8 @@ log = getLogger(__name__)
 
 def _nested_update(d, u):
     # Helper for nested dict update()
-    # https://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
     for k, v in list(u.items()):
-        if isinstance(v, collections.Mapping):
+        if isinstance(v, Mapping):
             d[k] = _nested_update(d.get(k, {}), v)
         else:
             d[k] = v
