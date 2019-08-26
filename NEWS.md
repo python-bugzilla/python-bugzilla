@@ -1,5 +1,11 @@
 # python-bugzilla release news
 
+## Release 2.3.0 (August 26, 2019)
+- restrict-login suppot (Viliam Krizan)
+- cli: Add support for private attachments (Brian 'Redbeard' Harrington)
+- Fix python3 deprecation warnings
+- Drop python 3.3 support, minimum python3 is python 3.4 now
+
 ## Release 2.2.0 (August 11, 2018)
 - Port tests to pytest
 - cli: --cert Client side certificate support (Tobias Wolter)
