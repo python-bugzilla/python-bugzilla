@@ -18,9 +18,8 @@ import sys
 
 from io import BytesIO
 
-# pylint: disable=import-error
+# pylint: disable=import-error,no-name-in-module,ungrouped-imports
 if sys.version_info[0] >= 3:
-    # pylint: disable=no-name-in-module
     from collections.abc import Mapping
     from configparser import ConfigParser
     from http.cookiejar import LoadError, MozillaCookieJar
@@ -32,7 +31,7 @@ else:
     from cookielib import LoadError, MozillaCookieJar
     from urlparse import urlparse, parse_qsl
     from xmlrpclib import Binary, Fault
-# pylint: enable=import-error
+# pylint: enable=import-error,no-name-in-module,ungrouped-imports
 
 
 from .apiversion import __version__
@@ -311,7 +310,7 @@ class Bugzilla(object):
         """
         Detect if we should use RHBugzilla class, and if so, set it
         """
-        from bugzilla import RHBugzilla
+        from .rhbugzilla import RHBugzilla  # pylint: disable=cyclic-import
         if isinstance(self, RHBugzilla):
             return
 
@@ -338,7 +337,6 @@ class Bugzilla(object):
         """
         Hook for subclasses to do any __init__ time setup
         """
-        pass
 
     def _init_field_aliases(self):
         # List of field aliases. Maps old style RHBZ parameter
@@ -1289,14 +1287,12 @@ class Bugzilla(object):
         In order to keep the API the same, Bugzilla4 needs to process the
         query and the result. This also applies to the refresh() function
         """
-        pass
 
     def post_translation(self, query, bug):
         """
         In order to keep the API the same, Bugzilla4 needs to process the
         query and the result. This also applies to the refresh() function
         """
-        pass
 
     def bugs_history_raw(self, bug_ids):
         """

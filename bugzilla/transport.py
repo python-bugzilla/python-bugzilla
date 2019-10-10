@@ -28,7 +28,6 @@ class BugzillaError(Exception):
     """
     Error raised in the Bugzilla client code.
     """
-    pass
 
 
 class _BugzillaTokenCache(object):
