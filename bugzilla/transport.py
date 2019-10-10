@@ -4,6 +4,7 @@
 # option) any later version.  See http://www.gnu.org/copyleft/gpl.html for
 # the full text of the license.
 
+import base64
 from logging import getLogger
 import sys
 
@@ -142,6 +143,16 @@ class _RequestsTransport(Transport):
         self.session = requests.Session()
         if cert:
             self.session.cert = cert
+
+    def set_basic_auth(self, user, password):
+        """
+        Set basic authentication method.
+
+        :return:
+        """
+        b64str = str(base64.b64encode("{}:{}".format(user, password)))
+        authstr = "Basic {}".format(b64str.encode("utf-8").decode("utf-8"))
+        self.request_defaults["headers"]["Authorization"] = authstr
 
     def parse_response(self, response):
         """
