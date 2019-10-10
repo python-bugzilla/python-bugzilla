@@ -23,13 +23,13 @@ if sys.version_info[0] >= 3:
     from collections.abc import Mapping
     from configparser import ConfigParser
     from http.cookiejar import LoadError, MozillaCookieJar
-    from urllib.parse import urlparse, parse_qsl
+    from urllib.parse import urlparse, urlunparse, parse_qsl
     from xmlrpc.client import Binary, Fault
 else:
     from collections import Mapping
     from ConfigParser import SafeConfigParser as ConfigParser
     from cookielib import LoadError, MozillaCookieJar
-    from urlparse import urlparse, parse_qsl
+    from urlparse import urlparse, urlunparse, parse_qsl
     from xmlrpclib import Binary, Fault
 # pylint: enable=import-error,no-name-in-module,ungrouped-imports
 
@@ -215,13 +215,16 @@ class Bugzilla(object):
         """
         Turn passed url into a bugzilla XMLRPC web url
         """
-        if '://' not in url:
+        scheme, netloc, path, params, query, fragment = urlparse(url)
+        if not scheme:
             log.debug('No scheme given for url, assuming https')
-            url = 'https://' + url
-        if url.count('/') < 3:
+            scheme = 'https'
+
+        if not path:
             log.debug('No path given for url, assuming /xmlrpc.cgi')
-            url = url + '/xmlrpc.cgi'
-        return url
+            path = 'xmlrpc.cgi'
+
+        return urlunparse((scheme, netloc, path, params, query, fragment))
 
     @staticmethod
     def _listify(val):
