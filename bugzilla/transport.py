@@ -6,6 +6,8 @@
 
 from logging import getLogger
 import sys
+import base64
+import requests
 
 # pylint: disable=import-error
 if sys.version_info[0] >= 3:
@@ -17,8 +19,6 @@ else:
     from urlparse import urlparse
     from xmlrpclib import Fault, ProtocolError, ServerProxy, Transport
 # pylint: enable=import-error
-
-import requests
 
 
 log = getLogger(__name__)
@@ -142,6 +142,15 @@ class _RequestsTransport(Transport):
         self.session = requests.Session()
         if cert:
             self.session.cert = cert
+
+    def set_basic_auth(self, user, password):
+        """
+        Set basic authentication method.
+
+        :return:
+        """
+        self.request_defaults["headers"]["Authorization"] = "Basic {}".format(
+            str(base64.b64encode("{}:{}".format(user, password).encode("utf-8")).decode("utf-8")))
 
     def parse_response(self, response):
         """

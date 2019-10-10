@@ -237,7 +237,7 @@ class Bugzilla(object):
 
     def __init__(self, url=-1, user=None, password=None, cookiefile=-1,
                  sslverify=True, tokenfile=-1, use_creds=True, api_key=None,
-                 cert=None, configpaths=-1):
+                 cert=None, configpaths=-1, basic_auth=False):
         """
         :param url: The bugzilla instance URL, which we will connect
             to immediately. Most users will want to specify this at
@@ -266,6 +266,7 @@ class Bugzilla(object):
             to file or directory for custom certs.
         :param api_key: A bugzilla5+ API key
         :param configpaths: A list of possible bugzillarc locations.
+        :param basic_auth: Use headers with HTTP Basic authentication
         """
         if url == -1:
             raise TypeError("Specify a valid bugzilla url, or pass url=None")
@@ -303,6 +304,7 @@ class Bugzilla(object):
         self.cookiefile = cookiefile
         self.tokenfile = tokenfile
         self.configpath = configpaths
+        self._basic_auth = basic_auth
 
         if url:
             self.connect(url)
@@ -536,6 +538,7 @@ class Bugzilla(object):
         self._transport = _RequestsTransport(
             url, self._cookiejar, sslverify=self._sslverify, cert=self.cert)
         self._transport.user_agent = self.user_agent
+
         self._proxy = _BugzillaServerProxy(url, self.tokenfile,
             self._transport)
 
@@ -567,6 +570,9 @@ class Bugzilla(object):
         """
         Backend login method for Bugzilla3
         """
+        if self._basic_auth:
+            self._transport.set_basic_auth(user, password)
+
         payload = {'login': user, 'password': password}
         if restrict_login:
             payload['restrict_login'] = True
