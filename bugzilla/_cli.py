@@ -429,16 +429,19 @@ bugzilla attach --type=TYPE BUGID [BUGID...]"""
 
 
 def _setup_action_login_parser(subparsers):
-    usage = 'bugzilla login [username [password]]'
+    usage = 'bugzilla login [--api-key] [username [password]]'
     description = """Log into bugzilla and save a login cookie or token.
 Note: These tokens are short-lived, and future Bugzilla versions will no
-longer support token authentication at all. Please use a
-~/.config/python-bugzilla/bugzillarc file with an API key instead."""
+longer support token authentication at all. Please use an API key instead."""
     p = subparsers.add_parser("login", description=description, usage=usage)
-    p.add_argument("pos_username", nargs="?", help="Optional username",
-            metavar="username")
-    p.add_argument("pos_password", nargs="?", help="Optional password",
-            metavar="password")
+    p.add_argument('--api-key', action='store_true', default=False,
+                   help='Use an API-KEY instead of username/password.')
+    p.add_argument("pos_username", nargs="?", help="Optional username " \
+                   "(ignored if --api-key is provided)",
+                   metavar="username")
+    p.add_argument("pos_password", nargs="?", help="Optional password " \
+                   "(ignored if --api-key is provided)",
+                   metavar="password")
 
 
 def setup_parser():
@@ -1073,9 +1076,13 @@ def _handle_login(opt, action, bz):
         opt.login or opt.username or opt.password)
     username = getattr(opt, "pos_username", None) or opt.username
     password = getattr(opt, "pos_password", None) or opt.password
+    use_key = getattr(opt, "api_key", False)
 
     try:
-        if do_interactive_login:
+        if is_login_command and use_key:
+            bz.interactive_login(use_api_key=True,
+                    restrict_login=opt.restrict_login)
+        elif do_interactive_login:
             if bz.url:
                 print("Logging into %s" % urlparse(bz.url)[1])
             bz.interactive_login(username, password,
