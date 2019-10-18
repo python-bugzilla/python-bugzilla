@@ -41,6 +41,12 @@ from .transport import BugzillaError, _BugzillaServerProxy, _RequestsTransport
 
 log = getLogger(__name__)
 
+def _parse_hostname(url):
+    # If http://example.com is passed, netloc=example.com path=""
+    # If just example.com is passed, netloc="" path=example.com
+    parsedbits = urlparse(url)
+    return parsedbits.netloc or parsedbits.path
+
 
 def _nested_update(d, u):
     # Helper for nested dict update()
@@ -52,14 +58,14 @@ def _nested_update(d, u):
     return d
 
 
-def _default_auth_location(filename):
+def _default_location(filename, kind='cache'):
     """
-    Determine auth location for filename, like 'bugzillacookies'. If
+    Determine default location for filename, like 'bugzillacookies'. If
     old style ~/.bugzillacookies exists, we use that, otherwise we
-    use ~/.cache/python-bugzilla/bugzillacookies. Same for bugzillatoken
+    use ~/.cache/python-bugzilla/bugzillacookies. Same for bugzillatoken and bugzilarc
     """
     homepath = os.path.expanduser("~/.%s" % filename)
-    xdgpath = os.path.expanduser("~/.cache/python-bugzilla/%s" % filename)
+    xdgpath = os.path.expanduser("~/.%s/python-bugzilla/%s" % (kind, filename))
     if os.path.exists(xdgpath):
         return xdgpath
     if os.path.exists(homepath):
@@ -294,9 +300,9 @@ class Bugzilla(object):
             configpaths = []
 
         if cookiefile == -1:
-            cookiefile = _default_auth_location("bugzillacookies")
+            cookiefile = _default_location("bugzillacookies")
         if tokenfile == -1:
-            tokenfile = _default_auth_location("bugzillatoken")
+            tokenfile = _default_location("bugzillatoken")
         if configpaths == -1:
             configpaths = _default_configpaths[:]
 
@@ -467,12 +473,6 @@ class Bugzilla(object):
         log.debug("bugzillarc: Searching for config section matching %s",
             self.url)
 
-        def _parse_hostname(_u):
-            # If http://example.com is passed, netloc=example.com path=""
-            # If just example.com is passed, netloc="" path=example.com
-            parsedbits = urlparse(self.url)
-            return parsedbits.netloc or parsedbits.path
-
         urlhost = _parse_hostname(self.url)
         for sectionhost in sorted(cfg.sections()):
             # If the section is just a hostname, make it match
@@ -626,8 +626,36 @@ class Bugzilla(object):
         except Fault as e:
             raise BugzillaError("Login failed: %s" % str(e.faultString))
 
+    def _save_api_key(self):
+        """
+        Save the API_KEY in the config file.
+
+        If toklenfile and cookiefile are undefined, it meas that the
+        API was called with --no-cache-credentials and no change will be
+        made
+        """
+        if self.tokenfile is None and self.cookiefile is None:
+            log.info("API Key won't be updated")
+            return
+
+        config_filename = _default_location('bugzillarc', kind='config')
+        section = _parse_hostname(self.url)
+
+        cfg = ConfigParser()
+        cfg.read(config_filename)
+
+        if section not in cfg.sections():
+            cfg.add_section(section)
+
+        cfg[section]['api_key'] = self.api_key.strip()
+
+        with open(config_filename, 'w') as configfile:
+            cfg.write(configfile)
+
+        log.info("API Key updated in %s", config_filename)
+
     def interactive_login(self, user=None, password=None, force=False,
-                          restrict_login=None):
+                          restrict_login=None, use_api_key=False):
         """
         Helper method to handle login for this bugzilla instance.
 
@@ -638,6 +666,24 @@ class Bugzilla(object):
         """
         ignore = force
         log.debug('Calling interactive_login')
+
+        if use_api_key:
+            sys.stdout.write('API Key: ')
+            sys.stdout.flush()
+            api_key = sys.stdin.readline().strip()
+
+            self.disconnect()
+            self.api_key = api_key
+
+            log.info('Checking API key... ')
+            self.connect()
+
+            if not self.logged_in:
+                raise BugzillaError("Login with API_KEY failed")
+            log.info('API Key acepted')
+
+            self._save_api_key()
+            return
 
         if not user:
             sys.stdout.write('Bugzilla Username: ')
