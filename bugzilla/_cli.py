@@ -403,7 +403,7 @@ def _setup_action_modify_parser(subparsers):
 def _setup_action_attach_parser(subparsers):
     usage = """
 bugzilla attach --file=FILE --desc=DESC [--type=TYPE] BUGID [BUGID...]
-bugzilla attach --get=ATTACHID --getall=BUGID [...]
+bugzilla attach --get=ATTACHID --getall=BUGID [--ignore-obsolete] [...]
 bugzilla attach --type=TYPE BUGID [BUGID...]"""
     description = "Attach files or download attachments."
     p = subparsers.add_parser("attach", description=description, usage=usage)
@@ -424,6 +424,8 @@ bugzilla attach --type=TYPE BUGID [BUGID...]"""
             help="Add comment with attachment")
     p.add_argument('--private', action='store_true', default=False,
         help='Mark new comment as private')
+    p.add_argument('--ignore-obsolete', action="store_true",
+        help='Ignore obsolete attachments.')
 
 
 def _setup_action_login_parser(subparsers):
@@ -977,6 +979,11 @@ def _do_get_attach(bz, opt):
         opt.get += bug.get_attachment_ids()
 
     for attid in set(opt.get):
+        if opt.ignore_obsolete:
+            metadata = bz.get_attachments(None, attid,
+                                          include_fields=["is_obsolete"])
+            if metadata["attachments"][str(attid)]['is_obsolete'] == 1:
+                continue
         att = bz.openattachment(attid)
         outfile = open_without_clobber(att.name, "wb")
         data = att.read(4096)
