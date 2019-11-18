@@ -551,6 +551,13 @@ class RHPartnerTest(unittest.TestCase):
         setbug.refresh()
         assert setbug.attachments[-1]["flags"] == []
 
+        # Set attachment obsolete
+        bz._proxy.Bug.update_attachment({  # pylint: disable=protected-access
+            "ids": [setbug.attachments[-1]["id"]],
+            "is_obsolete": 1})
+        setbug.refresh()
+        assert setbug.attachments[-1]["is_obsolete"] == 1
+
 
         # Get attachment, verify content
         out = tests.clicomm(cmd + "--get %s" % attachid, bz).splitlines()
@@ -573,6 +580,18 @@ class RHPartnerTest(unittest.TestCase):
         assert len(out) == (numattach + 2)
         fnames = [l.split(" ", 1)[1].strip() for l in out[2:]]
         assert len(fnames) == numattach
+        for f in fnames:
+            if not os.path.exists(f):
+                raise AssertionError("filename '%s' not found" % f)
+            os.unlink(f)
+
+        # Get all attachments, but ignore obsolete
+        ignorecmd = cmd + "--getall %s --ignore-obsolete" % getbug.id
+        out = tests.clicomm(ignorecmd, bz).splitlines()
+
+        assert len(out) == (numattach + 1)
+        fnames = [l.split(" ", 1)[1].strip() for l in out[2:]]
+        assert len(fnames) == (numattach - 1)
         for f in fnames:
             if not os.path.exists(f):
                 raise AssertionError("filename '%s' not found" % f)
