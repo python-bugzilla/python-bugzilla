@@ -58,6 +58,14 @@ class MiscAPI(unittest.TestCase):
         b3 = tests.make_bz("3.0.0")
         assert "python-bugzilla" in b3.user_agent
 
+    def test_fixurl(self):
+        assert (bugzilla.Bugzilla.fix_url("example.com") ==
+            "https://example.com/xmlrpc.cgi")
+        assert (bugzilla.Bugzilla.fix_url("example.com/xmlrpc.cgi") ==
+            "https://example.com/xmlrpc.cgi")
+        assert (bugzilla.Bugzilla.fix_url("http://example.com/somepath.cgi") ==
+            "http://example.com/somepath.cgi")
+
     def testCookies(self):
         cookiesbad = os.path.join(os.getcwd(), "tests/data/cookies-bad.txt")
         cookieslwp = os.path.join(os.getcwd(), "tests/data/cookies-lwp.txt")

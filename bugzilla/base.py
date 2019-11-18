@@ -220,11 +220,18 @@ class Bugzilla(object):
             log.debug('No scheme given for url, assuming https')
             scheme = 'https'
 
+        if path and not netloc:
+            netloc = path.split("/", 1)[0]
+            path = "/".join(path.split("/")[1:]) or None
+
         if not path:
             log.debug('No path given for url, assuming /xmlrpc.cgi')
             path = 'xmlrpc.cgi'
 
-        return urlunparse((scheme, netloc, path, params, query, fragment))
+        newurl = urlunparse((scheme, netloc, path, params, query, fragment))
+        if newurl != url:
+            log.debug("Generated fixed URL: %s", newurl)
+        return newurl
 
     @staticmethod
     def _listify(val):
