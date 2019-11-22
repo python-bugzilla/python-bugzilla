@@ -452,7 +452,7 @@ class Bugzilla(object):
     # Login/connection handling #
     #############################
 
-    def readconfig(self, configpath=None):
+    def readconfig(self, configpath=None, overwrite=True):
         """
         :param configpath: Optional bugzillarc path to read, instead of
             the default list.
@@ -481,6 +481,9 @@ class Bugzilla(object):
 
         Be sure to set appropriate permissions on bugzillarc if you choose to
         store your password in it!
+
+        :param overwrite: If True, bugzillarc will clobber any already
+            set self.user/password/api_key/cert value.
         """
         cfg = _open_bugzillarc(configpath or self.configpath)
         if not cfg:
@@ -508,16 +511,16 @@ class Bugzilla(object):
             return
 
         for key, val in cfg.items(section):
-            if key == "api_key":
+            if key == "api_key" and (overwrite or not self.api_key):
                 log.debug("bugzillarc: setting api_key")
                 self.api_key = val
-            elif key == "user":
+            elif key == "user" and (overwrite or not self.user):
                 log.debug("bugzillarc: setting user=%s", val)
                 self.user = val
-            elif key == "password":
+            elif key == "password" and (overwrite or not self.password):
                 log.debug("bugzillarc: setting password")
                 self.password = val
-            elif key == "cert":
+            elif key == "cert" and not (overwrite or not self.cert):
                 log.debug("bugzillarc: setting cert")
                 self.cert = val
             else:
@@ -560,7 +563,7 @@ class Bugzilla(object):
 
         self.url = url
         # we've changed URLs - reload config
-        self.readconfig()
+        self.readconfig(overwrite=False)
 
         if (self.user and self.password):
             log.info("user and password present - doing login()")
