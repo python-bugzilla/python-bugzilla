@@ -1080,13 +1080,11 @@ def _handle_login(opt, action, bz):
     use_key = getattr(opt, "api_key", False)
 
     try:
-        if is_login_command and use_key:
-            bz.interactive_login(use_api_key=True,
-                    restrict_login=opt.restrict_login)
-        elif do_interactive_login:
-            if bz.url:
+        if do_interactive_login or use_key:
+            if bz.url and not use_key:
                 print("Logging into %s" % urlparse(bz.url)[1])
             bz.interactive_login(username, password,
+                    use_api_key=use_key,
                     restrict_login=opt.restrict_login)
     except bugzilla.BugzillaError as e:
         print(str(e))
@@ -1099,7 +1097,7 @@ def _handle_login(opt, action, bz):
 
     if is_login_command:
         msg = "Login successful."
-        if bz.cookiefile or bz.tokenfile:
+        if (bz.cookiefile or bz.tokenfile) and not use_key:
             msg = "Login successful, token cache updated."
 
         print(msg)

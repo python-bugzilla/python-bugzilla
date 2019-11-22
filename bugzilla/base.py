@@ -129,6 +129,32 @@ def _open_bugzillarc(configpaths=-1):
     return cfg
 
 
+def _save_api_key(url, api_key):
+    """
+    Save the API_KEY in the config file.
+
+    If tokenfile and cookiefile are undefined, it means that the
+    API was called with --no-cache-credentials and no change will be
+    made
+    """
+    config_filename = _default_config_location('bugzillarc')
+    section = _parse_hostname(url)
+
+    cfg = ConfigParser()
+    cfg.read(config_filename)
+
+    if section not in cfg.sections():
+        cfg.add_section(section)
+
+    cfg[section]['api_key'] = api_key.strip()
+
+    with open(config_filename, 'w') as configfile:
+        cfg.write(configfile)
+
+    log.info("API key written to %s", config_filename)
+    print("API key written to %s" % config_filename)
+
+
 class _FieldAlias(object):
     """
     Track API attribute names that differ from what we expose in users.
@@ -311,7 +337,8 @@ class Bugzilla(object):
         self._field_aliases = []
         self._init_field_aliases()
 
-        if not use_creds:
+        self._use_creds = use_creds
+        if not self._use_creds:
             cookiefile = None
             tokenfile = None
             configpaths = []
@@ -646,34 +673,6 @@ class Bugzilla(object):
         except Fault as e:
             raise BugzillaError("Login failed: %s" % str(e.faultString))
 
-    def _save_api_key(self):
-        """
-        Save the API_KEY in the config file.
-
-        If toklenfile and cookiefile are undefined, it meas that the
-        API was called with --no-cache-credentials and no change will be
-        made
-        """
-        if self.tokenfile is None and self.cookiefile is None:
-            log.info("API Key won't be updated")
-            return
-
-        config_filename = _default_config_location('bugzillarc')
-        section = _parse_hostname(self.url)
-
-        cfg = ConfigParser()
-        cfg.read(config_filename)
-
-        if section not in cfg.sections():
-            cfg.add_section(section)
-
-        cfg[section]['api_key'] = self.api_key.strip()
-
-        with open(config_filename, 'w') as configfile:
-            cfg.write(configfile)
-
-        log.info("API Key updated in %s", config_filename)
-
     def interactive_login(self, user=None, password=None, force=False,
                           restrict_login=None, use_api_key=False):
         """
@@ -683,7 +682,7 @@ class Bugzilla(object):
         :param password: bugzilla password. If not specified, prompt for it.
         :param force: Unused
         :param restrict_login: restricts session to IP address
-        :param use_api_key: True if the login should be done using an api_key
+        :param use_api_key: If True, prompt for an api_key instead
         """
         ignore = force
         log.debug('Calling interactive_login')
@@ -701,9 +700,12 @@ class Bugzilla(object):
 
             if not self.logged_in:
                 raise BugzillaError("Login with API_KEY failed")
-            log.info('API Key acepted')
+            log.info('API Key accepted')
 
-            self._save_api_key()
+            if self._use_creds:
+                _save_api_key(self.url, self.api_key)
+            else:
+                log.info("API Key won't be updated because use_creds=False")
             return
 
         if not user:
