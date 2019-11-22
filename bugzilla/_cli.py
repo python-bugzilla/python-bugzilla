@@ -432,15 +432,16 @@ def _setup_action_login_parser(subparsers):
     usage = 'bugzilla login [--api-key] [username [password]]'
     description = """Log into bugzilla and save a login cookie or token.
 Note: These tokens are short-lived, and future Bugzilla versions will no
-longer support token authentication at all. Please use an API key instead."""
+longer support token authentication at all. Please use a
+~/.config/python-bugzilla/bugzillarc file with an API key instead, or
+use 'bugzilla login --api-key' and we will save it for you."""
     p = subparsers.add_parser("login", description=description, usage=usage)
     p.add_argument('--api-key', action='store_true', default=False,
-                   help='Use an API-KEY instead of username/password.')
-    p.add_argument("pos_username", nargs="?", help="Optional username " \
-                   "(ignored if --api-key is provided)",
+                   help='Prompt for and save an API key into bugzillarc, '
+                        'rather than prompt for username and password.')
+    p.add_argument("pos_username", nargs="?", help="Optional username ",
                    metavar="username")
-    p.add_argument("pos_password", nargs="?", help="Optional password " \
-                   "(ignored if --api-key is provided)",
+    p.add_argument("pos_password", nargs="?", help="Optional password ",
                    metavar="password")
 
 
