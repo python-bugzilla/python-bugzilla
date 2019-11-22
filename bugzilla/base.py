@@ -41,6 +41,7 @@ from .transport import BugzillaError, _BugzillaServerProxy, _RequestsTransport
 
 log = getLogger(__name__)
 
+
 def _parse_hostname(url):
     # If http://example.com is passed, netloc=example.com path=""
     # If just example.com is passed, netloc="" path=example.com
@@ -58,11 +59,12 @@ def _nested_update(d, u):
     return d
 
 
-def _default_location(filename, kind='cache'):
+def _default_location(filename, kind):
     """
     Determine default location for filename, like 'bugzillacookies'. If
     old style ~/.bugzillacookies exists, we use that, otherwise we
-    use ~/.cache/python-bugzilla/bugzillacookies. Same for bugzillatoken and bugzilarc
+    use ~/.cache/python-bugzilla/bugzillacookies.
+    Same for bugzillatoken and bugzillarc
     """
     homepath = os.path.expanduser("~/.%s" % filename)
     xdgpath = os.path.expanduser("~/.%s/python-bugzilla/%s" % (kind, filename))
@@ -74,6 +76,14 @@ def _default_location(filename, kind='cache'):
     if not os.path.exists(os.path.dirname(xdgpath)):
         os.makedirs(os.path.dirname(xdgpath), 0o700)
     return xdgpath
+
+
+def _default_cache_location(filename):
+    return _default_location(filename, 'cache')
+
+
+def _default_config_location(filename):
+    return _default_location(filename, 'config')
 
 
 def _build_cookiejar(cookiefile):
@@ -307,9 +317,9 @@ class Bugzilla(object):
             configpaths = []
 
         if cookiefile == -1:
-            cookiefile = _default_location("bugzillacookies")
+            cookiefile = _default_cache_location("bugzillacookies")
         if tokenfile == -1:
-            tokenfile = _default_location("bugzillatoken")
+            tokenfile = _default_cache_location("bugzillatoken")
         if configpaths == -1:
             configpaths = _default_configpaths[:]
 
@@ -645,7 +655,7 @@ class Bugzilla(object):
             log.info("API Key won't be updated")
             return
 
-        config_filename = _default_location('bugzillarc', kind='config')
+        config_filename = _default_config_location('bugzillarc')
         section = _parse_hostname(self.url)
 
         cfg = ConfigParser()
