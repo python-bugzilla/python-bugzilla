@@ -35,7 +35,7 @@ else:
 
 
 from .apiversion import __version__
-from .bug import Bug, User
+from .bug import Bug, Group, User
 from .transport import BugzillaError, _BugzillaServerProxy, _RequestsTransport
 
 
@@ -1939,3 +1939,84 @@ class Bugzilla(object):
         }
 
         return self._proxy.User.update(update)
+
+    ###############################
+    # Methods for handling Groups #
+    ###############################
+
+    def _getgroups(self, ids=None, names=None, match=None, membership=False):
+        """
+        Return a list of users that match criteria.
+
+        :kwarg ids: list of user ids to return data on
+        :kwarg names: list of user names to return data on
+        :kwarg match: list of patterns.  Returns users whose real name or
+            login name match the pattern.
+        :kwarg membership: boolean specifying wether to query the members
+            of the group or not.
+        :raises XMLRPC Fault: Code 51: if a Bad Login Name was sent to the
+                names array.
+            Code 304: if the user was not authorized to see user they
+                requested.
+            Code 505: user is logged out and can't use the match or ids
+                parameter.
+
+        Available in Bugzilla-3.4+
+        """
+        params = {"membership": membership}
+        if ids:
+            params['ids'] = self._listify(ids)
+        if names:
+            params['names'] = self._listify(names)
+        if match:
+            params['match'] = self._listify(match)
+        if not params:
+            raise BugzillaError('_get() needs one of ids, '
+                                ' names, or match kwarg.')
+
+        return self._proxy.Group.get(params)
+
+    def getgroup(self, name, membership=False):
+        """
+        Return a bugzilla Group for the given name
+
+        :arg name: The name used in bugzilla.
+        :raises XMLRPC Fault: Code 51 if the name does not exist
+        :returns: Group record for the name
+        """
+        ret = self.getgroups(name, membership=membership)
+        return ret and ret[0]
+
+    def getgroups(self, grouplist, membership=False):
+        """
+        Return a list of Groups from .
+
+        :userlist: List of group names to lookup
+        :returns: List of Group records
+        """
+        groupobjs = [
+            Group(self, **rawgroup)
+            for rawgroup in self._getgroups(
+                names=grouplist, membership=membership).get('groups', [])
+        ]
+
+        # Return users in same order they were passed in
+        ret = []
+        for g in grouplist:
+            for gobj in groupobjs[:]:
+                if gobj.name == g:
+                    groupobjs.remove(gobj)
+                    ret.append(gobj)
+                    break
+        ret += groupobjs
+        return ret
+
+    def searchgroups(self, pattern):
+        """
+        Return a bugzilla Group for the given list of patterns
+
+        :arg pattern: List of patterns to match against.
+        :returns: List of User records
+        """
+        return [Group(self, **rawgroup) for rawgroup in
+                self._getgroups(match=pattern).get('groups', [])]

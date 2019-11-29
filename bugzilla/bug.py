@@ -454,3 +454,69 @@ class User(object):
         :arg groups: list of groups to be added to (i.e. ['fedora_contrib'])
         """
         self.bugzilla.updateperms(self.name, action, groups)
+
+
+class Group(object):
+    """
+    Container object for a bugzilla Group.
+
+    :arg bugzilla: Bugzilla instance that this Group belongs to.
+    Rest of the params come straight from Group.get()
+    """
+    def __init__(self, bugzilla, **kwargs):
+        self.bugzilla = bugzilla
+        self.__groupid = kwargs.get('id')
+
+        self.name = kwargs.get('name')
+        self.description = kwargs.get('description', self.name)
+        self.is_active = kwargs.get('is_active', False)
+        self.icon_url = kwargs.get('icon_url', None)
+        self.is_active_bug_group = kwargs.get('is_active_bug_group', None)
+
+        self.membership = kwargs.get('membership', [])
+        self.__member_emails = set()
+        self._refresh_member_emails_list()
+
+    ########################
+    # Read-only attributes #
+    ########################
+
+    # We make these properties so that the user cannot set them.  They are
+    # unaffected by the update() method so it would be misleading to let them
+    # be changed.
+    @property
+    def groupid(self):
+        return self.__groupid
+
+    @property
+    def member_emails(self):
+        return sorted(self.__member_emails)
+
+    def _refresh_member_emails_list(self):
+        """
+        Refresh the list of emails of the members of the group.
+        """
+        if self.membership:
+            for m in self.membership:
+                if "email" in m:
+                    self.__member_emails.add(m["email"])
+
+    def refresh(self, membership=False):
+        """
+        Update Group object with latest info from bugzilla
+        """
+        newgroup = self.bugzilla.getgroup(
+            self.name, membership=membership)
+        self.__dict__.update(newgroup.__dict__)
+        self._refresh_member_emails_list()
+
+    def members(self):
+        """
+        Retrieve the members of this Group from bugzilla
+        """
+        if self.membership:
+            return self.membership
+
+        self.refresh(membership=True)
+
+        return self.membership
