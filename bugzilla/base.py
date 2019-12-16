@@ -34,6 +34,8 @@ else:
 # pylint: enable=import-error,no-name-in-module,ungrouped-imports
 
 
+from ._util import listify
+from ._rc import DEFAULT_CONFIGPATHS, open_bugzillarc
 from .apiversion import __version__
 from .bug import Bug, User
 from .transport import BugzillaError, _BugzillaServerProxy, _RequestsTransport
@@ -103,30 +105,6 @@ def _build_cookiejar(cookiefile):
     except LoadError:
         raise BugzillaError("cookiefile=%s not in Mozilla format" %
                             cookiefile)
-
-
-_default_configpaths = [
-    '/etc/bugzillarc',
-    '~/.bugzillarc',
-    '~/.config/python-bugzilla/bugzillarc',
-]
-
-
-def _open_bugzillarc(configpaths=-1):
-    if configpaths == -1:
-        configpaths = _default_configpaths[:]
-
-    # pylint: disable=protected-access
-    configpaths = [os.path.expanduser(p) for p in
-                   Bugzilla._listify(configpaths)]
-    # pylint: enable=protected-access
-    cfg = ConfigParser()
-    read_files = cfg.read(configpaths)
-    if not read_files:
-        return
-
-    log.info("Found bugzillarc files: %s", read_files)
-    return cfg
 
 
 def _save_api_key(url, api_key):
@@ -275,15 +253,6 @@ class Bugzilla(object):
             log.debug("Generated fixed URL: %s", newurl)
         return newurl
 
-    @staticmethod
-    def _listify(val):
-        if val is None:
-            return val
-        if isinstance(val, list):
-            return val
-        return [val]
-
-
     def __init__(self, url=-1, user=None, password=None, cookiefile=-1,
                  sslverify=True, tokenfile=-1, use_creds=True, api_key=None,
                  cert=None, configpaths=-1, basic_auth=False):
@@ -348,7 +317,7 @@ class Bugzilla(object):
         if tokenfile == -1:
             tokenfile = _default_cache_location("bugzillatoken")
         if configpaths == -1:
-            configpaths = _default_configpaths[:]
+            configpaths = DEFAULT_CONFIGPATHS[:]
 
         log.debug("Using tokenfile=%s", tokenfile)
         self.cookiefile = cookiefile
@@ -512,7 +481,7 @@ class Bugzilla(object):
         :param overwrite: If True, bugzillarc will clobber any already
             set self.user/password/api_key/cert value.
         """
-        cfg = _open_bugzillarc(configpath or self.configpath)
+        cfg = open_bugzillarc(configpath or self.configpath)
         if not cfg:
             return
 
@@ -826,9 +795,9 @@ class Bugzilla(object):
 
         kwargs = {}
         if ids:
-            kwargs["ids"] = self._listify(ids)
+            kwargs["ids"] = listify(ids)
         if names:
-            kwargs["names"] = self._listify(names)
+            kwargs["names"] = listify(names)
         if include_fields:
             kwargs["include_fields"] = include_fields
         if exclude_fields:
@@ -1097,7 +1066,7 @@ class Bugzilla(object):
                 # String aliases can be passed as well
                 idlist.append(i)
 
-        extra_fields = self._listify(extra_fields or [])
+        extra_fields = listify(extra_fields or [])
         extra_fields += self._getbug_extra_fields
 
         getbugdata = {"ids": idlist}
@@ -1122,7 +1091,7 @@ class Bugzilla(object):
             else:
                 # Need to map an alias
                 for valdict in bugdict.values():
-                    if i in self._listify(valdict.get("alias", None) or []):
+                    if i in listify(valdict.get("alias", None) or []):
                         found = valdict
                         break
 
@@ -1243,8 +1212,8 @@ class Bugzilla(object):
 
         query = {
             "alias": alias,
-            "product": self._listify(product),
-            "component": self._listify(component),
+            "product": listify(product),
+            "component": listify(component),
             "version": version,
             "id": bug_id,
             "short_desc": short_desc,
@@ -1253,17 +1222,17 @@ class Bugzilla(object):
             "priority": priority,
             "target_release": target_release,
             "target_milestone": target_milestone,
-            "tag": self._listify(tags),
+            "tag": listify(tags),
             "quicksearch": quicksearch,
             "savedsearch": savedsearch,
             "sharer_id": savedsearch_sharer_id,
 
             # RH extensions... don't add any more. See comment below
-            "sub_components": self._listify(sub_component),
+            "sub_components": listify(sub_component),
         }
 
         def add_bool(bzkey, value, bool_id, booltype=None):
-            value = self._listify(value)
+            value = listify(value)
             if value is None:
                 return bool_id
 
@@ -1394,7 +1363,7 @@ class Bugzilla(object):
         build_update(), otherwise we cannot guarantee back compatibility.
         """
         tmp = updates.copy()
-        tmp["ids"] = self._listify(ids)
+        tmp["ids"] = listify(ids)
 
         return self._proxy.Bug.update(tmp)
 
@@ -1404,12 +1373,12 @@ class Bugzilla(object):
         """
         tags = {}
         if tags_add:
-            tags["add"] = self._listify(tags_add)
+            tags["add"] = listify(tags_add)
         if tags_remove:
-            tags["remove"] = self._listify(tags_remove)
+            tags["remove"] = listify(tags_remove)
 
         d = {
-            "ids": self._listify(idlist),
+            "ids": listify(idlist),
             "tags": tags,
         }
 
@@ -1506,7 +1475,7 @@ class Bugzilla(object):
                 return
 
             def c(val):
-                val = self._listify(val)
+                val = listify(val)
                 if convert:
                     val = [convert(v) for v in val]
                 return val
@@ -1548,7 +1517,7 @@ class Bugzilla(object):
         s("whiteboard", whiteboard)
         s("work_time", work_time, float)
         s("flags", flags)
-        s("comment_tags", comment_tags, self._listify)
+        s("comment_tags", comment_tags, listify)
 
         add_dict("blocks", blocks_add, blocks_remove, blocks_set,
                  convert=int)
@@ -1629,7 +1598,7 @@ class Bugzilla(object):
             data = data.encode(locale.getpreferredencoding())
         kwargs['data'] = Binary(data)
 
-        kwargs['ids'] = self._listify(idlist)
+        kwargs['ids'] = listify(idlist)
 
         if 'file_name' not in kwargs and hasattr(f, "name"):
             kwargs['file_name'] = os.path.basename(f.name)
@@ -1697,13 +1666,13 @@ class Bugzilla(object):
         https://bugzilla.readthedocs.io/en/latest/api/core/v1/attachment.html#get-attachment
         """
         params = {
-            "ids": self._listify(ids) or [],
-            "attachment_ids": self._listify(attachment_ids) or [],
+            "ids": listify(ids) or [],
+            "attachment_ids": listify(attachment_ids) or [],
         }
         if include_fields:
-            params["include_fields"] = self._listify(include_fields)
+            params["include_fields"] = listify(include_fields)
         if exclude_fields:
-            params["exclude_fields"] = self._listify(exclude_fields)
+            params["exclude_fields"] = listify(exclude_fields)
 
         return self._proxy.Bug.attachments(params)
 
@@ -1751,15 +1720,15 @@ class Bugzilla(object):
 
         localdict = {}
         if blocks:
-            localdict["blocks"] = self._listify(blocks)
+            localdict["blocks"] = listify(blocks)
         if cc:
-            localdict["cc"] = self._listify(cc)
+            localdict["cc"] = listify(cc)
         if depends_on:
-            localdict["depends_on"] = self._listify(depends_on)
+            localdict["depends_on"] = listify(depends_on)
         if groups:
-            localdict["groups"] = self._listify(groups)
+            localdict["groups"] = listify(groups)
         if keywords:
-            localdict["keywords"] = self._listify(keywords)
+            localdict["keywords"] = listify(keywords)
         if description:
             localdict["description"] = description
             if comment_private:
@@ -1845,11 +1814,11 @@ class Bugzilla(object):
         """
         params = {}
         if ids:
-            params['ids'] = self._listify(ids)
+            params['ids'] = listify(ids)
         if names:
-            params['names'] = self._listify(names)
+            params['names'] = listify(names)
         if match:
-            params['match'] = self._listify(match)
+            params['match'] = listify(match)
         if not params:
             raise BugzillaError('_get() needs one of ids, '
                                 ' names, or match kwarg.')
@@ -1925,14 +1894,14 @@ class Bugzilla(object):
         :arg action: add, remove, or set
         :arg groups: list of groups to be added to (i.e. ['fedora_contrib'])
         """
-        groups = self._listify(groups)
+        groups = listify(groups)
         if action == "rem":
             action = "remove"
         if action not in ["add", "remove", "set"]:
             raise BugzillaError("Unknown user permission action '%s'" % action)
 
         update = {
-            "names": self._listify(user),
+            "names": listify(user),
             "groups": {
                 action: groups,
             }
