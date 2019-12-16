@@ -12,6 +12,7 @@
 from logging import getLogger
 
 from .base import Bugzilla
+from ._util import listify
 
 log = getLogger(__name__)
 
@@ -77,7 +78,7 @@ class RHBugzilla(Bugzilla):
                 return
 
             if not isinstance(val, dict):
-                component = self._listify(kwargs.get("component"))
+                component = listify(kwargs.get("component"))
                 if not component:
                     raise ValueError("component must be specified if "
                         "specifying sub_component")
@@ -150,7 +151,7 @@ class RHBugzilla(Bugzilla):
         if ext_priority is not None:
             param_dict['ext_priority'] = ext_priority
         params = {
-            'bug_ids': self._listify(bug_ids),
+            'bug_ids': listify(bug_ids),
             'external_bugs': [param_dict],
         }
 
@@ -185,7 +186,7 @@ class RHBugzilla(Bugzilla):
         """
         params = {}
         if ids is not None:
-            params['ids'] = self._listify(ids)
+            params['ids'] = listify(ids)
         if ext_type_id is not None:
             params['ext_type_id'] = ext_type_id
         if ext_type_description is not None:
@@ -193,9 +194,9 @@ class RHBugzilla(Bugzilla):
         if ext_type_url is not None:
             params['ext_type_url'] = ext_type_url
         if ext_bz_bug_id is not None:
-            params['ext_bz_bug_id'] = self._listify(ext_bz_bug_id)
+            params['ext_bz_bug_id'] = listify(ext_bz_bug_id)
         if bug_ids is not None:
-            params['bug_ids'] = self._listify(bug_ids)
+            params['bug_ids'] = listify(bug_ids)
         if ext_status is not None:
             params['ext_status'] = ext_status
         if ext_description is not None:
@@ -229,7 +230,7 @@ class RHBugzilla(Bugzilla):
         """
         params = {}
         if ids is not None:
-            params['ids'] = self._listify(ids)
+            params['ids'] = listify(ids)
         if ext_type_id is not None:
             params['ext_type_id'] = ext_type_id
         if ext_type_description is not None:
@@ -237,9 +238,9 @@ class RHBugzilla(Bugzilla):
         if ext_type_url is not None:
             params['ext_type_url'] = ext_type_url
         if ext_bz_bug_id is not None:
-            params['ext_bz_bug_id'] = self._listify(ext_bz_bug_id)
+            params['ext_bz_bug_id'] = listify(ext_bz_bug_id)
         if bug_ids is not None:
-            params['bug_ids'] = self._listify(bug_ids)
+            params['bug_ids'] = listify(bug_ids)
 
         log.debug("Calling ExternalBugs.remove_external_bug(%s)", params)
         return self._proxy.ExternalBugs.remove_external_bug(params)
@@ -331,7 +332,7 @@ class RHBugzilla(Bugzilla):
         # support now, so point people to that instead so we don't have
         # to document and maintain this logic anymore
         def _warn_bool(kwkey):
-            vallist = self._listify(kwargs.get(kwkey, None))
+            vallist = listify(kwargs.get(kwkey, None))
             for value in vallist or []:
                 for s in value.split(" "):
                     if s not in ["|", "&", "!"]:
