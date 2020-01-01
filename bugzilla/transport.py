@@ -137,6 +137,7 @@ class _RequestsTransport(Transport):
                 'User-Agent': self.user_agent,
             }
         }
+        self._seen_valid_xml = False
 
         # Using an explicit Session, rather than requests.get, will use
         # HTTP KeepAlive if the server supports it.
@@ -159,7 +160,14 @@ class _RequestsTransport(Transport):
         Parse XMLRPC response
         """
         parser, unmarshaller = self.getparser()
-        parser.feed(response.text.encode('utf-8'))
+        msg = response.text.encode('utf-8')
+        try:
+            parser.feed(msg)
+        except Exception:
+            log.debug("Failed to parse this XMLRPC response:\n%s", msg)
+            raise
+
+        self._seen_valid_xml = True
         parser.close()
         return unmarshaller.close()
 
@@ -196,7 +204,10 @@ class _RequestsTransport(Transport):
         except Fault:
             raise
         except Exception:
-            e = BugzillaError(str(sys.exc_info()[1]))
+            msg = str(sys.exc_info()[1])
+            if not self._seen_valid_xml:
+                msg += "\nThe URL may not be an XMLRPC URL: %s" % url
+            e = BugzillaError(msg)
             # pylint: disable=attribute-defined-outside-init
             e.__traceback__ = sys.exc_info()[2]
             # pylint: enable=attribute-defined-outside-init
