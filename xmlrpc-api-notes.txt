@@ -15,7 +15,6 @@ Some trackers in the wild to use for API testing:
     bugzilla.mozilla.org
     bugzilla.kernel.org
     bugzilla.gnome.org
-    bugs.freedesktop.org
     bugzilla.novell.com
     bugzilla.zimbra.com
     bugzilla.samba.org

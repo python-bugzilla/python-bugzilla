@@ -187,26 +187,6 @@ class BZGnome(BaseTest):
             assert "derived from bugzilla" in str(e)
 
 
-class BZFDO(BaseTest):
-    url = "https://bugs.freedesktop.org/xmlrpc.cgi"
-    bzversion = (5, 0)
-    closestatus = "CLOSED,RESOLVED"
-
-    test0 = BaseTest._testBZVersion
-
-    test1 = lambda s: BaseTest._testQuery(s, "--product avahi", 10, "3450")
-    test2 = lambda s: BaseTest._testQueryFull(s, "3450", 10, "Blocked: \n")
-    test2 = lambda s: BaseTest._testQueryRaw(s, "3450", 30,
-                                    "ATTRIBUTE[creator]: daniel@fooishbar.org")
-    test3 = lambda s: BaseTest._testQueryOneline(s, "3450",
-                                    "daniel@fooishbar.org libavahi")
-    test4 = lambda s: BaseTest._testQueryExtra(s, "3450", "Error")
-    test5 = lambda s: BaseTest._testQueryFormat(s,
-                "--bug_id 3450 --outputformat "
-                "\"%{bug_id} %{assigned_to} %{summary}\"",
-                "3450 daniel@fooishbar.org Error")
-
-
 class RHTest(BaseTest):
     url = (tests.CLICONFIG.REDHAT_URL or
         "https://bugzilla.redhat.com/xmlrpc.cgi")
