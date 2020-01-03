@@ -38,7 +38,9 @@ from ._util import listify
 from ._rc import DEFAULT_CONFIGPATHS, open_bugzillarc
 from .apiversion import __version__
 from .bug import Bug, User
-from .transport import BugzillaError, _BugzillaServerProxy, _RequestsTransport
+from .transport import (BugzillaError,
+                        _BugzillaXMLRPCProxy,
+                        _BugzillaXMLRPCTransport)
 
 
 log = getLogger(__name__)
@@ -551,10 +553,11 @@ class Bugzilla(object):
             url = self.url
         url = self.fix_url(url)
 
-        self._transport = _RequestsTransport(
-            url, self._cookiejar, sslverify=self._sslverify, cert=self.cert)
-        self._transport.user_agent = self.user_agent
-        self._proxy = _BugzillaServerProxy(url, self.tokenfile,
+        self._transport = _BugzillaXMLRPCTransport(url, self.user_agent,
+                cookiejar=self._cookiejar,
+                sslverify=self._sslverify,
+                cert=self.cert)
+        self._proxy = _BugzillaXMLRPCProxy(url, self.tokenfile,
             self._transport)
 
         self.url = url

@@ -74,9 +74,9 @@ class _BugzillaTokenCache(object):
         return '<Bugzilla Token Cache :: %s>' % self.value
 
 
-class _BugzillaServerProxy(ServerProxy, object):
+class _BugzillaXMLRPCProxy(ServerProxy, object):
     def __init__(self, uri, tokenfile, *args, **kwargs):
-        super(_BugzillaServerProxy, self).__init__(uri, *args, **kwargs)
+        ServerProxy.__init__(self, uri, *args, **kwargs)
         self.token_cache = _BugzillaTokenCache(uri, tokenfile)
         self.api_key = None
 
@@ -100,8 +100,7 @@ class _BugzillaServerProxy(ServerProxy, object):
                 params[0]['Bugzilla_token'] = self.token_cache.value
 
         # pylint: disable=no-member
-        ret = super(_BugzillaServerProxy,
-                self)._ServerProxy__request(methodname, params)
+        ret = ServerProxy._ServerProxy__request(self, methodname, params)
         # pylint: enable=no-member
 
         if isinstance(ret, dict) and 'token' in ret.keys():
@@ -109,90 +108,98 @@ class _BugzillaServerProxy(ServerProxy, object):
         return ret
 
 
-class _RequestsTransport(Transport):
-    user_agent = 'Python/Bugzilla'
-
-    def __init__(self, url, cookiejar=None,
-                 sslverify=True, sslcafile=None, debug=True, cert=None):
-        if hasattr(Transport, "__init__"):
-            Transport.__init__(self, use_datetime=False)
-
-        self.verbose = debug
+class _BugzillaSession(object):
+    """
+    Class to handle the backend agnostic 'requests' setup
+    """
+    def __init__(self, url, user_agent,
+            cookiejar=None, sslverify=True, sslcafile=None, cert=None):
+        self._user_agent = user_agent
+        self._scheme = urlparse(url)[0]
         self._cookiejar = cookiejar
 
-        # transport constructor needs full url too, as xmlrpc does not pass
-        # scheme to request
-        self.scheme = urlparse(url)[0]
-        if self.scheme not in ["http", "https"]:
-            raise Exception("Invalid URL scheme: %s (%s)" % (self.scheme, url))
+        if self._scheme not in ["http", "https"]:
+            raise Exception("Invalid URL scheme: %s (%s)" % (
+                self._scheme, url))
+        use_https = self._scheme == 'https'
 
-        self.use_https = self.scheme == 'https'
-
-        self.request_defaults = {
-            'cert': sslcafile if self.use_https else None,
-            'cookies': cookiejar,
+        self._request_defaults = {
+            'cert': sslcafile if use_https else None,
+            'cookies': self._cookiejar,
             'verify': sslverify,
             'headers': {
                 'Content-Type': 'text/xml',
-                'User-Agent': self.user_agent,
+                'User-Agent': self._user_agent,
             }
         }
-        self._seen_valid_xml = False
 
         # Using an explicit Session, rather than requests.get, will use
         # HTTP KeepAlive if the server supports it.
-        self.session = requests.Session()
+        self._session = requests.Session()
         if cert:
-            self.session.cert = cert
+            self._session.cert = cert
+
+    def get_user_agent(self):
+        return self._user_agent
+    def get_scheme(self):
+        return self._scheme
 
     def set_basic_auth(self, user, password):
         """
         Set basic authentication method.
-
-        :return:
         """
         b64str = str(base64.b64encode("{}:{}".format(user, password)))
         authstr = "Basic {}".format(b64str.encode("utf-8").decode("utf-8"))
-        self.request_defaults["headers"]["Authorization"] = authstr
+        self._request_defaults["headers"]["Authorization"] = authstr
 
-    def parse_response(self, response):
+    def set_response_cookies(self, response):
         """
-        Parse XMLRPC response
+        Save any cookies received from the passed requests response
         """
-        parser, unmarshaller = self.getparser()
-        msg = response.text.encode('utf-8')
-        try:
-            parser.feed(msg)
-        except Exception:
-            log.debug("Failed to parse this XMLRPC response:\n%s", msg)
-            raise
+        if self._cookiejar is None:
+            return
 
-        self._seen_valid_xml = True
-        parser.close()
-        return unmarshaller.close()
+        for cookie in response.cookies:
+            self._cookiejar.set_cookie(cookie)
 
-    def _request_helper(self, url, request_body):
+        if self._cookiejar.filename is not None:
+            # Save is required only if we have a filename
+            self._cookiejar.save()
+
+    def post(self, url, data):
+        return self._session.post(url, data=data, **self._request_defaults)
+
+
+class _BugzillaXMLRPCTransport(Transport):
+    def __init__(self, *args, **kwargs):
+        if hasattr(Transport, "__init__"):
+            Transport.__init__(self, use_datetime=False)
+
+        self.__bugzillasession = _BugzillaSession(*args, **kwargs)
+        self.__seen_valid_xml = False
+
+        # Override Transport.user_agent
+        self.user_agent = self.__bugzillasession.get_user_agent()
+
+
+    ############################
+    # Bugzilla private helpers #
+    ############################
+
+    def __request_helper(self, url, request_body):
         """
-        A helper method to assist in making a request and provide a parsed
-        response.
+        A helper method to assist in making a request and parsing the response.
         """
         response = None
         # pylint: disable=try-except-raise
         try:
-            response = self.session.post(
-                url, data=request_body, **self.request_defaults)
+            response = self.__bugzillasession.post(url, request_body)
 
             # We expect utf-8 from the server
             response.encoding = 'UTF-8'
 
             # update/set any cookies
-            if self._cookiejar is not None:
-                for cookie in response.cookies:
-                    self._cookiejar.set_cookie(cookie)
-
-                if self._cookiejar.filename is not None:
-                    # Save is required only if we have a filename
-                    self._cookiejar.save()
+            self.__bugzillasession.set_response_cookies(response)
 
             response.raise_for_status()
             return self.parse_response(response)
@@ -205,7 +212,7 @@ class _RequestsTransport(Transport):
             raise
         except Exception:
             msg = str(sys.exc_info()[1])
-            if not self._seen_valid_xml:
+            if not self.__seen_valid_xml:
                 msg += "\nThe URL may not be an XMLRPC URL: %s" % url
             e = BugzillaError(msg)
             # pylint: disable=attribute-defined-outside-init
@@ -213,11 +220,42 @@ class _RequestsTransport(Transport):
             # pylint: enable=attribute-defined-outside-init
             raise e
 
+    def set_basic_auth(self, user, password):
+        self.__bugzillasession.set_basic_auth(user, password)
+
+
+    ######################
+    # Tranport overrides #
+    ######################
+
+    def parse_response(self, response):
+        """
+        Override Transport.parse_response
+        """
+        parser, unmarshaller = self.getparser()
+        msg = response.text.encode('utf-8')
+        try:
+            parser.feed(msg)
+        except Exception:
+            log.debug("Failed to parse this XMLRPC response:\n%s", msg)
+            raise
+
+        self.__seen_valid_xml = True
+        parser.close()
+        return unmarshaller.close()
+
     def request(self, host, handler, request_body, verbose=0):
+        """
+        Override Transport.request
+        """
+        # Setting self.verbose here matches overrided request() behavior
+        # pylint: disable=attribute-defined-outside-init
         self.verbose = verbose
-        url = "%s://%s%s" % (self.scheme, host, handler)
+
+        url = "%s://%s%s" % (self.__bugzillasession.get_scheme(),
+                host, handler)
 
         # xmlrpclib fails to escape \r
         request_body = request_body.replace(b'\r', b'&#xd;')
 
-        return self._request_helper(url, request_body)
+        return self.__request_helper(url, request_body)
