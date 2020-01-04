@@ -74,49 +74,18 @@ class _BugzillaTokenCache(object):
         return '<Bugzilla Token Cache :: %s>' % self.value
 
 
-class _BugzillaXMLRPCProxy(ServerProxy, object):
-    def __init__(self, uri, tokenfile, *args, **kwargs):
-        ServerProxy.__init__(self, uri, *args, **kwargs)
-        self.token_cache = _BugzillaTokenCache(uri, tokenfile)
-        self.api_key = None
-
-    def use_api_key(self, api_key):
-        self.api_key = api_key
-
-    def clear_token(self):
-        self.token_cache.value = None
-
-    def _ServerProxy__request(self, methodname, params):
-        if len(params) == 0:
-            params = ({}, )
-
-        log.debug("XMLRPC call: %s(%s)", methodname, params[0])
-
-        if self.api_key is not None:
-            if 'Bugzilla_api_key' not in params[0]:
-                params[0]['Bugzilla_api_key'] = self.api_key
-        elif self.token_cache.value is not None:
-            if 'Bugzilla_token' not in params[0]:
-                params[0]['Bugzilla_token'] = self.token_cache.value
-
-        # pylint: disable=no-member
-        ret = ServerProxy._ServerProxy__request(self, methodname, params)
-        # pylint: enable=no-member
-
-        if isinstance(ret, dict) and 'token' in ret.keys():
-            self.token_cache.value = ret.get('token')
-        return ret
-
-
 class _BugzillaSession(object):
     """
     Class to handle the backend agnostic 'requests' setup
     """
     def __init__(self, url, user_agent,
-            cookiejar=None, sslverify=True, sslcafile=None, cert=None):
+            cookiejar=None, sslverify=True, sslcafile=None, cert=None,
+            tokenfile=None, api_key=None):
         self._user_agent = user_agent
         self._scheme = urlparse(url)[0]
         self._cookiejar = cookiejar
+        self._token_cache = _BugzillaTokenCache(url, tokenfile)
+        self._api_key = api_key
 
         if self._scheme not in ["http", "https"]:
             raise Exception("Invalid URL scheme: %s (%s)" % (
@@ -143,6 +112,10 @@ class _BugzillaSession(object):
         return self._user_agent
     def get_scheme(self):
         return self._scheme
+    def get_api_key(self):
+        return self._api_key
+    def get_token_cache(self):
+        return self._token_cache
 
     def set_basic_auth(self, user, password):
         """
@@ -171,11 +144,11 @@ class _BugzillaSession(object):
 
 
 class _BugzillaXMLRPCTransport(Transport):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, bugzillasession):
         if hasattr(Transport, "__init__"):
             Transport.__init__(self, use_datetime=False)
 
-        self.__bugzillasession = _BugzillaSession(*args, **kwargs)
+        self.__bugzillasession = bugzillasession
         self.__seen_valid_xml = False
 
         # Override Transport.user_agent
@@ -220,9 +193,6 @@ class _BugzillaXMLRPCTransport(Transport):
             # pylint: enable=attribute-defined-outside-init
             raise e
 
-    def set_basic_auth(self, user, password):
-        self.__bugzillasession.set_basic_auth(user, password)
-
 
     ######################
     # Tranport overrides #
@@ -259,3 +229,40 @@ class _BugzillaXMLRPCTransport(Transport):
         request_body = request_body.replace(b'\r', b'&#xd;')
 
         return self.__request_helper(url, request_body)
+
+
+class _BugzillaXMLRPCProxy(ServerProxy, object):
+    """
+    Override of xmlrpc ServerProxy, to insert bugzilla API auth
+    into the XMLRPC request data
+    """
+    def __init__(self, uri, bugzillasession, *args, **kwargs):
+        self.__bugzillasession = bugzillasession
+        transport = _BugzillaXMLRPCTransport(self.__bugzillasession)
+        ServerProxy.__init__(self, uri, transport, *args, **kwargs)
+
+    def _ServerProxy__request(self, methodname, params):
+        """
+        Overrides ServerProxy _request method
+        """
+        if len(params) == 0:
+            params = ({}, )
+
+        log.debug("XMLRPC call: %s(%s)", methodname, params[0])
+        api_key = self.__bugzillasession.get_api_key()
+        token_cache = self.__bugzillasession.get_token_cache()
+
+        if api_key is not None:
+            if 'Bugzilla_api_key' not in params[0]:
+                params[0]['Bugzilla_api_key'] = api_key
+        elif token_cache.value is not None:
+            if 'Bugzilla_token' not in params[0]:
+                params[0]['Bugzilla_token'] = token_cache.value
+
+        # pylint: disable=no-member
+        ret = ServerProxy._ServerProxy__request(self, methodname, params)
+        # pylint: enable=no-member
+
+        if isinstance(ret, dict) and 'token' in ret.keys():
+            token_cache.value = ret.get('token')
+        return ret

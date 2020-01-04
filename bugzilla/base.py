@@ -39,8 +39,8 @@ from ._rc import DEFAULT_CONFIGPATHS, open_bugzillarc
 from .apiversion import __version__
 from .bug import Bug, User
 from .transport import (BugzillaError,
-                        _BugzillaXMLRPCProxy,
-                        _BugzillaXMLRPCTransport)
+                        _BugzillaSession,
+                        _BugzillaXMLRPCProxy)
 
 
 log = getLogger(__name__)
@@ -299,7 +299,7 @@ class Bugzilla(object):
         self.url = ''
 
         self._proxy = None
-        self._transport = None
+        self._session = None
         self._cookiejar = None
         self._sslverify = sslverify
         self._cache = _BugzillaAPICache()
@@ -546,19 +546,20 @@ class Bugzilla(object):
         If 'user' and 'password' are both set, we'll run login(). Otherwise
         you'll have to login() yourself before some methods will work.
         """
-        if self._transport:
+        if self._session:
             self.disconnect()
 
         if url is None and self.url:
             url = self.url
         url = self.fix_url(url)
 
-        self._transport = _BugzillaXMLRPCTransport(url, self.user_agent,
+        self._session = _BugzillaSession(url, self.user_agent,
                 cookiejar=self._cookiejar,
                 sslverify=self._sslverify,
-                cert=self.cert)
-        self._proxy = _BugzillaXMLRPCProxy(url, self.tokenfile,
-            self._transport)
+                cert=self.cert,
+                tokenfile=self.tokenfile,
+                api_key=self.api_key)
+        self._proxy = _BugzillaXMLRPCProxy(url, self._session)
 
         self.url = url
         # we've changed URLs - reload config
@@ -570,7 +571,6 @@ class Bugzilla(object):
 
         if self.api_key:
             log.debug("using API key")
-            self._proxy.use_api_key(self.api_key)
 
         version = self._proxy.Bugzilla.version()["version"]
         log.debug("Bugzilla version string: %s", version)
@@ -581,7 +581,7 @@ class Bugzilla(object):
         Disconnect from the given bugzilla instance.
         """
         self._proxy = None
-        self._transport = None
+        self._session = None
         self._cache = _BugzillaAPICache()
 
     def _login(self, user, password, restrict_login=None):
@@ -589,7 +589,7 @@ class Bugzilla(object):
         Backend login method for Bugzilla3
         """
         if self._basic_auth:
-            self._transport.set_basic_auth(user, password)
+            self._session.set_basic_auth(user, password)
 
         payload = {'login': user, 'password': password}
         if restrict_login:
