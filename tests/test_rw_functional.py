@@ -858,9 +858,11 @@ class RHPartnerTest(unittest.TestCase):
         bug.refresh()
         assert bug.sub_components == {"lvm2": ["Command-line tools (RHEL5)"]}
 
-        bz.update_bugs(bug.id, bz.build_update(sub_component={}))
+        bz.update_bugs(bug.id, bz.build_update(
+            component="lvm2", sub_component="Default / Unclassified (RHEL5)"))
         bug.refresh()
-        assert bug.sub_components == {}
+        assert bug.sub_components == {"lvm2": [
+            "Default / Unclassified (RHEL5)"]}
 
     def test13ExternalTrackerQuery(self):
         bz = self.bzclass(url=self.url)
@@ -890,9 +892,6 @@ class RHPartnerTest(unittest.TestCase):
             'ext_type_id': 6,
             'ext_type_url': url,
             'ext_type_description': 'Mozilla Foundation',
-            'ext_status': 'Original Status',
-            'ext_description': 'the description',
-            'ext_priority': 'the priority'
         }
         bz.add_external_tracker(bugid, ext_bug_id, **kwargs)
         added_bug = bz.getbug(bugid).external_bugs[0]
@@ -900,9 +899,6 @@ class RHPartnerTest(unittest.TestCase):
         assert added_bug['type']['url'] == kwargs['ext_type_url']
         assert (added_bug['type']['description'] ==
             kwargs['ext_type_description'])
-        assert added_bug['ext_status'] == kwargs['ext_status']
-        assert added_bug['ext_description'] == kwargs['ext_description']
-        assert added_bug['ext_priority'] == kwargs['ext_priority']
 
         # test updating status, description, and priority by id
         kwargs = {
