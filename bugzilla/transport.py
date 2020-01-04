@@ -21,14 +21,10 @@ else:
 
 import requests
 
+from .exceptions import BugzillaError
+
 
 log = getLogger(__name__)
-
-
-class BugzillaError(Exception):
-    """
-    Error raised in the Bugzilla client code.
-    """
 
 
 class _BugzillaTokenCache(object):

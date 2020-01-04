@@ -38,9 +38,8 @@ from ._util import listify
 from ._rc import DEFAULT_CONFIGPATHS, open_bugzillarc
 from .apiversion import __version__
 from .bug import Bug, User
-from .transport import (BugzillaError,
-                        _BugzillaSession,
-                        _BugzillaXMLRPCProxy)
+from .exceptions import BugzillaError
+from .transport import _BugzillaSession, _BugzillaXMLRPCProxy
 
 
 log = getLogger(__name__)

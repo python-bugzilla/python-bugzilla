@@ -11,7 +11,7 @@
 
 from .apiversion import version, __version__
 from .base import Bugzilla
-from .transport import BugzillaError
+from .exceptions import BugzillaError
 from .rhbugzilla import RHBugzilla
 from .oldclasses import (Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36,
         Bugzilla4, Bugzilla42, Bugzilla44,
