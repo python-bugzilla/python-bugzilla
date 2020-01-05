@@ -27,6 +27,7 @@ class _BugzillaXMLRPCTransport(Transport):
             Transport.__init__(self, use_datetime=False)
 
         self.__bugzillasession = bugzillasession
+        self.__bugzillasession.set_content_type("text/xml")
         self.__seen_valid_xml = False
 
         # Override Transport.user_agent

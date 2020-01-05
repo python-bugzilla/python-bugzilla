@@ -45,7 +45,6 @@ class _BugzillaSession(object):
 
         self._session.verify = sslverify
         self._session.headers["User-Agent"] = self._user_agent
-        self._session.headers["Content-Type"] = 'text/xml'
         self._session.params["Bugzilla_api_key"] = self._api_key
         self._set_token_cache_param()
 
@@ -60,6 +59,8 @@ class _BugzillaSession(object):
     def set_token_value(self, value):
         self._token_cache.set_value(value)
         self._set_token_cache_param()
+    def set_content_type(self, value):
+        self._session.headers["Content-Type"] = value
 
     def _set_token_cache_param(self):
         self._session.params["Bugzilla_token"] = self._token_cache.get_value()
