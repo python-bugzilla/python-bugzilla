@@ -39,22 +39,18 @@ class _BugzillaSession(object):
         if self._scheme not in ["http", "https"]:
             raise Exception("Invalid URL scheme: %s (%s)" % (
                 self._scheme, url))
-        use_https = self._scheme == 'https'
 
-        self._request_defaults = {
-            'cookies': self._cookiejar,
-            'verify': sslverify,
-            'headers': {
-                'Content-Type': 'text/xml',
-                'User-Agent': self._user_agent,
-            }
-        }
-
-        # Using an explicit Session, rather than requests.get, will use
-        # HTTP KeepAlive if the server supports it.
         self._session = requests.Session()
         if cert:
             self._session.cert = cert
+        if self._cookiejar:
+            self._session.cookies = self._cookiejar
+
+        self._session.verify = sslverify
+        self._session.headers["User-Agent"] = self._user_agent
+        self._session.headers["Content-Type"] = 'text/xml'
+        self._session.params["Bugzilla_api_key"] = self._api_key
+        self._set_token_cache_param()
 
     def get_user_agent(self):
         return self._user_agent
@@ -65,7 +61,11 @@ class _BugzillaSession(object):
     def get_token_value(self):
         return self._token_cache.get_value()
     def set_token_value(self, value):
-        return self._token_cache.set_value(value)
+        self._token_cache.set_value(value)
+        self._set_token_cache_param()
+
+    def _set_token_cache_param(self):
+        self._session.params["Bugzilla_token"] = self._token_cache.get_value()
 
     def set_basic_auth(self, user, password):
         """
@@ -73,7 +73,7 @@ class _BugzillaSession(object):
         """
         b64str = str(base64.b64encode("{}:{}".format(user, password)))
         authstr = "Basic {}".format(b64str.encode("utf-8").decode("utf-8"))
-        self._request_defaults["headers"]["Authorization"] = authstr
+        self._session.headers["Authorization"] = authstr
 
     def set_response_cookies(self, response):
         """
@@ -89,8 +89,8 @@ class _BugzillaSession(object):
             # Save is required only if we have a filename
             self._cookiejar.save()
 
-    def post(self, url, data):
-        return self._session.post(url, data=data, **self._request_defaults)
+    def get_requests_session(self):
+        return self._session
 
 
 class _BugzillaXMLRPCTransport(Transport):
@@ -116,7 +116,8 @@ class _BugzillaXMLRPCTransport(Transport):
         response = None
         # pylint: disable=try-except-raise
         try:
-            response = self.__bugzillasession.post(url, request_body)
+            session = self.__bugzillasession.get_requests_session()
+            response = session.post(url, data=request_body)
 
             # We expect utf-8 from the server
             response.encoding = 'UTF-8'
