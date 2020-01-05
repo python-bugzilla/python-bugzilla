@@ -28,7 +28,7 @@ class _BugzillaSession(object):
     Class to handle the backend agnostic 'requests' setup
     """
     def __init__(self, url, user_agent,
-            cookiejar=None, sslverify=True, sslcafile=None, cert=None,
+            cookiejar=None, sslverify=True, cert=None,
             tokenfile=None, api_key=None):
         self._user_agent = user_agent
         self._scheme = urlparse(url)[0]
@@ -42,7 +42,6 @@ class _BugzillaSession(object):
         use_https = self._scheme == 'https'
 
         self._request_defaults = {
-            'cert': sslcafile if use_https else None,
             'cookies': self._cookiejar,
             'verify': sslverify,
             'headers': {
