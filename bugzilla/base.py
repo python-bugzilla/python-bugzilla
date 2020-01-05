@@ -488,7 +488,7 @@ class Bugzilla(object):
         if self.api_key:
             log.debug("using API key")
 
-        version = self._backend.bugzilla_version()
+        version = self._backend.bugzilla_version()["version"]
         log.debug("Bugzilla version string: %s", version)
         self._set_bz_version(version)
 
