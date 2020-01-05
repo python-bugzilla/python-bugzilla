@@ -274,11 +274,11 @@ class RHTest(BaseTest):
         assert "#1060931 " in out
 
     def testBugFields(self):
-        bz = self.bzclass(url=self.url, use_creds=False)
-        fields1 = bz.getbugfields()[:]
-        fields2 = bz.getbugfields(force_refresh=True)[:]
-        assert bool([f for f in fields1 if f.startswith("attachments")])
-        assert fields1 == fields2
+        bz = self.bzclass(self.url, use_creds=False)
+        fields = bz.getbugfields(names=["product"])[:]
+        assert fields == ["product"]
+        bz.getbugfields(names=["product", "bug_status"], force_refresh=True)
+        assert set(bz.bugfields) == set(["product", "bug_status"])
 
     def testBugAutoRefresh(self):
         bz = self.bzclass(self.url, use_creds=False)

@@ -649,14 +649,21 @@ class Bugzilla(object):
     # Bugfields querying #
     ######################
 
-    def getbugfields(self, force_refresh=False):
+    def getbugfields(self, force_refresh=False, names=None):
         """
         Calls getBugFields, which returns a list of fields in each bug
         for this bugzilla instance. This can be used to set the list of attrs
         on the Bug object.
+
+        :param force_refresh: If True, overwrite the bugfield cache
+            with these newly checked values.
+        :param names: Only check for the passed bug field names
         """
         def _fieldnames():
-            r = self._backend.bug_fields({'include_fields': ['name']})
+            data = {"include_fields": ["name"]}
+            if names:
+                data["names"] = names
+            r = self._backend.bug_fields(data)
             return [f['name'] for f in r['fields']]
 
         if force_refresh or not self._cache.bugfields:
