@@ -7,64 +7,20 @@ import sys
 
 # pylint: disable=import-error
 if sys.version_info[0] >= 3:
-    from configparser import ConfigParser
     from urllib.parse import urlparse  # pylint: disable=no-name-in-module
     from xmlrpc.client import Fault, ProtocolError, ServerProxy, Transport
 else:
-    from ConfigParser import SafeConfigParser as ConfigParser
     from urlparse import urlparse
     from xmlrpclib import Fault, ProtocolError, ServerProxy, Transport
 # pylint: enable=import-error
 
 import requests
 
+from ._authfiles import _BugzillaTokenCache
 from .exceptions import BugzillaError
 
 
 log = getLogger(__name__)
-
-
-class _BugzillaTokenCache(object):
-    """
-    Cache for tokens, including, with apologies for the duplicative
-    terminology, both Bugzilla Tokens and API Keys.
-    """
-
-    def __init__(self, uri, tokenfilename):
-        self.tokenfilename = tokenfilename
-        self.tokenfile = ConfigParser()
-        self.domain = urlparse(uri)[1]
-
-        if self.tokenfilename:
-            self.tokenfile.read(self.tokenfilename)
-
-        if self.domain not in self.tokenfile.sections():
-            self.tokenfile.add_section(self.domain)
-
-    @property
-    def value(self):
-        if self.tokenfile.has_option(self.domain, 'token'):
-            return self.tokenfile.get(self.domain, 'token')
-        else:
-            return None
-
-    @value.setter
-    def value(self, value):
-        if self.value == value:
-            return
-
-        if value is None:
-            self.tokenfile.remove_option(self.domain, 'token')
-        else:
-            self.tokenfile.set(self.domain, 'token', value)
-
-        if self.tokenfilename:
-            with open(self.tokenfilename, 'w') as tokenfile:
-                log.debug("Saving to tokenfile")
-                self.tokenfile.write(tokenfile)
-
-    def __repr__(self):
-        return '<Bugzilla Token Cache :: %s>' % self.value
 
 
 class _BugzillaSession(object):
