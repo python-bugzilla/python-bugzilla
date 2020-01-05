@@ -976,8 +976,9 @@ def _do_modify(bz, parser, opt):
 
 
 def _do_get_attach(bz, opt):
-    for bug in bz.getbugs(opt.getall):
-        opt.get += bug.get_attachment_ids()
+    if opt.getall:
+        for bug in bz.getbugs(opt.getall):
+            opt.get += bug.get_attachment_ids()
 
     for attid in set(opt.get):
         if opt.ignore_obsolete:
