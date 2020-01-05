@@ -44,42 +44,37 @@ def open_bugzillarc(configpaths=-1):
 
 class _BugzillaTokenCache(object):
     """
-    Cache for tokens, including, with apologies for the duplicative
-    terminology, both Bugzilla Tokens and API Keys.
+    Class for interacting with a .bugzillatoken cache file
     """
+    def __init__(self, uri, filename):
+        self._filename = filename
+        self._cfg = ConfigParser()
+        self._domain = urlparse(uri)[1]
 
-    def __init__(self, uri, tokenfilename):
-        self.tokenfilename = tokenfilename
-        self.tokenfile = ConfigParser()
-        self.domain = urlparse(uri)[1]
+        if self._filename:
+            self._cfg.read(self._filename)
 
-        if self.tokenfilename:
-            self.tokenfile.read(self.tokenfilename)
+        if self._domain not in self._cfg.sections():
+            self._cfg.add_section(self._domain)
 
-        if self.domain not in self.tokenfile.sections():
-            self.tokenfile.add_section(self.domain)
+    def get_value(self):
+        if self._cfg.has_option(self._domain, 'token'):
+            return self._cfg.get(self._domain, 'token')
+        return None
 
-    @property
-    def value(self):
-        if self.tokenfile.has_option(self.domain, 'token'):
-            return self.tokenfile.get(self.domain, 'token')
-        else:
-            return None
-
-    @value.setter
-    def value(self, value):
-        if self.value == value:
+    def set_value(self, value):
+        if self.get_value() == value:
             return
 
         if value is None:
-            self.tokenfile.remove_option(self.domain, 'token')
+            self._cfg.remove_option(self._domain, 'token')
         else:
-            self.tokenfile.set(self.domain, 'token', value)
+            self._cfg.set(self._domain, 'token', value)
 
-        if self.tokenfilename:
-            with open(self.tokenfilename, 'w') as tokenfile:
-                log.debug("Saving to tokenfile")
-                self.tokenfile.write(tokenfile)
+        if self._filename:
+            with open(self._filename, 'w') as _cfg:
+                log.debug("Saving to _cfg")
+                self._cfg.write(_cfg)
 
     def __repr__(self):
-        return '<Bugzilla Token Cache :: %s>' % self.value
+        return '<Bugzilla Token Cache :: %s>' % self.get_value()

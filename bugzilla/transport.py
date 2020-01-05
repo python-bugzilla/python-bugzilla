@@ -63,8 +63,10 @@ class _BugzillaSession(object):
         return self._scheme
     def get_api_key(self):
         return self._api_key
-    def get_token_cache(self):
-        return self._token_cache
+    def get_token_value(self):
+        return self._token_cache.get_value()
+    def set_token_value(self, value):
+        return self._token_cache.set_value(value)
 
     def set_basic_auth(self, user, password):
         """
@@ -199,19 +201,19 @@ class _BugzillaXMLRPCProxy(ServerProxy, object):
 
         log.debug("XMLRPC call: %s(%s)", methodname, params[0])
         api_key = self.__bugzillasession.get_api_key()
-        token_cache = self.__bugzillasession.get_token_cache()
+        token_value = self.__bugzillasession.get_token_value()
 
         if api_key is not None:
             if 'Bugzilla_api_key' not in params[0]:
                 params[0]['Bugzilla_api_key'] = api_key
-        elif token_cache.value is not None:
+        elif token_value is not None:
             if 'Bugzilla_token' not in params[0]:
-                params[0]['Bugzilla_token'] = token_cache.value
+                params[0]['Bugzilla_token'] = token_value
 
         # pylint: disable=no-member
         ret = ServerProxy._ServerProxy__request(self, methodname, params)
         # pylint: enable=no-member
 
         if isinstance(ret, dict) and 'token' in ret.keys():
-            token_cache.value = ret.get('token')
+            self.__bugzillasession.set_token_value(ret.get('token'))
         return ret
