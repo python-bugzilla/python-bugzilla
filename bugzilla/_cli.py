@@ -98,7 +98,7 @@ def get_default_url():
     """
     Grab a default URL from bugzillarc [DEFAULT] url=X
     """
-    from bugzilla._rc import open_bugzillarc
+    from bugzilla._authfiles import open_bugzillarc
     cfg = open_bugzillarc()
     if cfg:
         cfgurl = cfg.defaults().get("url", None)

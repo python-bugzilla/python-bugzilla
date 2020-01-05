@@ -31,13 +31,13 @@ else:
 # pylint: enable=import-error,no-name-in-module,ungrouped-imports
 
 
-from ._util import listify
-from ._rc import DEFAULT_CONFIGPATHS, open_bugzillarc
+from ._authfiles import DEFAULT_CONFIGPATHS, open_bugzillarc
 from .apiversion import __version__
 from ._backendxmlrpc import _BackendXMLRPC
 from .bug import Bug, User
 from .exceptions import BugzillaError
 from .transport import _BugzillaSession
+from ._util import listify
 
 
 log = getLogger(__name__)
