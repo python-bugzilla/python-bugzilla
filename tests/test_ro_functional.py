@@ -132,17 +132,10 @@ class BZMozilla(BaseTest):
     def testVersion(self):
         # bugzilla.mozilla.org returns version values in YYYY-MM-DD
         # format, so just try to confirm that
-        try:
-            bz = Bugzilla("bugzilla.mozilla.org", use_creds=False)
-            assert bz.__class__ == Bugzilla
-            assert bz.bz_ver_major >= 2016
-            assert bz.bz_ver_minor in range(1, 13)
-        except Exception as e:
-            # travis environment throws SSL errors here
-            # https://travis-ci.org/python-bugzilla/python-bugzilla/builds/304713566
-            if "EOF occurred" not in str(e):
-                raise
-            self.skipTest("travis environment SSL error hit: %s" % str(e))
+        bz = Bugzilla("bugzilla.mozilla.org", use_creds=False)
+        assert bz.__class__ == Bugzilla
+        assert bz.bz_ver_major >= 2016
+        assert bz.bz_ver_minor in range(1, 13)
 
 
 class BZGentoo(BaseTest):
