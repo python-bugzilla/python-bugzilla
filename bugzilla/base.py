@@ -34,7 +34,7 @@ from .apiversion import __version__
 from ._backendxmlrpc import _BackendXMLRPC
 from .bug import Bug, User
 from .exceptions import BugzillaError
-from .transport import _BugzillaSession
+from ._session import _BugzillaSession
 from ._util import listify
 
 
