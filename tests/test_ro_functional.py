@@ -16,21 +16,25 @@ import unittest
 
 import pytest
 
-from bugzilla import Bugzilla, BugzillaError, RHBugzilla
+from bugzilla import Bugzilla, BugzillaError
 import tests
 
 
 class BaseTest(unittest.TestCase):
     url = None
-    bzclass = Bugzilla
     bzversion = (0, 0)
     closestatus = "CLOSED"
+
+    def _open_bz(self, **kwargs):
+        if "use_creds" not in kwargs:
+            kwargs["use_creds"] = False
+        return Bugzilla(self.url, **kwargs)
 
     def clicomm(self, argstr, expectexc=False, bz=None):
         comm = "bugzilla " + argstr
 
         if not bz:
-            bz = Bugzilla(url=self.url, use_creds=False)
+            bz = self._open_bz()
         if expectexc:
             with pytest.raises(Exception):
                 tests.clicomm(comm, bz)
@@ -38,10 +42,9 @@ class BaseTest(unittest.TestCase):
             return tests.clicomm(comm, bz)
 
     def _testBZVersion(self):
-        bz = Bugzilla(self.url, use_creds=False)
-        assert bz.__class__ == self.bzclass
         if tests.CLICONFIG.REDHAT_URL:
             return
+        bz = self._open_bz()
         assert bz.bz_ver_major == self.bzversion[0]
         assert bz.bz_ver_minor == self.bzversion[1]
 
@@ -129,10 +132,12 @@ class BaseTest(unittest.TestCase):
 
 
 class BZMozilla(BaseTest):
+    url = "bugzilla.mozilla.org"
+
     def testVersion(self):
         # bugzilla.mozilla.org returns version values in YYYY-MM-DD
         # format, so just try to confirm that
-        bz = Bugzilla("bugzilla.mozilla.org", use_creds=False)
+        bz = self._open_bz()
         assert bz.__class__ == Bugzilla
         assert bz.bz_ver_major >= 2016
         assert bz.bz_ver_minor in range(1, 13)
@@ -148,13 +153,13 @@ class BZGentoo(BaseTest):
         query_url = ("https://bugs.gentoo.org/buglist.cgi?"
             "component=[CS]&product=Doc%20Translations"
             "&query_format=advanced&resolution=FIXED")
-        bz = Bugzilla(url=self.url, use_creds=False)
+        bz = self._open_bz()
         ret = bz.query(bz.url_to_query(query_url))
         assert len(ret) > 0
 
 
 class BZGnome(BaseTest):
-    url = "https://bugzilla.gnome.org/xmlrpc.cgi"
+    url = "https://bugzilla.gnome.org"
     bzversion = (4, 4)
     closestatus = "RESOLVED"
 
@@ -173,7 +178,7 @@ class BZGnome(BaseTest):
         query_url = ("https://bugzilla.gnome.org/buglist.cgi?"
             "bug_status=RESOLVED&order=Importance&product=accerciser"
             "&query_format=advanced&resolution=NOTABUG")
-        bz = Bugzilla(url=self.url, use_creds=False)
+        bz = self._open_bz()
         try:
             bz.query(bz.url_to_query(query_url))
         except BugzillaError as e:
@@ -182,8 +187,7 @@ class BZGnome(BaseTest):
 
 class RHTest(BaseTest):
     url = (tests.CLICONFIG.REDHAT_URL or
-        "https://bugzilla.redhat.com/xmlrpc.cgi")
-    bzclass = RHBugzilla
+        "https://bugzilla.redhat.com")
     bzversion = (5, 0)
 
     test0 = BaseTest._testBZVersion
@@ -231,11 +235,11 @@ class RHTest(BaseTest):
             " CVE-2011-2527")
 
     def testDoubleConnect(self):
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         bz.connect(self.url)
 
     def testQueryFlags(self):
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         if not bz.logged_in:
             print("not logged in, skipping testQueryFlags")
             return
@@ -256,14 +260,14 @@ class RHTest(BaseTest):
         """
         Fresh call to getcomponentsdetails should properly refresh
         """
-        bz = self.bzclass(url=self.url, use_creds=False)
+        bz = self._open_bz()
         assert bool(bz.getcomponentsdetails("Red Hat Developer Toolset"))
 
     def testGetBugAlias(self):
         """
         getbug() works if passed an alias
         """
-        bz = self.bzclass(url=self.url, use_creds=False)
+        bz = self._open_bz()
         bug = bz.getbug("CVE-2011-2527")
         assert bug.bug_id == 720773
 
@@ -274,14 +278,14 @@ class RHTest(BaseTest):
         assert "#1060931 " in out
 
     def testBugFields(self):
-        bz = self.bzclass(self.url, use_creds=False)
+        bz = self._open_bz()
         fields = bz.getbugfields(names=["product"])[:]
         assert fields == ["product"]
         bz.getbugfields(names=["product", "bug_status"], force_refresh=True)
         assert set(bz.bugfields) == set(["product", "bug_status"])
 
     def testBugAutoRefresh(self):
-        bz = self.bzclass(self.url, use_creds=False)
+        bz = self._open_bz()
 
         bz.bug_autorefresh = True
 
@@ -301,7 +305,7 @@ class RHTest(BaseTest):
             assert "adjust your include_fields" in str(e)
 
     def testExtraFields(self):
-        bz = self.bzclass(self.url, cookiefile=None, tokenfile=None)
+        bz = self._open_bz()
 
         # Check default extra_fields will pull in comments
         bug = bz.getbug(720773, exclude_fields=["product"])
@@ -329,9 +333,9 @@ class RHTest(BaseTest):
 
     def testFaults(self):
         # Test special error wrappers in bugzilla/_cli.py
-        bzinstance = Bugzilla(self.url, use_creds=False)
+        bz = self._open_bz()
         out = tests.clicomm("bugzilla query --field=IDONTEXIST=FOO",
-            bzinstance, expectfail=True)
+            bz, expectfail=True)
         assert "Server error:" in out
 
         out = tests.clicomm("bugzilla "

@@ -27,7 +27,6 @@ else:
 import pytest
 
 import bugzilla
-from bugzilla import Bugzilla
 import tests
 
 
@@ -39,17 +38,11 @@ def _split_int(s):
 
 
 if not bugzilla.RHBugzilla(url=RHURL).logged_in:
-    print("R/W tests require cached login credentials for url=%s" % RHURL)
+    print("\nR/W tests require cached login credentials for url=%s\n" % RHURL)
     sys.exit(1)
 
 
 class RHPartnerTest(unittest.TestCase):
-    # Despite its name, this instance is simply for bugzilla testing,
-    # doesn't send out emails and is blown away occasionally. The front
-    # page has some info.
-    url = RHURL
-    bzclass = bugzilla.RHBugzilla
-
     def _check_have_admin(self, bz, funcname):
         # groupnames is empty for any user if our logged in user does not
         # have admin privs.
@@ -59,13 +52,16 @@ class RHPartnerTest(unittest.TestCase):
             print("\nNo admin privs, reduced testing of %s" % funcname)
         return ret
 
+    def _open_bz(self, **kwargs):
+        return bugzilla.RHBugzilla(url=RHURL, **kwargs)
+
     def test0LoggedInNoCreds(self):
-        bz = self.bzclass(url=self.url, use_creds=False)
+        bz = self._open_bz(use_creds=False)
         assert not bz.logged_in
 
     def test2(self):
-        bz = Bugzilla(url=self.url, use_creds=False)
-        assert bz.__class__ is self.bzclass
+        bz = bugzilla.Bugzilla(RHURL, use_creds=False)
+        assert bz.__class__ is bugzilla.RHBugzilla
 
     def _makebug(self, bz):
         component = "python-bugzilla"
@@ -94,7 +90,7 @@ class RHPartnerTest(unittest.TestCase):
         """
         Create a bug with minimal amount of fields, then close it
         """
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         bug = self._makebug(bz)
 
         # Verify hasattr works
@@ -112,7 +108,7 @@ class RHPartnerTest(unittest.TestCase):
         """
         Create a bug using all 'new' fields, check some values, close it
         """
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
 
         summary = ("python-bugzilla test manyfields bug %s" %
                    datetime.datetime.today())
@@ -176,7 +172,7 @@ class RHPartnerTest(unittest.TestCase):
         """
         Modify status and comment fields for an existing bug
         """
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         bugid = "663674"
         cmd = "bugzilla modify %s " % bugid
 
@@ -263,7 +259,7 @@ class RHPartnerTest(unittest.TestCase):
         """
         Modify cc, assignee, qa_contact for existing bug
         """
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         bugid = "663674"
         cmd = "bugzilla modify %s " % bugid
 
@@ -311,7 +307,7 @@ class RHPartnerTest(unittest.TestCase):
         """
         Modify flags and fixed_in for 2 bugs
         """
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         bugid1 = "461686"
         bugid2 = "461687"
         cmd = "bugzilla modify %s %s " % (bugid1, bugid2)
@@ -399,7 +395,7 @@ class RHPartnerTest(unittest.TestCase):
     def test07ModifyMisc(self):
         bugid = "461686"
         cmd = "bugzilla modify %s " % bugid
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         bug = bz.getbug(bugid)
 
         # modify --dependson
@@ -501,7 +497,7 @@ class RHPartnerTest(unittest.TestCase):
         """
         Get and set attachments for a bug
         """
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         cmd = "bugzilla attach "
         testfile = "../tests/data/bz-attach-get1.txt"
 
@@ -552,7 +548,7 @@ class RHPartnerTest(unittest.TestCase):
         assert setbug.attachments[-1]["flags"] == []
 
         # Set attachment obsolete
-        bz._proxy.Bug.update_attachment({  # pylint: disable=protected-access
+        bz._backend.bug_attachment_update({  # pylint: disable=protected-access
             "ids": [setbug.attachments[-1]["id"]],
             "is_obsolete": 1})
         setbug.refresh()
@@ -599,7 +595,7 @@ class RHPartnerTest(unittest.TestCase):
 
 
     def test09Whiteboards(self):
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         bug_id = "663674"
         cmd = "bugzilla modify %s " % bug_id
         bug = bz.getbug(bug_id)
@@ -668,7 +664,7 @@ class RHPartnerTest(unittest.TestCase):
         getpass.getpass = fakegetpass
 
         try:
-            cmd = "bugzilla --no-cache-credentials --bugzilla %s" % self.url
+            cmd = "bugzilla --no-cache-credentials --bugzilla %s" % RHURL
             # Implied login with --username and --password
             ret = tests.clicomm("%s --user foobar@example.com "
                                 "--password foobar query -b 123456" % cmd,
@@ -700,7 +696,7 @@ class RHPartnerTest(unittest.TestCase):
 
     def test11UserUpdate(self):
         # This won't work if run by the same user we are using
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         email = "anaconda-maint-list@redhat.com"
         group = "fedora_contrib"
 
@@ -758,7 +754,7 @@ class RHPartnerTest(unittest.TestCase):
 
 
     def test11ComponentEditing(self):
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         component = ("python-bugzilla-testcomponent-%s" %
                      str(random.randint(1, 1024 * 1024 * 1024)))
         basedata = {
@@ -831,8 +827,7 @@ class RHPartnerTest(unittest.TestCase):
                 ("You are not allowed" in str(e)))
 
     def test12SetCookie(self):
-        bz = self.bzclass(self.url,
-                cookiefile=-1, tokenfile=None, configpaths=[])
+        bz = self._open_bz(cookiefile=-1, tokenfile=None, configpaths=[])
 
         try:
             bz.cookiefile = None
@@ -847,7 +842,7 @@ class RHPartnerTest(unittest.TestCase):
         assert not bz.logged_in
 
     def test13SubComponents(self):
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         # Long closed RHEL5 lvm2 bug. This component has sub_components
         bug = bz.getbug("185526")
         bug.autorefresh = True
@@ -865,18 +860,18 @@ class RHPartnerTest(unittest.TestCase):
             "Default / Unclassified (RHEL5)"]}
 
     def test13ExternalTrackerQuery(self):
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         with pytest.raises(RuntimeError):
             bz.build_external_tracker_boolean_query()
 
     def _deleteAllExistingExternalTrackers(self, bugid):
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         ids = [bug['id'] for bug in bz.getbug(bugid).external_bugs]
         if ids != []:
             bz.remove_external_tracker(ids=ids)
 
     def test14ExternalTrackersAddUpdateRemoveQuery(self):
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         bugid = 461686
         ext_bug_id = 380489
 
@@ -922,14 +917,14 @@ class RHPartnerTest(unittest.TestCase):
         assert len(ids) == 0
 
     def test15EnsureLoggedIn(self):
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         comm = "bugzilla --ensure-logged-in query --bug_id 979546"
         tests.clicomm(comm, bz)
 
     def test16ModifyTags(self):
         bugid = "461686"
         cmd = "bugzilla modify %s " % bugid
-        bz = self.bzclass(url=self.url)
+        bz = self._open_bz()
         bug = bz.getbug(bugid)
 
         if bug.tags:
@@ -951,7 +946,7 @@ class RHPartnerTest(unittest.TestCase):
 
     def test17LoginAPIKey(self):
         api_key = "somefakeapikey1234"
-        bz = self.bzclass(url=self.url, use_creds=False, api_key=api_key)
+        bz = self._open_bz(use_creds=False, api_key=api_key)
         if bz.bz_ver_major < 5:
             self.skipTest("can only test apikey on bugzilla 5+")
 
