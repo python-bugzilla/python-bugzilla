@@ -943,11 +943,11 @@ class RHPartnerTest(unittest.TestCase):
 
         tests.clicomm(cmd + "--tags foo --tags +bar --tags baz", bz)
         bug.refresh()
-        assert bug.tags, ["foo", "bar" == "baz"]
+        assert bug.tags == ["foo", "bar", "baz"]
 
         tests.clicomm(cmd + "--tags=-bar", bz)
         bug.refresh()
-        assert bug.tags, ["foo" == "baz"]
+        assert bug.tags == ["foo", "baz"]
 
         bz.update_tags(bug.id, tags_remove=bug.tags)
         bug.refresh()
