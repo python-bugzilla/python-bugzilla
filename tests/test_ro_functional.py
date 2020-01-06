@@ -16,7 +16,7 @@ import unittest
 
 import pytest
 
-from bugzilla import Bugzilla, BugzillaError
+import bugzilla
 import tests
 
 
@@ -28,7 +28,7 @@ class BaseTest(unittest.TestCase):
     def _open_bz(self, **kwargs):
         if "use_creds" not in kwargs:
             kwargs["use_creds"] = False
-        return Bugzilla(self.url, **kwargs)
+        return bugzilla.Bugzilla(self.url, **kwargs)
 
     def clicomm(self, argstr, expectexc=False, bz=None):
         comm = "bugzilla " + argstr
@@ -138,7 +138,7 @@ class BZMozilla(BaseTest):
         # bugzilla.mozilla.org returns version values in YYYY-MM-DD
         # format, so just try to confirm that
         bz = self._open_bz()
-        assert bz.__class__ == Bugzilla
+        assert bz.__class__ == bugzilla.Bugzilla
         assert bz.bz_ver_major >= 2016
         assert bz.bz_ver_minor in range(1, 13)
 
@@ -156,33 +156,6 @@ class BZGentoo(BaseTest):
         bz = self._open_bz()
         ret = bz.query(bz.url_to_query(query_url))
         assert len(ret) > 0
-
-
-class BZGnome(BaseTest):
-    url = "https://bugzilla.gnome.org"
-    bzversion = (4, 4)
-    closestatus = "RESOLVED"
-
-    test0 = BaseTest._testBZVersion
-    test1 = lambda s: BaseTest._testQuery(s,
-                "--product dogtail --component sniff",
-                9, "321654")
-    # BZ < 4 doesn't report values for --full
-    test2 = lambda s: BaseTest._testQueryRaw(s, "321654", 30,
-                                             "ATTRIBUTE[version]: CVS HEAD")
-    test3 = lambda s: BaseTest._testQueryOneline(s, "321654", "Sniff")
-
-    def testURLQuery(self):
-        # This instance is old and doesn't support URL queries, we are
-        # just verifying our extra error message report
-        query_url = ("https://bugzilla.gnome.org/buglist.cgi?"
-            "bug_status=RESOLVED&order=Importance&product=accerciser"
-            "&query_format=advanced&resolution=NOTABUG")
-        bz = self._open_bz()
-        try:
-            bz.query(bz.url_to_query(query_url))
-        except BugzillaError as e:
-            assert "derived from bugzilla" in str(e)
 
 
 class RHTest(BaseTest):
