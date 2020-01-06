@@ -19,11 +19,11 @@ from io import BytesIO
 if sys.version_info[0] >= 3:
     from collections.abc import Mapping
     from urllib.parse import urlparse, urlunparse, parse_qsl
-    from xmlrpc.client import Binary, Fault
+    from xmlrpc.client import Binary
 else:
     from collections import Mapping
     from urlparse import urlparse, urlunparse, parse_qsl
-    from xmlrpclib import Binary, Fault
+    from xmlrpclib import Binary
 # pylint: enable=import-error,no-name-in-module,ungrouped-imports
 
 
@@ -267,7 +267,7 @@ class Bugzilla(object):
                     log.info("Found RedHat bugzilla extension, "
                         "using RHBugzilla")
                     c = RHBugzilla
-            except Fault:
+            except Exception:
                 log.debug("Failed to fetch bugzilla extensions", exc_info=True)
 
         if not c:
@@ -558,8 +558,9 @@ class Bugzilla(object):
             self.password = ''
             log.info("login successful for user=%s", self.user)
             return ret
-        except Fault as e:
-            raise BugzillaError("Login failed: %s" % str(e.faultString))
+        except Exception as e:
+            raise BugzillaError("Login failed: %s" %
+                    BugzillaError.get_bugzilla_error_string(e))
 
     def interactive_login(self, user=None, password=None, force=False,
                           restrict_login=None, use_api_key=False):
@@ -639,8 +640,9 @@ class Bugzilla(object):
         try:
             self._backend.user_get({"ids": []})
             return True
-        except Fault as e:
-            if e.faultCode == 505 or e.faultCode == 32000:
+        except Exception as e:
+            code = BugzillaError.get_bugzilla_error_code(e)
+            if code in [505, 32000]:
                 return False
             raise e
 
@@ -1235,7 +1237,9 @@ class Bugzilla(object):
         """
         try:
             r = self._backend.bug_search(query)
-        except Fault as e:
+        except Exception as e:
+            if not BugzillaError.get_bugzilla_error_code(e):
+                raise
 
             # Try to give a hint in the error message if url_to_query
             # isn't supported by this bugzilla instance
