@@ -154,7 +154,7 @@ class _BackendXMLRPC(_BackendBase):
     Internal interface for direct calls to bugzilla's XMLRPC API
     """
     def __init__(self, url, bugzillasession):
-        _BackendBase.__init__(self, bugzillasession)
+        _BackendBase.__init__(self, url, bugzillasession)
         self._xmlrpc_proxy = _BugzillaXMLRPCProxy(url, self._bugzillasession)
 
     def get_xmlrpc_proxy(self):

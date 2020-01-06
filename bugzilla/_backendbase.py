@@ -8,7 +8,8 @@ class _BackendBase(object):
     (XMLRPC, REST). This base class defines the public API for the rest of
     the code, but this is all internal to the library.
     """
-    def __init__(self, bugzillasession):
+    def __init__(self, url, bugzillasession):
+        dummy = url
         self._bugzillasession = bugzillasession
 
     #################
