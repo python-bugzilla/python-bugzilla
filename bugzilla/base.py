@@ -19,11 +19,9 @@ from io import BytesIO
 if sys.version_info[0] >= 3:
     from collections.abc import Mapping
     from urllib.parse import urlparse, urlunparse, parse_qsl
-    from xmlrpc.client import Binary
 else:
     from collections import Mapping
     from urlparse import urlparse, urlunparse, parse_qsl
-    from xmlrpclib import Binary
 # pylint: enable=import-error,no-name-in-module,ungrouped-imports
 
 
@@ -1523,7 +1521,6 @@ class Bugzilla(object):
         data = f.read()
         if not isinstance(data, bytes):
             data = data.encode(locale.getpreferredencoding())
-        kwargs['data'] = Binary(data)
 
         kwargs['ids'] = listify(idlist)
 
@@ -1536,7 +1533,7 @@ class Bugzilla(object):
                     kwargs['file_name'], strict=False)[0]
             kwargs['content_type'] = ctype or 'application/octet-stream'
 
-        ret = self._backend.bug_attachment_create(kwargs)
+        ret = self._backend.bug_attachment_create(data, kwargs)
 
         if "attachments" in ret:
             # Up to BZ 4.2

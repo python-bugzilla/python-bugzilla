@@ -6,9 +6,10 @@ import sys
 
 # pylint: disable=import-error
 if sys.version_info[0] >= 3:
-    from xmlrpc.client import Fault, ProtocolError, ServerProxy, Transport
+    from xmlrpc.client import (Binary, Fault, ProtocolError,
+                               ServerProxy, Transport)
 else:
-    from xmlrpclib import Fault, ProtocolError, ServerProxy, Transport
+    from xmlrpclib import Binary, Fault, ProtocolError, ServerProxy, Transport
 # pylint: enable=import-error
 
 from requests import RequestException
@@ -172,7 +173,9 @@ class _BackendXMLRPC(_BackendBase):
         data = paramdict.copy()
         data["ids"] = listify(bug_ids)
         return self._xmlrpc_proxy.Bug.attachments(data)
-    def bug_attachment_create(self, paramdict):
+    def bug_attachment_create(self, data, paramdict):
+        if data is not None and "data" not in paramdict:
+            paramdict["data"] = Binary(data)
         return self._xmlrpc_proxy.Bug.add_attachment(paramdict)
     def bug_attachment_update(self, paramdict):
         return self._xmlrpc_proxy.Bug.update_attachment(paramdict)

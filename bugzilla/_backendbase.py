@@ -59,10 +59,14 @@ class _BackendBase(object):
         """
         raise NotImplementedError()
 
-    def bug_attachment_create(self, paramdict):
+    def bug_attachment_create(self, data, paramdict):
         """
         Create a bug attachment
         http://bugzilla.readthedocs.io/en/latest/api/core/v1/attachment.html#create-attachment
+
+        :param data: raw Bytes data of the attachment to attach. API will
+            encode this correctly if you pass it in and 'data' is not in
+            paramdict.
         """
         raise NotImplementedError()
 
