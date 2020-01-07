@@ -448,6 +448,10 @@ class Bugzilla(object):
             self.bz_ver_major = 5
             self.bz_ver_minor = 0
 
+    def _get_backend_class(self):
+        # This is a hook for the test suite to do some mock hackery
+        return _BackendXMLRPC
+
     def connect(self, url=None):
         """
         Connect to the bugzilla instance with the given url. This is
@@ -473,7 +477,8 @@ class Bugzilla(object):
                 cert=self.cert,
                 tokenfile=self.tokenfile,
                 api_key=self.api_key)
-        self._backend = _BackendXMLRPC(url, self._session)
+        backendclass = self._get_backend_class()
+        self._backend = backendclass(url, self._session)
 
         self.url = url
         # we've changed URLs - reload config
@@ -1235,6 +1240,7 @@ class Bugzilla(object):
         """
         try:
             r = self._backend.bug_search(query)
+            log.debug("bug_search returned:\n%s", str(r))
         except Exception as e:
             if not BugzillaError.get_bugzilla_error_code(e):
                 raise
