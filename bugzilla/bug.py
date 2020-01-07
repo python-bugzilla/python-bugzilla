@@ -37,9 +37,7 @@ class Bug(object):
         if bug_id:
             dict["id"] = bug_id
 
-        log.debug("Bug(%s)", sorted(dict.keys()))
         self._update_dict(dict)
-
         self.weburl = bugzilla.url.replace('xmlrpc.cgi',
                                            'show_bug.cgi?id=%i' % self.bug_id)
 
