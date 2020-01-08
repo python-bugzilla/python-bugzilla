@@ -609,18 +609,18 @@ def _do_info(bz, opt):
         return ret
 
     productname = (opt.components or opt.component_owners or opt.versions)
-    include_fields = ["name", "id"]
     fastcomponents = (opt.components and not opt.active_components)
+
+    include_fields = ["name", "id"]
+    if opt.components or opt.component_owners:
+        include_fields += ["components.name"]
+        if opt.component_owners:
+            include_fields += ["components.default_assigned_to"]
+        if opt.active_components:
+            include_fields += ["components.is_active"]
+
     if opt.versions:
         include_fields += ["versions"]
-    if opt.component_owners:
-        include_fields += [
-            "components.default_assigned_to",
-            "components.name",
-        ]
-    if (opt.active_components and
-        any(["components" in i for i in include_fields])):
-        include_fields += ["components.is_active"]
 
     bz.refresh_products(names=productname and [productname] or None,
             include_fields=include_fields)
