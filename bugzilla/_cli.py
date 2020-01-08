@@ -689,7 +689,12 @@ def _format_output(bz, opt, buglist):
         buglist = bz.getbugs([b.bug_id for b in buglist])
         for b in buglist:
             print("Bugzilla %s: " % b.bug_id)
+            SKIP_NAMES = ["bugzilla"]
             for attrname in sorted(b.__dict__):
+                if attrname in SKIP_NAMES:
+                    continue
+                if attrname.startswith("_"):
+                    continue
                 print(to_encoding(u"ATTRIBUTE[%s]: %s" %
                                   (attrname, b.__dict__[attrname])))
             print("\n\n")
