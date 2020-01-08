@@ -955,22 +955,24 @@ def _do_modify(bz, parser, opt):
     # here. This is a bit weird for traditional bugzilla XMLRPC
     log.debug("Adjusting whiteboard fields one by one")
     for bug in bz.getbugs(bugid_list):
-        for wb, (add_list, rm_list) in wbmap.items():
+        update_kwargs = {}
+        for wbkey, (add_list, rm_list) in wbmap.items():
+            bugval = getattr(bug, wbkey) or ""
             for tag in add_list:
-                newval = getattr(bug, wb) or ""
-                if newval:
-                    newval += " "
-                newval += tag
-                bz.update_bugs([bug.id],
-                               bz.build_update(**{wb: newval}))
+                if bugval:
+                    bugval += " "
+                bugval += tag
 
             for tag in rm_list:
-                newval = (getattr(bug, wb) or "").split()
-                for t in newval[:]:
+                bugsplit = bugval.split()
+                for t in bugsplit[:]:
                     if t == tag:
-                        newval.remove(t)
-                bz.update_bugs([bug.id],
-                               bz.build_update(**{wb: " ".join(newval)}))
+                        bugsplit.remove(t)
+                bugval = " ".join(bugsplit)
+
+            update_kwargs[wbkey] = bugval
+
+        bz.update_bugs([bug.id], bz.build_update(**update_kwargs))
 
 
 def _do_get_attach(bz, opt):
