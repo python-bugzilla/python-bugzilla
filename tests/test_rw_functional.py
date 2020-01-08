@@ -64,7 +64,7 @@ def test2():
     assert bz.__class__ is bugzilla.RHBugzilla
 
 
-def _makebug(run_cli):
+def _makebug(run_cli, bz):
     component = "python-bugzilla"
     version = "rawhide"
     summary = ("python-bugzilla test basic bug %s" %
@@ -93,7 +93,7 @@ def test03NewBugBasic(run_cli):
     Create a bug with minimal amount of fields, then close it
     """
     bz = _open_bz()
-    bug = _makebug(bz)
+    bug = _makebug(run_cli, bz)
 
     # Verify hasattr works
     assert hasattr(bug, "id")
@@ -505,7 +505,7 @@ def _test8Attachments(run_cli):
     testfile = "../tests/data/bz-attach-get1.txt"
 
     # Add attachment as CLI option
-    setbug = _makebug(bz)
+    setbug = _makebug(run_cli, bz)
     setbug = bz.getbug(setbug.id, extra_fields=["attachments"])
     orignumattach = len(setbug.attachments)
 
