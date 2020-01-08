@@ -1,0 +1,10 @@
+{'bug_status': ['ASSIGNED', 'ON_QA', 'FAILS_QA', 'PASSES_QA'],
+ 'component': ['foo', 'bar', 'baz'],
+ 'include_fields': ['assigned_to',
+                    'devel_whiteboard',
+                    'id',
+                    'keywords',
+                    'qa_whiteboard',
+                    'status',
+                    'summary',
+                    'whiteboard']}

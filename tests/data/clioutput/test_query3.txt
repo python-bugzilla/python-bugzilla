@@ -1,0 +1,23 @@
+:::genericwhiteboard:qe_test_coverage?,release?,pm_ack?,devel_ack?,qa_ack+,needinfo?:hello@example.com::?::
+* 2014-11-19T00:26:50 - example@redhat.com:
+Description of problem:
+Version-Release number of selected component (if applicable):
+kernel-2.6.18-308.el5
+device-mapper-multipath-0.4.7-48.el5
+device-mapper-1.02.67-2.el5
+device-mapper-1.02.67-2.el5
+device-mapper-event-1.02.67-2.el5
+
+
+* 2014-11-19T00:47:57 - example@redhat.com:
+We can see that there is a dmeventd task that has sent data over a socket and is waiting for the peer to respond:
+
+crash> bt
+any interaction with the filesystem until it has issued the suspend command to convert the mirror device to a linear device.
+
+* 2014-11-19T01:53:53 - example@redhat.com:
+Test text
+::
+External bug: https://bugzilla.gnome.org/show_bug.cgi?id=703421
+External bug: https://bugs.launchpad.net/bugs/1203576
+

@@ -1,0 +1,1 @@
+{'component': 'NEWCOMP', 'ids': ['123456', '1234567'], 'status': 'ASSIGNED'}

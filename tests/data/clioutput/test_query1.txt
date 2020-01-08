@@ -1,0 +1,2 @@
+#508645 NEW        - Libvirt Maintainers - RFE: qemu: Support a managed autoconnect mode for host USB devices
+#668543 NEW        - Cole Robinson - RFE: warn users at guest start if networks/storage pools are inactive

@@ -18,23 +18,11 @@ from bugzilla import Bugzilla, RHBugzilla, _cli
 class _CLICONFIG(object):
     def __init__(self):
         self.REDHAT_URL = None
+        self.REGENERATE_OUTPUT = False
 
 
 CLICONFIG = _CLICONFIG()
 os.environ["__BUGZILLA_UNITTEST"] = "1"
-
-
-def make_bz(version, *args, **kwargs):
-    cls = Bugzilla
-    if kwargs.pop("rhbz", False):
-        cls = RHBugzilla
-    if "cookiefile" not in kwargs and "tokenfile" not in kwargs:
-        kwargs["use_creds"] = False
-    if "url" not in kwargs:
-        kwargs["url"] = None
-    bz = cls(*args, **kwargs)
-    bz._set_bz_version(version)  # pylint: disable=protected-access
-    return bz
 
 
 def clicomm(argvstr, bzinstance,

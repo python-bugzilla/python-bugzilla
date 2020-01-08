@@ -38,10 +38,6 @@ log = getLogger(bugzilla.__name__)
 # Util helpers #
 ################
 
-def _is_unittest():
-    return bool(os.getenv("__BUGZILLA_UNITTEST"))
-
-
 def _is_unittest_debug():
     return bool(os.getenv("__BUGZILLA_UNITTEST_DEBUG"))
 
@@ -49,8 +45,10 @@ def _is_unittest_debug():
 def to_encoding(ustring):
     string = ''
     if IS_PY3:
-        basestring = (str, bytes)
-    if isinstance(ustring, basestring):
+        strtype = (str, bytes)
+    else:  # pragma: no cover
+        strtype = basestring
+    if isinstance(ustring, strtype):
         string = ustring
     elif ustring is not None:
         string = str(ustring)
@@ -59,8 +57,6 @@ def to_encoding(ustring):
         return string
 
     preferred = locale.getpreferredencoding()
-    if _is_unittest():
-        preferred = "UTF-8"
     return string.encode(preferred, 'replace')
 
 
@@ -79,7 +75,7 @@ def open_without_clobber(name, *args):
             if err.errno == errno.EEXIST:
                 name = "%s.%i" % (orig_name, count)
                 count += 1
-            else:
+            else:  # pragma: no cover
                 raise IOError(err.errno, err.strerror, err.filename)
     fobj = open(name, *args)
     if fd != fobj.fileno():
@@ -116,7 +112,7 @@ def setup_logging(debug, verbose):
         log.setLevel(WARN)
 
     if _is_unittest_debug():
-        log.setLevel(DEBUG)
+        log.setLevel(DEBUG)  # pragma: no cover
 
 
 ##################
@@ -274,10 +270,6 @@ def _parser_add_bz_fields(rootp, command):
         "the raw name used by the bugzilla instance. For example, if your "
         "bugzilla instance has a custom field cf_my_field, do:\n"
         "  --field cf_my_field=VALUE")
-
-    # Used by unit tests, not for end user consumption
-    p.add_argument('--__test-return-result', action="store_true",
-        dest="test_return_result", help=argparse.SUPPRESS)
 
     if not cmd_modify:
         _parser_add_output_options(rootp)
@@ -590,8 +582,6 @@ def _do_query(bz, opt, parser):
 
     if not q:
         parser.error("'query' command requires additional arguments")
-    if opt.test_return_result:
-        return q
     return bz.query(q)
 
 
@@ -678,7 +668,7 @@ def _convert_to_outputformat(output):
         fmt += "#%{bug_id} %{status} %{assigned_to} %{component}\t"
         fmt += "[%{target_milestone}] %{flags} %{cve}"
 
-    else:
+    else:  # pragma: no cover
         raise RuntimeError("Unknown output type '%s'" % output)
 
     return fmt
@@ -737,9 +727,8 @@ def _format_output(bz, opt, buglist):
                 for bl in b.blocks:
                     cvebug = bz.getbug(bl)
                     for cb in cvebug.alias:
-                        if cb.find("CVE") == -1:
-                            continue
-                        if cb.strip() not in cves:
+                        if (cb.find("CVE") != -1 and
+                            cb.strip() not in cves):
                             cves.append(cb)
             val = ",".join(cves)
 
@@ -830,9 +819,6 @@ def _do_new(bz, opt, parser):
     )
 
     _merge_field_opts(ret, opt, parser)
-
-    if opt.test_return_result:
-        return ret
 
     b = bz.createbug(ret)
     b.refresh()
@@ -934,9 +920,6 @@ def _do_modify(bz, parser, opt):
 
     if not any([update, wbmap, add_tags, rm_tags]):
         parser.error("'modify' command requires additional arguments")
-
-    if opt.test_return_result:
-        return (update, wbmap, add_tags, rm_tags)
 
     if add_tags or rm_tags:
         ret = bz.update_tags(bugid_list,
@@ -1063,14 +1046,13 @@ def _make_bz_instance(opt):
         tokenfile = opt.tokenfile or -1
         use_creds = True
 
-    bz = bugzilla.Bugzilla(
+    return bugzilla.Bugzilla(
         url=opt.bugzilla,
         cookiefile=cookiefile,
         tokenfile=tokenfile,
         sslverify=opt.sslverify,
         use_creds=use_creds,
         cert=opt.cert)
-    return bz
 
 
 def _handle_login(opt, action, bz):
@@ -1141,23 +1123,13 @@ def _main(unittest_bz_instance):
 
     buglist = []
     if action == 'info':
-        if not (opt.products or
-                opt.components or
-                opt.component_owners or
-                opt.versions):
-            parser.error("'info' command requires additional arguments")
-
         _do_info(bz, opt)
 
     elif action == 'query':
         buglist = _do_query(bz, opt, parser)
-        if opt.test_return_result:
-            return buglist
 
     elif action == 'new':
         buglist = _do_new(bz, opt, parser)
-        if opt.test_return_result:
-            return buglist
 
     elif action == 'attach':
         if opt.get or opt.getall:
@@ -1169,10 +1141,8 @@ def _main(unittest_bz_instance):
             _do_set_attach(bz, opt, parser)
 
     elif action == 'modify':
-        modout = _do_modify(bz, parser, opt)
-        if opt.test_return_result:
-            return modout
-    else:
+        _do_modify(bz, parser, opt)
+    else:  # pragma: no cover
         raise RuntimeError("Unexpected action '%s'" % action)
 
     # If we're doing new/query/modify, output our results
@@ -1187,6 +1157,9 @@ def main(unittest_bz_instance=None):
         except (Exception, KeyboardInterrupt):
             log.debug("", exc_info=True)
             raise
+    except KeyboardInterrupt:
+        print("\nExited at user request.")
+        sys.exit(1)
     except (Fault, bugzilla.BugzillaError) as e:
         print("\nServer error: %s" % str(e))
         sys.exit(3)
@@ -1200,15 +1173,11 @@ def main(unittest_bz_instance=None):
     except (socket.error,
             requests.exceptions.HTTPError,
             requests.exceptions.ConnectionError,
+            requests.exceptions.InvalidURL,
             ProtocolError) as e:
         print("\nConnection lost/failed: %s" % str(e))
         sys.exit(2)
 
 
 def cli():
-    try:
-        main()
-    except KeyboardInterrupt:
-        log.debug("", exc_info=True)
-        print("\nExited at user request.")
-        sys.exit(1)
+    main()

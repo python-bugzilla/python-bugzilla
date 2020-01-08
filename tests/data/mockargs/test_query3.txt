@@ -1,0 +1,10 @@
+{'bug_severity': ['sev1', 'sev2'],
+ 'include_fields': ['bar',
+                    'comments',
+                    'devel_whiteboard',
+                    'external_bugs',
+                    'flags',
+                    'flags_requestee',
+                    'foo',
+                    'whiteboard',
+                    'id']}

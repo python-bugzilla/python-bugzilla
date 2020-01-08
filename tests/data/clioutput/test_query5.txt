@@ -1,0 +1,6 @@
+#1165434 CLOSED     - lvm-team@redhat.com - LVM mirrored root can deadlock dmeventd if a mirror leg is lost
+ +Keywords: key1,keyword2,Security
+ +QA Whiteboard: 
+ +Status Whiteboard: genericwhiteboard
+ +Devel Whiteboard: 
+

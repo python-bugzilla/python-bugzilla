@@ -1,0 +1,4 @@
+{'component': ['foo', 'bar'],
+ 'id': ['1234', '2480'],
+ 'include_fields': ['id'],
+ 'product': ['foo']}

@@ -1,0 +1,2 @@
+{'include_fields': ['name', 'id', 'components.name', 'components.is_active'],
+ 'names': ['test-fake-product']}

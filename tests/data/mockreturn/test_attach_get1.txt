@@ -1,0 +1,16 @@
+{'attachments': {'502352': {'bug_id': 663674,
+                            'content_type': 'text/plain',
+                            'creation_time': '2011-06-01T18:57:50Z',
+                            'creator': 'example',
+                            'data': 'SG9vcmF5IGZvciBNZXRlb3JvbG9naWNrw6kgenByw6F2eSA1XzA0LnBkZiEK',
+                            'file_name': 'Klíč memorial test file.txt',
+                            'flags': [],
+                            'id': 502352,
+                            'is_obsolete': 0,
+                            'is_patch': 0,
+                            'is_private': 0,
+                            'last_change_time': '2011-06-01T18:57:50Z',
+                            'size': 45,
+                            'summary': 'An empty test file with a utf-8 '
+                                       'filename'}},
+ 'bugs': {}}

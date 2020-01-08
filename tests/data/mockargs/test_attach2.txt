@@ -1,0 +1,4 @@
+{'content_type': 'text/plain',
+ 'file_name': 'fake-file-name.txt',
+ 'ids': ['123456'],
+ 'summary': 'Some attachment description'}

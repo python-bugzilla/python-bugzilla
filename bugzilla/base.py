@@ -234,7 +234,6 @@ class Bugzilla(object):
 
         if url:
             self.connect(url)
-            self._init_class_from_url()
         self._init_class_state()
 
     def _init_class_from_url(self):
@@ -263,6 +262,7 @@ class Bugzilla(object):
             return
 
         self.__class__ = c
+        c._init_class_state(self)  # disable=protected-access
 
     def _init_class_state(self):
         """
@@ -441,7 +441,7 @@ class Bugzilla(object):
 
     def _get_backend_class(self):
         # This is a hook for the test suite to do some mock hackery
-        return _BackendXMLRPC
+        return _BackendXMLRPC  # pragma: no cover
 
     def connect(self, url=None):
         """
@@ -485,6 +485,7 @@ class Bugzilla(object):
         version = self._backend.bugzilla_version()["version"]
         log.debug("Bugzilla version string: %s", version)
         self._set_bz_version(version)
+        self._init_class_from_url()
 
 
     @property

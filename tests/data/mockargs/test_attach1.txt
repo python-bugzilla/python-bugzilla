@@ -1,0 +1,7 @@
+{'comment': 'some comment to go with it',
+ 'content_type': 'text/x-patch',
+ 'file_name': 'bz-attach-get1.txt',
+ 'ids': ['123456'],
+ 'is_patch': True,
+ 'is_private': True,
+ 'summary': 'bz-attach-get1.txt'}

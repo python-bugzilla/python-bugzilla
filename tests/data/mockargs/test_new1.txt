@@ -1,0 +1,6 @@
+{'component': 'FOOCOMP',
+ 'description': 'This is the first comment!\nWith newline & stuff.',
+ 'groups': ['FOOGROUP', 'BARGROUP'],
+ 'keywords': ['ADDKEY'],
+ 'product': 'FOOPROD',
+ 'summary': 'Hey this is the title!'}

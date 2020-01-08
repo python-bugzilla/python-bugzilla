@@ -1,9 +1,20 @@
+# This work is licensed under the GNU GPLv2 or later.
+# See the COPYING file in the top-level directory.
+
+import locale
 import logging
 import os
 
+import pytest
+
 import tests
+import tests.utils
 
 import bugzilla
+
+
+# Use consistent locale for tests
+locale.setlocale(locale.LC_CTYPE, 'en_US.UTF-8')
 
 
 # pytest plugin adding custom options. Hooks are documented here:
@@ -24,6 +35,9 @@ def pytest_addoption(parser):
     parser.addoption("--pybz-debug", action="store_true", default=False,
             help=("Enable python-bugzilla debug output. This may break "
                   "output comparison tests."))
+    parser.addoption("--regenerate-output",
+            action="store_true", default=False,
+            help=("Force regeneration of generated test output"))
 
 
 def pytest_ignore_collect(path, config):
@@ -49,3 +63,17 @@ def pytest_configure(config):
     if config.getoption("--pybz-debug"):
         logging.getLogger(bugzilla.__name__).setLevel(logging.DEBUG)
         os.environ["__BUGZILLA_UNITTEST_DEBUG"] = "1"
+    if config.getoption("--regenerate-output"):
+        tests.CLICONFIG.REGENERATE_OUTPUT = config.getoption(
+            "--regenerate-output")
+
+
+@pytest.fixture
+def run_cli(capsys, monkeypatch):
+    """
+    Custom pytest fixture to pass a function for testing
+    a bugzilla cli command.
+    """
+    def _do_run(*args, **kwargs):
+        return tests.utils.do_run_cli(capsys, monkeypatch, *args, **kwargs)
+    yield _do_run

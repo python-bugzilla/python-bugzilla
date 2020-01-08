@@ -1,0 +1,1 @@
+#1694158 CLOSED     - crobinso@redhat.com - python-bugzilla test bug for API minor_update

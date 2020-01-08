@@ -17,17 +17,12 @@ import random
 import sys
 import unittest
 
-# pylint: disable=import-error
-if sys.version_info[0] >= 3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
-# pylint: enable=import-error
-
 import pytest
 
 import bugzilla
+
 import tests
+import tests.utils
 
 
 RHURL = tests.CLICONFIG.REDHAT_URL or "partner-bugzilla.redhat.com"
@@ -684,7 +679,8 @@ class RHPartnerTest(unittest.TestCase):
 
 
             # bare 'login'
-            stdinstr = StringIO("foobar@example.com\n\rfoobar\n\r")
+            stdinstr = tests.utils.fake_stream(
+                "foobar@example.com\n\rfoobar\n\r")
             ret = tests.clicomm("%s login" % cmd,
                                 None, expectfail=True, stdin=stdinstr)
             assert "Bugzilla Username:" in ret

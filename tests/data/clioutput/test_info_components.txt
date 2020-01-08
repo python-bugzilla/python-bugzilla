@@ -1,0 +1,3 @@
+comp1
+hey-imma-comp
+test-comp-2

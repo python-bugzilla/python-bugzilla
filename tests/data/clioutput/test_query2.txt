@@ -1,0 +1,64 @@
+Bugzilla 1165434: 
+ATTRIBUTE[actual_time]: 0.0
+ATTRIBUTE[alias]: []
+ATTRIBUTE[assigned_to]: lvm-team@redhat.com
+ATTRIBUTE[assigned_to_detail]: 'DICT SCRUBBED'
+ATTRIBUTE[autorefresh]: False
+ATTRIBUTE[blocks]: [123456]
+ATTRIBUTE[cc]: ['example@redhat.com', 'example2@redhat.com']
+ATTRIBUTE[cc_detail]: ['DICT SCRUBBED']
+ATTRIBUTE[cf_build_id]: 
+ATTRIBUTE[cf_conditional_nak]: []
+ATTRIBUTE[cf_cust_facing]: ---
+ATTRIBUTE[cf_devel_whiteboard]: somedeveltag,someothertag
+ATTRIBUTE[cf_doc_type]: Bug Fix
+ATTRIBUTE[cf_environment]: 
+ATTRIBUTE[cf_fixed_in]: 
+ATTRIBUTE[cf_internal_whiteboard]: someinternal TAG
+ATTRIBUTE[cf_last_closed]: 2016-03-03T22:15:07
+ATTRIBUTE[cf_partner]: []
+ATTRIBUTE[cf_pgm_internal]: 
+ATTRIBUTE[cf_pm_score]: 0
+ATTRIBUTE[cf_qa_whiteboard]: foo bar baz
+ATTRIBUTE[cf_qe_conditional_nak]: []
+ATTRIBUTE[cf_release_notes]: 
+ATTRIBUTE[cf_target_upstream_version]: 
+ATTRIBUTE[cf_verified]: []
+ATTRIBUTE[classification]: Red Hat
+ATTRIBUTE[comments]: ['DICT SCRUBBED']
+ATTRIBUTE[depends_on]: [112233]
+ATTRIBUTE[docs_contact]: 
+ATTRIBUTE[estimated_time]: 0.0
+ATTRIBUTE[external_bugs]: ['DICT SCRUBBED']
+ATTRIBUTE[flags]: ['DICT SCRUBBED']
+ATTRIBUTE[groups]: ['somegroup']
+ATTRIBUTE[id]: 1165434
+ATTRIBUTE[is_cc_accessible]: True
+ATTRIBUTE[is_confirmed]: True
+ATTRIBUTE[is_creator_accessible]: True
+ATTRIBUTE[is_open]: False
+ATTRIBUTE[keywords]: ['key1', 'keyword2', 'Security']
+ATTRIBUTE[last_change_time]: 2018-12-09T19:12:12
+ATTRIBUTE[op_sys]: Linux
+ATTRIBUTE[platform]: All
+ATTRIBUTE[priority]: medium
+ATTRIBUTE[product]: Red Hat Enterprise Linux 5
+ATTRIBUTE[qa_contact]: mspqa-list@redhat.com
+ATTRIBUTE[qa_contact_detail]: 'DICT SCRUBBED'
+ATTRIBUTE[remaining_time]: 0.0
+ATTRIBUTE[resolution]: WONTFIX
+ATTRIBUTE[see_also]: []
+ATTRIBUTE[severity]: medium
+ATTRIBUTE[status]: CLOSED
+ATTRIBUTE[sub_components]: 'DICT SCRUBBED'
+ATTRIBUTE[summary]: LVM mirrored root can deadlock dmeventd if a mirror leg is lost
+ATTRIBUTE[tags]: []
+ATTRIBUTE[target_milestone]: rc
+ATTRIBUTE[target_release]: ['---']
+ATTRIBUTE[url]: 
+ATTRIBUTE[version]: ['5.8']
+ATTRIBUTE[weburl]: https:///TESTSUITEMOCK
+ATTRIBUTE[whiteboard]: genericwhiteboard
+
+
+
