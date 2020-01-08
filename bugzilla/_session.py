@@ -3,18 +3,11 @@
 
 import base64
 from logging import getLogger
-import sys
-
-# pylint: disable=import-error
-if sys.version_info[0] >= 3:
-    from urllib.parse import urlparse  # pylint: disable=no-name-in-module
-else:
-    from urlparse import urlparse
-# pylint: enable=import-error
 
 import requests
 
 from ._authfiles import _BugzillaTokenCache
+from ._compatimports import urlparse
 
 
 log = getLogger(__name__)

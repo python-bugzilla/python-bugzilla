@@ -2,20 +2,10 @@
 # See the COPYING file in the top-level directory.
 
 import os
-import sys
 from logging import getLogger
 
-# pylint: disable=import-error,no-name-in-module,ungrouped-imports
-if sys.version_info[0] >= 3:
-    from configparser import ConfigParser
-    from http.cookiejar import LoadError, MozillaCookieJar
-    from urllib.parse import urlparse  # pylint: disable=no-name-in-module
-else:
-    from ConfigParser import SafeConfigParser as ConfigParser
-    from cookielib import LoadError, MozillaCookieJar
-    from urlparse import urlparse
-# pylint: enable=import-error,no-name-in-module,ungrouped-imports
-
+from ._compatimports import (ConfigParser, LoadError,
+                            MozillaCookieJar, urlparse)
 from .exceptions import BugzillaError
 from ._util import listify
 

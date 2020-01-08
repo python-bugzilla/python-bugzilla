@@ -21,20 +21,11 @@ import socket
 import sys
 import tempfile
 
-# pylint: disable=import-error
-if sys.version_info[0] >= 3:
-    # pylint: disable=no-name-in-module,redefined-builtin
-    from xmlrpc.client import Fault, ProtocolError
-    from urllib.parse import urlparse
-    basestring = (str, bytes)
-else:
-    from xmlrpclib import Fault, ProtocolError
-    from urlparse import urlparse
-# pylint: enable=import-error
-
 import requests.exceptions
 
 import bugzilla
+from bugzilla._compatimports import Fault, ProtocolError, urlparse, IS_PY3
+
 
 DEFAULT_BZ = 'https://bugzilla.redhat.com'
 
@@ -57,12 +48,14 @@ def _is_unittest_debug():
 
 def to_encoding(ustring):
     string = ''
+    if IS_PY3:
+        basestring = (str, bytes)
     if isinstance(ustring, basestring):
         string = ustring
     elif ustring is not None:
         string = str(ustring)
 
-    if sys.version_info[0] >= 3:
+    if IS_PY3:
         return string
 
     preferred = locale.getpreferredencoding()

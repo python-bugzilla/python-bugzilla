@@ -15,21 +15,12 @@ import sys
 
 from io import BytesIO
 
-# pylint: disable=import-error,no-name-in-module,ungrouped-imports
-if sys.version_info[0] >= 3:
-    from collections.abc import Mapping
-    from urllib.parse import urlparse, urlunparse, parse_qsl
-else:
-    from collections import Mapping
-    from urlparse import urlparse, urlunparse, parse_qsl
-# pylint: enable=import-error,no-name-in-module,ungrouped-imports
-
-
 from ._authfiles import (DEFAULT_CONFIGPATHS, open_bugzillarc,
         _build_cookiejar, _default_cache_location,
         _parse_hostname, _save_api_key)
 from .apiversion import __version__
 from ._backendxmlrpc import _BackendXMLRPC
+from ._compatimports import Mapping, urlparse, urlunparse, parse_qsl
 from .bug import Bug, User
 from .exceptions import BugzillaError
 from ._session import _BugzillaSession

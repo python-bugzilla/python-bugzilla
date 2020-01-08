@@ -7,9 +7,12 @@
 # See the COPYING file in the top-level directory.
 
 from __future__ import unicode_literals
+
 import locale
 from logging import getLogger
-import sys
+
+from ._compatimports import IS_PY3
+
 
 log = getLogger(__name__)
 
@@ -49,7 +52,7 @@ class Bug(object):
         'print(bug)' is not recommended because of potential encoding issues.
         Please use unicode(bug) where possible.
         """
-        if sys.version_info[0] >= 3:
+        if IS_PY3:
             return self.__unicode__()
         else:
             return self.__unicode__().encode(

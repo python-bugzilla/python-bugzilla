@@ -4,17 +4,11 @@
 from logging import getLogger
 import sys
 
-# pylint: disable=import-error
-if sys.version_info[0] >= 3:
-    from xmlrpc.client import (Binary, Fault, ProtocolError,
-                               ServerProxy, Transport)
-else:
-    from xmlrpclib import Binary, Fault, ProtocolError, ServerProxy, Transport
-# pylint: enable=import-error
-
 from requests import RequestException
 
 from ._backendbase import _BackendBase
+from ._compatimports import (Binary, Fault, ProtocolError,
+                             ServerProxy, Transport)
 from .exceptions import BugzillaError
 from ._util import listify
 
