@@ -582,13 +582,13 @@ class Bugzilla(object):
             log.info('Checking API key... ')
             self.connect()
 
-            if not self.logged_in:
+            if not self.logged_in:  # pragma: no cover
                 raise BugzillaError("Login with API_KEY failed")
             log.info('API Key accepted')
 
-            if self._use_creds:
-                _save_api_key(self.url, self.api_key)
-            else:
+            if self._use_creds or self.configpath:
+                _save_api_key(self.url, self.api_key, self.configpath)
+            else:  # pragma: no cover
                 log.info("API Key won't be updated because use_creds=False")
             return
 

@@ -107,7 +107,7 @@ def _default_config_location(filename):
     return _default_location(filename, 'config')
 
 
-def _save_api_key(url, api_key):
+def _save_api_key(url, api_key, configpaths):
     """
     Save the API_KEY in the config file.
 
@@ -115,7 +115,10 @@ def _save_api_key(url, api_key):
     API was called with --no-cache-credentials and no change will be
     made
     """
-    config_filename = _default_config_location('bugzillarc')
+    if configpaths:
+        config_filename = configpaths[0]
+    else:
+        config_filename = _default_config_location('bugzillarc')
     section = _parse_hostname(url)
 
     cfg = ConfigParser()
@@ -124,7 +127,7 @@ def _save_api_key(url, api_key):
     if section not in cfg.sections():
         cfg.add_section(section)
 
-    cfg[section]['api_key'] = api_key.strip()
+    cfg.set(section, 'api_key', api_key.strip())
 
     with open(config_filename, 'w') as configfile:
         cfg.write(configfile)
