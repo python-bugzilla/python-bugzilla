@@ -62,8 +62,9 @@ class _BugzillaSession(object):
         """
         Set basic authentication method.
         """
-        b64str = str(base64.b64encode("{}:{}".format(user, password)))
-        authstr = "Basic {}".format(b64str.encode("utf-8").decode("utf-8"))
+        formatstr = "{}:{}".format(user, password).encode("utf-8")
+        b64str = base64.b64encode(formatstr).decode("utf-8")
+        authstr = "Basic {}".format(b64str)
         self._session.headers["Authorization"] = authstr
 
     def set_response_cookies(self, response):
