@@ -34,7 +34,7 @@ notes=FIXME,XXX,TODO
 [VARIABLES]
 # A regular expression matching the beginning of the name of dummy variables
 # (i.e. not used).
-dummy-variables-rgx=ignore.*|.*_ignore
+dummy-variables-rgx=dummy.*|ignore.*|.*_ignore
 
 # List of additional names supposed to be defined in builtins. Remember that
 # you should avoid to define new builtins when possible.
