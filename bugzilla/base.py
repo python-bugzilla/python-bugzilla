@@ -553,6 +553,7 @@ class Bugzilla(object):
             log.info("login successful for user=%s", self.user)
             return ret
         except Exception as e:
+            log.debug("Login exception: %s", str(e), exc_info=True)
             raise BugzillaError("Login failed: %s" %
                     BugzillaError.get_bugzilla_error_string(e))
 
