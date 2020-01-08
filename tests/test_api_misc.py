@@ -12,6 +12,7 @@ Test miscellaneous API bits
 from __future__ import print_function
 
 import os
+import sys
 import tempfile
 
 import pytest
@@ -263,14 +264,7 @@ def test_interactive_login(capsys, monkeypatch):
         user_get_args=None,
         user_get_return={})
 
-    import sys
-    import getpass
-
-    if sys.version_info[0] >= 3:
-        monkeypatch.setattr(getpass, "getpass", input)
-    else:
-        monkeypatch.setattr(getpass, "getpass",
-            raw_input)  # pylint: disable=undefined-variable
+    tests.utils.monkeypatch_getpass(monkeypatch)
 
     fakestdin = tests.utils.fake_stream("fakeuser\nfakepass\n")
     monkeypatch.setattr(sys, "stdin", fakestdin)

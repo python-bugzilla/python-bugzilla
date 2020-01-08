@@ -2,6 +2,7 @@
 # See the COPYING file in the top-level directory.
 
 import difflib
+import getpass
 import inspect
 import io
 import os
@@ -32,6 +33,14 @@ def fake_stream(text):
         return io.StringIO(text)
     else:
         return io.BytesIO(text)
+
+
+def monkeypatch_getpass(monkeypatch):
+    if IS_PY3:
+        monkeypatch.setattr(getpass, "getpass", input)
+    else:
+        monkeypatch.setattr(getpass, "getpass",
+            raw_input)  # pylint: disable=undefined-variable
 
 
 def diff_compare(inputdata, filename):
