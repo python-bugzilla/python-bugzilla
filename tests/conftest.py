@@ -27,12 +27,19 @@ def pytest_addoption(parser):
 
 
 def pytest_ignore_collect(path, config):
-    if ((os.path.basename(str(path)) == "test_ro_functional.py") and
-        not config.getoption("--ro-functional")):
-        return True
+    has_ro = config.getoption("--ro-functional")
+    has_rw = config.getoption("--rw-functional")
+    skip_rest = has_ro or has_rw
 
-    if ((os.path.basename(str(path)) == "test_rw_functional.py") and
-        not config.getoption("--rw-functional")):
+    base = os.path.basename(str(path))
+    is_ro = base == "test_ro_functional.py"
+    is_rw = base == "test_rw_functional.py"
+    if is_ro or is_rw:
+        if is_ro and not has_ro:
+            return True
+        if is_rw and not has_rw:
+            return True
+    elif skip_rest:
         return True
 
 
