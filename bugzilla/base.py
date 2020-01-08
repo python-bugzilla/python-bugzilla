@@ -471,6 +471,10 @@ class Bugzilla(object):
             url = self.url
         url = self.fix_url(url)
 
+        self.url = url
+        # we've changed URLs - reload config
+        self.readconfig(overwrite=False)
+
         self._session = _BugzillaSession(url, self.user_agent,
                 cookiejar=self._cookiejar,
                 sslverify=self._sslverify,
@@ -479,10 +483,6 @@ class Bugzilla(object):
                 api_key=self.api_key)
         backendclass = self._get_backend_class()
         self._backend = backendclass(url, self._session)
-
-        self.url = url
-        # we've changed URLs - reload config
-        self.readconfig(overwrite=False)
 
         if (self.user and self.password):
             log.info("user and password present - doing login()")
