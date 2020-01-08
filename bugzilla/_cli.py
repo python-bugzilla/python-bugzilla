@@ -974,17 +974,25 @@ def _do_modify(bz, parser, opt):
 
 
 def _do_get_attach(bz, opt):
-    if opt.getall:
-        for bug in bz.getbugs(opt.getall):
-            opt.get += bug.get_attachment_ids()
+    data = {}
 
-    for attid in set(opt.get):
-        if opt.ignore_obsolete:
-            metadata = bz.get_attachments(None, attid,
-                                          include_fields=["is_obsolete"])
-            if metadata["attachments"][str(attid)]['is_obsolete'] == 1:
-                continue
-        att = bz.openattachment(attid)
+    def _process_attachment_data(_attlist):
+        for _att in _attlist:
+            data[_att["id"]] = _att
+
+    if opt.getall:
+        for attlist in bz.get_attachments(opt.getall, None)["bugs"].values():
+            _process_attachment_data(attlist)
+    if opt.get:
+        _process_attachment_data(
+            bz.get_attachments(None, opt.get)["attachments"].values())
+
+    for attdata in data.values():
+        is_obsolete = attdata.get("is_obsolete", None) == 1
+        if opt.ignore_obsolete and is_obsolete:
+            continue
+
+        att = bz.openattachment_data(attdata)
         outfile = open_without_clobber(att.name, "wb")
         data = att.read(4096)
         while data:
