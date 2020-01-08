@@ -1542,6 +1542,25 @@ class Bugzilla(object):
             ret = ret[0]
         return ret
 
+    def openattachment_data(self, attachment_dict):
+        """
+        Helper for turning passed API attachment dictionary into a
+        filelike object
+        """
+        ret = BytesIO()
+        data = attachment_dict["data"]
+
+        if hasattr(data, "data"):
+            # This is for xmlrpc Binary
+            content = data.data
+        else:
+            import base64
+            content = base64.b64decode(data)
+
+        ret.write(content)
+        ret.name = attachment_dict["file_name"]
+        ret.seek(0)
+        return ret
 
     def openattachment(self, attachid):
         """
@@ -1550,13 +1569,7 @@ class Bugzilla(object):
         """
         attachments = self.get_attachments(None, attachid)
         data = attachments["attachments"][str(attachid)]
-        xmlrpcbinary = data["data"]
-
-        ret = BytesIO()
-        ret.write(xmlrpcbinary.data)
-        ret.name = data["file_name"]
-        ret.seek(0)
-        return ret
+        return self.openattachment_data(data)
 
     def updateattachmentflags(self, bugid, attachid, flagname, **kwargs):
         """
