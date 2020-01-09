@@ -24,7 +24,8 @@ import tempfile
 import requests.exceptions
 
 import bugzilla
-from bugzilla._compatimports import Fault, ProtocolError, urlparse, IS_PY3
+from bugzilla._compatimports import Fault, ProtocolError, urlparse
+from bugzilla._util import to_encoding
 
 
 DEFAULT_BZ = 'https://bugzilla.redhat.com'
@@ -40,24 +41,6 @@ log = getLogger(bugzilla.__name__)
 
 def _is_unittest_debug():
     return bool(os.getenv("__BUGZILLA_UNITTEST_DEBUG"))
-
-
-def to_encoding(ustring):
-    string = ''
-    if IS_PY3:
-        strtype = (str, bytes)
-    else:  # pragma: no cover
-        strtype = basestring
-    if isinstance(ustring, strtype):
-        string = ustring
-    elif ustring is not None:
-        string = str(ustring)
-
-    if IS_PY3:
-        return string
-
-    preferred = locale.getpreferredencoding()
-    return string.encode(preferred, 'replace')
 
 
 def open_without_clobber(name, *args):

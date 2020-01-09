@@ -8,10 +8,9 @@
 
 from __future__ import unicode_literals
 
-import locale
 from logging import getLogger
 
-from ._compatimports import IS_PY3
+from ._util import to_encoding
 
 
 log = getLogger(__name__)
@@ -52,11 +51,7 @@ class Bug(object):
         'print(bug)' is not recommended because of potential encoding issues.
         Please use unicode(bug) where possible.
         """
-        if IS_PY3:
-            return self.__unicode__()
-        else:
-            return self.__unicode__().encode(
-                locale.getpreferredencoding(), 'replace')
+        return to_encoding(self.__unicode__())
 
     def __unicode__(self):
         """
