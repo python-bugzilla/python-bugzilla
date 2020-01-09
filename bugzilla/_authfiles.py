@@ -136,20 +136,49 @@ def _save_api_key(url, api_key, configpaths):
     print("API key written to %s" % config_filename)
 
 
-def _build_cookiejar(cookiefile):
-    cj = MozillaCookieJar(cookiefile)
-    if cookiefile is None:
-        return cj
-    if not os.path.exists(cookiefile):
-        # Make sure a new file has correct permissions
-        open(cookiefile, 'a').close()
-        os.chmod(cookiefile, 0o600)
-        cj.save()
-        return cj
+class _BugzillaCookieCache(object):
+    @staticmethod
+    def get_default_path():
+        return _default_cache_location("bugzillacookies")
 
-    try:
-        cj.load()
-        return cj
-    except LoadError:
-        raise BugzillaError("cookiefile=%s not in Mozilla format" %
-                            cookiefile)
+    def __init__(self):
+        self._cookiejar = None
+
+    def _build_cookiejar(self, cookiefile):
+        cj = MozillaCookieJar(cookiefile)
+        if cookiefile is None:
+            return cj
+        if not os.path.exists(cookiefile):
+            # Make sure a new file has correct permissions
+            open(cookiefile, 'a').close()
+            os.chmod(cookiefile, 0o600)
+            cj.save()
+            return cj
+
+        try:
+            cj.load()
+            return cj
+        except LoadError:
+            raise BugzillaError("cookiefile=%s not in Mozilla format" %
+                                cookiefile)
+
+    def set_filename(self, cookiefile):
+        log.debug("Using cookiefile=%s", cookiefile)
+        self._cookiejar = self._build_cookiejar(cookiefile)
+
+    def get_filename(self):
+        return self._cookiejar.filename
+
+    def get_cookiejar(self):
+        return self._cookiejar
+
+    def set_cookies(self, cookies):
+        if self._cookiejar is None:
+            return
+
+        for cookie in cookies:
+            self._cookiejar.set_cookie(cookie)
+
+        if self._cookiejar.filename is not None:
+            # Save is required only if we have a filename
+            self._cookiejar.save()

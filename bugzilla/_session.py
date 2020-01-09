@@ -18,11 +18,11 @@ class _BugzillaSession(object):
     Class to handle the backend agnostic 'requests' setup
     """
     def __init__(self, url, user_agent,
-            cookiejar=None, sslverify=True, cert=None,
+            cookiecache=None, sslverify=True, cert=None,
             tokenfile=None, api_key=None):
         self._user_agent = user_agent
         self._scheme = urlparse(url)[0]
-        self._cookiejar = cookiejar
+        self._cookiecache = cookiecache
         self._token_cache = _BugzillaTokenCache(url, tokenfile)
         self._api_key = api_key
 
@@ -33,8 +33,8 @@ class _BugzillaSession(object):
         self._session = requests.Session()
         if cert:
             self._session.cert = cert
-        if self._cookiejar:
-            self._session.cookies = self._cookiejar
+        if self._cookiecache:
+            self._session.cookies = self._cookiecache.get_cookiejar()
 
         self._session.verify = sslverify
         self._session.headers["User-Agent"] = self._user_agent
@@ -71,15 +71,7 @@ class _BugzillaSession(object):
         """
         Save any cookies received from the passed requests response
         """
-        if self._cookiejar is None:
-            return
-
-        for cookie in response.cookies:
-            self._cookiejar.set_cookie(cookie)
-
-        if self._cookiejar.filename is not None:
-            # Save is required only if we have a filename
-            self._cookiejar.save()
+        self._cookiecache.set_cookies(response.cookies)
 
     def get_requests_session(self):
         return self._session

@@ -16,7 +16,7 @@ import sys
 from io import BytesIO
 
 from ._authfiles import (DEFAULT_CONFIGPATHS, open_bugzillarc,
-        _build_cookiejar, _default_cache_location,
+        _BugzillaCookieCache, _default_cache_location,
         _parse_hostname, _save_api_key)
 from .apiversion import __version__
 from ._backendxmlrpc import _BackendXMLRPC
@@ -206,11 +206,12 @@ class Bugzilla(object):
 
         self._backend = None
         self._session = None
-        self._cookiejar = None
+        self._cookiecache = None
         self._sslverify = sslverify
         self._cache = _BugzillaAPICache()
         self._bug_autorefresh = False
         self._is_redhat_bugzilla = False
+        self._cookiecache = _BugzillaCookieCache()
 
         self._use_creds = use_creds
         if not self._use_creds:
@@ -219,14 +220,14 @@ class Bugzilla(object):
             configpaths = []
 
         if cookiefile == -1:
-            cookiefile = _default_cache_location("bugzillacookies")
+            cookiefile = self._cookiecache.get_default_path()
         if tokenfile == -1:
             tokenfile = _default_cache_location("bugzillatoken")
         if configpaths == -1:
             configpaths = DEFAULT_CONFIGPATHS[:]
 
         log.debug("Using tokenfile=%s", tokenfile)
-        self.cookiefile = cookiefile
+        self._setcookiefile(cookiefile)
         self.tokenfile = tokenfile
         self.configpath = configpaths
         self._basic_auth = basic_auth
@@ -343,25 +344,13 @@ class Bugzilla(object):
     ###################
 
     def _getcookiefile(self):
-        """
-        cookiefile is the file that bugzilla session cookies are loaded
-        and saved from.
-        """
-        return self._cookiejar.filename
+        return self._cookiecache.get_filename()
 
     def _delcookiefile(self):
-        self._cookiejar = None
+        self._setcookiefile(None)
 
     def _setcookiefile(self, cookiefile):
-        if (self._cookiejar and cookiefile == self._cookiejar.filename):
-            return
-
-        if self._backend is not None:
-            raise RuntimeError("Can't set cookies with an open connection, "
-                               "disconnect() first.")
-
-        log.debug("Using cookiefile=%s", cookiefile)
-        self._cookiejar = _build_cookiejar(cookiefile)
+        self._cookiecache.set_filename(cookiefile)
 
     cookiefile = property(_getcookiefile, _setcookiefile, _delcookiefile)
 
@@ -482,7 +471,7 @@ class Bugzilla(object):
         self.readconfig(overwrite=False)
 
         self._session = _BugzillaSession(url, self.user_agent,
-                cookiejar=self._cookiejar,
+                cookiecache=self._cookiecache,
                 sslverify=self._sslverify,
                 cert=self.cert,
                 tokenfile=self.tokenfile,
