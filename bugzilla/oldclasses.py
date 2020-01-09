@@ -2,7 +2,6 @@
 # See the COPYING file in the top-level directory.
 
 from .base import Bugzilla
-from .rhbugzilla import RHBugzilla
 
 # These are old compat classes. Nothing new should be added here,
 # and these should not be altered
@@ -38,6 +37,23 @@ class Bugzilla44(Bugzilla):
 
 class NovellBugzilla(Bugzilla):
     pass
+
+
+class RHBugzilla(Bugzilla):
+    """
+    Helper class for historical bugzilla.redhat.com back compat
+
+    Historically this class used many more non-upstream methods, but
+    in 2012 RH started dropping most of its custom bits. By that time,
+    upstream BZ had most of the important functionality.
+
+    Much of the remaining code here is just trying to keep things operating
+    in python-bugzilla back compatible manner.
+
+    This class was written using bugzilla.redhat.com's API docs:
+    https://bugzilla.redhat.com/docs/en/html/api/
+    """
+    _is_redhat_bugzilla = True
 
 
 class RHBugzilla3(RHBugzilla):

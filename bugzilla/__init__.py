@@ -9,10 +9,9 @@
 from .apiversion import version, __version__
 from .base import Bugzilla
 from .exceptions import BugzillaError
-from .rhbugzilla import RHBugzilla
 from .oldclasses import (Bugzilla3, Bugzilla32, Bugzilla34, Bugzilla36,
         Bugzilla4, Bugzilla42, Bugzilla44,
-        NovellBugzilla, RHBugzilla3, RHBugzilla4)
+        NovellBugzilla, RHBugzilla, RHBugzilla3, RHBugzilla4)
 
 
 # This is the public API. If you are explicitly instantiating any other

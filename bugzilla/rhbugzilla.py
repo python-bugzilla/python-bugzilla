@@ -8,55 +8,25 @@
 
 from logging import getLogger
 
-from .base import Bugzilla
 from ._util import listify
 
 log = getLogger(__name__)
 
 
-class RHBugzilla(Bugzilla):
+class _RHBugzillaConverters(object):
     """
-    Bugzilla class for connecting Red Hat's forked bugzilla instance,
-    bugzilla.redhat.com
-
-    Historically this class used many more non-upstream methods, but
-    in 2012 RH started dropping most of its custom bits. By that time,
-    upstream BZ had most of the important functionality.
-
-    Much of the remaining code here is just trying to keep things operating
-    in python-bugzilla back compatible manner.
-
-    This class was written using bugzilla.redhat.com's API docs:
-    https://bugzilla.redhat.com/docs/en/html/api/
+    Static class that holds functional Red Hat back compat converters.
+    Called inline in Bugzilla
     """
-    _is_redhat_bugzilla = True
-
-    ######################
-    # Bug update methods #
-    ######################
-
-    def build_update(self, **kwargs):
-        # pylint: disable=arguments-differ
+    @staticmethod
+    def convert_build_update(
+            component=None,
+            fixed_in=None,
+            qa_whiteboard=None,
+            devel_whiteboard=None,
+            internal_whiteboard=None,
+            sub_component=None):
         adddict = {}
-
-        def pop(key, destkey):
-            val = kwargs.pop(key, None)
-            if val is None:
-                return
-            adddict[destkey] = val
-
-        def get_sub_component():
-            val = kwargs.pop("sub_component", None)
-            if val is None:
-                return
-
-            if not isinstance(val, dict):
-                component = listify(kwargs.get("component"))
-                if not component:
-                    raise ValueError("component must be specified if "
-                        "specifying sub_component")
-                val = {component[0]: val}
-            adddict["sub_components"] = val
 
         def get_alias():
             # RHBZ has a custom extension to allow a bug to have multiple
@@ -74,25 +44,35 @@ class RHBugzilla(Bugzilla):
             # Implementation will go here when it's available
             pass
 
-        pop("fixed_in", "cf_fixed_in")
-        pop("qa_whiteboard", "cf_qa_whiteboard")
-        pop("devel_whiteboard", "cf_devel_whiteboard")
-        pop("internal_whiteboard", "cf_internal_whiteboard")
+        if fixed_in is not None:
+            adddict["cf_fixed_in"] = fixed_in
+        if qa_whiteboard is not None:
+            adddict["cf_qa_whiteboard"] = qa_whiteboard
+        if devel_whiteboard is not None:
+            adddict["cf_devel_whiteboard"] = devel_whiteboard
+        if internal_whiteboard is not None:
+            adddict["cf_internal_whiteboard"] = internal_whiteboard
 
-        get_sub_component()
+        if sub_component:
+            if not isinstance(sub_component, dict):
+                component = listify(component)
+                if not component:
+                    raise ValueError("component must be specified if "
+                        "specifying sub_component")
+                sub_component = {component[0]: sub_component}
+            adddict["sub_components"] = sub_component
+
         get_alias()
 
-        vals = Bugzilla.build_update(self, **kwargs)
-        vals.update(adddict)
-
-        return vals
+        return adddict
 
 
     #################
     # Query methods #
     #################
 
-    def pre_translation(self, query):
+    @staticmethod
+    def pre_translation(query):
         """
         Translates the query for possible aliases
         """
@@ -118,15 +98,11 @@ class RHBugzilla(Bugzilla):
                 query['include_fields'] = query['column_list']
                 del query['column_list']
 
-        # We need to do this for users here for users that
-        # don't call build_query
-        query.update(self._process_include_fields(query["include_fields"],
-            None, None))
-
         if old != query:
             log.debug("RHBugzilla pretranslated query to: %s", query)
 
-    def post_translation(self, query, bug):
+    @staticmethod
+    def post_translation(query, bug):
         """
         Convert the results of getbug back to the ancient RHBZ value
         formats

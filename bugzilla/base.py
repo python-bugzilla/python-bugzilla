@@ -23,6 +23,7 @@ from ._backendxmlrpc import _BackendXMLRPC
 from ._compatimports import Mapping, urlparse, urlunparse, parse_qsl
 from .bug import Bug, User
 from .exceptions import BugzillaError
+from .rhbugzilla import _RHBugzillaConverters
 from ._session import _BugzillaSession
 from ._util import listify
 
@@ -233,33 +234,34 @@ class Bugzilla(object):
         if url:
             self.connect(url)
 
+    def _detect_is_redhat_bugzilla(self):
+        if self._is_redhat_bugzilla:
+            return True
+
+        if "bugzilla.redhat.com" in self.url:
+            log.info("Using RHBugzilla for URL containing bugzilla.redhat.com")
+            return True
+
+        try:
+            extensions = self._backend.bugzilla_extensions()
+            if "RedHat" in extensions.get('extensions', {}):
+                log.info("Found RedHat bugzilla extension, "
+                    "using RHBugzilla")
+                return True
+        except Exception:
+            log.debug("Failed to fetch bugzilla extensions", exc_info=True)
+
+        return False
+
     def _init_class_from_url(self):
         """
         Detect if we should use RHBugzilla class, and if so, set it
         """
-        from .rhbugzilla import RHBugzilla  # pylint: disable=cyclic-import
-        if isinstance(self, RHBugzilla):
-            return
+        from .oldclasses import RHBugzilla  # pylint: disable=cyclic-import
 
-        c = None
-        if "bugzilla.redhat.com" in self.url:
-            log.info("Using RHBugzilla for URL containing bugzilla.redhat.com")
-            c = RHBugzilla
-        else:
-            try:
-                extensions = self._backend.bugzilla_extensions()
-                if "RedHat" in extensions.get('extensions', {}):
-                    log.info("Found RedHat bugzilla extension, "
-                        "using RHBugzilla")
-                    c = RHBugzilla
-            except Exception:
-                log.debug("Failed to fetch bugzilla extensions", exc_info=True)
-
-        if not c:
-            return
-
-        self.__class__ = c
-        self._is_redhat_bugzilla = True
+        if self._detect_is_redhat_bugzilla():
+            self.__class__ = RHBugzilla
+            self._is_redhat_bugzilla = True
 
     def _get_field_aliases(self):
         # List of field aliases. Maps old style RHBZ parameter
@@ -1279,12 +1281,18 @@ class Bugzilla(object):
         In order to keep the API the same, Bugzilla4 needs to process the
         query and the result. This also applies to the refresh() function
         """
+        if self._is_redhat_bugzilla:
+            _RHBugzillaConverters.pre_translation(query)
+            query.update(self._process_include_fields(
+                query["include_fields"], None, None))
 
     def post_translation(self, query, bug):
         """
         In order to keep the API the same, Bugzilla4 needs to process the
         query and the result. This also applies to the refresh() function
         """
+        if self._is_redhat_bugzilla:
+            _RHBugzillaConverters.post_translation(query, bug)
 
     def bugs_history_raw(self, bug_ids):
         """
@@ -1396,18 +1404,28 @@ class Bugzilla(object):
         https://bugzilla.readthedocs.io/en/latest/api/core/v1/bug.html#create-bug
         """
         ret = {}
+        rhbzret = {}
 
         # These are only supported for rhbugzilla
-        for key, val in [
-            ("fixed_in", fixed_in),
-            ("devel_whiteboard", devel_whiteboard),
-            ("qa_whiteboard", qa_whiteboard),
-            ("internal_whiteboard", internal_whiteboard),
-            ("sub_component", sub_component),
-        ]:
-            if val is not None:
-                raise ValueError("bugzilla instance does not support "
-                                 "updating '%s'" % key)
+        #
+        # This should not be extended any more.
+        # If people want to handle custom fields, manually extend the
+        # returned dictionary.
+        rhbzargs = {
+            "fixed_in": fixed_in,
+            "devel_whiteboard": devel_whiteboard,
+            "qa_whiteboard": qa_whiteboard,
+            "internal_whiteboard": internal_whiteboard,
+            "sub_component": sub_component,
+        }
+        if self._is_redhat_bugzilla:
+            rhbzret = _RHBugzillaConverters.convert_build_update(
+                component=component, **rhbzargs)
+        else:
+            for key, val in rhbzargs.items():
+                if val is not None:
+                    raise ValueError("bugzilla instance does not support "
+                                     "updating '%s'" % key)
 
         def s(key, val, convert=None):
             if val is None:
@@ -1479,6 +1497,7 @@ class Bugzilla(object):
             if comment_private:
                 ret["comment"]["is_private"] = comment_private
 
+        ret.update(rhbzret)
         return ret
 
 
