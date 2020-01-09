@@ -29,31 +29,7 @@ class RHBugzilla(Bugzilla):
     This class was written using bugzilla.redhat.com's API docs:
     https://bugzilla.redhat.com/docs/en/html/api/
     """
-    def _init_class_state(self):
-        def _add_both_alias(newname, origname):
-            self._add_field_alias(newname, origname, is_api=False)
-            self._add_field_alias(origname, newname, is_bug=False)
-
-        _add_both_alias('fixed_in', 'cf_fixed_in')
-        _add_both_alias('qa_whiteboard', 'cf_qa_whiteboard')
-        _add_both_alias('devel_whiteboard', 'cf_devel_whiteboard')
-        _add_both_alias('internal_whiteboard', 'cf_internal_whiteboard')
-
-        self._add_field_alias('component', 'components', is_bug=False)
-        self._add_field_alias('version', 'versions', is_bug=False)
-        # Yes, sub_components is the field name the API expects
-        self._add_field_alias('sub_components', 'sub_component', is_bug=False)
-
-        # flags format isn't exactly the same but it's the closest approx
-        self._add_field_alias('flags', 'flag_types')
-
-        self._getbug_extra_fields = self._getbug_extra_fields + [
-            "comments", "description",
-            "external_bugs", "flags", "sub_components",
-            "tags",
-        ]
-        self._supports_getbug_extra_fields = True
-
+    _is_redhat_bugzilla = True
 
     ######################
     # Bug update methods #

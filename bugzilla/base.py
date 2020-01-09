@@ -209,9 +209,7 @@ class Bugzilla(object):
         self._sslverify = sslverify
         self._cache = _BugzillaAPICache()
         self._bug_autorefresh = False
-
-        self._field_aliases = []
-        self._init_field_aliases()
+        self._is_redhat_bugzilla = False
 
         self._use_creds = use_creds
         if not self._use_creds:
@@ -234,7 +232,6 @@ class Bugzilla(object):
 
         if url:
             self.connect(url)
-        self._init_class_state()
 
     def _init_class_from_url(self):
         """
@@ -262,35 +259,54 @@ class Bugzilla(object):
             return
 
         self.__class__ = c
-        c._init_class_state(self)  # disable=protected-access
+        self._is_redhat_bugzilla = True
 
-    def _init_class_state(self):
-        """
-        Hook for subclasses to do any __init__ time setup
-        """
-
-    def _init_field_aliases(self):
+    def _get_field_aliases(self):
         # List of field aliases. Maps old style RHBZ parameter
         # names to actual upstream values. Used for createbug() and
         # query include_fields at least.
-        self._add_field_alias('summary', 'short_desc')
-        self._add_field_alias('description', 'comment')
-        self._add_field_alias('platform', 'rep_platform')
-        self._add_field_alias('severity', 'bug_severity')
-        self._add_field_alias('status', 'bug_status')
-        self._add_field_alias('id', 'bug_id')
-        self._add_field_alias('blocks', 'blockedby')
-        self._add_field_alias('blocks', 'blocked')
-        self._add_field_alias('depends_on', 'dependson')
-        self._add_field_alias('creator', 'reporter')
-        self._add_field_alias('url', 'bug_file_loc')
-        self._add_field_alias('dupe_of', 'dupe_id')
-        self._add_field_alias('dupe_of', 'dup_id')
-        self._add_field_alias('comments', 'longdescs')
-        self._add_field_alias('creation_time', 'opendate')
-        self._add_field_alias('creation_time', 'creation_ts')
-        self._add_field_alias('whiteboard', 'status_whiteboard')
-        self._add_field_alias('last_change_time', 'delta_ts')
+        ret = []
+
+        def _add(*args, **kwargs):
+            ret.append(_FieldAlias(*args, **kwargs))
+
+        def _add_both(newname, origname):
+            _add(newname, origname, is_api=False)
+            _add(origname, newname, is_bug=False)
+
+        _add('summary', 'short_desc')
+        _add('description', 'comment')
+        _add('platform', 'rep_platform')
+        _add('severity', 'bug_severity')
+        _add('status', 'bug_status')
+        _add('id', 'bug_id')
+        _add('blocks', 'blockedby')
+        _add('blocks', 'blocked')
+        _add('depends_on', 'dependson')
+        _add('creator', 'reporter')
+        _add('url', 'bug_file_loc')
+        _add('dupe_of', 'dupe_id')
+        _add('dupe_of', 'dup_id')
+        _add('comments', 'longdescs')
+        _add('creation_time', 'opendate')
+        _add('creation_time', 'creation_ts')
+        _add('whiteboard', 'status_whiteboard')
+        _add('last_change_time', 'delta_ts')
+
+        if self._is_redhat_bugzilla:
+            _add_both('fixed_in', 'cf_fixed_in')
+            _add_both('qa_whiteboard', 'cf_qa_whiteboard')
+            _add_both('devel_whiteboard', 'cf_devel_whiteboard')
+            _add_both('internal_whiteboard', 'cf_internal_whiteboard')
+
+            _add('component', 'components', is_bug=False)
+            _add('version', 'versions', is_bug=False)
+            # Yes, sub_components is the field name the API expects
+            _add('sub_components', 'sub_component', is_bug=False)
+            # flags format isn't exactly the same but it's the closest approx
+            _add('flags', 'flag_types')
+
+        return ret
 
     def _get_user_agent(self):
         return 'python-bugzilla/%s' % __version__
@@ -311,16 +327,13 @@ class Bugzilla(object):
             return True
         return False
 
-    def _add_field_alias(self, *args, **kwargs):
-        self._field_aliases.append(_FieldAlias(*args, **kwargs))
-
     def _get_bug_aliases(self):
         return [(f.newname, f.oldname)
-                for f in self._field_aliases if f.is_bug]
+                for f in self._get_field_aliases() if f.is_bug]
 
     def _get_api_aliases(self):
         return [(f.newname, f.oldname)
-                for f in self._field_aliases if f.is_api]
+                for f in self._get_field_aliases() if f.is_api]
 
 
     ###################
@@ -945,7 +958,7 @@ class Bugzilla(object):
             if exclude_fields:
                 exclude_fields = _convert_fields(exclude_fields)
                 ret["exclude_fields"] = exclude_fields
-        if self._supports_getbug_extra_fields:
+        if self._supports_getbug_extra_fields():
             if extra_fields:
                 ret["extra_fields"] = _convert_fields(extra_fields)
         return ret
@@ -963,13 +976,30 @@ class Bugzilla(object):
     bug_autorefresh = property(_get_bug_autorefresh, _set_bug_autorefresh)
 
 
-    # getbug_extra_fields: Extra fields that need to be explicitly
-    # requested from Bug.get in order for the data to be returned.
-    #
-    # As of Dec 2012 it seems like only RH bugzilla actually has behavior
-    # like this, for upstream bz it returns all info for every Bug.get()
-    _getbug_extra_fields = []
-    _supports_getbug_extra_fields = False
+    def _getbug_extra_fields(self):
+        """
+        Extra fields that need to be explicitly
+        requested from Bug.get in order for the data to be returned.
+        """
+        rhbz_extra_fields = [
+            "comments", "description",
+            "external_bugs", "flags", "sub_components",
+            "tags",
+        ]
+        if self._is_redhat_bugzilla:
+            return rhbz_extra_fields
+        return []
+
+    def _supports_getbug_extra_fields(self):
+        """
+        Return True if the bugzilla instance supports passing
+        extra_fields to getbug
+
+        As of Dec 2012 it seems like only RH bugzilla actually has behavior
+        like this, for upstream bz it returns all info for every Bug.get()
+        """
+        return self._is_redhat_bugzilla
+
 
     def _getbugs(self, idlist, permissive,
             include_fields=None, exclude_fields=None, extra_fields=None):
@@ -987,7 +1017,7 @@ class Bugzilla(object):
                 idlist.append(i)
 
         extra_fields = listify(extra_fields or [])
-        extra_fields += self._getbug_extra_fields
+        extra_fields += self._getbug_extra_fields()
 
         getbugdata = {"ids": idlist}
         if permissive:
