@@ -153,7 +153,7 @@ class RHBugzilla(Bugzilla):
         }
 
         log.debug("Calling ExternalBugs.add_external_bug(%s)", params)
-        return self._proxy.ExternalBugs.add_external_bug(params)
+        return self._backend.externalbugs_update(params)
 
     def update_external_tracker(self, ids=None, ext_type_id=None,
                                 ext_type_description=None, ext_type_url=None,
@@ -202,7 +202,7 @@ class RHBugzilla(Bugzilla):
             params['ext_priority'] = ext_priority
 
         log.debug("Calling ExternalBugs.update_external_bug(%s)", params)
-        return self._proxy.ExternalBugs.update_external_bug(params)
+        return self._backend.externalbugs_update(params)
 
     def remove_external_tracker(self, ids=None, ext_type_id=None,
                                 ext_type_description=None, ext_type_url=None,
@@ -240,7 +240,7 @@ class RHBugzilla(Bugzilla):
             params['bug_ids'] = listify(bug_ids)
 
         log.debug("Calling ExternalBugs.remove_external_bug(%s)", params)
-        return self._proxy.ExternalBugs.remove_external_bug(params)
+        return self._backend.externalbugs_remove(params)
 
 
     #################

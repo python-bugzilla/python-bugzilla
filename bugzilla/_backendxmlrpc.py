@@ -198,6 +198,13 @@ class _BackendXMLRPC(_BackendBase):
     def component_update(self, paramdict):
         return self._xmlrpc_proxy.Component.update(paramdict)
 
+    def externalbugs_add(self, paramdict):
+        return self._xmlrpc_proxy.ExternalBugs.add_external_bug(paramdict)
+    def externalbugs_update(self, paramdict):
+        return self._xmlrpc_proxy.ExternalBugs.update_external_bug(paramdict)
+    def externalbugs_remove(self, paramdict):
+        return self._xmlrpc_proxy.ExternalBugs.remove_external_bug(paramdict)
+
     def product_get(self, paramdict):
         return self._xmlrpc_proxy.Product.get(paramdict)
     def product_get_accessible(self):

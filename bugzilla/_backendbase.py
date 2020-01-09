@@ -166,6 +166,29 @@ class _BackendBase(object):
         raise NotImplementedError()
 
 
+    ###############################
+    # ExternalBugs extension APIs #
+    ###############################
+
+    def externalbugs_add(self, paramdict):
+        """
+        https://bugzilla.redhat.com/docs/en/html/integrating/api/Bugzilla/Extension/ExternalBugs/WebService.html#add-external-bug
+        """
+        raise NotImplementedError()
+
+    def externalbugs_update(self, paramdict):
+        """
+        https://bugzilla.redhat.com/docs/en/html/integrating/api/Bugzilla/Extension/ExternalBugs/WebService.html#update-external-bug
+        """
+        raise NotImplementedError()
+
+    def externalbugs_remove(self, paramdict):
+        """
+        https://bugzilla.redhat.com/docs/en/html/integrating/api/Bugzilla/Extension/ExternalBugs/WebService.html#remove-external-bug
+        """
+        raise NotImplementedError()
+
+
     ################
     # Product APIs #
     ################
