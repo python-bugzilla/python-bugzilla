@@ -66,20 +66,6 @@ def open_without_clobber(name, *args):
     return fobj
 
 
-def get_default_url():
-    """
-    Grab a default URL from bugzillarc [DEFAULT] url=X
-    """
-    from bugzilla._authfiles import open_bugzillarc
-    cfg = open_bugzillarc()
-    if cfg:
-        cfgurl = cfg.defaults().get("url", None)
-        if cfgurl is not None:
-            log.debug("bugzillarc: found cli url=%s", cfgurl)
-            return cfgurl
-    return DEFAULT_BZ
-
-
 def setup_logging(debug, verbose):
     handler = StreamHandler(sys.stderr)
     handler.setFormatter(Formatter(
@@ -106,7 +92,9 @@ def _setup_root_parser():
     epilog = 'Try "bugzilla COMMAND --help" for command-specific help.'
     p = argparse.ArgumentParser(epilog=epilog)
 
-    default_url = get_default_url()
+    default_url = bugzilla.Bugzilla.get_rcfile_default_url()
+    if not default_url:
+        default_url = DEFAULT_BZ
 
     # General bugzilla connection options
     p.add_argument('--bugzilla', default=default_url,

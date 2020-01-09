@@ -11,28 +11,107 @@ from ._util import listify
 
 log = getLogger(__name__)
 
-DEFAULT_CONFIGPATHS = [
-    '/etc/bugzillarc',
-    '~/.bugzillarc',
-    '~/.config/python-bugzilla/bugzillarc',
-]
+
+def _parse_hostname(url):
+    # If http://example.com is passed, netloc=example.com path=""
+    # If just example.com is passed, netloc="" path=example.com
+    parsedbits = urlparse(url)
+    return parsedbits.netloc or parsedbits.path
 
 
-def open_bugzillarc(configpaths=-1):
-    if configpaths == -1:
-        configpaths = DEFAULT_CONFIGPATHS[:]
+def _default_location(filename, kind):
+    """
+    Determine default location for filename, like 'bugzillacookies'. If
+    old style ~/.bugzillacookies exists, we use that, otherwise we
+    use ~/.cache/python-bugzilla/bugzillacookies.
+    Same for bugzillatoken and bugzillarc
+    """
+    homepath = os.path.expanduser("~/.%s" % filename)
+    xdgpath = os.path.expanduser("~/.%s/python-bugzilla/%s" % (kind, filename))
+    if os.path.exists(xdgpath):
+        return xdgpath
+    if os.path.exists(homepath):
+        return homepath
 
-    # pylint: disable=protected-access
-    configpaths = [os.path.expanduser(p) for p in
-                   listify(configpaths)]
-    # pylint: enable=protected-access
-    cfg = ConfigParser()
-    read_files = cfg.read(configpaths)
-    if not read_files:
-        return
+    if not os.path.exists(os.path.dirname(xdgpath)):
+        os.makedirs(os.path.dirname(xdgpath), 0o700)
+    return xdgpath
 
-    log.info("Found bugzillarc files: %s", read_files)
-    return cfg
+
+def _default_cache_location(filename):
+    return _default_location(filename, 'cache')
+
+
+def _default_config_location(filename):
+    return _default_location(filename, 'config')
+
+
+class _BugzillaRCFile(object):
+    """
+    Helper class for interacting with bugzillarc files
+    """
+    @staticmethod
+    def get_default_configpaths():
+        paths = [
+            '/etc/bugzillarc',
+            '~/.bugzillarc',
+            '~/.config/python-bugzilla/bugzillarc',
+        ]
+        return paths
+
+    def __init__(self):
+        self._cfg = None
+        self._configpaths = None
+        self.set_configpaths(None)
+
+    def set_configpaths(self, configpaths):
+        configpaths = [os.path.expanduser(p) for p in
+                       listify(configpaths or [])]
+
+        cfg = ConfigParser()
+        read_files = cfg.read(configpaths)
+        if read_files:
+            log.info("Found bugzillarc files: %s", read_files)
+
+        self._cfg = cfg
+        self._configpaths = configpaths or []
+
+    def get_configpaths(self):
+        return self._configpaths[:]
+
+    def get_default_url(self):
+        """
+        Grab a default URL from bugzillarc [DEFAULT] url=X
+        """
+        cfgurl = self._cfg.defaults().get("url", None)
+        if cfgurl is not None:
+            log.debug("bugzillarc: found cli url=%s", cfgurl)
+            return cfgurl
+
+    def parse(self, url):
+        """
+        Find the section for the passed URL domain, and return all the fields
+        """
+        section = ""
+        log.debug("bugzillarc: Searching for config section matching %s", url)
+
+        urlhost = _parse_hostname(url)
+        for sectionhost in sorted(self._cfg.sections()):
+            # If the section is just a hostname, make it match
+            # If the section has a / in it, do a substring match
+            if "/" not in sectionhost:
+                if sectionhost == urlhost:
+                    section = sectionhost
+            elif sectionhost in url:
+                section = sectionhost
+            if section:
+                log.debug("bugzillarc: Found matching section: %s", section)
+                break
+
+        if not section:
+            log.debug("bugzillarc: No section found")
+            return {}
+        return dict(self._cfg.items(section))
 
 
 class _BugzillaTokenCache(object):
@@ -84,40 +163,6 @@ class _BugzillaTokenCache(object):
             cfg.read(filename)
         self._filename = filename
         self._cfg = cfg
-
-
-def _parse_hostname(url):
-    # If http://example.com is passed, netloc=example.com path=""
-    # If just example.com is passed, netloc="" path=example.com
-    parsedbits = urlparse(url)
-    return parsedbits.netloc or parsedbits.path
-
-
-def _default_location(filename, kind):
-    """
-    Determine default location for filename, like 'bugzillacookies'. If
-    old style ~/.bugzillacookies exists, we use that, otherwise we
-    use ~/.cache/python-bugzilla/bugzillacookies.
-    Same for bugzillatoken and bugzillarc
-    """
-    homepath = os.path.expanduser("~/.%s" % filename)
-    xdgpath = os.path.expanduser("~/.%s/python-bugzilla/%s" % (kind, filename))
-    if os.path.exists(xdgpath):
-        return xdgpath
-    if os.path.exists(homepath):
-        return homepath
-
-    if not os.path.exists(os.path.dirname(xdgpath)):
-        os.makedirs(os.path.dirname(xdgpath), 0o700)
-    return xdgpath
-
-
-def _default_cache_location(filename):
-    return _default_location(filename, 'cache')
-
-
-def _default_config_location(filename):
-    return _default_location(filename, 'config')
 
 
 def _save_api_key(url, api_key, configpaths):

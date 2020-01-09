@@ -15,9 +15,8 @@ import sys
 
 from io import BytesIO
 
-from ._authfiles import (DEFAULT_CONFIGPATHS, open_bugzillarc,
-        _BugzillaCookieCache, _BugzillaTokenCache,
-        _parse_hostname, _save_api_key)
+from ._authfiles import (_BugzillaRCFile,
+        _BugzillaCookieCache, _BugzillaTokenCache, _save_api_key)
 from .apiversion import __version__
 from ._backendxmlrpc import _BackendXMLRPC
 from ._compatimports import Mapping, urlparse, urlunparse, parse_qsl
@@ -161,6 +160,18 @@ class Bugzilla(object):
             log.debug("Generated fixed URL: %s", newurl)
         return newurl
 
+    @staticmethod
+    def get_rcfile_default_url():
+        """
+        Helper to check all the default bugzillarc file paths for
+        a [DEFAULT] url=X section, and if found, return it.
+        """
+        configpaths = _BugzillaRCFile.get_default_configpaths()
+        rcfile = _BugzillaRCFile()
+        rcfile.set_configpaths(configpaths)
+        return rcfile.get_default_url()
+
+
     def __init__(self, url=-1, user=None, password=None, cookiefile=-1,
                  sslverify=True, tokenfile=-1, use_creds=True, api_key=None,
                  cert=None, configpaths=-1, basic_auth=False):
@@ -206,12 +217,12 @@ class Bugzilla(object):
 
         self._backend = None
         self._session = None
-        self._cookiecache = None
         self._sslverify = sslverify
         self._cache = _BugzillaAPICache()
         self._bug_autorefresh = False
         self._is_redhat_bugzilla = False
 
+        self._rcfile = _BugzillaRCFile()
         self._cookiecache = _BugzillaCookieCache()
         self._tokencache = _BugzillaTokenCache()
 
@@ -226,12 +237,12 @@ class Bugzilla(object):
         if tokenfile == -1:
             tokenfile = self._tokencache.get_default_path()
         if configpaths == -1:
-            configpaths = DEFAULT_CONFIGPATHS[:]
+            configpaths = _BugzillaRCFile.get_default_configpaths()
 
         self._setcookiefile(cookiefile)
         self._settokenfile(tokenfile)
+        self._setconfigpath(configpaths)
 
-        self.configpath = configpaths
         self._basic_auth = basic_auth
 
         if url:
@@ -341,19 +352,16 @@ class Bugzilla(object):
                 for f in self._get_field_aliases() if f.is_api]
 
 
-    ###################
+    #################
     # Auth handling #
-    ###################
+    #################
 
     def _getcookiefile(self):
         return self._cookiecache.get_filename()
-
     def _delcookiefile(self):
         self._setcookiefile(None)
-
     def _setcookiefile(self, cookiefile):
         self._cookiecache.set_filename(cookiefile)
-
     cookiefile = property(_getcookiefile, _setcookiefile, _delcookiefile)
 
     def _gettokenfile(self):
@@ -363,6 +371,14 @@ class Bugzilla(object):
     def _deltokenfile(self):
         self._settokenfile(None)
     tokenfile = property(_gettokenfile, _settokenfile, _deltokenfile)
+
+    def _getconfigpath(self):
+        return self._rcfile.get_configpaths()
+    def _setconfigpath(self, configpaths):
+        return self._rcfile.set_configpaths(configpaths)
+    def _delconfigpath(self):
+        return self._rcfile.set_configpaths(None)
+    configpath = property(_getconfigpath, _setconfigpath, _delconfigpath)
 
 
     #############################
@@ -402,32 +418,11 @@ class Bugzilla(object):
         :param overwrite: If True, bugzillarc will clobber any already
             set self.user/password/api_key/cert value.
         """
-        cfg = open_bugzillarc(configpath or self.configpath)
-        if not cfg:
-            return
+        if configpath:
+            self._setconfigpath(configpath)
+        data = self._rcfile.parse(self.url)
 
-        section = ""
-        log.debug("bugzillarc: Searching for config section matching %s",
-            self.url)
-
-        urlhost = _parse_hostname(self.url)
-        for sectionhost in sorted(cfg.sections()):
-            # If the section is just a hostname, make it match
-            # If the section has a / in it, do a substring match
-            if "/" not in sectionhost:
-                if sectionhost == urlhost:
-                    section = sectionhost
-            elif sectionhost in self.url:
-                section = sectionhost
-            if section:
-                log.debug("bugzillarc: Found matching section: %s", section)
-                break
-
-        if not section:
-            log.debug("bugzillarc: No section found")
-            return
-
-        for key, val in cfg.items(section):
+        for key, val in data.items():
             if key == "api_key" and (overwrite or not self.api_key):
                 log.debug("bugzillarc: setting api_key")
                 self.api_key = val
