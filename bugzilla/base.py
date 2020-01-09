@@ -16,7 +16,7 @@ import sys
 from io import BytesIO
 
 from ._authfiles import (DEFAULT_CONFIGPATHS, open_bugzillarc,
-        _BugzillaCookieCache, _default_cache_location,
+        _BugzillaCookieCache, _BugzillaTokenCache,
         _parse_hostname, _save_api_key)
 from .apiversion import __version__
 from ._backendxmlrpc import _BackendXMLRPC
@@ -211,7 +211,9 @@ class Bugzilla(object):
         self._cache = _BugzillaAPICache()
         self._bug_autorefresh = False
         self._is_redhat_bugzilla = False
+
         self._cookiecache = _BugzillaCookieCache()
+        self._tokencache = _BugzillaTokenCache()
 
         self._use_creds = use_creds
         if not self._use_creds:
@@ -222,13 +224,13 @@ class Bugzilla(object):
         if cookiefile == -1:
             cookiefile = self._cookiecache.get_default_path()
         if tokenfile == -1:
-            tokenfile = _default_cache_location("bugzillatoken")
+            tokenfile = self._tokencache.get_default_path()
         if configpaths == -1:
             configpaths = DEFAULT_CONFIGPATHS[:]
 
-        log.debug("Using tokenfile=%s", tokenfile)
         self._setcookiefile(cookiefile)
-        self.tokenfile = tokenfile
+        self._settokenfile(tokenfile)
+
         self.configpath = configpaths
         self._basic_auth = basic_auth
 
@@ -340,7 +342,7 @@ class Bugzilla(object):
 
 
     ###################
-    # Cookie handling #
+    # Auth handling #
     ###################
 
     def _getcookiefile(self):
@@ -353,6 +355,14 @@ class Bugzilla(object):
         self._cookiecache.set_filename(cookiefile)
 
     cookiefile = property(_getcookiefile, _setcookiefile, _delcookiefile)
+
+    def _gettokenfile(self):
+        return self._tokencache.get_filename()
+    def _settokenfile(self, filename):
+        self._tokencache.set_filename(filename)
+    def _deltokenfile(self):
+        self._settokenfile(None)
+    tokenfile = property(_gettokenfile, _settokenfile, _deltokenfile)
 
 
     #############################
@@ -474,7 +484,7 @@ class Bugzilla(object):
                 cookiecache=self._cookiecache,
                 sslverify=self._sslverify,
                 cert=self.cert,
-                tokenfile=self.tokenfile,
+                tokencache=self._tokencache,
                 api_key=self.api_key)
         backendclass = self._get_backend_class()
         self._backend = backendclass(url, self._session)

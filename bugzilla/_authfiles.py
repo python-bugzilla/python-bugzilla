@@ -39,38 +39,51 @@ class _BugzillaTokenCache(object):
     """
     Class for interacting with a .bugzillatoken cache file
     """
-    def __init__(self, uri, filename):
-        self._filename = filename
-        self._cfg = ConfigParser()
-        self._domain = urlparse(uri)[1]
+    @staticmethod
+    def get_default_path():
+        return _default_cache_location("bugzillatoken")
 
-        if self._filename:
-            self._cfg.read(self._filename)
+    def __init__(self):
+        self._filename = None
+        self._cfg = None
 
-        if self._domain not in self._cfg.sections():
-            self._cfg.add_section(self._domain)
+    def _get_domain(self, url):
+        domain = urlparse(url)[1]
+        if domain not in self._cfg.sections():
+            self._cfg.add_section(domain)
+        return domain
 
-    def get_value(self):
-        if self._cfg.has_option(self._domain, 'token'):
-            return self._cfg.get(self._domain, 'token')
+    def get_value(self, url):
+        domain = self._get_domain(url)
+        if self._cfg.has_option(domain, 'token'):
+            return self._cfg.get(domain, 'token')
         return None
 
-    def set_value(self, value):
-        if self.get_value() == value:
+    def set_value(self, url, value):
+        if self.get_value(url) == value:
             return
 
+        domain = self._get_domain(url)
         if value is None:
-            self._cfg.remove_option(self._domain, 'token')
+            self._cfg.remove_option(domain, 'token')
         else:
-            self._cfg.set(self._domain, 'token', value)
+            self._cfg.set(domain, 'token', value)
 
         if self._filename:
             with open(self._filename, 'w') as _cfg:
                 log.debug("Saving to _cfg")
                 self._cfg.write(_cfg)
 
-    def __repr__(self):
-        return '<Bugzilla Token Cache :: %s>' % self.get_value()
+    def get_filename(self):
+        return self._filename
+
+    def set_filename(self, filename):
+        log.debug("Using tokenfile=%s", filename)
+        cfg = ConfigParser()
+        if filename:
+            cfg.read(filename)
+        self._filename = filename
+        self._cfg = cfg
 
 
 def _parse_hostname(url):
@@ -112,6 +125,7 @@ def _save_api_key(url, api_key, configpaths):
     Save the API_KEY in the config file.
 
     If tokenfile and cookiefile are undefined, it means that the
+
     API was called with --no-cache-credentials and no change will be
     made
     """

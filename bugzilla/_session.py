@@ -6,7 +6,6 @@ from logging import getLogger
 
 import requests
 
-from ._authfiles import _BugzillaTokenCache
 from ._compatimports import urlparse
 
 
@@ -19,11 +18,12 @@ class _BugzillaSession(object):
     """
     def __init__(self, url, user_agent,
             cookiecache=None, sslverify=True, cert=None,
-            tokenfile=None, api_key=None):
+            tokencache=None, api_key=None):
+        self._url = url
         self._user_agent = user_agent
         self._scheme = urlparse(url)[0]
         self._cookiecache = cookiecache
-        self._token_cache = _BugzillaTokenCache(url, tokenfile)
+        self._tokencache = tokencache
         self._api_key = api_key
 
         if self._scheme not in ["http", "https"]:
@@ -39,7 +39,7 @@ class _BugzillaSession(object):
         self._session.verify = sslverify
         self._session.headers["User-Agent"] = self._user_agent
         self._session.params["Bugzilla_api_key"] = self._api_key
-        self._set_token_cache_param()
+        self._set_tokencache_param()
 
     def get_user_agent(self):
         return self._user_agent
@@ -48,15 +48,16 @@ class _BugzillaSession(object):
     def get_api_key(self):
         return self._api_key
     def get_token_value(self):
-        return self._token_cache.get_value()
+        return self._tokencache.get_value(self._url)
     def set_token_value(self, value):
-        self._token_cache.set_value(value)
-        self._set_token_cache_param()
+        self._tokencache.set_value(self._url, value)
+        self._set_tokencache_param()
     def set_content_type(self, value):
         self._session.headers["Content-Type"] = value
 
-    def _set_token_cache_param(self):
-        self._session.params["Bugzilla_token"] = self._token_cache.get_value()
+    def _set_tokencache_param(self):
+        token = self.get_token_value()
+        self._session.params["Bugzilla_token"] = token
 
     def set_basic_auth(self, user, password):
         """
