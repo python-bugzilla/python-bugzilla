@@ -851,12 +851,6 @@ def test13SubComponents():
         "Default / Unclassified (RHEL5)"]}
 
 
-def test13ExternalTrackerQuery():
-    bz = _open_bz()
-    with pytest.raises(RuntimeError):
-        bz.build_external_tracker_boolean_query()
-
-
 def _deleteAllExistingExternalTrackers(bugid):
     bz = _open_bz()
     ids = [bug['id'] for bug in bz.getbug(bugid).external_bugs]

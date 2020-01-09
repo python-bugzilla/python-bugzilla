@@ -330,10 +330,6 @@ def _setup_action_query_parser(subparsers):
             help=argparse.SUPPRESS)
     p.add_argument('-W', '--status_whiteboard_type',
             help=argparse.SUPPRESS)
-    p.add_argument('-B', '--booleantype',
-            help=argparse.SUPPRESS)
-    p.add_argument('--boolean_query', action="append",
-            help=argparse.SUPPRESS)
     p.add_argument('--fixed_in_type', help=argparse.SUPPRESS)
 
 
@@ -562,13 +558,11 @@ def _do_query(bz, opt, parser):
         alias=opt.alias or None,
         qa_whiteboard=opt.qa_whiteboard or None,
         devel_whiteboard=opt.devel_whiteboard or None,
-        boolean_query=opt.boolean_query or None,
         bug_severity=opt.severity or None,
         priority=opt.priority or None,
         target_release=opt.target_release or None,
         target_milestone=opt.target_milestone or None,
         emailtype=opt.emailtype or None,
-        booleantype=opt.booleantype or None,
         include_fields=include_fields,
         quicksearch=opt.quicksearch or None,
         savedsearch=opt.savedsearch or None,

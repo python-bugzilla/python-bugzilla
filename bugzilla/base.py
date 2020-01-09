@@ -1094,13 +1094,11 @@ class Bugzilla(object):
                     alias=None,
                     qa_whiteboard=None,
                     devel_whiteboard=None,
-                    boolean_query=None,
                     bug_severity=None,
                     priority=None,
                     target_release=None,
                     target_milestone=None,
                     emailtype=None,
-                    booleantype=None,
                     include_fields=None,
                     quicksearch=None,
                     savedsearch=None,
@@ -1125,11 +1123,6 @@ class Bugzilla(object):
         For details about the specific argument formats, see the bugzilla docs:
         https://bugzilla.readthedocs.io/en/latest/api/core/v1/bug.html#search-bugs
         """
-        if boolean_query or booleantype:
-            raise RuntimeError("boolean_query format is no longer supported. "
-                "If you need complicated URL queries, look into "
-                "query --from-url/url_to_query().")
-
         query = {
             "alias": alias,
             "product": listify(product),

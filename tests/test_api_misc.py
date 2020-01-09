@@ -160,12 +160,6 @@ def testSubComponentFail():
         bz.build_update(sub_component="some sub component")
 
 
-def testInvalidBoolean():
-    bz = tests.mockbackend.make_bz(version="4.4.0", rhbz=True)
-    with pytest.raises(RuntimeError):
-        bz.build_query(boolean_query="foobar")
-
-
 def testCreatebugFieldConversion():
     bz4 = tests.mockbackend.make_bz(version="4.0.0")
     vc = bz4._validate_createbug  # pylint: disable=protected-access
