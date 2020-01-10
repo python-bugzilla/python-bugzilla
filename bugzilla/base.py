@@ -1504,14 +1504,6 @@ class Bugzilla(object):
     # Methods for working with attachments #
     ########################################
 
-    def _attachment_uri(self, attachid):
-        """
-        Returns the URI for the given attachment ID.
-        """
-        att_uri = self.url.replace('xmlrpc.cgi', 'attachment.cgi')
-        att_uri = att_uri + '?id=%s' % attachid
-        return att_uri
-
     def attachfile(self, idlist, attachfile, description, **kwargs):
         """
         Attach a file to the given bug IDs. Returns the ID of the attachment
