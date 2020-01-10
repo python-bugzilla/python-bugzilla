@@ -1,0 +1,9 @@
+{'bug_ids': ['some', 'bug', 'id'],
+ 'ext_bz_bug_id': ['externalid-update'],
+ 'ext_description': 'link to mozilla',
+ 'ext_priority': 'like, really bigly',
+ 'ext_status': 'OPEN',
+ 'ext_type_description': 'some-bug-update',
+ 'ext_type_id': 'mozilla',
+ 'ext_type_url': 'https://mozilla.foo/bar/5678',
+ 'ids': ['external1', 'external2']}

@@ -1,0 +1,6 @@
+{'bug_ids': ['blah'],
+ 'ext_bz_bug_id': ['99999'],
+ 'ext_type_description': 'foo-desc',
+ 'ext_type_id': 'footype',
+ 'ext_type_url': 'foo-url',
+ 'ids': ['remove1']}

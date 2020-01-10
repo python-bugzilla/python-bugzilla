@@ -65,6 +65,13 @@ class BackendMock(_BackendBase):
     def bug_update_tags(self, *args):
         return self.__helper(args)
 
+    def externalbugs_add(self, *args):
+        return self.__helper(args)
+    def externalbugs_update(self, *args):
+        return self.__helper(args)
+    def externalbugs_remove(self, *args):
+        return self.__helper(args)
+
     def product_get(self, *args):
         return self.__helper(args)
     def product_get_accessible(self, *args):
