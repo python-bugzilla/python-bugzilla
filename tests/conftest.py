@@ -66,6 +66,11 @@ def pytest_configure(config):
     if config.getoption("--regenerate-output"):
         tests.CLICONFIG.REGENERATE_OUTPUT = config.getoption(
             "--regenerate-output")
+    if not (config.getoption("--ro-functional") or
+            config.getoption("--rw-functional")):
+        # Functional tests need access to HOME cached auth.
+        # Unit tests shouldn't be touching any HOME files
+        os.environ["HOME"] = os.path.dirname(__file__) + "/data/homedir"
 
 
 @pytest.fixture
