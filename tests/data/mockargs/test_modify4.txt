@@ -1,0 +1,4 @@
+{'cf_fixed_in': 'foofixedin',
+ 'component': 'lvm2',
+ 'ids': ['1165434'],
+ 'sub_components': {'lvm2': ['some-sub-component']}}

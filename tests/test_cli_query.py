@@ -34,6 +34,15 @@ def test_query(run_cli):
     out = run_cli(cmd, fakebz)
     tests.utils.diff_compare(out, "data/clioutput/test_query1.txt")
 
+    # Simple query with some comma opts
+    cmd = "bugzilla query "
+    cmd += "--product foo --component foo,bar --bug_id 1234,2480"
+    fakebz = tests.mockbackend.make_bz(rhbz=True,
+        bug_search_args="data/mockargs/test_query1-rhbz.txt",
+        bug_search_return="data/mockreturn/test_query1.txt")
+    out = run_cli(cmd, fakebz)
+    tests.utils.diff_compare(out, "data/clioutput/test_query1-rhbz.txt")
+
     # Same but with --ids output
     cmd = "bugzilla query --ids "
     cmd += "--product foo --component foo,bar --bug_id 1234,2480"

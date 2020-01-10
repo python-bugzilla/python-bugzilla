@@ -78,25 +78,19 @@ class _RHBugzillaConverters(object):
         """
         old = query.copy()
 
+        def split_comma(_v):
+            if isinstance(_v, list):
+                return _v
+            return _v.split(",")
+
         if 'bug_id' in query:
-            if not isinstance(query['bug_id'], list):
-                query['id'] = query['bug_id'].split(',')
-            else:
-                query['id'] = query['bug_id']
-            del query['bug_id']
+            query['id'] = split_comma(query.pop('bug_id'))
 
         if 'component' in query:
-            if not isinstance(query['component'], list):
-                query['component'] = query['component'].split(',')
+            query['component'] = split_comma(query['component'])
 
-        if 'include_fields' not in query and 'column_list' not in query:
-            return
-
-        if 'include_fields' not in query:
-            query['include_fields'] = []
-            if 'column_list' in query:
-                query['include_fields'] = query['column_list']
-                del query['column_list']
+        if 'include_fields' not in query and 'column_list' in query:
+            query['include_fields'] = query.pop('column_list')
 
         if old != query:
             log.debug("RHBugzilla pretranslated query to: %s", query)

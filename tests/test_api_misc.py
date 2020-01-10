@@ -84,6 +84,24 @@ def testPostTranslation():
     _testPostCompare(rhbz, test1, out_simple)
 
 
+def test_rhbz_pre_translation():
+    bz = tests.mockbackend.make_bz(rhbz=True)
+    input_query = {
+        "bug_id": "12345,6789",
+        "component": "comp1,comp2",
+        "column_list": ["field1", "field8"],
+    }
+
+    bz.pre_translation(input_query)
+    output_query = {
+        'component': ['comp1', 'comp2'],
+        'id': ['12345', '6789'],
+        'include_fields': ['field1', 'field8', 'id'],
+    }
+
+    assert output_query == input_query
+
+
 def testSubComponentFail():
     bz = tests.mockbackend.make_bz(version="4.4.0", rhbz=True)
     with pytest.raises(ValueError):

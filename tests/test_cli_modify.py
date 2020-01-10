@@ -38,7 +38,7 @@ def test_modify(run_cli):
     out = run_cli(cmd, fakebz)
     assert not out
 
-    # Modify with tricky opts
+    # Modify with tricky opts hitting other API calls
     cmd = "bugzilla modify 1165434 "
     cmd += "--tags +addtag --tags=-rmtag "
     cmd += "--qa_whiteboard +yo-qa --qa_whiteboard=-foo "
@@ -51,5 +51,16 @@ def test_modify(run_cli):
         bug_update_return={},
         bug_get_args=None,
         bug_get_return="data/mockreturn/test_getbug_rhel.txt")
+    out = run_cli(cmd, fakebz)
+    assert not out
+
+    # Modify hitting some rhbz paths
+    cmd = "bugzilla modify 1165434 "
+    cmd += "--fixed_in foofixedin "
+    cmd += "--component lvm2 "
+    cmd += "--sub-component some-sub-component"
+    fakebz = tests.mockbackend.make_bz(rhbz=True,
+        bug_update_args="data/mockargs/test_modify4.txt",
+        bug_update_return={})
     out = run_cli(cmd, fakebz)
     assert not out
