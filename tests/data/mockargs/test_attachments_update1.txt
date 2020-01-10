@@ -1,0 +1,2 @@
+{'flags': [{'is_patch': True, 'name': 'needinfo', 'value': 'foobar'}],
+ 'ids': [112233]}

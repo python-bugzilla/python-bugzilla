@@ -1549,7 +1549,7 @@ class Bugzilla(object):
         kwargs['summary'] = description
 
         data = f.read()
-        if not isinstance(data, bytes):
+        if not isinstance(data, bytes):  # pragma: no cover
             data = data.encode(locale.getpreferredencoding())
 
         kwargs['ids'] = listify(idlist)
@@ -1586,7 +1586,7 @@ class Bugzilla(object):
 
         if hasattr(data, "data"):
             # This is for xmlrpc Binary
-            content = data.data
+            content = data.data  # pragma: no cover
         else:
             import base64
             content = base64.b64decode(data)

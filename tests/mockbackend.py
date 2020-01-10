@@ -51,6 +51,8 @@ class BackendMock(_BackendBase):
         return self.__helper(args)
     def bug_attachment_get_all(self, *args):
         return self.__helper(args)
+    def bug_attachment_update(self, *args):
+        return self.__helper(args)
 
     def bug_create(self, *args):
         return self.__helper(args)

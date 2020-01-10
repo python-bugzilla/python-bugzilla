@@ -1,0 +1,1 @@
+{'exclude_fields': ['bar'], 'include_fields': ['foo']}
