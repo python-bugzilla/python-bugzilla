@@ -314,14 +314,3 @@ def test_query_url_fail():
         bz.query(query)
     except Exception as e:
         assert checkstr not in str(e)
-
-
-def test_api_getbugs():
-    fakebz = tests.mockbackend.make_bz(
-        bug_get_args="data/mockargs/test_api_getbugs1.txt",
-        bug_get_return="data/mockreturn/test_query_cve_getbug.txt")
-
-    fakebz.bug_autorefresh = True
-    bug = fakebz.getbug("CVE-1234-5678", exclude_fields="foo")
-    assert bug.alias == ["CVE-1234-5678"]
-    assert bug.autorefresh is True

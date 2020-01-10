@@ -49,4 +49,5 @@ def test_api_attachments():
     attachfile = os.path.dirname(__file__) + "/data/bz-attach-get1.txt"
     ret = fakebz.attachfile([123456], attachfile, "some desc",
             isprivate=True)
+    ret.sort()
     assert ret == [123456, 456789]

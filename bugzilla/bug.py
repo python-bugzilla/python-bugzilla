@@ -6,8 +6,6 @@
 # This work is licensed under the GNU GPLv2 or later.
 # See the COPYING file in the top-level directory.
 
-from __future__ import unicode_literals
-
 from logging import getLogger
 
 from ._util import to_encoding
@@ -211,7 +209,7 @@ class Bug(object):
                                           resolution=resolution,
                                           dupe_of=dupeid,
                                           fixed_in=fixedin,
-                                          status="CLOSED")
+                                          status=str("CLOSED"))
         log.debug("close: update=%s", vals)
 
         return self.bugzilla.update_bugs(self.bug_id, vals)

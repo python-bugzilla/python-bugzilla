@@ -1,0 +1,4 @@
+{'assigned_to': 'foo@example.com',
+ 'comment': {'comment': 'foocomment'},
+ 'ids': [1165434],
+ 'qa_contact': 'bar@example.com'}
