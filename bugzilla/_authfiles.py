@@ -19,14 +19,18 @@ def _parse_hostname(url):
     return parsedbits.netloc or parsedbits.path
 
 
+def _makedirs(path):
+    if os.path.exists(os.path.dirname(path)):
+        return
+    os.makedirs(os.path.dirname(path), 0o700)
+
+
 def _default_location(filename, kind):
     """
     Determine default location for passed filename and xdg kind,
     example: ~/.cache/python-bugzilla/bugzillacookies
     """
     xdgpath = os.path.expanduser("~/.%s/python-bugzilla/%s" % (kind, filename))
-    if not os.path.exists(os.path.dirname(xdgpath)):
-        os.makedirs(os.path.dirname(xdgpath), 0o700)
     return xdgpath
 
 
@@ -141,6 +145,7 @@ class _BugzillaTokenCache(object):
             self._cfg.set(domain, 'token', value)
 
         if self._filename:
+            _makedirs(self._filename)
             with open(self._filename, 'w') as _cfg:
                 log.debug("Saving to _cfg")
                 self._cfg.write(_cfg)
@@ -180,6 +185,7 @@ def _save_api_key(url, api_key, configpaths):
 
     cfg.set(section, 'api_key', api_key.strip())
 
+    _makedirs(config_filename)
     with open(config_filename, 'w') as configfile:
         cfg.write(configfile)
 
@@ -197,13 +203,8 @@ class _BugzillaCookieCache(object):
 
     def _build_cookiejar(self, cookiefile):
         cj = MozillaCookieJar(cookiefile)
-        if cookiefile is None:
-            return cj
-        if not os.path.exists(cookiefile):
-            # Make sure a new file has correct permissions
-            open(cookiefile, 'a').close()
-            os.chmod(cookiefile, 0o600)
-            cj.save()
+        if (cookiefile is None or
+            not os.path.exists(cookiefile)):
             return cj
 
         try:
@@ -224,12 +225,17 @@ class _BugzillaCookieCache(object):
         return self._cookiejar
 
     def set_cookies(self, cookies):
-        if self._cookiejar is None:
-            return
-
         for cookie in cookies:
             self._cookiejar.set_cookie(cookie)
 
-        if self._cookiejar.filename is not None:
-            # Save is required only if we have a filename
-            self._cookiejar.save()
+        cookiefile = self._cookiejar.filename
+        if not cookiefile:
+            return
+
+        if not os.path.exists(cookiefile):
+            _makedirs(cookiefile)
+            # Make sure a new file has correct permissions
+            open(cookiefile, 'a').close()
+            os.chmod(cookiefile, 0o600)
+
+        self._cookiejar.save()
