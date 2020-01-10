@@ -1,0 +1,391 @@
+# bugzilla.redhat.com 2020-01-10 with {"names": "bug_status"}
+
+{
+  "fields": [
+    {
+      "display_name": "Status",
+      "id": 2,
+      "is_custom": False,
+      "is_mandatory": False,
+      "is_on_bug_entry": False,
+      "name": "bug_status",
+      "type": 2,
+      "values": [
+        {
+          "can_change_to": [
+            {
+              "comment_required": False,
+              "name": "NEW"
+            },
+            {
+              "comment_required": False,
+              "name": "ASSIGNED"
+            }
+          ],
+          "is_open": True,
+          "sort_key": 0,
+          "sortkey": 0,
+          "visibility_values": []
+        },
+        {
+          "can_change_to": [
+            {
+              "comment_required": False,
+              "name": "ASSIGNED"
+            },
+            {
+              "comment_required": False,
+              "name": "POST"
+            },
+            {
+              "comment_required": False,
+              "name": "MODIFIED"
+            },
+            {
+              "comment_required": False,
+              "name": "ON_DEV"
+            },
+            {
+              "comment_required": False,
+              "name": "ON_QA"
+            },
+            {
+              "comment_required": False,
+              "name": "VERIFIED"
+            },
+            {
+              "comment_required": False,
+              "name": "RELEASE_PENDING"
+            },
+            {
+              "comment_required": False,
+              "name": "CLOSED"
+            }
+          ],
+          "is_open": True,
+          "name": "NEW",
+          "sort_key": 10,
+          "sortkey": 10,
+          "visibility_values": []
+        },
+        {
+          "can_change_to": [
+            {
+              "comment_required": False,
+              "name": "NEW"
+            },
+            {
+              "comment_required": False,
+              "name": "POST"
+            },
+            {
+              "comment_required": False,
+              "name": "MODIFIED"
+            },
+            {
+              "comment_required": False,
+              "name": "ON_DEV"
+            },
+            {
+              "comment_required": False,
+              "name": "ON_QA"
+            },
+            {
+              "comment_required": False,
+              "name": "VERIFIED"
+            },
+            {
+              "comment_required": False,
+              "name": "RELEASE_PENDING"
+            },
+            {
+              "comment_required": False,
+              "name": "CLOSED"
+            }
+          ],
+          "is_open": True,
+          "name": "ASSIGNED",
+          "sort_key": 20,
+          "sortkey": 20,
+          "visibility_values": []
+        },
+        {
+          "can_change_to": [
+            {
+              "comment_required": False,
+              "name": "NEW"
+            },
+            {
+              "comment_required": False,
+              "name": "ASSIGNED"
+            },
+            {
+              "comment_required": False,
+              "name": "MODIFIED"
+            },
+            {
+              "comment_required": False,
+              "name": "ON_DEV"
+            },
+            {
+              "comment_required": False,
+              "name": "ON_QA"
+            },
+            {
+              "comment_required": False,
+              "name": "VERIFIED"
+            },
+            {
+              "comment_required": False,
+              "name": "RELEASE_PENDING"
+            },
+            {
+              "comment_required": False,
+              "name": "CLOSED"
+            }
+          ],
+          "is_open": True,
+          "name": "POST",
+          "sort_key": 30,
+          "sortkey": 30,
+          "visibility_values": []
+        },
+        {
+          "can_change_to": [
+            {
+              "comment_required": False,
+              "name": "NEW"
+            },
+            {
+              "comment_required": False,
+              "name": "ASSIGNED"
+            },
+            {
+              "comment_required": False,
+              "name": "POST"
+            },
+            {
+              "comment_required": False,
+              "name": "ON_DEV"
+            },
+            {
+              "comment_required": False,
+              "name": "ON_QA"
+            },
+            {
+              "comment_required": False,
+              "name": "VERIFIED"
+            },
+            {
+              "comment_required": False,
+              "name": "RELEASE_PENDING"
+            },
+            {
+              "comment_required": False,
+              "name": "CLOSED"
+            }
+          ],
+          "is_open": True,
+          "name": "MODIFIED",
+          "sort_key": 40,
+          "sortkey": 40,
+          "visibility_values": []
+        },
+        {
+          "can_change_to": [
+            {
+              "comment_required": False,
+              "name": "NEW"
+            },
+            {
+              "comment_required": False,
+              "name": "ASSIGNED"
+            },
+            {
+              "comment_required": False,
+              "name": "POST"
+            },
+            {
+              "comment_required": False,
+              "name": "MODIFIED"
+            },
+            {
+              "comment_required": False,
+              "name": "ON_QA"
+            },
+            {
+              "comment_required": False,
+              "name": "VERIFIED"
+            },
+            {
+              "comment_required": False,
+              "name": "RELEASE_PENDING"
+            },
+            {
+              "comment_required": False,
+              "name": "CLOSED"
+            }
+          ],
+          "is_open": True,
+          "name": "ON_DEV",
+          "sort_key": 50,
+          "sortkey": 50,
+          "visibility_values": []
+        },
+        {
+          "can_change_to": [
+            {
+              "comment_required": False,
+              "name": "NEW"
+            },
+            {
+              "comment_required": False,
+              "name": "ASSIGNED"
+            },
+            {
+              "comment_required": False,
+              "name": "POST"
+            },
+            {
+              "comment_required": False,
+              "name": "MODIFIED"
+            },
+            {
+              "comment_required": False,
+              "name": "ON_DEV"
+            },
+            {
+              "comment_required": False,
+              "name": "VERIFIED"
+            },
+            {
+              "comment_required": False,
+              "name": "RELEASE_PENDING"
+            },
+            {
+              "comment_required": False,
+              "name": "CLOSED"
+            }
+          ],
+          "is_open": True,
+          "name": "ON_QA",
+          "sort_key": 60,
+          "sortkey": 60,
+          "visibility_values": []
+        },
+        {
+          "can_change_to": [
+            {
+              "comment_required": False,
+              "name": "NEW"
+            },
+            {
+              "comment_required": False,
+              "name": "ASSIGNED"
+            },
+            {
+              "comment_required": False,
+              "name": "POST"
+            },
+            {
+              "comment_required": False,
+              "name": "MODIFIED"
+            },
+            {
+              "comment_required": False,
+              "name": "ON_DEV"
+            },
+            {
+              "comment_required": False,
+              "name": "ON_QA"
+            },
+            {
+              "comment_required": False,
+              "name": "RELEASE_PENDING"
+            },
+            {
+              "comment_required": False,
+              "name": "CLOSED"
+            }
+          ],
+          "is_open": True,
+          "name": "VERIFIED",
+          "sort_key": 70,
+          "sortkey": 70,
+          "visibility_values": []
+        },
+        {
+          "can_change_to": [
+            {
+              "comment_required": False,
+              "name": "NEW"
+            },
+            {
+              "comment_required": False,
+              "name": "ASSIGNED"
+            },
+            {
+              "comment_required": False,
+              "name": "POST"
+            },
+            {
+              "comment_required": False,
+              "name": "MODIFIED"
+            },
+            {
+              "comment_required": False,
+              "name": "ON_DEV"
+            },
+            {
+              "comment_required": False,
+              "name": "ON_QA"
+            },
+            {
+              "comment_required": False,
+              "name": "VERIFIED"
+            },
+            {
+              "comment_required": False,
+              "name": "CLOSED"
+            }
+          ],
+          "is_open": True,
+          "name": "RELEASE_PENDING",
+          "sort_key": 80,
+          "sortkey": 80,
+          "visibility_values": []
+        },
+        {
+          "can_change_to": [
+            {
+              "comment_required": False,
+              "name": "NEW"
+            },
+            {
+              "comment_required": False,
+              "name": "ASSIGNED"
+            },
+            {
+              "comment_required": False,
+              "name": "POST"
+            },
+            {
+              "comment_required": False,
+              "name": "MODIFIED"
+            },
+            {
+              "comment_required": False,
+              "name": "ON_QA"
+            }
+          ],
+          "is_open": False,
+          "name": "CLOSED",
+          "sort_key": 90,
+          "sortkey": 90,
+          "visibility_values": []
+        }
+      ],
+      "visibility_values": []
+    }
+  ]
+}

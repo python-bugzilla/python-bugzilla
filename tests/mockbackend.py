@@ -60,11 +60,20 @@ class BackendMock(_BackendBase):
         return self.__helper(args)
     def bug_get(self, *args):
         return self.__helper(args)
+    def bug_fields(self, *args):
+        return self.__helper(args)
     def bug_search(self, *args):
         return self.__helper(args)
     def bug_update(self, *args):
         return self.__helper(args)
     def bug_update_tags(self, *args):
+        return self.__helper(args)
+
+    def component_create(self, *args):
+        return self.__helper(args)
+    def component_get(self, *args):
+        return self.__helper(args)
+    def component_update(self, *args):
         return self.__helper(args)
 
     def externalbugs_add(self, *args):
@@ -77,6 +86,10 @@ class BackendMock(_BackendBase):
     def product_get(self, *args):
         return self.__helper(args)
     def product_get_accessible(self, *args):
+        return self.__helper(args)
+    def product_get_enterable(self, *args):
+        return self.__helper(args)
+    def product_get_selectable(self, *args):
         return self.__helper(args)
 
     def user_create(self, *args):

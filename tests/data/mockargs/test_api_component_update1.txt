@@ -1,0 +1,4 @@
+{'names': [{'component': 'foocomponent', 'product': 'fooproduct'}],
+ 'updates': {'blaharg': 'blahval',
+             'default_assignee': 'foo@example.com',
+             'is_active': 0}}

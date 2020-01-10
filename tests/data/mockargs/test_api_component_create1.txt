@@ -1,0 +1,5 @@
+{'default_assignee': 'foo@example.com',
+ 'default_cc': 'foo3@example.com',
+ 'default_qa_contact': 'foo2@example.com',
+ 'is_active': 0,
+ 'product': 'fooproduct'}
