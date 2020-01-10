@@ -38,10 +38,6 @@ def _default_cache_location(filename):
     return _default_location(filename, 'cache')
 
 
-def _default_config_location(filename):
-    return _default_location(filename, 'config')
-
-
 class _BugzillaRCFile(object):
     """
     Helper class for interacting with bugzillarc files
@@ -110,6 +106,33 @@ class _BugzillaRCFile(object):
         return dict(self._cfg.items(section))
 
 
+    def save_api_key(self, url, api_key):
+        """
+        Save the API_KEY in the config file. We use the last file
+        in the configpaths list, which is the one with the highest
+        precedence.
+        """
+        configpaths = self.get_configpaths()
+        if not configpaths:
+            return None
+
+        config_filename = configpaths[-1]
+        section = _parse_hostname(url)
+        cfg = ConfigParser()
+        cfg.read(config_filename)
+
+        if section not in cfg.sections():
+            cfg.add_section(section)
+
+        cfg.set(section, 'api_key', api_key.strip())
+
+        _makedirs(config_filename)
+        with open(config_filename, 'w') as configfile:
+            cfg.write(configfile)
+
+        return config_filename
+
+
 class _BugzillaTokenCache(object):
     """
     Class for interacting with a .bugzillatoken cache file
@@ -124,7 +147,7 @@ class _BugzillaTokenCache(object):
 
     def _get_domain(self, url):
         domain = urlparse(url)[1]
-        if domain not in self._cfg.sections():
+        if domain and domain not in self._cfg.sections():
             self._cfg.add_section(domain)
         return domain
 
@@ -160,37 +183,6 @@ class _BugzillaTokenCache(object):
             cfg.read(filename)
         self._filename = filename
         self._cfg = cfg
-
-
-def _save_api_key(url, api_key, configpaths):
-    """
-    Save the API_KEY in the config file.
-
-    If tokenfile and cookiefile are undefined, it means that the
-
-    API was called with --no-cache-credentials and no change will be
-    made
-    """
-    if configpaths:
-        config_filename = configpaths[0]
-    else:
-        config_filename = _default_config_location('bugzillarc')
-    section = _parse_hostname(url)
-
-    cfg = ConfigParser()
-    cfg.read(config_filename)
-
-    if section not in cfg.sections():
-        cfg.add_section(section)
-
-    cfg.set(section, 'api_key', api_key.strip())
-
-    _makedirs(config_filename)
-    with open(config_filename, 'w') as configfile:
-        cfg.write(configfile)
-
-    log.info("API key written to %s", config_filename)
-    print("API key written to %s" % config_filename)
 
 
 class _BugzillaCookieCache(object):

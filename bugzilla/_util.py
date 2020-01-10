@@ -20,13 +20,12 @@ def to_encoding(ustring):
     """
     Locale specific printing per python version
     """
-    if ustring is None:
-        return ''
+    ustring = ustring or ''
     if IS_PY3:
         return str(ustring)
-
-    strtype = basestring  # pylint: disable=undefined-variable
-    string = ustring
-    if not isinstance(ustring, strtype):
-        string = str(ustring)
-    return string.encode(locale.getpreferredencoding(), 'replace')
+    else:  # pragma: no cover
+        strtype = basestring  # pylint: disable=undefined-variable
+        string = ustring
+        if not isinstance(ustring, strtype):
+            string = str(ustring)
+        return string.encode(locale.getpreferredencoding(), 'replace')

@@ -16,7 +16,7 @@ import sys
 from io import BytesIO
 
 from ._authfiles import (_BugzillaRCFile,
-        _BugzillaCookieCache, _BugzillaTokenCache, _save_api_key)
+        _BugzillaCookieCache, _BugzillaTokenCache)
 from .apiversion import __version__
 from ._backendxmlrpc import _BackendXMLRPC
 from ._compatimports import Mapping, urlparse, urlunparse, parse_qsl
@@ -212,7 +212,7 @@ class Bugzilla(object):
         self.user = user or ''
         self.password = password or ''
         self.api_key = api_key
-        self.cert = cert or ''
+        self.cert = cert or None
         self.url = ''
 
         self._backend = None
@@ -432,7 +432,7 @@ class Bugzilla(object):
             elif key == "password" and (overwrite or not self.password):
                 log.debug("bugzillarc: setting password")
                 self.password = val
-            elif key == "cert" and not (overwrite or not self.cert):
+            elif key == "cert" and (overwrite or not self.cert):
                 log.debug("bugzillarc: setting cert")
                 self.cert = val
             else:
@@ -567,6 +567,28 @@ class Bugzilla(object):
             raise BugzillaError("Login failed: %s" %
                     BugzillaError.get_bugzilla_error_string(e))
 
+    def _ask_api_key(self):
+        sys.stdout.write('API Key: ')
+        sys.stdout.flush()
+        api_key = sys.stdin.readline().strip()
+
+        self.disconnect()
+        self.api_key = api_key
+
+        log.info('Checking API key... ')
+        self.connect()
+
+        if not self.logged_in:  # pragma: no cover
+            raise BugzillaError("Login with API_KEY failed")
+        log.info('API Key accepted')
+
+        wrote_filename = self._rcfile.save_api_key(self.url, self.api_key)
+        if wrote_filename:
+            log.info("API key written to %s", wrote_filename)
+            print("API key written to %s" % wrote_filename)
+        else:  # pragma: no cover
+            log.info("API Key won't be updated because use_creds=False")
+
     def interactive_login(self, user=None, password=None, force=False,
                           restrict_login=None, use_api_key=False):
         """
@@ -582,24 +604,7 @@ class Bugzilla(object):
         log.debug('Calling interactive_login')
 
         if use_api_key:
-            sys.stdout.write('API Key: ')
-            sys.stdout.flush()
-            api_key = sys.stdin.readline().strip()
-
-            self.disconnect()
-            self.api_key = api_key
-
-            log.info('Checking API key... ')
-            self.connect()
-
-            if not self.logged_in:  # pragma: no cover
-                raise BugzillaError("Login with API_KEY failed")
-            log.info('API Key accepted')
-
-            if self._use_creds or self.configpath:
-                _save_api_key(self.url, self.api_key, self.configpath)
-            else:  # pragma: no cover
-                log.info("API Key won't be updated because use_creds=False")
+            self._ask_api_key()
             return
 
         if not user:

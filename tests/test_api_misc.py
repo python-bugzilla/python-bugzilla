@@ -228,3 +228,11 @@ def test_version_bad():
 def test_extensions_bad():
     # Hit bad extensions error handling
     tests.mockbackend.make_bz(extensions="BADEXTENSIONS")
+
+
+def test_bad_scheme():
+    bz = tests.mockbackend.make_bz()
+    try:
+        bz.connect("ftp://example.com")
+    except Exception as e:
+        assert "Invalid URL scheme: ftp" in str(e)

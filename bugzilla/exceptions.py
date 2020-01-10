@@ -13,9 +13,7 @@ class BugzillaError(Exception):
         XMLRPC Fault, or any other exception type that's raised from bugzilla
         interaction
         """
-        if hasattr(exc, "faultString"):
-            return getattr(exc, "faultString")
-        return str(exc)
+        return getattr(exc, "faultString", str(exc))
 
     @staticmethod
     def get_bugzilla_error_code(exc):
