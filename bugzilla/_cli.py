@@ -255,6 +255,9 @@ def _setup_action_new_parser(subparsers):
     p = subparsers.add_parser("new", description=description)
 
     _parser_add_bz_fields(p, "new")
+    g = p.add_argument_group("'new' specific options")
+    g.add_argument('--private', action='store_true', default=False,
+        help='Mark new comment as private')
 
 
 def _setup_action_query_parser(subparsers):
@@ -781,6 +784,7 @@ def _do_new(bz, opt, parser):
         sub_component=opt.sub_component or None,
         alias=opt.alias or None,
         comment_tags=opt.comment_tag or None,
+        comment_private=opt.private or None,
     )
 
     _merge_field_opts(ret, opt, parser)
