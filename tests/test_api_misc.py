@@ -260,3 +260,68 @@ def test_bad_scheme():
         bz.connect("ftp://example.com")
     except Exception as e:
         assert "Invalid URL scheme: ftp" in str(e)
+
+
+def test_update_flags():
+    # update_flags is just a compat wrapper for update_bugs
+    bz = tests.mockbackend.make_bz(
+        bug_update_args="data/mockargs/test_update_flags.txt",
+        bug_update_return={})
+    bz.update_flags([12345, 6789], {"name": "needinfo", "status": "?"})
+
+
+def test_bugs_history_raw():
+    # Stub test for bugs_history_raw
+    ids = ["12345", 567]
+    bz = tests.mockbackend.make_bz(
+        bug_history_args={"ids": ids},
+        bug_history_return={})
+    bz.bugs_history_raw(ids)
+
+
+def test_get_comments():
+    # Stub test for get_commands
+    ids = ["12345", 567]
+    bz = tests.mockbackend.make_bz(
+        bug_comments_args={"ids": ids},
+        bug_comments_return={})
+    bz.get_comments(ids)
+
+
+def test_get_xmlrpc_proxy():
+    # Ensure _proxy goes to a backend API
+    bz = tests.mockbackend.make_bz()
+    with pytest.raises(NotImplementedError):
+        dummy = bz._proxy  # pylint: disable=protected-access
+
+
+def test_query_url_fail():
+    # test some handling of query from_url errors
+    query = {"query_format": "advanced", "product": "FOO"}
+    checkstr = "does not appear to support"
+
+    exc = bugzilla.BugzillaError("FAKEERROR query_format", code=123)
+    bz = tests.mockbackend.make_bz(version="4.0.0",
+        bug_search_args=None, bug_search_return=exc)
+    try:
+        bz.query(query)
+    except Exception as e:
+        assert checkstr in str(e)
+
+    bz = tests.mockbackend.make_bz(version="5.1.0",
+        bug_search_args=None, bug_search_return=exc)
+    try:
+        bz.query(query)
+    except Exception as e:
+        assert checkstr not in str(e)
+
+
+def test_api_getbugs():
+    fakebz = tests.mockbackend.make_bz(
+        bug_get_args="data/mockargs/test_api_getbugs1.txt",
+        bug_get_return="data/mockreturn/test_query_cve_getbug.txt")
+
+    fakebz.bug_autorefresh = True
+    bug = fakebz.getbug("CVE-1234-5678", exclude_fields="foo")
+    assert bug.alias == ["CVE-1234-5678"]
+    assert bug.autorefresh is True

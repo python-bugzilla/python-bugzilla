@@ -939,9 +939,6 @@ class Bugzilla(object):
         Internal helper to process include_fields lists
         """
         def _convert_fields(_in):
-            if not _in:
-                return _in
-
             for newname, oldname in self._get_api_aliases():
                 if oldname in _in:
                     _in.remove(oldname)
@@ -1031,7 +1028,7 @@ class Bugzilla(object):
 
         if self._check_version(4, 0):
             bugdict = dict([(b['id'], b) for b in r['bugs']])
-        else:
+        else:  # pragma: no cover
             bugdict = dict([(b['id'], b['internals']) for b in r['bugs']])
 
         ret = []
@@ -1258,12 +1255,13 @@ class Bugzilla(object):
             r = self._backend.bug_search(query)
             log.debug("bug_search returned:\n%s", str(r))
         except Exception as e:
-            if not BugzillaError.get_bugzilla_error_code(e):
-                raise
-
             # Try to give a hint in the error message if url_to_query
             # isn't supported by this bugzilla instance
+            print("query_format" in str(e))
+            print(BugzillaError.get_bugzilla_error_code(e))
+            print(self._check_version(5, 0))
             if ("query_format" not in str(e) or
+                not BugzillaError.get_bugzilla_error_code(e) or
                 self._check_version(5, 0)):
                 raise
             raise BugzillaError("%s\nYour bugzilla instance does not "

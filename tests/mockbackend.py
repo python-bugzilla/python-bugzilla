@@ -54,9 +54,13 @@ class BackendMock(_BackendBase):
     def bug_attachment_update(self, *args):
         return self.__helper(args)
 
+    def bug_comments(self, *args):
+        return self.__helper(args)
     def bug_create(self, *args):
         return self.__helper(args)
     def bug_legal_values(self, *args):
+        return self.__helper(args)
+    def bug_history(self, *args):
         return self.__helper(args)
     def bug_get(self, *args):
         return self.__helper(args)
