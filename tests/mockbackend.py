@@ -77,11 +77,15 @@ class BackendMock(_BackendBase):
     def product_get_accessible(self, *args):
         return self.__helper(args)
 
+    def user_create(self, *args):
+        return self.__helper(args)
     def user_get(self, *args):
         return self.__helper(args)
     def user_login(self, *args):
         return self.__helper(args)
     def user_logout(self, *args):
+        return self.__helper(args)
+    def user_update(self, *args):
         return self.__helper(args)
 
 

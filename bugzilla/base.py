@@ -1788,7 +1788,8 @@ class Bugzilla(object):
         :userlist: List of usernames to lookup
         :returns: List of User records
         """
-        rawusers = self._backend.user_get({"names": listify(userlist)})
+        userlist = listify(userlist)
+        rawusers = self._backend.user_get({"names": userlist})
         userobjs = [User(self, **rawuser) for rawuser in
                     rawusers.get('users', [])]
 
