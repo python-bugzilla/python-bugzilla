@@ -21,18 +21,10 @@ def _parse_hostname(url):
 
 def _default_location(filename, kind):
     """
-    Determine default location for filename, like 'bugzillacookies'. If
-    old style ~/.bugzillacookies exists, we use that, otherwise we
-    use ~/.cache/python-bugzilla/bugzillacookies.
-    Same for bugzillatoken and bugzillarc
+    Determine default location for passed filename and xdg kind,
+    example: ~/.cache/python-bugzilla/bugzillacookies
     """
-    homepath = os.path.expanduser("~/.%s" % filename)
     xdgpath = os.path.expanduser("~/.%s/python-bugzilla/%s" % (kind, filename))
-    if os.path.exists(xdgpath):
-        return xdgpath
-    if os.path.exists(homepath):
-        return homepath
-
     if not os.path.exists(os.path.dirname(xdgpath)):
         os.makedirs(os.path.dirname(xdgpath), 0o700)
     return xdgpath
