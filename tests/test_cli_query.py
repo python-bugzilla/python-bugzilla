@@ -34,14 +34,26 @@ def test_query(run_cli):
     out = run_cli(cmd, fakebz)
     tests.utils.diff_compare(out, "data/clioutput/test_query1.txt")
 
-    # Simple query with some comma opts
+    # RHBZ query with a ton of opts
     cmd = "bugzilla query "
-    cmd += "--product foo --component foo,bar --bug_id 1234,2480"
+    cmd += "--product foo --component foo,bar --bug_id 1234,2480 "
+    cmd += "--keywords fribkeyword --fixed_in amifixed "
+    cmd += "--qa_whiteboard some-example-whiteboard "
+    cmd += "--cc foo@example.com --qa_contact qa@example.com "
+    cmd += "--comment 'some comment string' "
     fakebz = tests.mockbackend.make_bz(rhbz=True,
         bug_search_args="data/mockargs/test_query1-rhbz.txt",
         bug_search_return="data/mockreturn/test_query1.txt")
     out = run_cli(cmd, fakebz)
     tests.utils.diff_compare(out, "data/clioutput/test_query1-rhbz.txt")
+
+    # --emailtype handling
+    cmd = "bugzilla query --cc foo@example.com --emailtype BAR "
+    fakebz = tests.mockbackend.make_bz(rhbz=True,
+        bug_search_args="data/mockargs/test_query2-rhbz.txt",
+        bug_search_return="data/mockreturn/test_query1.txt")
+    out = run_cli(cmd, fakebz)
+    tests.utils.diff_compare(out, "data/clioutput/test_query2-rhbz.txt")
 
     # Same but with --ids output
     cmd = "bugzilla query --ids "

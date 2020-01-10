@@ -15,7 +15,9 @@ def test_new(run_cli):
     cmd = "bugzilla new --product FOOPROD --component FOOCOMP "
     cmd += "--summary 'Hey this is the title!' "
     cmd += "--comment 'This is the first comment!\nWith newline & stuff.' "
-    cmd += "--keywords ADDKEY --groups FOOGROUP,BARGROUP"
+    cmd += "--keywords ADDKEY --groups FOOGROUP,BARGROUP "
+    cmd += "--blocked 12345,6789 --cc foo@example.com --cc bar@example.com "
+    cmd += "--dependson dependme --private "
 
     fakebz = tests.mockbackend.make_bz(
         bug_create_args="data/mockargs/test_new1.txt",

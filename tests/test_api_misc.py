@@ -102,10 +102,16 @@ def test_rhbz_pre_translation():
     assert output_query == input_query
 
 
-def testSubComponentFail():
+def testUpdateFailures():
+    # sub_component without component also passed
     bz = tests.mockbackend.make_bz(version="4.4.0", rhbz=True)
     with pytest.raises(ValueError):
         bz.build_update(sub_component="some sub component")
+
+    # Trying to update value that only rhbz supports
+    bz = tests.mockbackend.make_bz()
+    with pytest.raises(ValueError):
+        bz.build_update(fixed_in="some fixedin value")
 
 
 def testCreatebugFieldConversion():

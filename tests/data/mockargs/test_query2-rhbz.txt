@@ -1,0 +1,5 @@
+{'email1': ['foo@example.com'],
+ 'emailcc1': True,
+ 'emailtype1': 'BAR',
+ 'include_fields': ['assigned_to', 'id', 'status', 'summary'],
+ 'query_format': 'advanced'}

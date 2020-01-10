@@ -1264,7 +1264,6 @@ class Bugzilla(object):
             # Try to give a hint in the error message if url_to_query
             # isn't supported by this bugzilla instance
             if ("query_format" not in str(e) or
-                "RHBugzilla" in str(e.__class__) or
                 self._check_version(5, 0)):
                 raise
             raise BugzillaError("%s\nYour bugzilla instance does not "
@@ -1719,14 +1718,15 @@ class Bugzilla(object):
         # Previous API required users specifying keyword args that mapped
         # to the XMLRPC arg names. Maintain that bad compat, but also allow
         # receiving a single dictionary like query() does
-        if kwargs and args:
+        if kwargs and args:  # pragma: no cover
             raise BugzillaError("createbug: cannot specify positional "
                                 "args=%s with kwargs=%s, must be one or the "
                                 "other." % (args, kwargs))
         if args:
             if len(args) > 1 or not isinstance(args[0], dict):
-                raise BugzillaError("createbug: positional arguments only "
-                                    "accept a single dictionary.")
+                raise BugzillaError(  # pragma: no cover
+                    "createbug: positional arguments only "
+                    "accept a single dictionary.")
             data = args[0]
         else:
             data = kwargs

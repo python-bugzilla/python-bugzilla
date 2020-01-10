@@ -32,6 +32,7 @@ def test_modify(run_cli):
     cmd += "--flag=-needinfo,+somethingelse "
     cmd += "--whiteboard =foo --whiteboard =thisone "
     cmd += "--dupeid 555666 "
+    cmd += "--comment 'some example comment' --private "
     fakebz = tests.mockbackend.make_bz(
         bug_update_args="data/mockargs/test_modify2.txt",
         bug_update_return={})
