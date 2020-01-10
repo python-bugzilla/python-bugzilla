@@ -50,6 +50,8 @@ def diff_compare(inputdata, filename):
     actual_out = inputdata
     if isinstance(inputdata, dict):
         actual_out = pprint.pformat(inputdata, width=81)
+    if not actual_out.endswith("\n"):
+        actual_out += "\n"
 
     if not os.path.exists(filename) or tests.CLICONFIG.REGENERATE_OUTPUT:
         open(filename, "w").write(actual_out)
