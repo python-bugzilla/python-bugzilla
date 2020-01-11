@@ -34,7 +34,6 @@ class BackendMock(_BackendBase):
             raise func_return
 
         if isinstance(func_args, dict):
-            print(args[-1])
             assert func_args == args[-1]
         elif func_args is not None:
             tests.utils.diff_compare(args[-1], func_args)

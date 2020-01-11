@@ -1257,9 +1257,6 @@ class Bugzilla(object):
         except Exception as e:
             # Try to give a hint in the error message if url_to_query
             # isn't supported by this bugzilla instance
-            print("query_format" in str(e))
-            print(BugzillaError.get_bugzilla_error_code(e))
-            print(self._check_version(5, 0))
             if ("query_format" not in str(e) or
                 not BugzillaError.get_bugzilla_error_code(e) or
                 self._check_version(5, 0)):
