@@ -835,20 +835,15 @@ def test13SubComponents():
         "Default / Unclassified (RHEL5)"]}
 
 
-def _deleteAllExistingExternalTrackers(bugid):
-    bz = _open_bz()
-    ids = [bug['id'] for bug in bz.getbug(bugid).external_bugs]
-    if ids != []:
-        bz.remove_external_tracker(ids=ids)
-
-
 def test14ExternalTrackersAddUpdateRemoveQuery():
     bz = _open_bz()
     bugid = 461686
     ext_bug_id = 380489
 
     # Delete any existing external trackers to get to a known state
-    _deleteAllExistingExternalTrackers(bugid)
+    ids = [bug['id'] for bug in bz.getbug(bugid).external_bugs]
+    if ids != []:
+        bz.remove_external_tracker(ids=ids)
 
     url = "https://bugzilla.mozilla.org"
     if bz.bz_ver_major < 5:
