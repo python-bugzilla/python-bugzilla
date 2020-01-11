@@ -187,7 +187,7 @@ def testQueryFormat(run_cli):
     # Unicode in this bug's summary
     args = "--bug_id 522796 --outputformat \"%{summary}\""
     out = run_cli("bugzilla query %s" % args, bz)
-    assert "V34 — system" in out
+    assert u"V34 — system" in out
 
 
 def testQueryURL(run_cli):

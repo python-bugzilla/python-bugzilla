@@ -167,7 +167,7 @@ def test04NewBugAllFields(run_cli):
     # Check bug's minimal history
     ret = bug.get_history_raw()
     assert len(ret["bugs"]) == 1
-    assert len(ret["bugs"][0]["history"]) == 1
+    assert len(ret["bugs"][0]["history"])
 
 
 def test05ModifyStatus(run_cli):
@@ -814,22 +814,6 @@ def test11ComponentEditing():
         assert (("Sorry, you aren't a member" in str(e)) or
             # bugzilla 5 error string
             ("You are not allowed" in str(e)))
-
-
-def test12SetCookie():
-    bz = _open_bz(cookiefile=-1, tokenfile=None, configpaths=[])
-
-    try:
-        bz.cookiefile = None
-        raise AssertionError("Setting cookiefile for active connection "
-                             "should fail.")
-    except RuntimeError as e:
-        assert "disconnect()" in str(e)
-
-    bz.disconnect()
-    bz.cookiefile = None
-    bz.connect()
-    assert not bz.logged_in
 
 
 def test13SubComponents():
