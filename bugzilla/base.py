@@ -269,15 +269,6 @@ class Bugzilla(object):
             log.info("Using RHBugzilla for URL containing bugzilla.redhat.com")
             return True
 
-        try:
-            extensions = self._backend.bugzilla_extensions()
-            if "RedHat" in extensions.get('extensions', {}):
-                log.info("Found RedHat bugzilla extension, "
-                    "using RHBugzilla")
-                return True
-        except Exception:
-            log.debug("Failed to fetch bugzilla extensions", exc_info=True)
-
         return False
 
     def _init_class_from_url(self):

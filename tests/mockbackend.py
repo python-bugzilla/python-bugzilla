@@ -14,12 +14,9 @@ import tests.utils
 
 class BackendMock(_BackendBase):
     _version = None
-    _extensions = None
 
     def bugzilla_version(self):
         return {"version": self._version}
-    def bugzilla_extensions(self):
-        return self._extensions
 
     def __helper(self, args):
         # Grab the calling function name and use it to generate
@@ -107,16 +104,10 @@ class BackendMock(_BackendBase):
         return self.__helper(args)
 
 
-def _make_backend_class(version="6.0.0", extensions=None,
-        rhbz=False, **kwargs):
-    if not extensions:
-        extensions = {"extensions": {"foo": {"version": "0.01"}}}
-    if rhbz:
-        extensions["extensions"]['RedHat'] = {'version': '0.3'}
+def _make_backend_class(version="6.0.0", **kwargs):
 
     class TmpBackendClass(BackendMock):
         _version = version
-        _extensions = extensions
 
     for key, val in kwargs.items():
         setattr(TmpBackendClass, "_%s" % key, val)
@@ -124,7 +115,7 @@ def _make_backend_class(version="6.0.0", extensions=None,
     return TmpBackendClass
 
 
-def make_bz(bz_kwargs=None, **kwargs):
+def make_bz(bz_kwargs=None, rhbz=False, **kwargs):
     bz_kwargs = (bz_kwargs or {}).copy()
     if "url" in bz_kwargs:
         raise RuntimeError("Can't set 'url' in mock make_bz, use connect()")
@@ -135,5 +126,9 @@ def make_bz(bz_kwargs=None, **kwargs):
     backendclass = _make_backend_class(**kwargs)
     # pylint: disable=protected-access
     bz._get_backend_class = lambda *a, **k: backendclass
-    bz.connect("https:///TESTSUITEMOCK")
+
+    url = "https:///TESTSUITEMOCK"
+    if rhbz:
+        url += "?fakeredhat=bugzilla.redhat.com"
+    bz.connect(url)
     return bz
