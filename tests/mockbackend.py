@@ -30,10 +30,22 @@ class BackendMock(_BackendBase):
         if isinstance(func_return, BaseException):
             raise func_return
 
-        if isinstance(func_args, dict):
-            assert func_args == args[-1]
-        elif func_args is not None:
-            tests.utils.diff_compare(args[-1], func_args)
+        filename = None
+        expect_out = func_args
+        if isinstance(func_args, str):
+            filename = func_args
+            expect_out = None
+
+        # Hack to strip out attachment content from the generated
+        # test output, because it doesn't play well with the test
+        # suite running on python2
+        if "content-disposition" in str(args):
+            largs = list(args)
+            largs[0] = "STRIPPED-BY-TESTSUITE"
+            args = tuple(largs)
+
+        if filename or expect_out:
+            tests.utils.diff_compare(args, filename, expect_out)
 
         if isinstance(func_return, dict):
             return func_return

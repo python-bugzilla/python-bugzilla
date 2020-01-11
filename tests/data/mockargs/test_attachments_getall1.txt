@@ -1,1 +1,1 @@
-{'exclude_fields': ['bar'], 'include_fields': ['foo']}
+([123456], {'exclude_fields': ['bar'], 'include_fields': ['foo']})

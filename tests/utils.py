@@ -64,23 +64,32 @@ def open_functional_bz(bzclass, url, kwargs):
     return bz
 
 
-def diff_compare(inputdata, filename):
+def diff_compare(inputdata, filename, expect_out=None):
     """Compare passed string output to contents of filename"""
-    filename = tests_path(filename)
+    def _process(data):
+        if isinstance(data, tuple) and len(data) == 1:
+            data = data[0]
+        if isinstance(data, (dict, tuple)):
+            out = pprint.pformat(data, width=81)
+        else:
+            out = str(data)
+        if not out.endswith("\n"):
+            out += "\n"
+        return out
 
-    actual_out = inputdata
-    if isinstance(inputdata, dict):
-        actual_out = pprint.pformat(inputdata, width=81)
-    if not actual_out.endswith("\n"):
-        actual_out += "\n"
+    actual_out = _process(inputdata)
 
-    if not os.path.exists(filename) or tests.CLICONFIG.REGENERATE_OUTPUT:
-        open(filename, "w").write(actual_out)
-    expect_out = open(filename).read()
+    if filename:
+        filename = tests_path(filename)
+        if not os.path.exists(filename) or tests.CLICONFIG.REGENERATE_OUTPUT:
+            open(filename, "w").write(actual_out)
+        expect_out = open(filename).read()
+    else:
+        expect_out = _process(expect_out)
 
     diff = "".join(difflib.unified_diff(expect_out.splitlines(1),
                                         actual_out.splitlines(1),
-                                        fromfile=filename or '',
+                                        fromfile=filename or "Manual input",
                                         tofile="Generated Output"))
     if diff:
         raise AssertionError("Conversion outputs did not match.\n%s" % diff)

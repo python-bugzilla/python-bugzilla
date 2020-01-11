@@ -1,5 +1,6 @@
-{'content_type': 'text/plain',
- 'file_name': 'bz-attach-get1.txt',
- 'ids': [123456],
- 'is_private': True,
- 'summary': 'some desc'}
+('STRIPPED-BY-TESTSUITE',
+ {'content_type': 'text/plain',
+  'file_name': 'bz-attach-get1.txt',
+  'ids': [123456],
+  'is_private': True,
+  'summary': 'some desc'})
