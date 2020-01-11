@@ -1,1 +1,0 @@
-{'field': 'component', 'product_id': 7}

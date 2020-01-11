@@ -195,8 +195,6 @@ class _BackendXMLRPC(_BackendBase):
         data = paramdict.copy()
         data["ids"] = listify(bug_ids)
         return self._xmlrpc_proxy.Bug.history(data)
-    def bug_legal_values(self, paramdict):
-        return self._xmlrpc_proxy.Bug.legal_values(paramdict)
     def bug_search(self, paramdict):
         return self._xmlrpc_proxy.Bug.search(paramdict)
     def bug_update(self, bug_ids, paramdict):

@@ -1,1 +1,2 @@
-{'include_fields': ['name', 'id'], 'names': ['test-fake-product']}
+{'include_fields': ['name', 'id', 'components.name'],
+ 'names': ['test-fake-product']}

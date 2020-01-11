@@ -123,13 +123,6 @@ class _BackendBase(object):
         """
         raise NotImplementedError()
 
-    def bug_legal_values(self, paramdict):
-        """
-        Old style fields querying
-        http://bugzilla.readthedocs.io/en/latest/api/core/v1/field.html#legal-values
-        """
-        raise NotImplementedError()
-
     def bug_search(self, paramdict):
         """
         Search/query bugs

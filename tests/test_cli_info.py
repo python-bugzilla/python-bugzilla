@@ -47,18 +47,6 @@ def test_info(run_cli):
     tests.utils.diff_compare(out, cliprefix + "versions.txt")
 
     # info --components
-    legal_values = {'values': ["comp1", "test-comp-2", "hey-imma-comp"]}
-    cmd = "bugzilla info --components test-fake-product"
-    fakebz = tests.mockbackend.make_bz(
-        product_get_args=argsprefix + "components.txt",
-        product_get_return=prod_get,
-        bug_legal_values_args=argsprefix + "components-legalvalues.txt",
-        bug_legal_values_return=legal_values)
-    out = run_cli(cmd, fakebz)
-    tests.utils.diff_compare(out, cliprefix + "components.txt")
-
-    # info --components --active-components
-    cmd = "bugzilla info --components test-fake-product --active-components"
     prod_get_comp_active = {'products': [
         {'id': 7, 'name': 'test-fake-product',
          'components': [
@@ -66,6 +54,15 @@ def test_info(run_cli):
              {'is_active': True, 'name': 'client-interfaces'},
          ]},
     ]}
+    cmd = "bugzilla info --components test-fake-product"
+    fakebz = tests.mockbackend.make_bz(
+        product_get_args=argsprefix + "components.txt",
+        product_get_return=prod_get_comp_active)
+    out = run_cli(cmd, fakebz)
+    tests.utils.diff_compare(out, cliprefix + "components.txt")
+
+    # info --components --active-components
+    cmd = "bugzilla info --components test-fake-product --active-components"
     fakebz = tests.mockbackend.make_bz(
         product_get_args=argsprefix + "components-active.txt",
         product_get_return=prod_get_comp_active)

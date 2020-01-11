@@ -1,3 +1,2 @@
-comp1
-hey-imma-comp
-test-comp-2
+backend/kernel
+client-interfaces

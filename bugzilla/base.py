@@ -870,12 +870,6 @@ class Bugzilla(object):
         """
         Return a list of component names for the passed product.
 
-        This can be implemented with Product.get, but behind the
-        scenes it uses Bug.legal_values. Reason being that on bugzilla
-        instances with tons of components, like bugzilla.redhat.com
-        Product=Fedora for example, there's a 10x speed difference
-        even with properly limited Product.get calls.
-
         On first invocation the value is cached, and subsequent calls
         will return the cached data.
 
@@ -885,17 +879,22 @@ class Bugzilla(object):
         proddict = self._lookup_product_in_cache(product)
         product_id = proddict.get("id", None)
 
-        if force_refresh or product_id is None:
-            self.refresh_products(names=[product],
-                                  include_fields=["name", "id"])
+        if (force_refresh or product_id is None or
+            "components" not in proddict):
+            self.refresh_products(
+                names=[product],
+                include_fields=["name", "id", "components.name"])
             proddict = self._lookup_product_in_cache(product)
             if "id" not in proddict:
                 raise BugzillaError("Product '%s' not found" % product)
             product_id = proddict["id"]
 
         if product_id not in self._cache.component_names:
-            opts = {'product_id': product_id, 'field': 'component'}
-            names = self._backend.bug_legal_values(opts)["values"]
+            names = []
+            for comp in proddict.get("components", []):
+                name = comp.get("name")
+                if name:
+                    names.append(name)
             self._cache.component_names[product_id] = names
 
         return self._cache.component_names[product_id]

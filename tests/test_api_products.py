@@ -50,8 +50,6 @@ def test_api_products():
     ]}
 
     compnames = ["client-interfaces", "configuration"]
-    legal_values = {'values': compnames}
-
     fakebz = tests.mockbackend.make_bz(
         product_get_enterable_args=None,
         product_get_enterable_return=prod_list_return,
@@ -75,8 +73,6 @@ def test_api_products():
     fakebz = tests.mockbackend.make_bz(
         product_get_args="data/mockargs/test_api_products_get2.txt",
         product_get_return=prod_get_return,
-        bug_legal_values_args=None,
-        bug_legal_values_return=legal_values,
     )
 
     # Lookup in product cache by name

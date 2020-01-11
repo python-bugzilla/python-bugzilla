@@ -66,8 +66,6 @@ class BackendMock(_BackendBase):
         return self.__helper(args)
     def bug_create(self, *args):
         return self.__helper(args)
-    def bug_legal_values(self, *args):
-        return self.__helper(args)
     def bug_history(self, *args):
         return self.__helper(args)
     def bug_get(self, *args):
