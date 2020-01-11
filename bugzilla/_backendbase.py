@@ -22,6 +22,18 @@ class _BackendBase(object):
         """
         raise NotImplementedError()
 
+    def is_rest(self):
+        """
+        :returns: True if this is the REST backend
+        """
+        return False
+
+    def is_xmlrpc(self):
+        """
+        :returns: True if this is the XMLRPC backend
+        """
+        return False
+
 
     ######################
     # Bugzilla info APIs #

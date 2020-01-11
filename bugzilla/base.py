@@ -508,6 +508,18 @@ class Bugzilla(object):
         """
         return self._backend.get_xmlrpc_proxy()
 
+    def is_xmlrpc(self):
+        """
+        :returns: True if using the XMLRPC API
+        """
+        return self._backend.is_xmlrpc()
+
+    def is_rest(self):
+        """
+        :returns: True if using the REST API
+        """
+        return self._backend.is_rest()
+
     def disconnect(self):
         """
         Disconnect from the given bugzilla instance.

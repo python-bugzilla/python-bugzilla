@@ -294,6 +294,9 @@ def test_get_xmlrpc_proxy():
     with pytest.raises(NotImplementedError):
         dummy = bz._proxy  # pylint: disable=protected-access
 
+    assert bz.is_xmlrpc() is False
+    assert bz.is_rest() is False
+
 
 def test_query_url_fail():
     # test some handling of query from_url errors

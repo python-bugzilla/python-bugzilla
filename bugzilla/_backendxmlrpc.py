@@ -153,6 +153,8 @@ class _BackendXMLRPC(_BackendBase):
 
     def get_xmlrpc_proxy(self):
         return self._xmlrpc_proxy
+    def is_xmlrpc(self):
+        return True
 
     def bugzilla_version(self):
         return self._xmlrpc_proxy.Bugzilla.version()
