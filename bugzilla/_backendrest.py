@@ -78,5 +78,3 @@ class _BackendREST(_BackendBase):
 
     def bugzilla_version(self):
         return self._get("/version")
-    def bugzilla_extensions(self):
-        return self._get("/extensions")

@@ -46,13 +46,6 @@ class _BackendBase(object):
         """
         raise NotImplementedError()
 
-    def bugzilla_extensions(self):
-        """
-        Return info about Bugzilla extensions
-        http://bugzilla.readthedocs.io/en/latest/api/core/v1/bugzilla.html#extensions
-        """
-        raise NotImplementedError()
-
 
     #######################
     # Bug attachment APIs #

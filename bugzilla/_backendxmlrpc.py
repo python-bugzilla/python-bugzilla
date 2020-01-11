@@ -158,8 +158,6 @@ class _BackendXMLRPC(_BackendBase):
 
     def bugzilla_version(self):
         return self._xmlrpc_proxy.Bugzilla.version()
-    def bugzilla_extensions(self):
-        return self._xmlrpc_proxy.Bugzilla.extensions()
 
     def bug_attachment_get(self, attachment_ids, paramdict):
         data = paramdict.copy()
