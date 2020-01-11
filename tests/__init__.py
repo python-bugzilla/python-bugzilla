@@ -8,6 +8,8 @@ class _CLICONFIG(object):
     def __init__(self):
         self.REDHAT_URL = None
         self.REGENERATE_OUTPUT = False
+        self.ONLY_REST = False
+        self.ONLY_XMLRPC = False
 
 
 CLICONFIG = _CLICONFIG()

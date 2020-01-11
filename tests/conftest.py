@@ -38,6 +38,8 @@ def pytest_addoption(parser):
     parser.addoption("--regenerate-output",
             action="store_true", default=False,
             help=("Force regeneration of generated test output"))
+    parser.addoption("--only-rest", action="store_true", default=False)
+    parser.addoption("--only-xmlrpc", action="store_true", default=False)
 
 
 def pytest_ignore_collect(path, config):
@@ -72,6 +74,10 @@ def pytest_configure(config):
         # Functional tests need access to HOME cached auth.
         # Unit tests shouldn't be touching any HOME files
         os.environ["HOME"] = os.path.dirname(__file__) + "/data/homedir"
+    if config.getoption("--only-rest"):
+        tests.CLICONFIG.ONLY_REST = True
+    if config.getoption("--only-xmlrpc"):
+        tests.CLICONFIG.ONLY_XMLRPC = True
 
 
 def pytest_generate_tests(metafunc):
@@ -80,8 +86,14 @@ def pytest_generate_tests(metafunc):
     force_rest=True and force_xmlrpc=True Bugzilla options
     """
     if 'backends' in metafunc.fixturenames:
-        values = [{"force_xmlrpc": True}, {"force_rest": True}]
-        ids = ["XMLRPC", "REST"]
+        values = []
+        ids = []
+        if not tests.CLICONFIG.ONLY_REST:
+            values.append({"force_xmlrpc": True})
+            ids.append("XMLRPC")
+        if not tests.CLICONFIG.ONLY_XMLRPC:
+            values.append({"force_rest": True})
+            ids.append("REST")
         metafunc.parametrize("backends", values, ids=ids, scope="session")
 
 
