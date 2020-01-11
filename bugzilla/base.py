@@ -72,6 +72,8 @@ class _BugzillaAPICache(object):
         self.products = []
         self.component_names = {}
         self.bugfields = []
+        self.version_raw = None
+        self.version_parsed = (0, 0)
 
 
 class Bugzilla(object):
@@ -98,12 +100,6 @@ class Bugzilla(object):
     Another way to specify auth credentials is via a 'bugzillarc' file.
     See readconfig() documentation for details.
     """
-
-    # bugzilla version that the class is targeting. filled in by
-    # subclasses
-    bz_ver_major = 0
-    bz_ver_minor = 0
-
     @staticmethod
     def url_to_query(url):
         """
@@ -332,20 +328,24 @@ class Bugzilla(object):
         return 'python-bugzilla/%s' % __version__
     user_agent = property(_get_user_agent)
 
+    @property
+    def bz_ver_major(self):
+        return self._cache.version_parsed[0]
+
+    @property
+    def bz_ver_minor(self):
+        return self._cache.version_parsed[1]
+
 
     ###################
     # Private helpers #
     ###################
 
-    def _check_version(self, major, minor):
+    def _get_version(self):
         """
-        Check if the detected bugzilla version is >= passed major/minor pair.
+        Return version number as a float
         """
-        if major < self.bz_ver_major:
-            return True
-        if (major == self.bz_ver_major and minor <= self.bz_ver_minor):
-            return True
-        return False
+        return float("%d.%d" % (self.bz_ver_major, self.bz_ver_minor))
 
     def _get_bug_aliases(self):
         return [(f.newname, f.oldname)
@@ -443,14 +443,15 @@ class Bugzilla(object):
                 log.debug("bugzillarc: unknown key=%s", key)
 
     def _set_bz_version(self, version):
+        self._cache.version_raw = version
         try:
-            self.bz_ver_major, self.bz_ver_minor = [
-                int(i) for i in version.split(".")[0:2]]
+            major, minor = [int(i) for i in version.split(".")[0:2]]
         except Exception:
             log.debug("version doesn't match expected format X.Y.Z, "
                     "assuming 5.0", exc_info=True)
-            self.bz_ver_major = 5
-            self.bz_ver_minor = 0
+            major = 5
+            minor = 0
+        self._cache.version_parsed = (major, minor)
 
     def _get_backend_class(self):  # pragma: no cover
         # This is a hook for the test suite to do some mock hackery
@@ -1285,7 +1286,7 @@ class Bugzilla(object):
             # isn't supported by this bugzilla instance
             if ("query_format" not in str(e) or
                 not BugzillaError.get_bugzilla_error_code(e) or
-                self._check_version(5, 0)):
+                self._get_version() >= 5.0):
                 raise
             raise BugzillaError("%s\nYour bugzilla instance does not "
                 "appear to support API queries derived from bugzilla "

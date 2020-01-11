@@ -247,8 +247,7 @@ def test_version_bad():
     assert bz.bz_ver_minor == 0
 
     # pylint: disable=protected-access
-    assert bz._check_version(5, 0)
-    assert not bz._check_version(10000, 0)
+    assert bz._get_version() == 5.0
 
 
 def test_extensions_bad():
