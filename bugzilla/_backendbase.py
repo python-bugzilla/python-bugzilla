@@ -9,7 +9,7 @@ class _BackendBase(object):
     the code, but this is all internal to the library.
     """
     def __init__(self, url, bugzillasession):
-        dummy = url
+        self._url = url
         self._bugzillasession = bugzillasession
 
     #################
