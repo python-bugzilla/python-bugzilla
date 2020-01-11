@@ -196,8 +196,9 @@ class Bugzilla(object):
             If -1, use the default path. If None, don't use
             or save any tokenfile.
         :param use_creds: If False, this disables cookiefile, tokenfile,
-            and any bugzillarc reading. This overwrites any tokenfile
-            or cookiefile settings
+            and configpaths by default. This is a convenience option to
+            unset those values at init time. If those values are later
+            changed, they may be used for future operations.
         :param sslverify: Maps to 'requests' sslverify parameter. Set to
             False to disable SSL verification, but it can also be a path
             to file or directory for custom certs.
@@ -226,8 +227,7 @@ class Bugzilla(object):
         self._cookiecache = _BugzillaCookieCache()
         self._tokencache = _BugzillaTokenCache()
 
-        self._use_creds = use_creds
-        if not self._use_creds:
+        if not use_creds:
             cookiefile = None
             tokenfile = None
             configpaths = []
