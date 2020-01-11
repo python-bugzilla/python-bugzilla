@@ -648,7 +648,7 @@ class Bugzilla(object):
         http://bugzilla.readthedocs.org/en/latest/api/core/v1/user.html#valid-login
         """
         try:
-            self._backend.user_get({"ids": []})
+            self._backend.user_get({"ids": [1]})
             return True
         except Exception as e:
             code = BugzillaError.get_bugzilla_error_code(e)
