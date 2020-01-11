@@ -548,7 +548,7 @@ def _do_query(bz, opt, parser):
     built_query.update(q)
     q = built_query
 
-    if not q:
+    if not q:  # pragma: no cover
         parser.error("'query' command requires additional arguments")
     return bz.query(q)
 

@@ -978,15 +978,14 @@ class Bugzilla(object):
             return _in
 
         ret = {}
-        if self._check_version(4, 0):
-            if include_fields:
-                include_fields = _convert_fields(include_fields)
-                if "id" not in include_fields:
-                    include_fields.append("id")
-                ret["include_fields"] = include_fields
-            if exclude_fields:
-                exclude_fields = _convert_fields(exclude_fields)
-                ret["exclude_fields"] = exclude_fields
+        if include_fields:
+            include_fields = _convert_fields(include_fields)
+            if "id" not in include_fields:
+                include_fields.append("id")
+            ret["include_fields"] = include_fields
+        if exclude_fields:
+            exclude_fields = _convert_fields(exclude_fields)
+            ret["exclude_fields"] = exclude_fields
         if self._supports_getbug_extra_fields():
             if extra_fields:
                 ret["extra_fields"] = _convert_fields(extra_fields)
@@ -1057,11 +1056,7 @@ class Bugzilla(object):
 
         r = self._backend.bug_get(getbugdata)
 
-        if self._check_version(4, 0):
-            bugdict = dict([(b['id'], b) for b in r['bugs']])
-        else:  # pragma: no cover
-            bugdict = dict([(b['id'], b['internals']) for b in r['bugs']])
-
+        bugdict = dict([(b['id'], b) for b in r['bugs']])
         ret = []
         for i in idlist:
             found = None

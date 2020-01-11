@@ -14,13 +14,8 @@ import tests.utils
 #################################
 
 def test_query(run_cli):
-    # query that ends up empty
-    cmd = "bugzilla query --ids "
-    fakebz = tests.mockbackend.make_bz(version="3.0.0")
-    out = run_cli(cmd, fakebz, expectfail=True)
-    assert "requires additional arguments" in out
-
     # bad field option
+    fakebz = tests.mockbackend.make_bz()
     cmd = "bugzilla query --field FOO"
     out = run_cli(cmd, fakebz, expectfail=True)
     assert "Invalid field argument" in out
