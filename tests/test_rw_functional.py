@@ -59,7 +59,7 @@ def test0LoggedInNoCreds():
     assert not bz.logged_in
 
 
-def test2():
+def test0ClassDetection():
     bz = bugzilla.Bugzilla(RHURL, use_creds=False)
     assert bz.__class__ is bugzilla.RHBugzilla
 
