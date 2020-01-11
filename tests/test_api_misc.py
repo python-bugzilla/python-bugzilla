@@ -189,12 +189,6 @@ def test_api_login():
         # Errors on api_key + login()
         bz.login()
 
-    # Will log in immediately, hitting basic_auth path
-    bz = tests.mockbackend.make_bz(
-        bz_kwargs={"basic_auth": True, "user": "FOO", "password": "BAR"},
-        user_login_args="data/mockargs/test_api_login1.txt",
-        user_login_return={})
-
     # Hit default api_key code path
     bz = tests.mockbackend.make_bz(
         bz_kwargs={"api_key": "FAKE_KEY"},

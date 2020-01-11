@@ -175,7 +175,7 @@ class Bugzilla(object):
 
     def __init__(self, url=-1, user=None, password=None, cookiefile=-1,
                  sslverify=True, tokenfile=-1, use_creds=True, api_key=None,
-                 cert=None, configpaths=-1, basic_auth=False,
+                 cert=None, configpaths=-1,
                  force_rest=False, force_xmlrpc=False, requests_session=None):
         """
         :param url: The bugzilla instance URL, which we will connect
@@ -206,7 +206,6 @@ class Bugzilla(object):
             to file or directory for custom certs.
         :param api_key: A bugzilla5+ API key
         :param configpaths: A list of possible bugzillarc locations.
-        :param basic_auth: Use headers with HTTP Basic authentication
         :param force_rest: Force use of the REST API
         :param force_xmlrpc: Force use of the XMLRPC API. If neither force_X
             parameter are specified, heuristics will be used to determine
@@ -255,8 +254,6 @@ class Bugzilla(object):
         self._setcookiefile(cookiefile)
         self._settokenfile(tokenfile)
         self._setconfigpath(configpaths)
-
-        self._basic_auth = basic_auth
 
         if url:
             self.connect(url)
@@ -588,9 +585,6 @@ class Bugzilla(object):
             log.info("logging in with restrict_login=True")
 
         try:
-            if self._basic_auth:
-                self._session.set_basic_auth(user, password)
-
             payload = {'login': user, 'password': password}
             if restrict_login:
                 payload['restrict_login'] = True

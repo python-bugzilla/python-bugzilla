@@ -1,7 +1,6 @@
 # This work is licensed under the GNU GPLv2 or later.
 # See the COPYING file in the top-level directory.
 
-import base64
 from logging import getLogger
 
 import requests
@@ -61,15 +60,6 @@ class _BugzillaSession(object):
     def _set_tokencache_param(self):
         token = self.get_token_value()
         self._session.params["Bugzilla_token"] = token
-
-    def set_basic_auth(self, user, password):
-        """
-        Set basic authentication method.
-        """
-        formatstr = "{}:{}".format(user, password).encode("utf-8")
-        b64str = base64.b64encode(formatstr).decode("utf-8")
-        authstr = "Basic {}".format(b64str)
-        self._session.headers["Authorization"] = authstr
 
     def set_response_cookies(self, response):
         """
