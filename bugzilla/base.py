@@ -18,6 +18,7 @@ from io import BytesIO
 from ._authfiles import (_BugzillaRCFile,
         _BugzillaCookieCache, _BugzillaTokenCache)
 from .apiversion import __version__
+from ._backendrest import _BackendREST
 from ._backendxmlrpc import _BackendXMLRPC
 from ._compatimports import Mapping, urlparse, urlunparse, parse_qsl
 from .bug import Bug, User
@@ -138,9 +139,11 @@ class Bugzilla(object):
         return q
 
     @staticmethod
-    def fix_url(url):
+    def fix_url(url, force_rest=False):
         """
         Turn passed url into a bugzilla XMLRPC web url
+
+        :param force_rest: If True, generate a REST API url
         """
         scheme, netloc, path, params, query, fragment = urlparse(url)
         if not scheme:
@@ -152,8 +155,10 @@ class Bugzilla(object):
             path = "/".join(path.split("/")[1:]) or None
 
         if not path:
-            log.debug('No path given for url, assuming /xmlrpc.cgi')
             path = 'xmlrpc.cgi'
+            if force_rest:
+                path = "rest/"
+            log.debug('No path given for url, assuming /%s', path)
 
         newurl = urlunparse((scheme, netloc, path, params, query, fragment))
         if newurl != url:
@@ -174,7 +179,8 @@ class Bugzilla(object):
 
     def __init__(self, url=-1, user=None, password=None, cookiefile=-1,
                  sslverify=True, tokenfile=-1, use_creds=True, api_key=None,
-                 cert=None, configpaths=-1, basic_auth=False):
+                 cert=None, configpaths=-1, basic_auth=False,
+                 force_rest=False, force_xmlrpc=False):
         """
         :param url: The bugzilla instance URL, which we will connect
             to immediately. Most users will want to specify this at
@@ -205,6 +211,10 @@ class Bugzilla(object):
         :param api_key: A bugzilla5+ API key
         :param configpaths: A list of possible bugzillarc locations.
         :param basic_auth: Use headers with HTTP Basic authentication
+        :param force_rest: Force use of the REST API
+        :param force_xmlrpc: Force use of the XMLRPC API. If neither force_X
+            parameter are specified, heuristics will be used to determine
+            which API to use, with XMLRPC preferred for back compatability.
         """
         if url == -1:
             raise TypeError("Specify a valid bugzilla url, or pass url=None")
@@ -226,6 +236,9 @@ class Bugzilla(object):
         self._rcfile = _BugzillaRCFile()
         self._cookiecache = _BugzillaCookieCache()
         self._tokencache = _BugzillaTokenCache()
+
+        self._force_rest = force_rest
+        self._force_xmlrpc = force_xmlrpc
 
         if not use_creds:
             cookiefile = None
@@ -448,9 +461,15 @@ class Bugzilla(object):
             self.bz_ver_major = 5
             self.bz_ver_minor = 0
 
-    def _get_backend_class(self):
+    def _get_backend_class(self):  # pragma: no cover
         # This is a hook for the test suite to do some mock hackery
-        return _BackendXMLRPC  # pragma: no cover
+        if self._force_rest:
+            return _BackendREST
+        elif self._force_xmlrpc:
+            return _BackendXMLRPC
+        # default to XMLRPC, like before
+        # FIXME: guess backend?
+        return _BackendXMLRPC
 
     def connect(self, url=None):
         """
@@ -469,7 +488,7 @@ class Bugzilla(object):
 
         if url is None and self.url:
             url = self.url
-        url = self.fix_url(url)
+        url = self.fix_url(url, force_rest=self._force_rest)
 
         self.url = url
         # we've changed URLs - reload config

@@ -33,6 +33,8 @@ def testUserAgent():
 def test_fixurl():
     assert (bugzilla.Bugzilla.fix_url("example.com") ==
         "https://example.com/xmlrpc.cgi")
+    assert (bugzilla.Bugzilla.fix_url("example.com", force_rest=True) ==
+        "https://example.com/rest/")
     assert (bugzilla.Bugzilla.fix_url("example.com/xmlrpc.cgi") ==
         "https://example.com/xmlrpc.cgi")
     assert (bugzilla.Bugzilla.fix_url("http://example.com/somepath.cgi") ==
