@@ -1289,7 +1289,7 @@ class Bugzilla(object):
         if self._is_redhat_bugzilla:
             _RHBugzillaConverters.pre_translation(query)
             query.update(self._process_include_fields(
-                query["include_fields"], None, None))
+                query.get("include_fields", []), None, None))
 
     def post_translation(self, query, bug):
         """
