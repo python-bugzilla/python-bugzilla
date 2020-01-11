@@ -298,6 +298,7 @@ def test_get_xmlrpc_proxy():
 
     assert bz.is_xmlrpc() is False
     assert bz.is_rest() is False
+    assert hasattr(bz.get_requests_session(), "request")
 
 
 def test_query_url_fail():

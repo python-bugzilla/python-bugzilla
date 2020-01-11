@@ -539,6 +539,15 @@ class Bugzilla(object):
         """
         return self._backend.is_rest()
 
+    def get_requests_session(self):
+        """
+        Give API users access to the Requests.session object we use for
+        talking to the remote bugzilla instance.
+
+        :returns: The Requests.session object backing the open connection.
+        """
+        return self._session.get_requests_session()
+
     def disconnect(self):
         """
         Disconnect from the given bugzilla instance.
