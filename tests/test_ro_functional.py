@@ -24,7 +24,13 @@ REDHAT_URL = (tests.CLICONFIG.REDHAT_URL or
 def _open_bz(url, **kwargs):
     if "use_creds" not in kwargs:
         kwargs["use_creds"] = False
-    return bugzilla.Bugzilla(url, **kwargs)
+    bz = bugzilla.Bugzilla(url, **kwargs)
+
+    if kwargs.get("force_rest", False):
+        assert bz.is_rest() is True
+    if kwargs.get("force_xmlrpc", False):
+        assert bz.is_xmlrpc() is True
+    return bz
 
 
 def _check(out, mincount, expectstr):
@@ -45,9 +51,9 @@ def _test_version(bz, bzversion):
 # mozilla testing #
 ###################
 
-def test_mozilla():
+def test_mozilla(backends):
     url = "bugzilla.mozilla.org"
-    bz = _open_bz(url)
+    bz = _open_bz(url, **backends)
 
     # bugzilla.mozilla.org returns version values in YYYY-MM-DD
     # format, so just try to confirm that

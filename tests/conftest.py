@@ -74,6 +74,17 @@ def pytest_configure(config):
         os.environ["HOME"] = os.path.dirname(__file__) + "/data/homedir"
 
 
+def pytest_generate_tests(metafunc):
+    """
+    If a test requests the 'backends' fixture, run that test with both
+    force_rest=True and force_xmlrpc=True Bugzilla options
+    """
+    if 'backends' in metafunc.fixturenames:
+        values = [{"force_xmlrpc": True}, {"force_rest": True}]
+        ids = ["XMLRPC", "REST"]
+        metafunc.parametrize("backends", values, ids=ids, scope="session")
+
+
 @pytest.fixture
 def run_cli(capsys, monkeypatch):
     """
