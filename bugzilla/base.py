@@ -454,15 +454,35 @@ class Bugzilla(object):
             minor = 0
         self._cache.version_parsed = (major, minor)
 
-    def _get_backend_class(self):  # pragma: no cover
+    def _get_backend_class(self, url):  # pragma: no cover
         # This is a hook for the test suite to do some mock hackery
+        if self._force_rest and self._force_xmlrpc:
+            raise BugzillaError(
+                "Cannot specify both force_rest and force_xmlrpc")
+
+        xmlurl = self.fix_url(url)
+        if self._force_xmlrpc:
+            return _BackendXMLRPC, xmlurl
+
+        resturl = self.fix_url(url, force_rest=self._force_rest)
         if self._force_rest:
-            return _BackendREST
-        elif self._force_xmlrpc:
-            return _BackendXMLRPC
-        # default to XMLRPC, like before
-        # FIXME: guess backend?
-        return _BackendXMLRPC
+            return _BackendREST, resturl
+
+        # Simple heuristic if the original url has a path in it
+        if "/xmlrpc" in url:
+            return _BackendXMLRPC, xmlurl
+        if "/rest" in url:
+            return _BackendREST, resturl
+
+        # We were passed something like bugzilla.example.com but we
+        # aren't sure which method to use, try probing
+        if _BackendXMLRPC.probe(xmlurl):
+            return _BackendXMLRPC, xmlurl
+        if _BackendREST.probe(resturl):
+            return _BackendREST, resturl
+
+        # Otherwise fallback to XMLRPC default and let it fail
+        return _BackendXMLRPC, xmlurl
 
     def connect(self, url=None):
         """
@@ -479,10 +499,7 @@ class Bugzilla(object):
         if self._session:
             self.disconnect()
 
-        if url is None and self.url:
-            url = self.url
-        url = self.fix_url(url, force_rest=self._force_rest)
-
+        backendclass, url = self._get_backend_class(url or self.url)
         self.url = url
         # we've changed URLs - reload config
         self.readconfig(overwrite=False)
@@ -494,7 +511,6 @@ class Bugzilla(object):
                 tokencache=self._tokencache,
                 api_key=self.api_key,
                 requests_session=self._user_requests_session)
-        backendclass = self._get_backend_class()
         self._backend = backendclass(url, self._session)
 
         if (self.user and self.password):

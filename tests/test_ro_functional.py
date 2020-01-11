@@ -39,6 +39,21 @@ def _test_version(bz, bzversion):
     assert bz.bz_ver_minor == bzversion[1]
 
 
+def test_rest_xmlrpc_detection():
+    # The default: use XMLRPC
+    bz = _open_bz("bugzilla.redhat.com")
+    assert bz.is_xmlrpc()
+    assert "/xmlrpc.cgi" in bz.url
+
+    # See /rest in the URL, so use REST
+    bz = _open_bz("bugzilla.redhat.com/rest")
+    assert bz.is_rest()
+
+    # See /xmlrpc.cgi in the URL, so use XMLRPC
+    bz = _open_bz("bugzilla.redhat.com/xmlrpc.cgi")
+    assert bz.is_xmlrpc()
+
+
 ###################
 # mozilla testing #
 ###################
@@ -58,10 +73,10 @@ def test_mozilla(backends):
 # gentoo testing #
 ##################
 
-def test_gentoo():
+def test_gentoo(backends):
     url = "bugs.gentoo.org"
     bzversion = (5, 0)
-    bz = _open_bz(url)
+    bz = _open_bz(url, **backends)
     _test_version(bz, bzversion)
 
     # This is a bugzilla 5.0 instance, which supports URL queries now
@@ -77,37 +92,37 @@ def test_gentoo():
 ##################
 
 
-def testInfoProducts(run_cli):
-    bz = _open_bz(REDHAT_URL)
+def testInfoProducts(run_cli, backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     out = run_cli("bugzilla info --products", bz)
     _check(out, 123, "Virtualization Tools")
 
 
-def testInfoComps(run_cli):
-    bz = _open_bz(REDHAT_URL)
+def testInfoComps(run_cli, backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     out = run_cli("bugzilla info --components 'Virtualization Tools'", bz)
     _check(out, 8, "virtinst")
 
 
-def testInfoVers(run_cli):
-    bz = _open_bz(REDHAT_URL)
+def testInfoVers(run_cli, backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     out = run_cli("bugzilla info --versions Fedora", bz)
     _check(out, 17, "rawhide")
 
 
-def testInfoCompOwners(run_cli):
-    bz = _open_bz(REDHAT_URL)
+def testInfoCompOwners(run_cli, backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     out = run_cli("bugzilla info "
             "--component_owners 'Virtualization Tools'", bz)
     _check(out, None, "libvirt: Libvirt Maintainers")
 
 
-def testQuery(run_cli):
-    bz = _open_bz(REDHAT_URL)
+def testQuery(run_cli, backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     args = "--product Fedora --component python-bugzilla --version 14"
     cli = "bugzilla query %s --bug_status CLOSED" % args
@@ -126,24 +141,24 @@ def testQuery(run_cli):
                  l2 == expectbug])
 
 
-def testQueryFull(run_cli):
-    bz = _open_bz(REDHAT_URL)
+def testQueryFull(run_cli, backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     bugid = "621601"
     out = run_cli("bugzilla query --full --bug_id %s" % bugid, bz)
     _check(out, 60, "end-of-life (EOL)")
 
 
-def testQueryRaw(run_cli):
-    bz = _open_bz(REDHAT_URL)
+def testQueryRaw(run_cli, backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     bugid = "307471"
     out = run_cli("bugzilla query --raw --bug_id %s" % bugid, bz)
     _check(out, 70, "ATTRIBUTE[whiteboard]:  bzcl34nup")
 
 
-def testQueryOneline(run_cli):
-    bz = _open_bz(REDHAT_URL)
+def testQueryOneline(run_cli, backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     bugid = "785016"
     out = run_cli("bugzilla query --oneline --bug_id %s" % bugid, bz)
@@ -158,8 +173,8 @@ def testQueryOneline(run_cli):
     assert " CVE-2011-2527" in out
 
 
-def testQueryExtra(run_cli):
-    bz = _open_bz(REDHAT_URL)
+def testQueryExtra(run_cli, backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     bugid = "307471"
     out = run_cli("bugzilla query --extra --bug_id %s" % bugid, bz)
@@ -167,8 +182,8 @@ def testQueryExtra(run_cli):
     assert " +Status Whiteboard:  bzcl34nup" in out
 
 
-def testQueryFormat(run_cli):
-    bz = _open_bz(REDHAT_URL)
+def testQueryFormat(run_cli, backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     args = ("--bug_id 307471 --outputformat=\"id=%{bug_id} "
         "sw=%{whiteboard:status} needinfo=%{flag:needinfo} "
@@ -188,8 +203,8 @@ def testQueryFormat(run_cli):
     assert u"V34 — system" in out
 
 
-def testQueryURL(run_cli):
-    bz = _open_bz(REDHAT_URL)
+def testQueryURL(run_cli, backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     qurl = ("/buglist.cgi?f1=creation_ts"
         "&list_id=973582&o1=greaterthaneq&classification=Fedora&"
@@ -206,35 +221,37 @@ def testQueryURL(run_cli):
     _check(out, 22, "#553878 CLOSED")
 
 
-def testQueryFixedIn(run_cli):
-    bz = _open_bz(REDHAT_URL)
+def testQueryFixedIn(run_cli, backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     out = run_cli("bugzilla query --fixed_in anaconda-15.29-1", bz)
     assert len(out.splitlines()) == 4
     assert "#629311 CLOSED" in out
 
 
-def testComponentsDetails():
+def testComponentsDetails(backends):
     """
     Fresh call to getcomponentsdetails should properly refresh
     """
-    bz = _open_bz(REDHAT_URL)
+    bz = _open_bz(REDHAT_URL, **backends)
 
     assert bool(bz.getcomponentsdetails("Red Hat Developer Toolset"))
 
 
-def testGetBugAlias():
+def testGetBugAlias(backends):
     """
     getbug() works if passed an alias
     """
-    bz = _open_bz(REDHAT_URL)
+    bz = _open_bz(REDHAT_URL, **backends)
 
     bug = bz.getbug("CVE-2011-2527")
     assert bug.bug_id == 720773
 
 
-def testQuerySubComponent(run_cli):
-    bz = _open_bz(REDHAT_URL)
+def testQuerySubComponent(run_cli, backends):
+    bz = _open_bz(REDHAT_URL, **backends)
+
+    tests.utils.skip_if_rest(bz, "Not working on REST, not sure why yet")
 
     # Test special error wrappers in bugzilla/_cli.py
     out = run_cli("bugzilla query --product 'Red Hat Enterprise Linux 7' "
@@ -243,16 +260,17 @@ def testQuerySubComponent(run_cli):
     assert "#1060931 " in out
 
 
-def testBugFields():
-    bz = _open_bz(REDHAT_URL)
+def testBugFields(backends):
+    bz = _open_bz(REDHAT_URL, **backends)
+
     fields = bz.getbugfields(names=["product"])[:]
     assert fields == ["product"]
     bz.getbugfields(names=["product", "bug_status"], force_refresh=True)
     assert set(bz.bugfields) == set(["product", "bug_status"])
 
 
-def testBugAutoRefresh():
-    bz = _open_bz(REDHAT_URL)
+def testBugAutoRefresh(backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     bz.bug_autorefresh = True
 
@@ -272,8 +290,8 @@ def testBugAutoRefresh():
         assert "adjust your include_fields" in str(e)
 
 
-def testExtraFields():
-    bz = _open_bz(REDHAT_URL)
+def testExtraFields(backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     # Check default extra_fields will pull in comments
     bug = bz.getbug(720773, exclude_fields=["product"])
@@ -286,8 +304,8 @@ def testExtraFields():
     assert "comments" not in dir(bug)
 
 
-def testExternalBugsOutput(run_cli):
-    bz = _open_bz(REDHAT_URL)
+def testExternalBugsOutput(run_cli, backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     out = run_cli('bugzilla query --bug_id 989253 '
         '--outputformat="%{external_bugs}"', bz)
@@ -295,8 +313,8 @@ def testExternalBugsOutput(run_cli):
     assert "External bug: https://bugs.launchpad.net/bugs/1203576" in out
 
 
-def testActiveComps(run_cli):
-    bz = _open_bz(REDHAT_URL)
+def testActiveComps(run_cli, backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     out = run_cli("bugzilla info --components 'Virtualization Tools' "
             "--active-components", bz)
@@ -306,8 +324,8 @@ def testActiveComps(run_cli):
     assert "virtinst" not in out
 
 
-def testFaults(run_cli):
-    bz = _open_bz(REDHAT_URL)
+def testFaults(run_cli, backends):
+    bz = _open_bz(REDHAT_URL, **backends)
 
     # Test special error wrappers in bugzilla/_cli.py
     out = run_cli("bugzilla query --field=IDONTEXIST=FOO", bz,
@@ -326,9 +344,9 @@ def testFaults(run_cli):
     assert "--nosslverify" in out
 
 
-def test_redhat_version():
+def test_redhat_version(backends):
     bzversion = (5, 0)
-    bz = _open_bz(REDHAT_URL)
+    bz = _open_bz(REDHAT_URL, **backends)
 
     if not tests.CLICONFIG.REDHAT_URL:
         _test_version(bz, bzversion)

@@ -132,10 +132,15 @@ def make_bz(bz_kwargs=None, rhbz=False, **kwargs):
 
     if "use_creds" not in bz_kwargs:
         bz_kwargs["use_creds"] = False
+
     bz = bugzilla.Bugzilla(url=None, **bz_kwargs)
     backendclass = _make_backend_class(**kwargs)
+
+    def _get_backend_class(url):
+        return backendclass, bugzilla.Bugzilla.fix_url(url)
+
     # pylint: disable=protected-access
-    bz._get_backend_class = lambda *a, **k: backendclass
+    bz._get_backend_class = _get_backend_class
 
     url = "https:///TESTSUITEMOCK"
     if rhbz:

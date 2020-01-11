@@ -17,8 +17,6 @@ import os
 import random
 import sys
 
-import pytest
-
 import bugzilla
 
 import tests
@@ -88,11 +86,11 @@ def _makebug(run_cli, bz):
     return bug
 
 
-def test03NewBugBasic(run_cli):
+def test03NewBugBasic(run_cli, backends):
     """
     Create a bug with minimal amount of fields, then close it
     """
-    bz = _open_bz()
+    bz = _open_bz(**backends)
     bug = _makebug(run_cli, bz)
 
     # Verify hasattr works
@@ -106,11 +104,11 @@ def test03NewBugBasic(run_cli):
     assert bug.resolution == "NOTABUG"
 
 
-def test04NewBugAllFields(run_cli):
+def test04NewBugAllFields(run_cli, backends):
     """
     Create a bug using all 'new' fields, check some values, close it
     """
-    bz = _open_bz()
+    bz = _open_bz(**backends)
 
     summary = ("python-bugzilla test manyfields bug %s" %
                datetime.datetime.today())
@@ -170,11 +168,11 @@ def test04NewBugAllFields(run_cli):
     assert len(ret["bugs"][0]["history"])
 
 
-def test05ModifyStatus(run_cli):
+def test05ModifyStatus(run_cli, backends):
     """
     Modify status and comment fields for an existing bug
     """
-    bz = _open_bz()
+    bz = _open_bz(**backends)
     bugid = "663674"
     cmd = "bugzilla modify %s " % bugid
 
@@ -257,11 +255,11 @@ def test05ModifyStatus(run_cli):
     assert bug.status == origstatus
 
 
-def test06ModifyEmails(run_cli):
+def test06ModifyEmails(run_cli, backends):
     """
     Modify cc, assignee, qa_contact for existing bug
     """
-    bz = _open_bz()
+    bz = _open_bz(**backends)
     bugid = "663674"
     cmd = "bugzilla modify %s " % bugid
 
@@ -305,11 +303,11 @@ def test06ModifyEmails(run_cli):
     assert bug.qa_contact == "extras-qa@fedoraproject.org"
 
 
-def test07ModifyMultiFlags(run_cli):
+def test07ModifyMultiFlags(run_cli, backends):
     """
     Modify flags and fixed_in for 2 bugs
     """
-    bz = _open_bz()
+    bz = _open_bz(**backends)
     bugid1 = "461686"
     bugid2 = "461687"
     cmd = "bugzilla modify %s %s " % (bugid1, bugid2)
@@ -394,10 +392,10 @@ def test07ModifyMultiFlags(run_cli):
     assert bug2.fixed_in == "-"
 
 
-def test07ModifyMisc(run_cli):
+def test07ModifyMisc(run_cli, backends):
     bugid = "461686"
     cmd = "bugzilla modify %s " % bugid
-    bz = _open_bz()
+    bz = _open_bz(**backends)
     bug = bz.getbug(bugid)
 
     # modify --dependson
@@ -482,7 +480,7 @@ def test07ModifyMisc(run_cli):
     assert bug.cf_release_notes == "baz"
 
 
-def test08Attachments(run_cli):
+def test08Attachments(run_cli, backends):
     tmpdir = "__test_attach_output"
     if tmpdir in os.listdir("."):
         os.system("rm -r %s" % tmpdir)
@@ -490,17 +488,17 @@ def test08Attachments(run_cli):
     os.chdir(tmpdir)
 
     try:
-        _test8Attachments(run_cli)
+        _test8Attachments(run_cli, backends)
     finally:
         os.chdir("..")
         os.system("rm -r %s" % tmpdir)
 
 
-def _test8Attachments(run_cli):
+def _test8Attachments(run_cli, backends):
     """
     Get and set attachments for a bug
     """
-    bz = _open_bz()
+    bz = _open_bz(**backends)
     cmd = "bugzilla attach "
     testfile = "../tests/data/bz-attach-get1.txt"
 
@@ -597,8 +595,8 @@ def _test8Attachments(run_cli):
         os.unlink(f)
 
 
-def test09Whiteboards(run_cli):
-    bz = _open_bz()
+def test09Whiteboards(run_cli, backends):
+    bz = _open_bz(**backends)
     bug_id = "663674"
     cmd = "bugzilla modify %s " % bug_id
     bug = bz.getbug(bug_id)
@@ -685,9 +683,9 @@ def test10Login(run_cli, monkeypatch):
     assert "Login failed: " in ret
 
 
-def test11UserUpdate():
+def test11UserUpdate(backends):
     # This won't work if run by the same user we are using
-    bz = _open_bz()
+    bz = _open_bz(**backends)
     email = "anaconda-maint-list@redhat.com"
     group = "fedora_contrib"
 
@@ -743,8 +741,8 @@ def test11UserUpdate():
     assert user.groupnames == origgroups
 
 
-def test11ComponentEditing():
-    bz = _open_bz()
+def test11ComponentEditing(backends):
+    bz = _open_bz(**backends)
     component = ("python-bugzilla-testcomponent-%s" %
                  str(random.randint(1, 1024 * 1024 * 1024)))
     basedata = {
@@ -793,6 +791,9 @@ def test11ComponentEditing():
             # bugzilla 5 error string
             ("You are not allowed" in str(e)))
 
+    # bugzilla.redhat.com doesn't have REST editcomponent yet
+    tests.utils.skip_if_rest(
+        bz, "editcomponent not supported for redhat REST API")
 
     # Edit component
     data = basedata.copy()
@@ -816,8 +817,8 @@ def test11ComponentEditing():
             ("You are not allowed" in str(e)))
 
 
-def test13SubComponents():
-    bz = _open_bz()
+def test13SubComponents(backends):
+    bz = _open_bz(**backends)
     # Long closed RHEL5 lvm2 bug. This component has sub_components
     bug = bz.getbug("185526")
     bug.autorefresh = True
@@ -835,10 +836,13 @@ def test13SubComponents():
         "Default / Unclassified (RHEL5)"]}
 
 
-def test14ExternalTrackersAddUpdateRemoveQuery():
-    bz = _open_bz()
+def test14ExternalTrackersAddUpdateRemoveQuery(backends):
+    bz = _open_bz(**backends)
     bugid = 461686
     ext_bug_id = 380489
+
+    tests.utils.skip_if_rest(
+        bz, "unknown if REST API has externaltrackers support")
 
     # Delete any existing external trackers to get to a known state
     ids = [bug['id'] for bug in bz.getbug(bugid).external_bugs]
@@ -884,17 +888,19 @@ def test14ExternalTrackersAddUpdateRemoveQuery():
     assert len(ids) == 0
 
 
-def test15EnsureLoggedIn(run_cli):
-    bz = _open_bz()
+def test15EnsureLoggedIn(run_cli, backends):
+    bz = _open_bz(**backends)
     comm = "bugzilla --ensure-logged-in query --bug_id 979546"
     run_cli(comm, bz)
 
 
-def test16ModifyTags(run_cli):
+def test16ModifyTags(run_cli, backends):
     bugid = "461686"
     cmd = "bugzilla modify %s " % bugid
-    bz = _open_bz()
+    bz = _open_bz(**backends)
     bug = bz.getbug(bugid)
+
+    tests.utils.skip_if_rest(bz, "update_tags not supported for REST API")
 
     if bug.tags:
         bz.update_tags(bug.id, tags_remove=bug.tags)
@@ -914,12 +920,9 @@ def test16ModifyTags(run_cli):
     assert bug.tags == []
 
 
-def test17LoginAPIKey():
+def test17LoginAPIKey(backends):
     api_key = "somefakeapikey1234"
-    bz = _open_bz(use_creds=False, api_key=api_key)
-    if bz.bz_ver_major < 5:
-        pytest.skip("can only test apikey on bugzilla 5+")
-
+    bz = _open_bz(use_creds=False, api_key=api_key, **backends)
     try:
         assert bz.logged_in is False
 

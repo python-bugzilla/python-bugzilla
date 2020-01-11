@@ -1,6 +1,12 @@
 # This work is licensed under the GNU GPLv2 or later.
 # See the COPYING file in the top-level directory.
 
+from logging import getLogger
+
+import requests
+
+log = getLogger(__name__)
+
 
 class _BackendBase(object):
     """
@@ -11,6 +17,17 @@ class _BackendBase(object):
     def __init__(self, url, bugzillasession):
         self._url = url
         self._bugzillasession = bugzillasession
+
+
+    @staticmethod
+    def probe(url):
+        try:
+            requests.head(url).raise_for_status()
+            return True  # pragma: no cover
+        except Exception as e:
+            log.debug("Failed to probe url=%s : %s", url, str(e))
+        return False
+
 
     #################
     # Internal APIs #

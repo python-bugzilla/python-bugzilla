@@ -10,6 +10,8 @@ import pprint
 import shlex
 import sys
 
+import pytest
+
 import bugzilla._cli
 from bugzilla._compatimports import IS_PY3
 
@@ -62,6 +64,11 @@ def open_functional_bz(bzclass, url, kwargs):
 
     session.request = fake_request
     return bz
+
+
+def skip_if_rest(bz, msg):
+    if bz.is_rest():
+        pytest.skip(msg)
 
 
 def diff_compare(inputdata, filename, expect_out=None):
