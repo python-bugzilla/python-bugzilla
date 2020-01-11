@@ -43,6 +43,27 @@ def monkeypatch_getpass(monkeypatch):
             raw_input)  # pylint: disable=undefined-variable
 
 
+def open_functional_bz(bzclass, url, kwargs):
+    bz = bzclass(url, **kwargs)
+
+    if kwargs.get("force_rest", False):
+        assert bz.is_rest() is True
+    if kwargs.get("force_xmlrpc", False):
+        assert bz.is_xmlrpc() is True
+
+    # Set a session timeout of 30 seconds
+    session = bz.get_requests_session()
+    origrequest = session.request
+
+    def fake_request(*args, **kwargs):
+        if "timeout" not in kwargs:
+            kwargs["timeout"] = 60
+        return origrequest(*args, **kwargs)
+
+    session.request = fake_request
+    return bz
+
+
 def diff_compare(inputdata, filename):
     """Compare passed string output to contents of filename"""
     filename = tests_path(filename)

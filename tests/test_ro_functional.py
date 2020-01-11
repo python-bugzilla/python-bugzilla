@@ -24,13 +24,7 @@ REDHAT_URL = (tests.CLICONFIG.REDHAT_URL or
 def _open_bz(url, **kwargs):
     if "use_creds" not in kwargs:
         kwargs["use_creds"] = False
-    bz = bugzilla.Bugzilla(url, **kwargs)
-
-    if kwargs.get("force_rest", False):
-        assert bz.is_rest() is True
-    if kwargs.get("force_xmlrpc", False):
-        assert bz.is_xmlrpc() is True
-    return bz
+    return tests.utils.open_functional_bz(bugzilla.Bugzilla, url, kwargs)
 
 
 def _check(out, mincount, expectstr):

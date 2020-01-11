@@ -33,7 +33,11 @@ def _split_int(s):
     return [int(i) for i in s.split(",")]
 
 
-if not bugzilla.RHBugzilla(url=RHURL).logged_in:
+def _open_bz(**kwargs):
+    return tests.utils.open_functional_bz(bugzilla.RHBugzilla, RHURL, kwargs)
+
+
+if not _open_bz().logged_in:
     print("\nR/W tests require cached login credentials for url=%s\n" % RHURL)
     sys.exit(1)
 
@@ -48,10 +52,6 @@ def _check_have_admin(bz):
     if not ret:
         print("\nNo admin privs, reduced testing of %s" % funcname)
     return ret
-
-
-def _open_bz(**kwargs):
-    return bugzilla.RHBugzilla(url=RHURL, **kwargs)
 
 
 def test0LoggedInNoCreds():
