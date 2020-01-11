@@ -300,6 +300,16 @@ def test_get_xmlrpc_proxy():
     assert hasattr(bz.get_requests_session(), "request")
 
 
+def test_requests_session_passthrough():
+    import requests
+    session = requests.Session()
+
+    bz = tests.mockbackend.make_bz(
+        bz_kwargs={"requests_session": session, "sslverify": False})
+    assert bz.get_requests_session() is session
+    assert session.verify is False
+
+
 def test_query_url_fail():
     # test some handling of query from_url errors
     query = {"query_format": "advanced", "product": "FOO"}

@@ -176,7 +176,7 @@ class Bugzilla(object):
     def __init__(self, url=-1, user=None, password=None, cookiefile=-1,
                  sslverify=True, tokenfile=-1, use_creds=True, api_key=None,
                  cert=None, configpaths=-1, basic_auth=False,
-                 force_rest=False, force_xmlrpc=False):
+                 force_rest=False, force_xmlrpc=False, requests_session=None):
         """
         :param url: The bugzilla instance URL, which we will connect
             to immediately. Most users will want to specify this at
@@ -211,6 +211,9 @@ class Bugzilla(object):
         :param force_xmlrpc: Force use of the XMLRPC API. If neither force_X
             parameter are specified, heuristics will be used to determine
             which API to use, with XMLRPC preferred for back compatability.
+        :param requests_session: An optional requests.Session object the
+            API will use to contact the remote bugzilla instance. This
+            way the API user can set up whatever auth bits they may need.
         """
         if url == -1:
             raise TypeError("Specify a valid bugzilla url, or pass url=None")
@@ -224,6 +227,7 @@ class Bugzilla(object):
 
         self._backend = None
         self._session = None
+        self._user_requests_session = requests_session
         self._sslverify = sslverify
         self._cache = _BugzillaAPICache()
         self._bug_autorefresh = False
@@ -491,7 +495,8 @@ class Bugzilla(object):
                 sslverify=self._sslverify,
                 cert=self.cert,
                 tokencache=self._tokencache,
-                api_key=self.api_key)
+                api_key=self.api_key,
+                requests_session=self._user_requests_session)
         backendclass = self._get_backend_class()
         self._backend = backendclass(url, self._session)
 

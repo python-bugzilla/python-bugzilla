@@ -17,8 +17,8 @@ class _BugzillaSession(object):
     Class to handle the backend agnostic 'requests' setup
     """
     def __init__(self, url, user_agent,
-            cookiecache=None, sslverify=True, cert=None,
-            tokencache=None, api_key=None):
+            cookiecache, sslverify, cert,
+            tokencache, api_key, requests_session=None):
         self._url = url
         self._user_agent = user_agent
         self._scheme = urlparse(url)[0]
@@ -30,13 +30,16 @@ class _BugzillaSession(object):
             raise Exception("Invalid URL scheme: %s (%s)" % (
                 self._scheme, url))
 
-        self._session = requests.Session()
+        self._session = requests_session
+        if not self._session:
+            self._session = requests.Session()
+
         if cert:
             self._session.cert = cert
         if self._cookiecache:
             self._session.cookies = self._cookiecache.get_cookiejar()
-
-        self._session.verify = sslverify
+        if sslverify is False:
+            self._session.verify = False
         self._session.headers["User-Agent"] = self._user_agent
         self._session.params["Bugzilla_api_key"] = self._api_key
         self._set_tokencache_param()
