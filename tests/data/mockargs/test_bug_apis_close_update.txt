@@ -1,6 +1,6 @@
-{'cf_fixed_in': '1.2.3.4.5',
- 'comment': {'comment': 'foocomment2'},
- 'dupe_of': 123456,
- 'ids': [1165434],
- 'resolution': 'UPSTREAM',
- 'status': 'CLOSED'}
+([1165434],
+ {'cf_fixed_in': '1.2.3.4.5',
+  'comment': {'comment': 'foocomment2'},
+  'dupe_of': 123456,
+  'resolution': 'UPSTREAM',
+  'status': 'CLOSED'})

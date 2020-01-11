@@ -1,3 +1,2 @@
-{'cc': {'remove': ['foo2@example.com']},
- 'comment': {'comment': 'foocomment'},
- 'ids': [1165434]}
+([1165434],
+ {'cc': {'remove': ['foo2@example.com']}, 'comment': {'comment': 'foocomment'}})

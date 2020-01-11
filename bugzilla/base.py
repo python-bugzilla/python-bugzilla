@@ -1035,42 +1035,47 @@ class Bugzilla(object):
         Return a list of dicts of full bug info for each given bug id.
         bug ids that couldn't be found will return None instead of a dict.
         """
-        oldidlist = idlist
-        idlist = []
-        for i in oldidlist:
-            try:
-                idlist.append(int(i))
-            except ValueError:
-                # String aliases can be passed as well
-                idlist.append(i)
+        ids = []
+        aliases = []
+
+        def _alias_or_int(_v):
+            if str(_v).isdigit():
+                return int(_v), None
+            return None, str(_v)
+
+        for idstr in idlist:
+            idint, alias = _alias_or_int(idstr)
+            if alias:
+                aliases.append(alias)
+            else:
+                ids.append(idstr)
 
         extra_fields = listify(extra_fields or [])
         extra_fields += self._getbug_extra_fields()
 
-        getbugdata = {"ids": idlist}
+        getbugdata = {}
         if permissive:
             getbugdata["permissive"] = 1
 
         getbugdata.update(self._process_include_fields(
             include_fields, exclude_fields, extra_fields))
 
-        r = self._backend.bug_get(getbugdata)
+        r = self._backend.bug_get(ids, aliases, getbugdata)
 
-        bugdict = dict([(b['id'], b) for b in r['bugs']])
+        # Do some wrangling to ensure we return bugs in the same order
+        # the were passed in, for historical reasons
         ret = []
-        for i in idlist:
-            found = None
-            if i in bugdict:
-                found = bugdict[i]
-            else:
-                # Need to map an alias
-                for valdict in bugdict.values():
-                    if i in listify(valdict.get("alias", None) or []):
-                        found = valdict
-                        break
+        for idval in idlist:
+            idint, alias = _alias_or_int(idval)
+            for bugdict in r["bugs"]:
+                if idint and idint != bugdict.get("id", None):
+                    continue
+                aliaslist = listify(bugdict.get("alias", None) or [])
+                if alias and alias not in aliaslist:
+                    continue
 
-            ret.append(found)
-
+                ret.append(bugdict)
+                break
         return ret
 
     def _getbug(self, objid, **kwargs):
@@ -1115,7 +1120,7 @@ class Bugzilla(object):
         Returns a dictionary of bugs and comments.  The comments key will
         be empty.  See bugzilla docs for details
         """
-        return self._backend.bug_comments({'ids': idlist})
+        return self._backend.bug_comments(idlist, {})
 
 
     #################
@@ -1318,7 +1323,7 @@ class Bugzilla(object):
         Experimental. Gets the history of changes for
         particular bugs in the database.
         """
-        return self._backend.bug_history({'ids': bug_ids})
+        return self._backend.bug_history(bug_ids, {})
 
 
     #######################################
@@ -1336,9 +1341,7 @@ class Bugzilla(object):
         build_update(), otherwise we cannot guarantee back compatibility.
         """
         tmp = updates.copy()
-        tmp["ids"] = listify(ids)
-
-        return self._backend.bug_update(tmp)
+        return self._backend.bug_update(listify(ids), tmp)
 
     def update_tags(self, idlist, tags_add=None, tags_remove=None):
         """
@@ -1351,11 +1354,10 @@ class Bugzilla(object):
             tags["remove"] = listify(tags_remove)
 
         d = {
-            "ids": listify(idlist),
             "tags": tags,
         }
 
-        return self._backend.bug_update_tags(d)
+        return self._backend.bug_update_tags(listify(idlist), d)
 
     def update_flags(self, idlist, flags):
         """
@@ -1573,8 +1575,6 @@ class Bugzilla(object):
         if not isinstance(data, bytes):  # pragma: no cover
             data = data.encode(locale.getpreferredencoding())
 
-        kwargs['ids'] = listify(idlist)
-
         if 'file_name' not in kwargs and hasattr(f, "name"):
             kwargs['file_name'] = os.path.basename(f.name)
         if 'content_type' not in kwargs:
@@ -1584,7 +1584,8 @@ class Bugzilla(object):
                     kwargs['file_name'], strict=False)[0]
             kwargs['content_type'] = ctype or 'application/octet-stream'
 
-        ret = self._backend.bug_attachment_create(data, kwargs)
+        ret = self._backend.bug_attachment_create(
+            listify(idlist), data, kwargs)
 
         if "attachments" in ret:
             # Up to BZ 4.2
@@ -1639,9 +1640,10 @@ class Bugzilla(object):
 
         flags = {"name": flagname}
         flags.update(kwargs)
-        update = {'ids': [int(attachid)], 'flags': [flags]}
+        attachment_ids = [int(attachid)]
+        update = {'flags': [flags]}
 
-        return self._backend.bug_attachment_update(update)
+        return self._backend.bug_attachment_update(attachment_ids, update)
 
     def get_attachments(self, ids, attachment_ids,
                         include_fields=None, exclude_fields=None):

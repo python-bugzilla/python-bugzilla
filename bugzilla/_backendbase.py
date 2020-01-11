@@ -65,7 +65,7 @@ class _BackendBase(object):
         """
         raise NotImplementedError()
 
-    def bug_attachment_create(self, data, paramdict):
+    def bug_attachment_create(self, bug_ids, data, paramdict):
         """
         Create a bug attachment
         http://bugzilla.readthedocs.io/en/latest/api/core/v1/attachment.html#create-attachment
@@ -76,7 +76,7 @@ class _BackendBase(object):
         """
         raise NotImplementedError()
 
-    def bug_attachment_update(self, paramdict):
+    def bug_attachment_update(self, attachment_ids, paramdict):
         """
         Update a bug attachment
         http://bugzilla.readthedocs.io/en/latest/api/core/v1/attachment.html#update-attachment
@@ -88,7 +88,7 @@ class _BackendBase(object):
     # bug APIs #
     ############
 
-    def bug_comments(self, paramdict):
+    def bug_comments(self, bug_ids, paramdict):
         """
         Fetch bug comments
         http://bugzilla.readthedocs.io/en/latest/api/core/v1/comment.html#get-comments
@@ -109,14 +109,14 @@ class _BackendBase(object):
         """
         raise NotImplementedError()
 
-    def bug_get(self, paramdict):
+    def bug_get(self, bug_ids, aliases, paramdict):
         """
         Lookup bug data by ID
         http://bugzilla.readthedocs.io/en/latest/api/core/v1/bug.html#get-bug
         """
         raise NotImplementedError()
 
-    def bug_history(self, paramdict):
+    def bug_history(self, bug_ids, paramdict):
         """
         Lookup bug history
         http://bugzilla.readthedocs.io/en/latest/api/core/v1/bug.html#bug-history
@@ -137,14 +137,14 @@ class _BackendBase(object):
         """
         raise NotImplementedError()
 
-    def bug_update(self, paramdict):
+    def bug_update(self, bug_ids, paramdict):
         """
         Update bugs
         http://bugzilla.readthedocs.io/en/latest/api/core/v1/bug.html#update-bug
         """
         raise NotImplementedError()
 
-    def bug_update_tags(self, paramdict):
+    def bug_update_tags(self, bug_ids, paramdict):
         """
         Update bug tags
         https://www.bugzilla.org/docs/4.4/en/html/api/Bugzilla/WebService/Bug.html#update_tags

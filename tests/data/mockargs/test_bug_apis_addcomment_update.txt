@@ -1,1 +1,1 @@
-{'comment': {'comment': 'test comment', 'is_private': True}, 'ids': [1165434]}
+([1165434], {'comment': {'comment': 'test comment', 'is_private': True}})

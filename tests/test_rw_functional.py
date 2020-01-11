@@ -551,9 +551,9 @@ def _test8Attachments(run_cli):
     assert setbug.attachments[-1]["flags"] == []
 
     # Set attachment obsolete
-    bz._backend.bug_attachment_update({  # pylint: disable=protected-access
-        "ids": [setbug.attachments[-1]["id"]],
-        "is_obsolete": 1})
+    bz._backend.bug_attachment_update(  # pylint: disable=protected-access
+        [setbug.attachments[-1]["id"]],
+        {"is_obsolete": 1})
     setbug.refresh()
     assert setbug.attachments[-1]["is_obsolete"] == 1
 

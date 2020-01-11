@@ -41,7 +41,7 @@ class BackendMock(_BackendBase):
         # suite running on python2
         if "content-disposition" in str(args):
             largs = list(args)
-            largs[0] = "STRIPPED-BY-TESTSUITE"
+            largs[1] = "STRIPPED-BY-TESTSUITE"
             args = tuple(largs)
 
         if filename or expect_out:

@@ -1,5 +1,5 @@
-('STRIPPED-BY-TESTSUITE',
+(['123456'],
+ 'STRIPPED-BY-TESTSUITE',
  {'content_type': 'text/plain',
   'file_name': 'fake-file-name.txt',
-  'ids': ['123456'],
   'summary': 'Some attachment description'})

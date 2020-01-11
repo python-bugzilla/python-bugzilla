@@ -269,7 +269,7 @@ def test_bugs_history_raw():
     # Stub test for bugs_history_raw
     ids = ["12345", 567]
     bz = tests.mockbackend.make_bz(
-        bug_history_args={"ids": ids},
+        bug_history_args=(ids, {}),
         bug_history_return={})
     bz.bugs_history_raw(ids)
 
@@ -278,7 +278,7 @@ def test_get_comments():
     # Stub test for get_commands
     ids = ["12345", 567]
     bz = tests.mockbackend.make_bz(
-        bug_comments_args={"ids": ids},
+        bug_comments_args=(ids, {}),
         bug_comments_return={})
     bz.get_comments(ids)
 

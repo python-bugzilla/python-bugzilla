@@ -1,1 +1,1 @@
-{'flags': [{'name': 'someflag', 'status': 'someval'}], 'ids': [1165434]}
+([1165434], {'flags': [{'name': 'someflag', 'status': 'someval'}]})

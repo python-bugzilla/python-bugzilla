@@ -1,2 +1,2 @@
-{'flags': [{'is_patch': True, 'name': 'needinfo', 'value': 'foobar'}],
- 'ids': [112233]}
+([112233],
+ {'flags': [{'is_patch': True, 'name': 'needinfo', 'value': 'foobar'}]})

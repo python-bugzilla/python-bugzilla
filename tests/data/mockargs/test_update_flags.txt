@@ -1,1 +1,1 @@
-{'flags': {'name': 'needinfo', 'status': '?'}, 'ids': [12345, 6789]}
+([12345, 6789], {'flags': {'name': 'needinfo', 'status': '?'}})

@@ -167,31 +167,46 @@ class _BackendXMLRPC(_BackendBase):
         data = paramdict.copy()
         data["ids"] = listify(bug_ids)
         return self._xmlrpc_proxy.Bug.attachments(data)
-    def bug_attachment_create(self, data, paramdict):
+    def bug_attachment_create(self, bug_ids, data, paramdict):
+        pdata = paramdict.copy()
+        pdata["ids"] = listify(bug_ids)
         if data is not None and "data" not in paramdict:
-            paramdict["data"] = Binary(data)
-        return self._xmlrpc_proxy.Bug.add_attachment(paramdict)
-    def bug_attachment_update(self, paramdict):
-        return self._xmlrpc_proxy.Bug.update_attachment(paramdict)
+            pdata["data"] = Binary(data)
+        return self._xmlrpc_proxy.Bug.add_attachment(pdata)
+    def bug_attachment_update(self, attachment_ids, paramdict):
+        data = paramdict.copy()
+        data["ids"] = listify(attachment_ids)
+        return self._xmlrpc_proxy.Bug.update_attachment(data)
 
-    def bug_comments(self, paramdict):
-        return self._xmlrpc_proxy.Bug.comments(paramdict)
+    def bug_comments(self, bug_ids, paramdict):
+        data = paramdict.copy()
+        data["ids"] = listify(bug_ids)
+        return self._xmlrpc_proxy.Bug.comments(data)
     def bug_create(self, paramdict):
         return self._xmlrpc_proxy.Bug.create(paramdict)
     def bug_fields(self, paramdict):
         return self._xmlrpc_proxy.Bug.fields(paramdict)
-    def bug_get(self, paramdict):
-        return self._xmlrpc_proxy.Bug.get(paramdict)
-    def bug_history(self, paramdict):
-        return self._xmlrpc_proxy.Bug.history(paramdict)
+    def bug_get(self, bug_ids, aliases, paramdict):
+        data = paramdict.copy()
+        data["ids"] = listify(bug_ids) or []
+        data["ids"] += listify(aliases) or []
+        return self._xmlrpc_proxy.Bug.get(data)
+    def bug_history(self, bug_ids, paramdict):
+        data = paramdict.copy()
+        data["ids"] = listify(bug_ids)
+        return self._xmlrpc_proxy.Bug.history(data)
     def bug_legal_values(self, paramdict):
         return self._xmlrpc_proxy.Bug.legal_values(paramdict)
     def bug_search(self, paramdict):
         return self._xmlrpc_proxy.Bug.search(paramdict)
-    def bug_update(self, paramdict):
-        return self._xmlrpc_proxy.Bug.update(paramdict)
-    def bug_update_tags(self, paramdict):
-        return self._xmlrpc_proxy.Bug.update_tags(paramdict)
+    def bug_update(self, bug_ids, paramdict):
+        data = paramdict.copy()
+        data["ids"] = listify(bug_ids)
+        return self._xmlrpc_proxy.Bug.update(data)
+    def bug_update_tags(self, bug_ids, paramdict):
+        data = paramdict.copy()
+        data["ids"] = listify(bug_ids)
+        return self._xmlrpc_proxy.Bug.update_tags(data)
 
     def component_create(self, paramdict):
         return self._xmlrpc_proxy.Component.create(paramdict)
