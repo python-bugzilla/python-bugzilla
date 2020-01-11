@@ -11,8 +11,6 @@
 Unit tests that do readonly functional tests against real bugzilla instances.
 """
 
-import os
-
 import bugzilla
 import tests
 
@@ -208,26 +206,6 @@ def testQueryURL(run_cli):
     _check(out, 22, "#553878 CLOSED")
 
 
-def testDoubleConnect():
-    bz = _open_bz(REDHAT_URL)
-    bz.connect(REDHAT_URL)
-
-
-def testQueryFlags(run_cli):
-    bz = _open_bz(REDHAT_URL)
-
-    if not bz.logged_in:
-        print("not logged in, skipping testQueryFlags")
-        return
-
-    out = run_cli("bugzilla query --product 'Red Hat Enterprise Linux 5' "
-        "--component virt-manager --bug_status CLOSED "
-        "--flag rhel-5.4.0+", bz)
-    assert len(out.splitlines()) > 13
-    assert len(out.splitlines()) < 26
-    assert "223805" in out
-
-
 def testQueryFixedIn(run_cli):
     bz = _open_bz(REDHAT_URL)
 
@@ -348,17 +326,7 @@ def testFaults(run_cli):
     assert "--nosslverify" in out
 
 
-def testCertFail(run_cli):
-    # No public setup that I know of to test cert succeeds, so
-    # let's give it a bogus file and ensure it fails
-    badcert = os.path.join(os.path.dirname(__file__), "..", "README.md")
-    out = run_cli(
-        "bugzilla --cert %s query --bug_id 123456" % badcert,
-        None, expectfail=True)
-    assert "PEM" in out
-
-
-def test_redhat():
+def test_redhat_version():
     bzversion = (5, 0)
     bz = _open_bz(REDHAT_URL)
 
