@@ -54,6 +54,7 @@ def pytest_ignore_collect(path, config):
         if is_rw and not has_rw:
             return True
     elif skip_rest:
+        config.option.verbose = 2
         return True
 
 
