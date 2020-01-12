@@ -29,7 +29,7 @@ class Bug(object):
         # API had pre-existing issue that we can't change ('dict' usage)
 
         self.bugzilla = bugzilla
-        self._bug_fields = []
+        self._rawdata = {}
         self.autorefresh = autorefresh
 
         if not dict:
@@ -111,41 +111,45 @@ class Bug(object):
         Refresh the bug with the latest data from bugzilla
         """
         # pylint: disable=protected-access
+        extra_fields = list(self._rawdata.keys()) + (extra_fields or [])
         r = self.bugzilla._getbug(self.bug_id,
             include_fields=include_fields, exclude_fields=exclude_fields,
-            extra_fields=self._bug_fields + (extra_fields or []))
+            extra_fields=extra_fields)
         # pylint: enable=protected-access
         self._update_dict(r)
     reload = refresh
+
+    def _translate_dict(self, newdict):
+        if not self.bugzilla:
+            return
+
+        self.bugzilla.post_translation({}, newdict)
+
+        # pylint: disable=protected-access
+        aliases = self.bugzilla._get_bug_aliases()
+        # pylint: enable=protected-access
+
+        for newname, oldname in aliases:
+            if oldname not in newdict:
+                continue
+
+            if newname not in newdict:
+                newdict[newname] = newdict[oldname]
+            elif newdict[newname] != newdict[oldname]:
+                log.debug("Update dict contained differing alias values "
+                          "d[%s]=%s and d[%s]=%s , dropping the value "
+                          "d[%s]", newname, newdict[newname], oldname,
+                        newdict[oldname], oldname)
+            del(newdict[oldname])
+
 
     def _update_dict(self, newdict):
         """
         Update internal dictionary, in a way that ensures no duplicate
         entries are stored WRT field aliases
         """
-        if self.bugzilla:
-            self.bugzilla.post_translation({}, newdict)
-
-            # pylint: disable=protected-access
-            aliases = self.bugzilla._get_bug_aliases()
-            # pylint: enable=protected-access
-
-            for newname, oldname in aliases:
-                if oldname not in newdict:
-                    continue
-
-                if newname not in newdict:
-                    newdict[newname] = newdict[oldname]
-                elif newdict[newname] != newdict[oldname]:
-                    log.debug("Update dict contained differing alias values "
-                              "d[%s]=%s and d[%s]=%s , dropping the value "
-                              "d[%s]", newname, newdict[newname], oldname,
-                            newdict[oldname], oldname)
-                del(newdict[oldname])
-
-        for key in newdict.keys():
-            if key not in self._bug_fields:
-                self._bug_fields.append(key)
+        self._translate_dict(newdict)
+        self._rawdata.update(newdict)
         self.__dict__.update(newdict)
 
         if 'id' not in self.__dict__ and 'bug_id' not in self.__dict__:
@@ -157,13 +161,10 @@ class Bug(object):
     ##################
 
     def __getstate__(self):
-        ret = {}
-        for key in self._bug_fields:
-            ret[key] = self.__dict__[key]
-        return ret
+        return self._rawdata
 
     def __setstate__(self, vals):
-        self._bug_fields = []
+        self._rawdata = {}
         self.bugzilla = None
         self._update_dict(vals)
 
