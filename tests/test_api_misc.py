@@ -198,6 +198,12 @@ def test_api_login():
     bz.connect("https:///fake/bugzilla.redhat.com")
     bz.connect()
 
+    # Test auto login if user/password is set
+    bz = tests.mockbackend.make_bz(
+        bz_kwargs={"user": "FOO", "password": "BAR"},
+        user_login_args="data/mockargs/test_api_login2.txt",
+        user_login_return={})
+
 
 def test_interactive_login(capsys, monkeypatch):
     bz = tests.mockbackend.make_bz(

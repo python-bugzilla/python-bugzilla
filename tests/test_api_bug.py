@@ -92,6 +92,11 @@ def test_api_getbugs():
     assert bug.alias == ["CVE-1234-5678"]
     assert bug.autorefresh is True
 
+    fakebz = tests.mockbackend.make_bz(
+        bug_get_args="data/mockargs/test_api_getbugs2.txt",
+        bug_get_return={"bugs": [{}, {}]})
+    assert fakebz.getbugs(["123456", "CVE-1234-FAKE"]) == []
+
 
 def test_bug_getattr():
     fakebz = tests.mockbackend.make_bz(
