@@ -597,17 +597,16 @@ class Bugzilla(object):
         if not self.password:
             raise ValueError("missing password")
 
+        payload = {"login": user}
         if restrict_login:
-            log.info("logging in with restrict_login=True")
+            payload['restrict_login'] = True
+        log.debug("logging in with options %s", str(payload))
+        payload['password'] = password
 
         try:
-            payload = {'login': user, 'password': password}
-            if restrict_login:
-                payload['restrict_login'] = True
-
             ret = self._backend.user_login(payload)
             self.password = ''
-            log.info("login successful for user=%s", self.user)
+            log.info("login succeeded for user=%s", self.user)
             return ret
         except Exception as e:
             log.debug("Login exception: %s", str(e), exc_info=True)
@@ -663,7 +662,6 @@ class Bugzilla(object):
 
         log.info('Logging in... ')
         self.login(user, password, restrict_login)
-        log.info('Authorization cookie received.')
 
     def logout(self):
         """
