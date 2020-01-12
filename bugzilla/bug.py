@@ -6,6 +6,7 @@
 # This work is licensed under the GNU GPLv2 or later.
 # See the COPYING file in the top-level directory.
 
+import copy
 from logging import getLogger
 
 from ._util import to_encoding
@@ -106,6 +107,13 @@ class Bug(object):
                     "been cached when the bug was fetched. You may want "
                     "to adjust your include_fields for getbug/query." % name)
         raise AttributeError(msg)
+
+    def get_raw_data(self):
+        """
+        Return the raw API dictionary data that has been used to
+        populate this bug
+        """
+        return copy.deepcopy(self._rawdata)
 
     def refresh(self, include_fields=None, exclude_fields=None,
         extra_fields=None):
