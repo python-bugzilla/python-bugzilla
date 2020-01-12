@@ -613,7 +613,12 @@ class Bugzilla(object):
             raise BugzillaError("Login failed: %s" %
                     BugzillaError.get_bugzilla_error_string(e))
 
-    def _ask_api_key(self):
+    def interactive_save_api_key(self):
+        """
+        Helper method to interactively ask for an API key, verify it
+        is valid, and save it to a bugzillarc file referenced via
+        self.configpaths
+        """
         sys.stdout.write('API Key: ')
         sys.stdout.flush()
         api_key = sys.stdin.readline().strip()
@@ -637,7 +642,7 @@ class Bugzilla(object):
         print(msg)
 
     def interactive_login(self, user=None, password=None, force=False,
-                          restrict_login=None, use_api_key=False):
+                          restrict_login=None):
         """
         Helper method to handle login for this bugzilla instance.
 
@@ -645,14 +650,9 @@ class Bugzilla(object):
         :param password: bugzilla password. If not specified, prompt for it.
         :param force: Unused
         :param restrict_login: restricts session to IP address
-        :param use_api_key: If True, prompt for an api_key instead
         """
         ignore = force
         log.debug('Calling interactive_login')
-
-        if use_api_key:
-            self._ask_api_key()
-            return
 
         if not user:
             sys.stdout.write('Bugzilla Username: ')

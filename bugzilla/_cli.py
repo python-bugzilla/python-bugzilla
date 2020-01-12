@@ -1037,11 +1037,11 @@ def _handle_login(opt, action, bz):
     use_key = getattr(opt, "api_key", False)
 
     try:
-        if do_interactive_login or use_key:
-            if bz.url and not use_key:
-                print("Logging into %s" % urlparse(bz.url)[1])
+        if use_key:
+            bz.interactive_save_api_key()
+        elif do_interactive_login:
+            print("Logging into %s" % urlparse(bz.url)[1])
             bz.interactive_login(username, password,
-                    use_api_key=use_key,
                     restrict_login=opt.restrict_login)
     except bugzilla.BugzillaError as e:
         print(str(e))
