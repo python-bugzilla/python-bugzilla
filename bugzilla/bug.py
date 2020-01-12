@@ -32,6 +32,10 @@ class Bug(object):
         self._rawdata = {}
         self.autorefresh = autorefresh
 
+        # pylint: disable=protected-access
+        self._aliases = self.bugzilla._get_bug_aliases()
+        # pylint: enable=protected-access
+
         if not dict:
             dict = {}
         if bug_id:
@@ -59,8 +63,10 @@ class Bug(object):
                                           self.assigned_to, self.summary)
 
     def __repr__(self):
-        return '<Bug #%i on %s at %#x>' % (self.bug_id, self.bugzilla.url,
-                                           id(self))
+        url = ""
+        if self.bugzilla:
+            url = self.bugzilla.url
+        return '<Bug #%i on %s at %#x>' % (self.bug_id, url, id(self))
 
     def __getattr__(self, name):
         refreshed = False
@@ -70,11 +76,7 @@ class Bug(object):
                 # have never been called.
                 return self.__dict__[name]
 
-            # pylint: disable=protected-access
-            aliases = self.bugzilla._get_bug_aliases()
-            # pylint: enable=protected-access
-
-            for newname, oldname in aliases:
+            for newname, oldname in self._aliases:
                 if name == oldname and newname in self.__dict__:
                     return self.__dict__[newname]
 
@@ -120,16 +122,10 @@ class Bug(object):
     reload = refresh
 
     def _translate_dict(self, newdict):
-        if not self.bugzilla:
-            return
+        if self.bugzilla:
+            self.bugzilla.post_translation({}, newdict)
 
-        self.bugzilla.post_translation({}, newdict)
-
-        # pylint: disable=protected-access
-        aliases = self.bugzilla._get_bug_aliases()
-        # pylint: enable=protected-access
-
-        for newname, oldname in aliases:
+        for newname, oldname in self._aliases:
             if oldname not in newdict:
                 continue
 
@@ -161,11 +157,15 @@ class Bug(object):
     ##################
 
     def __getstate__(self):
-        return self._rawdata
+        ret = self._rawdata.copy()
+        ret["_aliases"] = self._aliases
+        return ret
 
     def __setstate__(self, vals):
         self._rawdata = {}
         self.bugzilla = None
+        self._aliases = vals.get("_aliases", [])
+        self.autorefresh = False
         self._update_dict(vals)
 
 

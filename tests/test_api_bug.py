@@ -70,6 +70,8 @@ def testBasic():
     fd.seek(0)
     bug = pickle.load(fd)
     assert getattr(bug, "bugzilla") is None
+    assert str(bug)
+    assert repr(bug)
     bug.bugzilla = rhbz
     _assert_bug()
 
