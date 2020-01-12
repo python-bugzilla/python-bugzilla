@@ -505,9 +505,6 @@ class Group(object):
         """
         Retrieve the members of this Group from bugzilla
         """
-        if self.membership:
-            return self.membership
-
-        self.refresh(membership=True)
-
+        if not self.membership:
+            self.refresh(membership=True)
         return self.membership

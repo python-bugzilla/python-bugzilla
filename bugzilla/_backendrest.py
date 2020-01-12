@@ -167,6 +167,9 @@ class _BackendREST(_BackendBase):
         raise BugzillaError(
             "No REST API available yet for externalbugs_update")
 
+    def group_get(self, paramdict):
+        return self._get("/group", paramdict)
+
     def product_get(self, paramdict):
         return self._get("/product/get", paramdict)
     def product_get_accessible(self):

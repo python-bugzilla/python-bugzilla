@@ -204,6 +204,17 @@ class _BackendBase(object):
         raise NotImplementedError()
 
 
+    ##############
+    # Group APIs #
+    ##############
+
+    def group_get(self, paramdict):
+        """
+        https://bugzilla.readthedocs.io/en/latest/api/core/v1/group.html#get-group
+        """
+        raise NotImplementedError()
+
+
     ################
     # Product APIs #
     ################

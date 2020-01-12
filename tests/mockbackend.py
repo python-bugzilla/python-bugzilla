@@ -86,6 +86,9 @@ class BackendMock(_BackendBase):
     def component_update(self, *args):
         return self.__helper(args)
 
+    def group_get(self, *args):
+        return self.__helper(args)
+
     def externalbugs_add(self, *args):
         return self.__helper(args)
     def externalbugs_update(self, *args):

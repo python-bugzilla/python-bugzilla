@@ -696,6 +696,15 @@ def test11UserUpdate(backends):
         assert group in user.groupnames
     origgroups = user.groupnames
 
+    # Test group_get
+    try:
+        group = bz.getgroup("fedora_contrib")
+        group.refresh()
+    except Exception as e:
+        if have_admin:
+            raise
+        assert bugzilla.BugzillaError.get_bugzilla_error_code(e) == 805
+
     # Remove the group
     try:
         bz.updateperms(email, "remove", [group])

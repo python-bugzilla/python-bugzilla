@@ -1913,7 +1913,7 @@ class Bugzilla(object):
         """
         params = {"membership": membership}
         params['names'] = listify(names)
-        return self._proxy.Group.get(params)
+        return self._backend.group_get(params)
 
     def getgroup(self, name, membership=False):
         """

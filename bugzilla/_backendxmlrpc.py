@@ -218,6 +218,9 @@ class _BackendXMLRPC(_BackendBase):
     def externalbugs_remove(self, paramdict):
         return self._xmlrpc_proxy.ExternalBugs.remove_external_bug(paramdict)
 
+    def group_get(self, paramdict):
+        return self._xmlrpc_proxy.Group.get(paramdict)
+
     def product_get(self, paramdict):
         return self._xmlrpc_proxy.Product.get(paramdict)
     def product_get_accessible(self):
