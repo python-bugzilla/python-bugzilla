@@ -1053,11 +1053,6 @@ def _handle_login(opt, action, bz):
         sys.exit(1)
 
     if is_login_command:
-        msg = "Login successful."
-        if (bz.cookiefile or bz.tokenfile) and not use_key:
-            msg = "Login successful, token cache updated."
-
-        print(msg)
         sys.exit(0)
 
 

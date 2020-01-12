@@ -58,12 +58,13 @@ def test_login(run_cli):
 
     # Returns success for logged_in check and hits a tokenfile line
     cmd = "bugzilla --ensure-logged-in "
-    cmd += "--user FOO --password BAR login"
+    cmd += "login FOO BAR"
     fakebz = tests.mockbackend.make_bz(
         bz_kwargs={"use_creds": True},
         user_login_args="data/mockargs/test_login.txt",
-        user_login_return={},
+        user_login_return={'id': 1234, 'token': 'my-fake-token'},
         user_get_args=None,
         user_get_return={})
     out = run_cli(cmd, fakebz)
-    assert "token cache updated" in out
+    assert "Token cache saved" in out
+    assert fakebz.tokenfile in out

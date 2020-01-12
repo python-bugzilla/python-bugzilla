@@ -629,11 +629,12 @@ class Bugzilla(object):
         log.info('API Key accepted')
 
         wrote_filename = self._rcfile.save_api_key(self.url, self.api_key)
+        log.info("API key written to filename=%s", wrote_filename)
+
+        msg = "Login successful."
         if wrote_filename:
-            log.info("API key written to %s", wrote_filename)
-            print("API key written to %s" % wrote_filename)
-        else:  # pragma: no cover
-            log.info("API Key won't be updated because use_creds=False")
+            msg += " API key written to %s" % wrote_filename
+        print(msg)
 
     def interactive_login(self, user=None, password=None, force=False,
                           restrict_login=None, use_api_key=False):
@@ -661,7 +662,11 @@ class Bugzilla(object):
             password = getpass.getpass('Bugzilla Password: ')
 
         log.info('Logging in... ')
-        self.login(user, password, restrict_login)
+        out = self.login(user, password, restrict_login)
+        msg = "Login successful."
+        if "token" in out and self.tokenfile:
+            msg += " Token cache saved to %s" % self.tokenfile
+        print(msg)
 
     def logout(self):
         """
