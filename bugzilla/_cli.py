@@ -1040,6 +1040,10 @@ def _handle_login(opt, action, bz):
         if use_key:
             bz.interactive_save_api_key()
         elif do_interactive_login:
+            if bz.api_key:
+                print("You already have an API key configured for %s" % bz.url)
+                print("There is no need to cache a login token. Exiting.")
+                sys.exit(0)
             print("Logging into %s" % urlparse(bz.url)[1])
             bz.interactive_login(username, password,
                     restrict_login=opt.restrict_login)

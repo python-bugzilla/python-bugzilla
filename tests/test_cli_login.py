@@ -100,3 +100,9 @@ def test_interactive_login(monkeypatch, run_cli):
     assert tmp.name in out
     tests.utils.diff_compare(open(tmp.name).read(),
             "data/clioutput/test_interactive_login_apikey_rcfile.txt")
+
+    # Check that we don't attempt to log in if API key is configured
+    assert bz.api_key
+    cmd = "bugzilla login"
+    out = run_cli(cmd, bz)
+    assert "already have an API" in out
