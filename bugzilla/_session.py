@@ -58,6 +58,12 @@ class _BugzillaSession(object):
         self._session.headers["Content-Type"] = value
 
     def _set_tokencache_param(self):
+        if self._api_key:
+            # Don't add a token to the params list if an API key is set.
+            # Keeping API key solo means bugzilla will definitely fail
+            # if the key expires. Passing in a token could hide that
+            # fact, which could make it confusing to pinpoint the issue.
+            return
         token = self.get_token_value()
         self._session.params["Bugzilla_token"] = token
 
