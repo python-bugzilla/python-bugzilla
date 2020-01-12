@@ -1,6 +1,8 @@
 # This work is licensed under the GNU GPLv2 or later.
 # See the COPYING file in the top-level directory.
 
+import tempfile
+
 import pytest
 
 import bugzilla
@@ -68,3 +70,33 @@ def test_login(run_cli):
     out = run_cli(cmd, fakebz)
     assert "Token cache saved" in out
     assert fakebz.tokenfile in out
+
+
+def test_interactive_login(monkeypatch, run_cli):
+    bz = tests.mockbackend.make_bz(
+        user_login_args="data/mockargs/test_interactive_login.txt",
+        user_login_return={},
+        user_logout_args=None,
+        user_logout_return={},
+        user_get_args=None,
+        user_get_return={})
+
+    tests.utils.monkeypatch_getpass(monkeypatch)
+    cmd = "bugzilla login"
+    fakestdin = "fakeuser\nfakepass\n"
+    out = run_cli(cmd, bz, stdin=fakestdin)
+    assert "Bugzilla Username:" in out
+    assert "Bugzilla Password:" in out
+
+    # API key prompting and saving
+    tmp = tempfile.NamedTemporaryFile()
+    bz.configpath = [tmp.name]
+    bz.url = "https://example.com"
+
+    cmd = "bugzilla login --api-key"
+    fakestdin = "MY-FAKE-KEY\n"
+    out = run_cli(cmd, bz, stdin=fakestdin)
+    assert "API Key:" in out
+    assert tmp.name in out
+    tests.utils.diff_compare(open(tmp.name).read(),
+            "data/clioutput/test_interactive_login_apikey_rcfile.txt")

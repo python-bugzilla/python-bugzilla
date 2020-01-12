@@ -9,9 +9,6 @@
 Test miscellaneous API bits
 """
 
-import sys
-import tempfile
-
 import pytest
 
 import bugzilla
@@ -202,42 +199,12 @@ def test_api_login():
     bz = tests.mockbackend.make_bz(
         bz_kwargs={"user": "FOO", "password": "BAR"},
         user_login_args="data/mockargs/test_api_login2.txt",
-        user_login_return={})
-
-
-def test_interactive_login(capsys, monkeypatch):
-    bz = tests.mockbackend.make_bz(
-        user_login_args="data/mockargs/test_interactive_login.txt",
         user_login_return={},
         user_logout_args=None,
-        user_logout_return={},
-        user_get_args=None,
-        user_get_return={})
+        user_logout_return={})
 
-    tests.utils.monkeypatch_getpass(monkeypatch)
-
-    fakestdin = tests.utils.fake_stream("fakeuser\nfakepass\n")
-    monkeypatch.setattr(sys, "stdin", fakestdin)
-    bz.interactive_login()
+    # Test logout
     bz.logout()
-
-    out = capsys.readouterr()[0]
-    assert "Bugzilla Username:" in out
-    assert "Bugzilla Password:" in out
-
-    # API key prompting and saving
-    tmp = tempfile.NamedTemporaryFile()
-    bz.configpath = [tmp.name]
-    bz.url = "https://example.com"
-
-    fakestdin = tests.utils.fake_stream("MY-FAKE-KEY\n")
-    monkeypatch.setattr(sys, "stdin", fakestdin)
-    bz.interactive_login(use_api_key=True)
-    out = capsys.readouterr()[0]
-    assert "API Key:" in out
-    assert tmp.name in out
-    tests.utils.diff_compare(open(tmp.name).read(),
-            "data/clioutput/test_interactive_login_apikey_rcfile.txt")
 
 
 def test_version_bad():
