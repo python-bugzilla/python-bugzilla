@@ -642,90 +642,98 @@ def _convert_to_outputformat(output):
     return fmt
 
 
+def _format_output_raw(buglist):
+    for b in buglist:
+        print("Bugzilla %s: " % b.bug_id)
+        SKIP_NAMES = ["bugzilla"]
+        for attrname in sorted(b.__dict__):
+            if attrname in SKIP_NAMES:
+                continue
+            if attrname.startswith("_"):
+                continue
+            print(to_encoding(u"ATTRIBUTE[%s]: %s" %
+                              (attrname, b.__dict__[attrname])))
+        print("\n\n")
+
+
+def _bug_field_repl_cb(bz, b, matchobj):
+    # whiteboard and flag allow doing
+    #   %{whiteboard:devel} and %{flag:needinfo}
+    # That's what 'rest' matches
+    (fieldname, rest) = matchobj.groups()
+
+    if fieldname == "whiteboard" and rest:
+        fieldname = rest + "_" + fieldname
+
+    if fieldname == "flag" and rest:
+        val = b.get_flag_status(rest)
+
+    elif fieldname in ["flags", "flags_requestee"]:
+        tmpstr = []
+        for f in getattr(b, "flags", []):
+            requestee = f.get('requestee', "")
+            if fieldname == "flags":
+                requestee = ""
+            if fieldname == "flags_requestee":
+                if requestee == "":
+                    continue
+                tmpstr.append("%s" % requestee)
+            else:
+                tmpstr.append("%s%s%s" %
+                        (f['name'], f['status'], requestee))
+
+        val = ",".join(tmpstr)
+
+    elif fieldname == "cve":
+        cves = []
+        for key in getattr(b, "keywords", []):
+            # grab CVE from keywords and blockers
+            if key.find("Security") == -1:
+                continue
+            for bl in b.blocks:
+                cvebug = bz.getbug(bl)
+                for cb in cvebug.alias:
+                    if (cb.find("CVE") != -1 and
+                        cb.strip() not in cves):
+                        cves.append(cb)
+        val = ",".join(cves)
+
+    elif fieldname == "comments":
+        val = ""
+        for c in getattr(b, "comments", []):
+            val += ("\n* %s - %s:\n%s\n" % (c['time'],
+                     c.get("creator", c.get("author", "")), c['text']))
+
+    elif fieldname == "external_bugs":
+        val = ""
+        for e in getattr(b, "external_bugs", []):
+            url = e["type"]["full_url"].replace("%id%", e["ext_bz_bug_id"])
+            if not val:
+                val += "\n"
+            val += "External bug: %s\n" % url
+
+    elif fieldname == "__unicode__":
+        val = b.__unicode__()
+    else:
+        val = getattr(b, fieldname, "")
+
+    vallist = isinstance(val, list) and val or [val]
+    val = ','.join([to_encoding(v) for v in vallist])
+
+    return val
+
+
 def _format_output(bz, opt, buglist):
     if opt.output == 'raw':
         buglist = bz.getbugs([b.bug_id for b in buglist])
-        for b in buglist:
-            print("Bugzilla %s: " % b.bug_id)
-            SKIP_NAMES = ["bugzilla"]
-            for attrname in sorted(b.__dict__):
-                if attrname in SKIP_NAMES:
-                    continue
-                if attrname.startswith("_"):
-                    continue
-                print(to_encoding(u"ATTRIBUTE[%s]: %s" %
-                                  (attrname, b.__dict__[attrname])))
-            print("\n\n")
+        _format_output_raw(buglist)
         return
 
-    def bug_field(matchobj):
-        # whiteboard and flag allow doing
-        #   %{whiteboard:devel} and %{flag:needinfo}
-        # That's what 'rest' matches
-        (fieldname, rest) = matchobj.groups()
-
-        if fieldname == "whiteboard" and rest:
-            fieldname = rest + "_" + fieldname
-
-        if fieldname == "flag" and rest:
-            val = b.get_flag_status(rest)
-
-        elif fieldname in ["flags", "flags_requestee"]:
-            tmpstr = []
-            for f in getattr(b, "flags", []):
-                requestee = f.get('requestee', "")
-                if fieldname == "flags":
-                    requestee = ""
-                if fieldname == "flags_requestee":
-                    if requestee == "":
-                        continue
-                    tmpstr.append("%s" % requestee)
-                else:
-                    tmpstr.append("%s%s%s" %
-                            (f['name'], f['status'], requestee))
-
-            val = ",".join(tmpstr)
-
-        elif fieldname == "cve":
-            cves = []
-            for key in getattr(b, "keywords", []):
-                # grab CVE from keywords and blockers
-                if key.find("Security") == -1:
-                    continue
-                for bl in b.blocks:
-                    cvebug = bz.getbug(bl)
-                    for cb in cvebug.alias:
-                        if (cb.find("CVE") != -1 and
-                            cb.strip() not in cves):
-                            cves.append(cb)
-            val = ",".join(cves)
-
-        elif fieldname == "comments":
-            val = ""
-            for c in getattr(b, "comments", []):
-                val += ("\n* %s - %s:\n%s\n" % (c['time'],
-                         c.get("creator", c.get("author", "")), c['text']))
-
-        elif fieldname == "external_bugs":
-            val = ""
-            for e in getattr(b, "external_bugs", []):
-                url = e["type"]["full_url"].replace("%id%", e["ext_bz_bug_id"])
-                if not val:
-                    val += "\n"
-                val += "External bug: %s\n" % url
-
-        elif fieldname == "__unicode__":
-            val = b.__unicode__()
-        else:
-            val = getattr(b, fieldname, "")
-
-        vallist = isinstance(val, list) and val or [val]
-        val = ','.join([to_encoding(v) for v in vallist])
-
-        return val
-
     for b in buglist:
-        print(format_field_re.sub(bug_field, opt.outputformat))
+        # pylint: disable=cell-var-from-loop
+        def cb(matchobj):
+            return _bug_field_repl_cb(bz, b, matchobj)
+        print(format_field_re.sub(cb, opt.outputformat))
 
 
 def _parse_triset(vallist, checkplus=True, checkminus=True, checkequal=True,
