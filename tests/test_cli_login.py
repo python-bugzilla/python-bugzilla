@@ -70,6 +70,7 @@ def test_login(run_cli):
     out = run_cli(cmd, fakebz)
     assert "Token cache saved" in out
     assert fakebz.tokenfile in out
+    assert "Consider using bugzilla API" in out
 
 
 def test_interactive_login(monkeypatch, run_cli):

@@ -667,6 +667,9 @@ class Bugzilla(object):
         msg = "Login successful."
         if "token" in out and self.tokenfile:
             msg += " Token cache saved to %s" % self.tokenfile
+            if self._get_version() >= 5.0:
+                msg += "\nToken usage is deprecated. "
+                msg += "Consider using bugzilla API keys instead."
         print(msg)
 
     def logout(self):
