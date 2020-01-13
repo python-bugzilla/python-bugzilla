@@ -3,7 +3,7 @@ bugzilla
 ========
 
 -----------------------------------------------
-command-line interface to Bugzilla over XML-RPC
+command line tool for interacting with Bugzilla
 -----------------------------------------------
 
 :Manual section: 1
@@ -19,7 +19,7 @@ SYNOPSIS
 DESCRIPTION
 ===========
 
-**bugzilla** is a command-line utility for interacting with a Bugzilla
+**bugzilla** is a command line tool for interacting with a Bugzilla
 instance over REST or XMLRPC.
 
 |
@@ -503,7 +503,7 @@ EXIT STATUS
 **bugzilla** normally returns 0 if the requested command was successful.
 Otherwise, exit status is 1 if **bugzilla** is interrupted by the user
 (or a login attempt fails), 2 if a socket error occurs (e.g. TCP
-connection timeout), and 3 if the server returns an XML-RPC fault.
+connection timeout), and 3 if the Bugzilla server throws an error.
 
 
 BUGS
