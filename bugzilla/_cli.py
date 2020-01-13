@@ -11,10 +11,13 @@
 
 from __future__ import print_function
 
+import argparse
+import base64
+import datetime
 import errno
+import json
 import locale
 from logging import getLogger, DEBUG, INFO, WARN, StreamHandler, Formatter
-import argparse
 import os
 import re
 import socket
@@ -160,6 +163,8 @@ def _parser_add_output_options(p):
             help="one line summary of the bug (useful for scripts)")
     outg.add_argument('--raw', action='store_const', dest='output',
             const='raw', help="raw output of the bugzilla contents")
+    outg.add_argument('--json', action='store_const', dest='output',
+            const='json', help="output contents in json format")
     outg.add_argument('--outputformat',
             help="Print output in the form given. "
                  "You can use RPM-style tags that match bug "
@@ -480,7 +485,7 @@ def _do_query(bz, opt, parser):
         setattr(opt, optname, val.split(","))
 
     include_fields = None
-    if opt.output == 'raw':
+    if opt.output in ['raw', 'json']:
         # 'raw' always does a getbug() call anyways, so just ask for ID back
         include_fields = ['id']
 
@@ -642,6 +647,25 @@ def _convert_to_outputformat(output):
     return fmt
 
 
+def _xmlrpc_converter(obj):
+    if "DateTime" in str(obj.__class__):
+        # xmlrpc DateTime object. Convert to date format that
+        # bugzilla REST API outputs
+        dobj = datetime.datetime.strptime(str(obj), '%Y%m%dT%H:%M:%S')
+        return dobj.isoformat() + "Z"
+    if "Binary" in str(obj.__class__):
+        # xmlrpc Binary object. Convert to base64
+        return base64.b64encode(obj.data).decode("utf-8")
+    raise RuntimeError(
+        "Unexpected JSON conversion class=%s" % obj.__class__)
+
+
+def _format_output_json(buglist):
+    out = {"bugs": [b.get_raw_data() for b in buglist]}
+    s = json.dumps(out, default=_xmlrpc_converter, indent=2, sort_keys=True)
+    print(s)
+
+
 def _format_output_raw(buglist):
     for b in buglist:
         print("Bugzilla %s: " % b.bug_id)
@@ -724,9 +748,12 @@ def _bug_field_repl_cb(bz, b, matchobj):
 
 
 def _format_output(bz, opt, buglist):
-    if opt.output == 'raw':
+    if opt.output in ['raw', 'json']:
         buglist = bz.getbugs([b.bug_id for b in buglist])
-        _format_output_raw(buglist)
+        if opt.output == 'json':
+            _format_output_json(buglist)
+        if opt.output == 'raw':
+            _format_output_raw(buglist)
         return
 
     for b in buglist:
@@ -1094,7 +1121,7 @@ def _main(unittest_bz_instance):
     ###########################
 
     if hasattr(opt, "outputformat"):
-        if not opt.outputformat and opt.output not in ['raw', None]:
+        if not opt.outputformat and opt.output not in ['raw', 'json', None]:
             opt.outputformat = _convert_to_outputformat(opt.output)
 
     buglist = []

@@ -45,6 +45,12 @@ def monkeypatch_getpass(monkeypatch):
             raw_input)  # pylint: disable=undefined-variable
 
 
+def sanitize_json(rawout):
+    # py2.7 leaves trailing whitespace after commas. strip it so
+    # tests pass on both python versions
+    return "\n".join([l.rstrip() for l in rawout.splitlines()])
+
+
 def open_functional_bz(bzclass, url, kwargs):
     bz = bzclass(url, **kwargs)
 

@@ -1,6 +1,7 @@
 # This work is licensed under the GNU GPLv2 or later.
 # See the COPYING file in the top-level directory.
 
+import json
 import os
 import re
 
@@ -119,3 +120,15 @@ def test_query(run_cli):
         bug_search_return="data/mockreturn/test_getbug_rhel.txt")
     out = run_cli(cmd, fakebz)
     tests.utils.diff_compare(out, "data/clioutput/test_query7.txt")
+
+    # Test --json output
+    cmd = "bugzilla query --json --id 1165434"
+    fakebz = tests.mockbackend.make_bz(
+        bug_search_args="data/mockargs/test_query8.txt",
+        bug_search_return={"bugs": [{"id": 1165434}]},
+        bug_get_args=None,
+        bug_get_return="data/mockreturn/test_getbug_rhel.txt")
+    out = run_cli(cmd, fakebz)
+    tests.utils.diff_compare(tests.utils.sanitize_json(out),
+        "data/clioutput/test_query8.txt")
+    assert json.loads(out)
