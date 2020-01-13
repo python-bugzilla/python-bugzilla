@@ -29,14 +29,14 @@ BuildRequires: python2-devel
 BuildRequires: python2-requests
 BuildRequires: python2-setuptools
 BuildRequires: python2-pytest
-%endif # with python2
+%endif
 
 %if %{with python3}
 BuildRequires: python3-devel
 BuildRequires: python3-requests
 BuildRequires: python3-setuptools
 BuildRequires: python3-pytest
-%endif # if with_python3
+%endif
 
 %global _description\
 python-bugzilla is a python library for interacting with bugzilla instances\
@@ -56,7 +56,7 @@ Requires: python-bugzilla-cli
 
 %description -n python2-bugzilla %_description
 
-%endif # with python2
+%endif
 
 
 %if %{with python3}
@@ -68,10 +68,10 @@ Requires: python3-requests
 %if %{without python2}
 Obsoletes:      python-bugzilla < %{version}-%{release}
 Obsoletes:      python2-bugzilla < %{version}-%{release}
-%endif # without python2
+%endif
 
 %description -n python3-bugzilla %_description
-%endif # if with_python3
+%endif
 
 
 %package cli
@@ -93,7 +93,7 @@ This package includes the 'bugzilla' command-line tool for interacting with bugz
 %if %{with python3}
 rm -rf %{py3dir}
 cp -a . %{py3dir}
-%endif # with_python3
+%endif
 
 
 
@@ -102,11 +102,11 @@ cp -a . %{py3dir}
 pushd %{py3dir}
 %{__python3} setup.py build
 popd
-%endif # with_python3
+%endif
 
 %if %{with python2}
 %{__python2} setup.py build
-%endif # with python2
+%endif
 
 
 
@@ -120,11 +120,11 @@ rm %{buildroot}/usr/bin/bugzilla
 %endif
 
 popd
-%endif # with_python3
+%endif
 
 %if %{with python2}
 %{__python2} setup.py install -O1 --skip-build --root %{buildroot}
-%endif # with python2
+%endif
 
 # Replace '#!/usr/bin/env python' with '#!/usr/bin/python2'
 # The format is ideal for upstream, but not a distro. See:
@@ -144,10 +144,10 @@ done
 %if %{with python2}
 # py.test naming is needed for RHEL7 compat, works fine with Fedora
 py.test
-%endif # with python2
+%endif
 %if %{with python3}
 pytest-3
-%endif # with python3
+%endif
 
 
 
@@ -155,13 +155,13 @@ pytest-3
 %files -n python2-bugzilla
 %doc COPYING README.md NEWS.md
 %{python2_sitelib}/*
-%endif # with python2
+%endif
 
 %if %{with python3}
 %files -n python3-bugzilla
 %doc COPYING README.md NEWS.md
 %{python3_sitelib}/*
-%endif # with_python3
+%endif
 
 %files cli
 %{_bindir}/bugzilla
