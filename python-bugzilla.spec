@@ -26,6 +26,7 @@ BuildArch:      noarch
 
 %if %{with python2}
 BuildRequires: python2-devel
+BuildRequires: python2-docutils
 BuildRequires: python2-requests
 BuildRequires: python2-setuptools
 BuildRequires: python2-pytest
@@ -33,6 +34,7 @@ BuildRequires: python2-pytest
 
 %if %{with python3}
 BuildRequires: python3-devel
+BuildRequires: python3-docutils
 BuildRequires: python3-requests
 BuildRequires: python3-setuptools
 BuildRequires: python3-pytest

@@ -6,6 +6,7 @@ import glob
 import os
 import sys
 
+import distutils.command.build
 from distutils.core import Command
 from setuptools import setup
 
@@ -97,6 +98,24 @@ class RPMCommand(Command):
             os.system("mv /tmp/python-bugzilla.spec .")
 
 
+class BuildCommand(distutils.command.build.build):
+    def _make_man_pages(self):
+        for path in glob.glob("man/*.rst"):
+            base = os.path.basename(path)
+            appname = os.path.splitext(base)[0]
+            newpath = os.path.join(os.path.dirname(path),
+                                   appname + ".1")
+
+            print("Generating %s" % newpath)
+            ret = os.system('rst2man %s > %s' % (path, newpath))
+            if ret != 0:
+                raise RuntimeError("Generating '%s' failed." % newpath)
+
+    def run(self):
+        self._make_man_pages()
+        distutils.command.build.build.run(self)
+
+
 def _parse_requirements(fname):
     ret = []
     for line in open(fname).readlines():
@@ -130,12 +149,13 @@ setup(
     ],
     packages=['bugzilla'],
     entry_points={'console_scripts': ['bugzilla = bugzilla._cli:cli']},
-    data_files=[('share/man/man1', ['bugzilla.1'])],
+    data_files=[('share/man/man1', ['man/bugzilla.1'])],
 
     install_requires=_parse_requirements("requirements.txt"),
     tests_require=_parse_requirements("test-requirements.txt"),
 
     cmdclass={
+        "build": BuildCommand,
         "pylint": PylintCommand,
         "rpm": RPMCommand,
         "test": TestCommand,

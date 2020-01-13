@@ -1,7 +1,7 @@
 include COPYING CONTRIBUTING.md MANIFEST.in README.md NEWS.md
-include bugzilla.1
 include xmlrpc-api-notes.txt
 include python-bugzilla.spec
 include *requirements.txt
+include man/bugzilla.rst
 recursive-include examples *.py
 recursive-include tests *.py *.txt *.cfg
