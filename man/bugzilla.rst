@@ -19,8 +19,8 @@ SYNOPSIS
 DESCRIPTION
 ===========
 
-**bugzilla** is a command-line utility that allows access to the XML-RPC
-interface provided by Bugzilla.
+**bugzilla** is a command-line utility for interacting with a Bugzilla
+instance over REST or XMLRPC.
 
 |
 | *command* is one of:
@@ -41,7 +41,18 @@ show this help message and exit
 
 - ``--bugzilla=BUGZILLA``
 
-bugzilla XMLRPC URI. default: https://bugzilla.redhat.com/xmlrpc.cgi
+The bugzilla URL. Full API URLs are typically like:
+
+|
+| * https://bugzilla.example.com/xmlrpc.cgi    # XMLRPC API
+| * https://bugzilla.example.com/rest/         # REST API
+|
+
+If a non-specific URL is passed, like 'bugzilla.redhat.com', **bugzilla**
+will try to probe whether the expected XMLRPC or REST path is available,
+preferring XMLRPC for backwards compatibility.
+
+The default URL https://bugzilla.redhat.com
 
 - ``--nosslverify``
 
@@ -230,7 +241,7 @@ RHBZ 'Fixed in version' field
 
 - ``--field=FIELD=VALUE``
 
-Manually specify a bugzilla XMLRPC field. FIELD is the raw name used
+Manually specify a bugzilla API field. FIELD is the raw name used
 by the bugzilla instance. For example if your bugzilla instance has a
 custom field cf_my_field, do: --field cf_my_field=VALUE
 
@@ -281,7 +292,7 @@ separated with ::, do:
 --outputformat "%{id}::%{component}::%{product}"
 
 The fields (like 'id', 'component', etc.) are the names of the values
-returned by bugzilla's XMLRPC interface. To see a list of all fields,
+returned by bugzilla's API. To see a list of all fields,
 check the API documentation in the 'SEE ALSO' section. Alternatively,
 run a 'bugzilla --debug query ...' and look at the key names returned in
 the query results. Also, in most cases, using the name of the associated
