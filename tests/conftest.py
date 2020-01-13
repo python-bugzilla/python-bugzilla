@@ -13,10 +13,6 @@ import tests.utils
 import bugzilla
 
 
-# Use consistent locale for tests
-locale.setlocale(locale.LC_CTYPE, 'en_US.UTF-8')
-
-
 # pytest plugin adding custom options. Hooks are documented here:
 # https://docs.pytest.org/en/latest/writing_plugins.html
 
@@ -61,6 +57,13 @@ def pytest_ignore_collect(path, config):
 
 
 def pytest_configure(config):
+    try:
+        # Needed for test reproducibility on systems not using a UTF-8 locale
+        locale.setlocale(locale.LC_ALL, 'C')
+        locale.setlocale(locale.LC_CTYPE, 'en_US.UTF-8')
+    except Exception as e:
+        print("Error setting locale: %s" % str(e))
+
     if config.getoption("--redhat-url"):
         tests.CLICONFIG.REDHAT_URL = config.getoption("--redhat-url")
     if config.getoption("--pybz-debug"):
