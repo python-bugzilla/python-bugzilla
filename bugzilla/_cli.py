@@ -161,10 +161,11 @@ def _parser_add_output_options(p):
     outg.add_argument('--oneline', action='store_const', dest='output',
             const='oneline',
             help="one line summary of the bug (useful for scripts)")
-    outg.add_argument('--raw', action='store_const', dest='output',
-            const='raw', help="raw output of the bugzilla contents")
     outg.add_argument('--json', action='store_const', dest='output',
             const='json', help="output contents in json format")
+    outg.add_argument('--raw', action='store_const', dest='output',
+            const='raw', help="raw output of the bugzilla contents. This "
+            "format is unstable and difficult to parse. Use --json instead.")
     outg.add_argument('--outputformat',
             help="Print output in the form given. "
                  "You can use RPM-style tags that match bug "

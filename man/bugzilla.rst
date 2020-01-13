@@ -268,13 +268,15 @@ output additional bug information (keywords, Whiteboards, etc.)
 
 one line summary of the bug (useful for scripts)
 
-- ``--raw``
-
-raw output of the bugzilla contents
-
 - ``--json``
 
 output bug contents in JSON format
+
+- ``--raw``
+
+raw output of the bugzilla contents. This format is unstable and
+difficult to parse. Please use the ``--json`` instead if you want
+maximum output from the `bugzilla`
 
 - ``--outputformat=OUTPUTFORMAT``
 
