@@ -1104,9 +1104,6 @@ def _main(unittest_bz_instance):
     log.debug("Launched with command line: %s", " ".join(sys.argv))
     log.debug("Bugzilla module: %s", bugzilla)
 
-    # Connect to bugzilla
-    log.info('Connecting to %s', opt.bugzilla)
-
     if unittest_bz_instance:
         bz = unittest_bz_instance
     else:

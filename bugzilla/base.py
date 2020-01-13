@@ -143,7 +143,6 @@ class Bugzilla(object):
         """
         scheme, netloc, path, params, query, fragment = urlparse(url)
         if not scheme:
-            log.debug('No scheme given for url, assuming https')
             scheme = 'https'
 
         if path and not netloc:
@@ -154,11 +153,8 @@ class Bugzilla(object):
             path = 'xmlrpc.cgi'
             if force_rest:
                 path = "rest/"
-            log.debug('No path given for url, assuming /%s', path)
 
         newurl = urlunparse((scheme, netloc, path, params, query, fragment))
-        if newurl != url:
-            log.debug("Generated fixed URL: %s", newurl)
         return newurl
 
     @staticmethod
@@ -499,19 +495,24 @@ class Bugzilla(object):
         if self._session:
             self.disconnect()
 
-        backendclass, url = self._get_backend_class(url or self.url)
-        self.url = url
+        url = url or self.url
+        backendclass, newurl = self._get_backend_class(url)
+        if url != newurl:
+            log.debug("Converted url=%s to fixed url=%s", url, newurl)
+        self.url = newurl
+        log.debug("Connecting with URL %s", self.url)
+
         # we've changed URLs - reload config
         self.readconfig(overwrite=False)
 
-        self._session = _BugzillaSession(url, self.user_agent,
+        self._session = _BugzillaSession(self.url, self.user_agent,
                 cookiecache=self._cookiecache,
                 sslverify=self._sslverify,
                 cert=self.cert,
                 tokencache=self._tokencache,
                 api_key=self.api_key,
                 requests_session=self._user_requests_session)
-        self._backend = backendclass(url, self._session)
+        self._backend = backendclass(self.url, self._session)
 
         if (self.user and self.password):
             log.info("user and password present - doing login()")
