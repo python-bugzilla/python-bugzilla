@@ -96,7 +96,10 @@ class BuildCommand(distutils.command.build.build):
             print("Generating %s" % newpath)
             ret = os.system('rst2man %s > %s' % (path, newpath))
             if ret != 0:
-                raise RuntimeError("Generating '%s' failed." % newpath)
+                print("Generating '%s' failed." % newpath)
+                continue
+            self.distribution.data_files.append(
+                ('share/man/man1', (newpath,)))
 
     def run(self):
         self._make_man_pages()
@@ -135,8 +138,8 @@ setup(
         'Programming Language :: Python :: 3.7',
     ],
     packages=['bugzilla'],
+    data_files=[],
     entry_points={'console_scripts': ['bugzilla = bugzilla._cli:cli']},
-    data_files=[('share/man/man1', ['man/bugzilla.1'])],
 
     install_requires=_parse_requirements("requirements.txt"),
     tests_require=_parse_requirements("test-requirements.txt"),

@@ -99,23 +99,10 @@ cp -a . %{py3dir}
 
 
 
-%build
-%if %{with python3}
-pushd %{py3dir}
-%{__python3} setup.py build
-popd
-%endif
-
-%if %{with python2}
-%{__python2} setup.py build
-%endif
-
-
-
 %install
 %if %{with python3}
 pushd %{py3dir}
-%{__python3} setup.py install -O1 --skip-build --root %{buildroot}
+%{__python3} setup.py install -O1 --root %{buildroot}
 
 %if %{with python2}
 rm %{buildroot}/usr/bin/bugzilla
@@ -125,7 +112,7 @@ popd
 %endif
 
 %if %{with python2}
-%{__python2} setup.py install -O1 --skip-build --root %{buildroot}
+%{__python2} setup.py install -O1 --root %{buildroot}
 %endif
 
 # Replace '#!/usr/bin/env python' with '#!/usr/bin/python2'
