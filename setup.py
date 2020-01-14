@@ -27,19 +27,6 @@ def get_version():
             return eval(line.split('=')[-1])  # pylint: disable=eval-used
 
 
-class TestCommand(Command):
-    user_options = []
-
-    def initialize_options(self):
-        pass
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        print("\n* Tests are now run with the 'pytest' tool.\n"
-              "* See CONTRIBUTING.md for details.")
-
-
 class PylintCommand(Command):
     user_options = []
 
@@ -158,6 +145,5 @@ setup(
         "build": BuildCommand,
         "pylint": PylintCommand,
         "rpm": RPMCommand,
-        "test": TestCommand,
     },
 )
