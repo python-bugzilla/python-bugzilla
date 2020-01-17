@@ -1906,9 +1906,9 @@ class Bugzilla(object):
 
     def _getgroups(self, names, membership=False):
         """
-        Return a list of users that match criteria.
+        Return a list of groups that match criteria.
 
-        :kwarg ids: list of user ids to return data on
+        :kwarg ids: list of group ids to return data on
         :kwarg membership: boolean specifying wether to query the members
             of the group or not.
         :raises XMLRPC Fault: Code 51: if a Bad Login Name was sent to the
@@ -1917,6 +1917,8 @@ class Bugzilla(object):
                 requested.
             Code 505: user is logged out and can't use the match or ids
                 parameter.
+            Code 805: logged in user do not have enough priviledges to view
+                groups.
         """
         params = {"membership": membership}
         params['names'] = listify(names)
@@ -1926,8 +1928,10 @@ class Bugzilla(object):
         """
         Return a bugzilla Group for the given name
 
-        :arg name: The name used in bugzilla.
+        :arg name: The group name used in bugzilla.
         :raises XMLRPC Fault: Code 51 if the name does not exist
+        :raises XMLRPC Fault: Code 805 if the user does not have enough
+            permissions to view groups
         :returns: Group record for the name
         """
         ret = self.getgroups(name, membership=membership)
