@@ -598,11 +598,11 @@ class Bugzilla(object):
         if not self.password:
             raise ValueError("missing password")
 
-        payload = {"login": user}
+        payload = {"login": self.user}
         if restrict_login:
             payload['restrict_login'] = True
         log.debug("logging in with options %s", str(payload))
-        payload['password'] = password
+        payload['password'] = self.password
 
         try:
             ret = self._backend.user_login(payload)
