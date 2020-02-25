@@ -1,30 +1,9 @@
-
-Fedora infrastructure depends on python-bugzilla in various ways:
-http://lists.fedorahosted.org/pipermail/python-bugzilla/2012-June/000001.html
-
-Red Hat bugzilla originally had a totally custom API. Much of that is
-being dropped in 2013, API conversions outlined here:
-https://bugzilla.redhat.com/show_bug.cgi?id=822007
-
-Externally facing RH bugzilla instance that doesn't send email and is
-refreshed periodically. This is what is used in the functional test suite:
-http://partner-bugzilla.redhat.com
-
-Some trackers in the wild to use for API testing:
-    bugzilla.redhat.com
-    bugzilla.mozilla.org
-    bugzilla.kernel.org
-    bugzilla.gnome.org
-    bugzilla.novell.com
-    bugzilla.zimbra.com
-    bugzilla.samba.org
-    bugs.gentoo.org
-
+This document tracks upstream bugzilla API changes, and related info.
 
   Upstream timeline
   =================
 
-Here's a timeline of the evolution of the upstream bugzilla XMLRPC API:
+Here's a timeline of the evolution of the upstream bugzilla XMLRPC/REST API:
 
 Bugzilla 2.*:
     No XMLRPC API that I can tell
@@ -109,8 +88,16 @@ Bugzilla 5.0: (July 2015)
     Component.create
     User.valid_login
 
+
 Bugzilla latest/tip:
     https://bugzilla.readthedocs.io/en/latest/api/index.html
+
+
+  Misc info
+  =========
+
+Bugzilla REST API code link
+    https://github.com/bugzilla/bugzilla/tree/5.2/Bugzilla/WebService/Server/REST/Resources
 
 
 Redhat Bugzilla: 5.0 based with extensions
