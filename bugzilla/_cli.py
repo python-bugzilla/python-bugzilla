@@ -292,6 +292,7 @@ def _setup_action_query_parser(subparsers):
         help="Owner ID of the --savedsearch. You can get this ID from "
             "the URL bugzilla generates when running the saved search "
             "from the web UI.")
+    g.add_argument('--desc_type', help="Type of long_desc")
 
     # Keep this at the end so it sticks out more
     g.add_argument('--from-url', metavar="WEB_QUERY_URL",
@@ -520,6 +521,7 @@ def _do_query(bz, opt, parser):
         bug_id=opt.id or None,
         short_desc=opt.summary or None,
         long_desc=opt.comment or None,
+        desc_type=opt.desc_type or None,
         cc=opt.cc or None,
         assigned_to=opt.assigned_to or None,
         qa_contact=opt.qa_contact or None,
@@ -552,6 +554,7 @@ def _do_query(bz, opt, parser):
     _merge_field_opts(built_query, opt, parser)
 
     built_query.update(q)
+
     q = built_query
 
     if not q:  # pragma: no cover

@@ -342,6 +342,13 @@ in it), and --from-url will run it via the bugzilla API. Don't forget
 to quote the string! This only works for Bugzilla 5 and Red Hat
 bugzilla
 
+- ``--desc_type COMMENT_TYPE``
+
+Change how the search in the comments is made (any single word or 
+search for the exact same string, etc). Possible values are:
+allwordssubstr, anywordssubstr, substring, casesubstring,
+allwords, anywords, regexp, notregexp, equals.
+Default to allwordssubstr.
 
 ‘modify’ specific options
 =========================

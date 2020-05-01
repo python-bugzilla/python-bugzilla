@@ -1154,6 +1154,7 @@ class Bugzilla(object):
                     component=None,
                     version=None,
                     long_desc=None,
+                    desc_type=None,
                     bug_id=None,
                     short_desc=None,
                     cc=None,
@@ -1281,7 +1282,11 @@ class Bugzilla(object):
         if long_desc is not None:
             query["query_format"] = "advanced"
             query["longdesc"] = long_desc
-            query["longdesc_type"] = "allwordssubstr"
+            if desc_type is not None:
+                query["longdesc_type"] = desc_type
+            else:
+                query["longdesc_type"] = "allwordssubstr"
+
 
         # 'include_fields' only available for Bugzilla4+
         # 'extra_fields' is an RHBZ extension
