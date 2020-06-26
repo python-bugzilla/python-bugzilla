@@ -108,4 +108,4 @@ def run_cli(capsys, monkeypatch):
     """
     def _do_run(*args, **kwargs):
         return tests.utils.do_run_cli(capsys, monkeypatch, *args, **kwargs)
-    yield _do_run
+    return _do_run

@@ -165,7 +165,15 @@ def test_authfiles_saving(monkeypatch):
         output_token = dirname + "output-token.txt"
         output_cookies = dirname + "output-cookies.txt"
         tests.utils.diff_compare(open(bzapi.tokenfile).read(), output_token)
-        tests.utils.diff_compare(open(bzapi.cookiefile).read(), output_cookies)
+
+        # On RHEL7 the cookie comment header is different. Strip off leading
+        # comments
+        def strip_comments(f):
+            return "".join([l for l in open(f).readlines() if
+                    not l.startswith("#")])
+
+        tests.utils.diff_compare(strip_comments(bzapi.cookiefile),
+                None, expect_out=strip_comments(output_cookies))
 
         # Make sure file can re-read them and not error
         bzapi = tests.mockbackend.make_bz(
