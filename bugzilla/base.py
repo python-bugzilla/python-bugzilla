@@ -109,8 +109,8 @@ class Bugzilla(object):
         q = {}
 
         # pylint: disable=unpacking-non-sequence
-        (ignore, ignore, path,
-         ignore, query, ignore) = urlparse(url)
+        (ignore1, ignore2, path,
+         ignore, query, ignore3) = urlparse(url)
 
         base = os.path.basename(path)
         if base not in ('buglist.cgi', 'query.cgi'):
