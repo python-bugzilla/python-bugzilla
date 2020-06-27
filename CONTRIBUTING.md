@@ -63,11 +63,3 @@ If you are submitting a patch, ensure the following:
 
 Running any of the functional tests is not a requirement for patch submission,
 but please give them a go if you are interested.
-
-Patches can be submitted via github pull-request, or via the mailing list
-at python-bugzilla@lists.fedorahosted.org using 'git send-email'.
-
-
-# Bug reports
-
-Bug reports should be submitted as github issues, or sent to the mailing list

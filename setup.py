@@ -118,9 +118,7 @@ def _parse_requirements(fname):
 setup(
     name='python-bugzilla',
     version=get_version(),
-    description='Bugzilla XMLRPC access module',
-    author='Cole Robinson',
-    author_email='python-bugzilla@lists.fedorahosted.org',
+    description='Library and command line tool for interacting with Bugzilla',
     license="GPLv2",
     url='https://github.com/python-bugzilla/python-bugzilla',
     classifiers=[
@@ -137,6 +135,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
     packages=['bugzilla'],
     data_files=[],
