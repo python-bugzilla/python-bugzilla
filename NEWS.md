@@ -1,5 +1,17 @@
 # python-bugzilla release news
 
+## Release 2.4.0 (June 29, 2020)
+- Bugzilla REST API support
+- Add --json command line output option
+- Add APIs for Bugzilla Groups (Pierre-Yves Chibon)
+- Add `Bugzilla.get_requests_session()` API to access raw requests Session
+- Add `Bugzilla.get_xmlrpc_proxy()` API to access raw ServerProxy
+- Add `Bugzilla requests_session=` init parameter to pass in auth, etc.
+- Add `bugzilla attach --ignore-obsolete` (Čestmír Kalina)
+- Add `bugzilla login --api-key` for API key prompting (Danilo C. L. de
+  Paula)
+- Add `bugzilla new --private`
+
 ## Release 2.3.0 (August 26, 2019)
 - restrict-login suppot (Viliam Krizan)
 - cli: Add support for private attachments (Brian 'Redbeard' Harrington)
