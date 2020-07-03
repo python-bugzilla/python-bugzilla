@@ -163,6 +163,21 @@ def _parser_add_output_options(p):
             help="one line summary of the bug (useful for scripts)")
     outg.add_argument('--json', action='store_const', dest='output',
             const='json', help="output contents in json format")
+    outg.add_argument("--includefield", action="append",
+            help="Pass the field name to bugzilla include_fields list. "
+                 "Only the fields passed to include_fields are returned "
+                 "by the bugzilla server. "
+                 "This can be specified multiple times.")
+    outg.add_argument("--extrafield", action="append",
+            help="Pass the field name to bugzilla extra_fields list. "
+                 "When used with --json this can be used to request "
+                 "bugzilla to return values for non-default fields. "
+                 "This can be specified multiple times.")
+    outg.add_argument("--excludefield", action="append",
+            help="Pass the field name to bugzilla exclude_fields list. "
+                 "When used with --json this can be used to request "
+                 "bugzilla to not return values for a field. "
+                 "This can be specified multiple times.")
     outg.add_argument('--raw', action='store_const', dest='output',
             const='raw', help="raw output of the bugzilla contents. This "
             "format is unstable and difficult to parse. Use --json instead.")
@@ -750,7 +765,21 @@ def _bug_field_repl_cb(bz, b, matchobj):
 
 def _format_output(bz, opt, buglist):
     if opt.output in ['raw', 'json']:
-        buglist = bz.getbugs([b.bug_id for b in buglist])
+        include_fields = None
+        exclude_fields = None
+        extra_fields = None
+
+        if opt.includefield:
+            include_fields = opt.includefield
+        if opt.excludefield:
+            exclude_fields = opt.excludefield
+        if opt.extrafield:
+            extra_fields = opt.extrafield
+
+        buglist = bz.getbugs([b.bug_id for b in buglist],
+                include_fields=include_fields,
+                exclude_fields=exclude_fields,
+                extra_fields=extra_fields)
         if opt.output == 'json':
             _format_output_json(buglist)
         if opt.output == 'raw':

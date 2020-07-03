@@ -229,6 +229,17 @@ def testQueryFixedIn(run_cli, backends):
     assert "#629311 CLOSED" in out
 
 
+def testQueryExtrafieldPool(run_cli, backends):
+    # rhbz has an agile 'pool' extension but doesn't return the field
+    # by default. Check that '-extrafield pool' returns it for --json output
+    bz = _open_bz(REDHAT_URL, **backends)
+
+    out1 = run_cli("bugzilla query --id 1717616 --json", bz)
+    out2 = run_cli("bugzilla query --id 1717616 --json --extrafield pool", bz)
+    assert "current_sprint_id" not in out1
+    assert "current_sprint_id" in out2
+
+
 def testComponentsDetails(backends):
     """
     Fresh call to getcomponentsdetails should properly refresh
