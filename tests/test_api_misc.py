@@ -22,6 +22,14 @@ def test_mock_rhbz():
     assert fakebz.__class__ == bugzilla.RHBugzilla
 
 
+def test_file_imports():
+    # Ensure historically stable import paths continue to work
+    # pylint: disable=unused-import
+    from bugzilla.rhbugzilla import RHBugzilla
+    from bugzilla.bug import Bug
+    from bugzilla.base import Bugzilla
+
+
 def testUserAgent():
     b3 = tests.mockbackend.make_bz(version="3.0.0")
     assert "python-bugzilla" in b3.user_agent

@@ -23,7 +23,7 @@ from ._backendxmlrpc import _BackendXMLRPC
 from ._compatimports import Mapping, urlparse, urlunparse, parse_qsl
 from .bug import Bug, Group, User
 from .exceptions import BugzillaError
-from .rhbugzilla import _RHBugzillaConverters
+from ._rhconverters import _RHBugzillaConverters
 from ._session import _BugzillaSession
 from ._util import listify
 
