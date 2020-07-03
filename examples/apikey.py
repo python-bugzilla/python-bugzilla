@@ -3,7 +3,7 @@
 # This work is licensed under the GNU GPLv2 or later.
 # See the COPYING file in the top-level directory.
 
-# create.py: Create a new bug report
+# apikey.py: Demostrate prompting for API key and passing it to Bugzilla
 # pylint: disable=undefined-variable
 
 from __future__ import print_function
