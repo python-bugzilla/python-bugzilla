@@ -38,11 +38,12 @@ def fake_stream(text):
 
 
 def monkeypatch_getpass(monkeypatch):
+    # pylint: disable=undefined-variable
     if IS_PY3:
-        monkeypatch.setattr(getpass, "getpass", input)
+        use_input = input  # noqa
     else:
-        monkeypatch.setattr(getpass, "getpass",
-            raw_input)  # pylint: disable=undefined-variable
+        use_input = raw_input  # noqa
+    monkeypatch.setattr(getpass, "getpass", use_input)
 
 
 def sanitize_json(rawout):

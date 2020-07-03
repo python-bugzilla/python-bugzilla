@@ -4,6 +4,7 @@
 # See the COPYING file in the top-level directory.
 
 # create.py: Create a new bug report
+# pylint: disable=undefined-variable
 
 from __future__ import print_function
 import sys
@@ -18,12 +19,10 @@ print("You can get an API key at:\n "
       "    https://landfill.bugzilla.org/bugzilla-5.0-branch/userprefs.cgi")
 print("This is a test site, so no harm will come!\n")
 
-# pylint: disable=undefined-variable
 if sys.version_info[0] >= 3:
-    api_key = input("Enter Bugzilla API Key: ")
+    api_key = input("Enter Bugzilla API Key: ")  # noqa
 else:
-    api_key = raw_input("Enter Bugzilla API Key: ")
-# pylint: enable=undefined-variable
+    api_key = raw_input("Enter Bugzilla API Key: ")  # noqa
 
 # API key usage assumes the API caller is storing the API key; if you would
 # like to use one of the login options that stores credentials on-disk for

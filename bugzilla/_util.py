@@ -20,11 +20,13 @@ def to_encoding(ustring):
     """
     Locale specific printing per python version
     """
+    # pylint: disable=undefined-variable
+
     ustring = ustring or ''
     if IS_PY3:
         return str(ustring)
     else:  # pragma: no cover
-        strtype = basestring  # pylint: disable=undefined-variable
+        strtype = basestring  # noqa
         string = ustring
         if not isinstance(ustring, strtype):
             string = str(ustring)
