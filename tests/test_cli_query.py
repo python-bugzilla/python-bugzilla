@@ -132,3 +132,18 @@ def test_query(run_cli):
     tests.utils.diff_compare(tests.utils.sanitize_json(out),
         "data/clioutput/test_query8.txt")
     assert json.loads(out)
+
+    # Test --json output
+    cmd = ("bugzilla query --json --id 1165434 "
+           "--includefield foo --includefield bar "
+           "--excludefield excludeme "
+           "--extrafield extrame1 --extrafield extrame2 ")
+    fakebz = tests.mockbackend.make_bz(rhbz=True,
+        bug_search_args="data/mockargs/test_query9.txt",
+        bug_search_return={"bugs": [{"id": 1165434}]},
+        bug_get_args="data/mockargs/test_getbug_query9.txt",
+        bug_get_return="data/mockreturn/test_getbug_rhel.txt")
+    out = run_cli(cmd, fakebz)
+    tests.utils.diff_compare(tests.utils.sanitize_json(out),
+        "data/clioutput/test_query9.txt")
+    assert json.loads(out)

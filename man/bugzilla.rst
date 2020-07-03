@@ -272,6 +272,27 @@ one line summary of the bug (useful for scripts)
 
 output bug contents in JSON format
 
+- ``--includefield``
+
+Pass the field name to bugzilla include_fields list.
+Only the fields passed to include_fields are returned
+by the bugzilla server.
+This can be specified multiple times.
+
+- ``--extrafield``
+
+Pass the field name to bugzilla extra_fields list.
+When used with --json this can be used to request
+bugzilla to return values for non-default fields.
+This can be specified multiple times.
+
+- ``--excludefield``
+
+Pass the field name to bugzilla exclude_fields list.
+When used with --json this can be used to request
+bugzilla to not return values for a field.
+This can be specified multiple times.
+
 - ``--raw``
 
 raw output of the bugzilla contents. This format is unstable and

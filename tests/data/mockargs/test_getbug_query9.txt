@@ -1,0 +1,13 @@
+([1165434],
+ [],
+ {'exclude_fields': ['excludeme'],
+  'extra_fields': ['extrame1',
+                   'extrame2',
+                   'comments',
+                   'description',
+                   'external_bugs',
+                   'flags',
+                   'sub_components',
+                   'tags'],
+  'include_fields': ['foo', 'bar', 'id'],
+  'permissive': 1})
