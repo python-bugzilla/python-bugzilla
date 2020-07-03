@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import glob
 import os
+import subprocess
 import sys
 
 import distutils.command.build
@@ -87,6 +88,13 @@ class RPMCommand(Command):
 
 class BuildCommand(distutils.command.build.build):
     def _make_man_pages(self):
+        from distutils.spawn import find_executable
+        rstbin = find_executable("rst2man")
+        if not rstbin:
+            rstbin = find_executable("rst2man.py")
+        if not rstbin:
+            sys.exit("Didn't find rst2man or rst2man.py")
+
         for path in glob.glob("man/*.rst"):
             base = os.path.basename(path)
             appname = os.path.splitext(base)[0]
@@ -94,10 +102,9 @@ class BuildCommand(distutils.command.build.build):
                                    appname + ".1")
 
             print("Generating %s" % newpath)
-            ret = os.system('rst2man %s > %s' % (path, newpath))
-            if ret != 0:
-                print("Generating '%s' failed." % newpath)
-                continue
+            out = subprocess.check_output([rstbin, path])
+            open(newpath, "wb").write(out)
+
             self.distribution.data_files.append(
                 ('share/man/man1', (newpath,)))
 
