@@ -1,0 +1,4 @@
+# The files aren't interesting for the unit tests run in CI
+ignore:
+  - "bugzilla/_backendrest.py"
+  - "bugzilla/_backendxmlrpc.py"
