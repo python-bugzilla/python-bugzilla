@@ -16,7 +16,7 @@ URL = "partner-bugzilla.redhat.com"
 
 # By default, if plain Bugzilla(URL) is invoked, the Bugzilla class will
 # attempt to determine if XMLRPC or REST API is available, with a preference
-# for XMLRPC for back compatability. But you can for use for the REST API
+# for XMLRPC for back compatability. But you can use the REST API
 # with force_rest=True
 bzapi = bugzilla.Bugzilla(URL, force_rest=True)
 

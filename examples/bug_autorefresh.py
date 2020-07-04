@@ -51,6 +51,6 @@ except AttributeError:
 # Why does this matter? Some scripts are implicitly depending on this
 # auto-refresh behavior, because their include_fields specification doesn't
 # cover all attributes they actually use. Your script will work, sure, but
-# it's likely doing many more XML-RPC calls than needed, possibly 1 per bug.
+# it's likely doing many more API calls than needed, possibly 1 per bug.
 # So if after upgrading python-bugzilla you start hitting issues, the
 # recommendation is to fix your include_fields.

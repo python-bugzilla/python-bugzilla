@@ -42,7 +42,7 @@ BuildRequires: python3-pytest
 
 %global _description\
 python-bugzilla is a python library for interacting with bugzilla instances\
-over XML-RPC.\
+over XMLRPC or REST.\
 
 %description %_description
 

@@ -25,7 +25,7 @@ if not bzapi.logged_in:
 # Similar to build_query, build_createbug is a helper function that handles
 # some bugzilla version incompatibility issues. All it does is return a
 # properly formatted dict(), and provide friendly parameter names.
-# The argument names map to those accepted by XMLRPC Bug.create:
+# The argument names map to those accepted by Bugzilla Bug.create:
 # https://bugzilla.readthedocs.io/en/latest/api/core/v1/bug.html#create-bug
 #
 # The arguments specified here are mandatory, but there are many other

@@ -101,7 +101,7 @@ def _setup_root_parser():
 
     # General bugzilla connection options
     p.add_argument('--bugzilla', default=default_url,
-            help="bugzilla XMLRPC URI. default: %s" % default_url)
+            help="bugzilla URI. default: %s" % default_url)
     p.add_argument("--nosslverify", dest="sslverify",
                  action="store_false", default=True,
                  help="Don't error on invalid bugzilla SSL certificate")
@@ -258,7 +258,7 @@ def _parser_add_bz_fields(rootp, command):
     # Put this at the end, so it sticks out more
     p.add_argument('--field',
         metavar="FIELD=VALUE", action="append", dest="fields",
-        help="Manually specify a bugzilla XMLRPC field. FIELD is "
+        help="Manually specify a bugzilla API field. FIELD is "
         "the raw name used by the bugzilla instance. For example, if your "
         "bugzilla instance has a custom field cf_my_field, do:\n"
         "  --field cf_my_field=VALUE")
@@ -969,7 +969,7 @@ def _do_modify(bz, parser, opt):
     # Now for the things we can't blindly batch.
     # Being able to prepend/append to whiteboards, which are just
     # plain string values, is an old rhbz semantic that we try to maintain
-    # here. This is a bit weird for traditional bugzilla XMLRPC
+    # here. This is a bit weird for traditional bugzilla API
     log.debug("Adjusting whiteboard fields one by one")
     for bug in bz.getbugs(bugid_list):
         update_kwargs = {}

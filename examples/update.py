@@ -22,7 +22,7 @@ if not bzapi.logged_in:
 # Similar to build_query, build_update is a helper function that handles
 # some bugzilla version incompatibility issues. All it does is return a
 # properly formatted dict(), and provide friendly parameter names.
-# The param names map to those accepted by XMLRPC Bug.update:
+# The param names map to those accepted by Bugzilla Bug.update:
 # https://bugzilla.readthedocs.io/en/latest/api/core/v1/bug.html#update-bug
 #
 # Example bug: https://partner-bugzilla.redhat.com/show_bug.cgi?id=427301

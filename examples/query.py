@@ -20,7 +20,7 @@ bzapi = bugzilla.Bugzilla(URL)
 # build_query is a helper function that handles some bugzilla version
 # incompatibility issues. All it does is return a properly formatted
 # dict(), and provide friendly parameter names. The param names map
-# to those accepted by XMLRPC Bug.search:
+# to those accepted by Bugzilla Bug.search:
 # https://bugzilla.readthedocs.io/en/latest/api/core/v1/bug.html#search-bugs
 query = bzapi.build_query(
     product="Fedora",
