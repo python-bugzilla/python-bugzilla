@@ -1,5 +1,9 @@
 # python-bugzilla release news
 
+## Release 2.5.0 (July 04, 2020)
+- cli: Add query --extrafield, --includefield, --excludefield
+- Revive bugzilla.rhbugzilla.RHBugzilla import path
+
 ## Release 2.4.0 (June 29, 2020)
 - Bugzilla REST API support
 - Add --json command line output option
