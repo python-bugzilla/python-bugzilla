@@ -64,7 +64,8 @@ class PylintCommand(Command):
 
 
 class RPMCommand(Command):
-    description = "Build src and binary rpms."
+    description = ("Build src and binary rpms and output them "
+        "in the source directory")
     user_options = []
 
     def initialize_options(self):
@@ -73,17 +74,15 @@ class RPMCommand(Command):
         pass
 
     def run(self):
-        """
-        Run sdist, then 'rpmbuild' the tar.gz
-        """
-        os.system("cp python-bugzilla.spec /tmp")
-        try:
-            os.system("rm -rf python-bugzilla-%s" % get_version())
-            self.run_command('sdist')
-            os.system('rpmbuild -ta --clean dist/python-bugzilla-%s.tar.gz' %
-                      get_version())
-        finally:
-            os.system("mv /tmp/python-bugzilla.spec .")
+        self.run_command('sdist')
+        srcdir = os.path.dirname(__file__)
+        cmd = [
+            "rpmbuild", "-ta",
+            "--define", "_rpmdir %s" % srcdir,
+            "--define", "_srcrpmdir %s" % srcdir,
+            "dist/python-bugzilla-%s.tar.gz" % get_version(),
+        ]
+        subprocess.check_call(cmd)
 
 
 class BuildCommand(distutils.command.build.build):
