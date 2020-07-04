@@ -1,3 +1,6 @@
+[![CI](https://github.com/python-bugzilla/python-bugzilla/workflows/CI/badge.svg)](https://github.com/python-bugzilla/python-bugzilla/actions?query=workflow%3ACI)
+[![PyPI](https://img.shields.io/pypi/v/python-bugzilla)](https://pypi.org/project/python-bugzilla/)
+
 # python-bugzilla
 
 This package provides two bits:
