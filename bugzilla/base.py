@@ -270,9 +270,15 @@ class Bugzilla(object):
         """
         from .oldclasses import RHBugzilla  # pylint: disable=cyclic-import
 
-        if self._detect_is_redhat_bugzilla():
+        if not self._detect_is_redhat_bugzilla():
+            return
+
+        self._is_redhat_bugzilla = True
+        if self.__class__ == Bugzilla:
+            # Overriding the class doesn't have any functional effect,
+            # but we continue to do it for API back compat incase anyone
+            # is doing any class comparison. We should drop this in the future
             self.__class__ = RHBugzilla
-            self._is_redhat_bugzilla = True
 
     def _get_field_aliases(self):
         # List of field aliases. Maps old style RHBZ parameter

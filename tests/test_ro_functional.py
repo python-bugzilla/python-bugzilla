@@ -19,10 +19,11 @@ REDHAT_URL = (tests.CLICONFIG.REDHAT_URL or
     "https://bugzilla.redhat.com")
 
 
-def _open_bz(url, **kwargs):
+def _open_bz(url, bzclass=None, **kwargs):
     if "use_creds" not in kwargs:
         kwargs["use_creds"] = False
-    return tests.utils.open_functional_bz(bugzilla.Bugzilla, url, kwargs)
+    return tests.utils.open_functional_bz(bzclass or bugzilla.Bugzilla,
+            url, kwargs)
 
 
 def _check(out, mincount, expectstr):
@@ -39,11 +40,21 @@ def _test_version(bz, bzversion):
     assert bz.bz_ver_minor == bzversion[1]
 
 
+def test_bugzilla_override():
+    class MyBugzilla(bugzilla.Bugzilla):
+        pass
+
+    bz = _open_bz("bugzilla.redhat.com", bzclass=MyBugzilla)
+    assert bz.__class__ is MyBugzilla
+    assert bz._is_redhat_bugzilla is True  # pylint: disable=protected-access
+
+
 def test_rest_xmlrpc_detection():
     # The default: use XMLRPC
     bz = _open_bz("bugzilla.redhat.com")
     assert bz.is_xmlrpc()
     assert "/xmlrpc.cgi" in bz.url
+    assert bz.__class__ is bugzilla.RHBugzilla
 
     # See /rest in the URL, so use REST
     bz = _open_bz("bugzilla.redhat.com/rest")
