@@ -80,6 +80,7 @@ class RPMCommand(Command):
             "rpmbuild", "-ta",
             "--define", "_rpmdir %s" % srcdir,
             "--define", "_srcrpmdir %s" % srcdir,
+            "--define", "_specdir /tmp",
             "dist/python-bugzilla-%s.tar.gz" % get_version(),
         ]
         subprocess.check_call(cmd)
