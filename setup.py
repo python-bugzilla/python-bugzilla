@@ -57,7 +57,7 @@ class PylintCommand(Command):
 
         print("running pylint")
         pylint_opts = [
-            "--rcfile", "pylintrc",
+            "--rcfile", ".pylintrc",
             "--output-format=%s" % output_format,
         ]
         pylint.lint.Run(files + pylint_opts)
