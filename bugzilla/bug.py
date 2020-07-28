@@ -401,6 +401,7 @@ class User(object):
         self.__name = kwargs.get('name')
 
         self.__email = kwargs.get('email', self.__name)
+        self.__email_enabled = kwargs.get('email_enabled', True)
         self.__can_login = kwargs.get('can_login', False)
 
         self.real_name = kwargs.get('real_name', None)
@@ -432,6 +433,10 @@ class User(object):
     @property
     def can_login(self):
         return self.__can_login
+
+    @property
+    def email_enabled(self):
+        return self.__email_enabled
 
     # name is a key in some methods.  Mark it dirty when we change it #
     @property
