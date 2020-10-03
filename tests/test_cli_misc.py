@@ -9,8 +9,6 @@
 Test miscellaneous CLI bits to get build out our code coverage
 """
 
-from __future__ import print_function
-
 import base64
 import datetime
 import json

@@ -7,8 +7,6 @@
 #            Simple demonstration of connecting to bugzilla over the REST
 #            API and printing some bug details.
 
-from __future__ import print_function
-
 import bugzilla
 
 # public test instance of bugzilla.redhat.com. It's okay to make changes

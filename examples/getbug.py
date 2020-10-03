@@ -6,8 +6,6 @@
 # getbug.py: Simple demonstration of connecting to bugzilla, fetching
 #            a bug, and printing some details.
 
-from __future__ import print_function
-
 import pprint
 
 import bugzilla

@@ -6,8 +6,6 @@
 # bug_autorefresh.py: Show what bug_autorefresh is all about, and explain
 #   how to handle the default change via python-bugzilla in 2016
 
-from __future__ import print_function
-
 import bugzilla
 
 # public test instance of bugzilla.redhat.com. It's okay to make changes

@@ -9,8 +9,6 @@
 import copy
 from logging import getLogger
 
-from ._util import to_encoding
-
 
 log = getLogger(__name__)
 
@@ -49,17 +47,13 @@ class Bug(object):
     def __str__(self):
         """
         Return a simple string representation of this bug
-
-        This is available only for compatibility. Using 'str(bug)' and
-        'print(bug)' is not recommended because of potential encoding issues.
-        Please use unicode(bug) where possible.
         """
-        return to_encoding(self.__unicode__())
+        return self.__unicode__()
 
     def __unicode__(self):
         """
         Return a simple unicode string representation of this bug
-    """
+        """
         return "#%-6s %-10s - %s - %s" % (self.bug_id, self.bug_status,
                                           self.assigned_to, self.summary)
 

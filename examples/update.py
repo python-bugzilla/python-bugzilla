@@ -5,8 +5,6 @@
 
 # update.py: Make changes to an existing bug
 
-from __future__ import print_function
-
 import time
 
 import bugzilla

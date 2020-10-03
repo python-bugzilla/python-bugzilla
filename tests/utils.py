@@ -13,7 +13,6 @@ import sys
 import pytest
 
 import bugzilla._cli
-from bugzilla._compatimports import IS_PY3
 
 import tests
 
@@ -30,20 +29,8 @@ def tests_path(filename):
     return filename
 
 
-def fake_stream(text):
-    if IS_PY3:
-        return io.StringIO(text)
-    else:
-        return io.BytesIO(text)
-
-
 def monkeypatch_getpass(monkeypatch):
-    # pylint: disable=undefined-variable
-    if IS_PY3:
-        use_input = input  # noqa
-    else:
-        use_input = raw_input  # noqa
-    monkeypatch.setattr(getpass, "getpass", use_input)
+    monkeypatch.setattr(getpass, "getpass", input)
 
 
 def sanitize_json(rawout):
@@ -118,7 +105,7 @@ def do_run_cli(capsys, monkeypatch,
     argv = shlex.split(argvstr)
     monkeypatch.setattr(sys, "argv", argv)
     if stdin:
-        monkeypatch.setattr(sys, "stdin", fake_stream(stdin))
+        monkeypatch.setattr(sys, "stdin", io.StringIO(stdin))
     else:
         monkeypatch.setattr(sys.stdin, "isatty", lambda: True)
 

@@ -9,8 +9,6 @@
 # This work is licensed under the GNU GPLv2 or later.
 # See the COPYING file in the top-level directory.
 
-from __future__ import print_function
-
 import argparse
 import base64
 import datetime
@@ -28,7 +26,6 @@ import requests.exceptions
 
 import bugzilla
 from bugzilla._compatimports import Fault, ProtocolError, urlparse
-from bugzilla._util import to_encoding
 
 
 DEFAULT_BZ = 'https://bugzilla.redhat.com'
@@ -620,13 +617,12 @@ def _do_info(bz, opt):
     elif opt.versions:
         proddict = bz.getproducts()[0]
         for v in proddict['versions']:
-            print(to_encoding(v["name"]))
+            print(str(v["name"] or ''))
 
     elif opt.component_owners:
         details = bz.getcomponentsdetails(productname)
         for c in sorted(_filter_components(details)):
-            print(to_encoding(u"%s: %s" % (c,
-                details[c]['default_assigned_to'])))
+            print(u"%s: %s" % (c, details[c]['default_assigned_to']))
 
 
 def _convert_to_outputformat(output):
@@ -691,8 +687,7 @@ def _format_output_raw(buglist):
                 continue
             if attrname.startswith("_"):
                 continue
-            print(to_encoding(u"ATTRIBUTE[%s]: %s" %
-                              (attrname, b.__dict__[attrname])))
+            print("ATTRIBUTE[%s]: %s" % (attrname, b.__dict__[attrname]))
         print("\n\n")
 
 
@@ -758,7 +753,7 @@ def _bug_field_repl_cb(bz, b, matchobj):
         val = getattr(b, fieldname, "")
 
     vallist = isinstance(val, list) and val or [val]
-    val = ','.join([to_encoding(v) for v in vallist])
+    val = ','.join([str(v or '') for v in vallist])
 
     return val
 

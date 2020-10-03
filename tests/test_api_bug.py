@@ -9,8 +9,8 @@
 Unit tests for testing some bug.py magic
 """
 
+import io
 import pickle
-import sys
 
 import pytest
 
@@ -59,13 +59,7 @@ def testBasic():
     dir(bug)
 
     # Test special pickle support
-    if sys.version_info[0] >= 3:
-        import io
-        fd = io.BytesIO()
-    else:
-        import StringIO  # pylint: disable=import-error
-        fd = StringIO.StringIO()
-
+    fd = io.BytesIO()
     pickle.dump(bug, fd)
     fd.seek(0)
     bug = pickle.load(fd)

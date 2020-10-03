@@ -5,8 +5,6 @@
 
 # query.py: Perform a few varieties of queries
 
-from __future__ import print_function
-
 import time
 
 import bugzilla

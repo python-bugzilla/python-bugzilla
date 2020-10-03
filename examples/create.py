@@ -5,8 +5,6 @@
 
 # create.py: Create a new bug report
 
-from __future__ import print_function
-
 import time
 
 import bugzilla

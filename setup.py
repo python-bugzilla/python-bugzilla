@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
 import glob
 import os
 import subprocess
@@ -10,15 +8,6 @@ import sys
 import distutils.command.build
 from distutils.core import Command
 from setuptools import setup
-
-
-def unsupported_python_version():
-    return sys.version_info < (2, 7) \
-        or (sys.version_info > (3,) and sys.version_info < (3, 4))
-
-
-if unsupported_python_version():
-    raise ImportError("python-bugzilla does not support this python version")
 
 
 def get_version():
@@ -135,14 +124,13 @@ setup(
         'GNU General Public License v2 or later (GPLv2+)',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
     packages=['bugzilla'],
     data_files=[],
