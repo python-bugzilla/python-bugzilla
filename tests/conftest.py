@@ -41,18 +41,13 @@ def pytest_addoption(parser):
 def pytest_ignore_collect(path, config):
     has_ro = config.getoption("--ro-functional")
     has_rw = config.getoption("--rw-functional")
-    skip_rest = has_ro or has_rw
 
     base = os.path.basename(str(path))
     is_ro = base == "test_ro_functional.py"
     is_rw = base == "test_rw_functional.py"
-    if is_ro or is_rw:
-        if is_ro and not has_ro:
-            return True
-        if is_rw and not has_rw:
-            return True
-    elif skip_rest:
-        config.option.verbose = 2
+    if is_ro and not has_ro:
+        return True
+    if is_rw and not has_rw:
         return True
 
 
@@ -72,15 +67,14 @@ def pytest_configure(config):
     if config.getoption("--regenerate-output"):
         tests.CLICONFIG.REGENERATE_OUTPUT = config.getoption(
             "--regenerate-output")
-    if not (config.getoption("--ro-functional") or
-            config.getoption("--rw-functional")):
-        # Functional tests need access to HOME cached auth.
-        # Unit tests shouldn't be touching any HOME files
-        os.environ["HOME"] = os.path.dirname(__file__) + "/data/homedir"
     if config.getoption("--only-rest"):
         tests.CLICONFIG.ONLY_REST = True
     if config.getoption("--only-xmlrpc"):
         tests.CLICONFIG.ONLY_XMLRPC = True
+
+    if (config.getoption("--ro-functional") or
+        config.getoption("--rw-functional")):
+        config.option.verbose = 2
 
 
 def pytest_generate_tests(metafunc):

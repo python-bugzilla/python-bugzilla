@@ -23,7 +23,10 @@ import tests.mockbackend
 import tests.utils
 
 
-def testCookies():
+def testCookies(monkeypatch):
+    monkeypatch.setitem(os.environ, "HOME",
+            os.path.dirname(__file__) + "/data/homedir")
+
     dirname = os.path.dirname(__file__)
     cookiesbad = dirname + "/data/cookies-bad.txt"
     cookieslwp = dirname + "/data/cookies-lwp.txt"
