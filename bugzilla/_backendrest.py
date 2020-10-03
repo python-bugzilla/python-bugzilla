@@ -47,19 +47,19 @@ class _BackendREST(_BackendBase):
             raise BugzillaError(ret["message"], code=ret["code"])
         return ret
 
-    def _op(self, optype, apiurl, paramdict=None):
+    def _op(self, method, apiurl, paramdict=None):
         fullurl = os.path.join(self._url, apiurl.lstrip("/"))
-        log.debug("Bugzilla REST %s %s params=%s", optype, fullurl, paramdict)
-        session = self._bugzillasession.get_requests_session()
-        data = json.dumps(paramdict or {})
+        log.debug("Bugzilla REST %s %s params=%s", method, fullurl, paramdict)
 
-        if optype == "POST":
-            response = session.post(fullurl, data=data)
-        elif optype == "PUT":
-            response = session.put(fullurl, data=data)
+        data = None
+        params = None
+        if method == "GET":
+            params = paramdict
         else:
-            response = session.get(fullurl, params=paramdict)
+            data = json.dumps(paramdict or {})
 
+        response = self._bugzillasession.request(method, fullurl, data=data,
+                params=params)
         return self._handle_response(response)
 
     def _get(self, *args, **kwargs):

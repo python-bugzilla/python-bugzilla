@@ -75,3 +75,6 @@ class _BugzillaSession(object):
 
     def get_requests_session(self):
         return self._session
+
+    def request(self, *args, **kwargs):
+        return self._session.request(*args, **kwargs)

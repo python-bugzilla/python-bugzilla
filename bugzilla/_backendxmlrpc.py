@@ -41,8 +41,8 @@ class _BugzillaXMLRPCTransport(Transport):
         # pylint: disable=try-except-raise
         # pylint: disable=raise-missing-from
         try:
-            session = self.__bugzillasession.get_requests_session()
-            response = session.post(url, data=request_body)
+            response = self.__bugzillasession.request(
+                "POST", url, data=request_body)
 
             # We expect utf-8 from the server
             response.encoding = 'UTF-8'
