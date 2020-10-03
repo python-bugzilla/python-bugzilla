@@ -203,8 +203,8 @@ class _BugzillaCookieCache(object):
             cj.load()
             return cj
         except LoadError:
-            raise BugzillaError("cookiefile=%s not in Mozilla format" %
-                                cookiefile)
+            msg = "cookiefile=%s not in Mozilla format" % cookiefile
+            raise BugzillaError(msg) from None
 
     def set_filename(self, cookiefile):
         log.debug("Using cookiefile=%s", cookiefile)

@@ -62,7 +62,7 @@ def open_without_clobber(name, *args):
                 name = "%s.%i" % (orig_name, count)
                 count += 1
             else:  # pragma: no cover
-                raise IOError(err.errno, err.strerror, err.filename)
+                raise IOError(err.errno, err.strerror, err.filename) from None
     fobj = open(name, *args)
     if fd != fobj.fileno():
         os.close(fd)

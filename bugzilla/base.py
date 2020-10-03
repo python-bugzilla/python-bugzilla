@@ -618,7 +618,7 @@ class Bugzilla(object):
         except Exception as e:
             log.debug("Login exception: %s", str(e), exc_info=True)
             raise BugzillaError("Login failed: %s" %
-                    BugzillaError.get_bugzilla_error_string(e))
+                    BugzillaError.get_bugzilla_error_string(e)) from None
 
     def interactive_save_api_key(self):
         """
@@ -1322,7 +1322,7 @@ class Bugzilla(object):
                 raise
             raise BugzillaError("%s\nYour bugzilla instance does not "
                 "appear to support API queries derived from bugzilla "
-                "web URL queries." % e)
+                "web URL queries." % e) from None
 
         log.debug("Query returned %s bugs", len(r['bugs']))
         return [Bug(self, dict=b,

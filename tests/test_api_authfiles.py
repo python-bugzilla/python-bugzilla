@@ -169,8 +169,9 @@ def test_authfiles_saving(monkeypatch):
         # On RHEL7 the cookie comment header is different. Strip off leading
         # comments
         def strip_comments(f):
-            return "".join([l for l in open(f).readlines() if
-                    not l.startswith("#")])
+            return "".join([
+                line for line in open(f).readlines() if
+                not line.startswith("#")])
 
         tests.utils.diff_compare(strip_comments(bzapi.cookiefile),
                 None, expect_out=strip_comments(output_cookies))

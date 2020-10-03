@@ -49,7 +49,7 @@ def monkeypatch_getpass(monkeypatch):
 def sanitize_json(rawout):
     # py2.7 leaves trailing whitespace after commas. strip it so
     # tests pass on both python versions
-    return "\n".join([l.rstrip() for l in rawout.splitlines()])
+    return "\n".join([line.rstrip() for line in rawout.splitlines()])
 
 
 def open_functional_bz(bzclass, url, kwargs):

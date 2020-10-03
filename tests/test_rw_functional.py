@@ -575,7 +575,7 @@ def _test8Attachments(run_cli, backends):
     out = run_cli(cmd + "--getall %s" % getbug.id, bz).splitlines()
 
     assert len(out) == numattach
-    fnames = [l.split(" ", 1)[1].strip() for l in out]
+    fnames = [line.split(" ", 1)[1].strip() for line in out]
     assert len(fnames) == numattach
     for f in fnames:
         if not os.path.exists(f):
@@ -587,7 +587,7 @@ def _test8Attachments(run_cli, backends):
     out = run_cli(ignorecmd, bz).splitlines()
 
     assert len(out) == (numattach - 1)
-    fnames = [l.split(" ", 1)[1].strip() for l in out]
+    fnames = [line.split(" ", 1)[1].strip() for line in out]
     assert len(fnames) == (numattach - 1)
     for f in fnames:
         if not os.path.exists(f):

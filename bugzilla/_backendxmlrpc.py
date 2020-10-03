@@ -39,6 +39,7 @@ class _BugzillaXMLRPCTransport(Transport):
         """
         response = None
         # pylint: disable=try-except-raise
+        # pylint: disable=raise-missing-from
         try:
             session = self.__bugzillasession.get_requests_session()
             response = session.post(url, data=request_body)
