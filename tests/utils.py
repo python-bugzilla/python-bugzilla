@@ -47,16 +47,8 @@ def open_functional_bz(bzclass, url, kwargs):
     if kwargs.get("force_xmlrpc", False):
         assert bz.is_xmlrpc() is True
 
-    # Set a session timeout of 30 seconds
-    session = bz.get_requests_session()
-    origrequest = session.request
-
-    def fake_request(*args, **kwargs):
-        if "timeout" not in kwargs:
-            kwargs["timeout"] = 60
-        return origrequest(*args, **kwargs)
-
-    session.request = fake_request
+    # Set a request timeout of 60 seconds
+    os.environ["PYTHONBUGZILLA_REQUESTS_TIMEOUT"] = "60"
     return bz
 
 

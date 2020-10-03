@@ -3,6 +3,7 @@
 
 from logging import getLogger
 
+import os
 import requests
 
 from ._compatimports import urlparse
@@ -43,6 +44,14 @@ class _BugzillaSession(object):
         self._session.params["Bugzilla_api_key"] = self._api_key
         self._set_tokencache_param()
 
+    def _get_timeout(self):
+        # Default to 5 minutes. This is longer than bugzilla.redhat.com's
+        # apparent 3 minute timeout so shouldn't affect legitimate usage,
+        # but saves us from indefinite hangs
+        DEFAULT_TIMEOUT = 300
+        envtimeout = os.environ.get("PYTHONBUGZILLA_REQUESTS_TIMEOUT")
+        return float(envtimeout or DEFAULT_TIMEOUT)
+
     def get_user_agent(self):
         return self._user_agent
     def get_scheme(self):
@@ -77,4 +86,7 @@ class _BugzillaSession(object):
         return self._session
 
     def request(self, *args, **kwargs):
+        timeout = self._get_timeout()
+        if "timeout" not in kwargs:
+            kwargs["timeout"] = timeout
         return self._session.request(*args, **kwargs)
