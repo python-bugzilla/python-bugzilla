@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [2.7, 3.5, 3.6, 3.7, 3.8]
+        python-version: [3.5, 3.6, 3.7, 3.8, 3.9]
 
     steps:
     - uses: actions/checkout@v2
@@ -71,5 +71,4 @@ jobs:
       run: |
         ./setup.py rpm
 
-    - run: mock --root epel-7-x86_64 *.src.rpm
     - run: mock --root epel-8-x86_64 *.src.rpm
