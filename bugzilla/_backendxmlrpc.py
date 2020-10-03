@@ -121,22 +121,22 @@ class _BugzillaXMLRPCProxy(ServerProxy, object):
         """
         Overrides ServerProxy _request method
         """
-        if len(params) == 0:
-            params = ({}, )
+        # params is a singleton tuple, enforced by xmlrpc.client.dumps
+        newparams = params and params[0].copy() or {}
 
-        log.debug("XMLRPC call: %s(%s)", methodname, params[0])
+        log.debug("XMLRPC call: %s(%s)", methodname, newparams)
         api_key = self.__bugzillasession.get_api_key()
         token_value = self.__bugzillasession.get_token_value()
 
         if api_key is not None:
-            if 'Bugzilla_api_key' not in params[0]:
-                params[0]['Bugzilla_api_key'] = api_key
+            if 'Bugzilla_api_key' not in newparams:
+                newparams['Bugzilla_api_key'] = api_key
         elif token_value is not None:
-            if 'Bugzilla_token' not in params[0]:
-                params[0]['Bugzilla_token'] = token_value
+            if 'Bugzilla_token' not in newparams:
+                newparams['Bugzilla_token'] = token_value
 
         # pylint: disable=no-member
-        ret = ServerProxy._ServerProxy__request(self, methodname, params)
+        ret = ServerProxy._ServerProxy__request(self, methodname, (newparams,))
         # pylint: enable=no-member
 
         if isinstance(ret, dict) and 'token' in ret.keys():

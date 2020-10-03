@@ -900,6 +900,12 @@ def test15EnsureLoggedIn(run_cli, backends):
     comm = "bugzilla --ensure-logged-in query --bug_id 979546"
     run_cli(comm, bz)
 
+    # Test that we don't pollute the query dict with auth info
+    query = {"id": [1234567]}
+    origquery = query.copy()
+    bz.query(query)
+    assert query == origquery
+
 
 def test16ModifyTags(run_cli, backends):
     bugid = "461686"
