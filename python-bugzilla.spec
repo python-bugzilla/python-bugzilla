@@ -1,5 +1,5 @@
 Name:           python-bugzilla
-Version:        2.5.0
+Version:        3.0.0
 Release:        1%{?dist}
 Summary:        Python library for interacting with Bugzilla
 

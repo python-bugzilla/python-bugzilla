@@ -1,5 +1,11 @@
 # python-bugzilla release news
 
+## Release 3.0.0 (October 03, 2020)
+- Drop python2 support
+- New option `bugzilla modify --minor-update option`
+- requests: use PYTHONBUGZILLA_REQUESTS_TIMEOUT env variable
+- xmlrpc: Don't add api key to passed in user dictionary
+
 ## Release 2.5.0 (July 04, 2020)
 - cli: Add query --extrafield, --includefield, --excludefield
 - Revive bugzilla.rhbugzilla.RHBugzilla import path
