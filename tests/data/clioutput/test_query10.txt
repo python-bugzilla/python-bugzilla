@@ -1,0 +1,1 @@
+#1165434 CLOSED     - lvm-team@redhat.com - LVM mirrored root can deadlock dmeventd if a mirror leg is lost

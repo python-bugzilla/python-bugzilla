@@ -65,3 +65,28 @@ def test_modify(run_cli):
         bug_update_return={})
     out = run_cli(cmd, fakebz)
     assert not out
+
+    # Modify with a slew of misc opt coverage
+    cmd = "bugzilla modify 1165434 "
+    cmd += "--assigned_to foo@example.com --qa_contact qa@example.com "
+    cmd += "--product newproduct "
+    cmd += "--blocked +1234 --blocked -1235 --blocked = "
+    cmd += "--url https://example.com "
+    cmd += "--cc=+bar@example.com --cc=-steve@example.com "
+    cmd += "--dependson=+2234 --dependson=-2235 --dependson = "
+    cmd += "--groups +foogroup "
+    cmd += "--keywords +newkeyword --keywords=-byekeyword --keywords = "
+    cmd += "--os windows --arch mips "
+    cmd += "--priority high --severity low "
+    cmd += "--summary newsummary --version 1.2.3 "
+    cmd += "--reset-assignee --reset-qa-contact "
+    cmd += "--alias fooalias "
+    cmd += "--target_release 1.2.4 --target_milestone beta "
+    cmd += "--devel_whiteboard =DEVBOARD --internal_whiteboard =INTBOARD "
+    cmd += "--qa_whiteboard =QABOARD "
+    cmd += "--comment-tag FOOTAG --field bar=foo "
+    fakebz = tests.mockbackend.make_bz(rhbz=True,
+        bug_update_args="data/mockargs/test_modify5.txt",
+        bug_update_return={})
+    out = run_cli(cmd, fakebz)
+    assert not out

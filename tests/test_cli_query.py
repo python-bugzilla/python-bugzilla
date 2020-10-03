@@ -147,3 +147,27 @@ def test_query(run_cli):
     tests.utils.diff_compare(tests.utils.sanitize_json(out),
         "data/clioutput/test_query9.txt")
     assert json.loads(out)
+
+
+    # Test every remaining option
+    cmd = "bugzilla query "
+    cmd += "--sub-component FOOCOMP "
+    cmd += "--version 5.6.7 --reporter me@example.com "
+    cmd += "--summary 'search summary' "
+    cmd += "--assignee bar@example.com "
+    cmd += "--blocked 12345 --dependson 23456 "
+    cmd += "--keywords FOO --keywords_type substring "
+    cmd += "--url https://example.com --url_type sometype "
+    cmd += "--target_release foo --target_milestone bar "
+    cmd += "--quicksearch 1 --savedsearch 2 --savedsearch-sharer-id 3 "
+    cmd += "--tags +foo --flag needinfo --alias somealias "
+    cmd += "--devel_whiteboard DEVBOARD "
+    cmd += "--priority wibble "
+    cmd += "--fixed_in 5.5.5 --fixed_in_type substring "
+    cmd += "--whiteboard FOO --status_whiteboard_type substring "
+    fakebz = tests.mockbackend.make_bz(
+        bug_search_args="data/mockargs/test_query10.txt",
+        bug_search_return="data/mockreturn/test_getbug_rhel.txt",
+        rhbz=True)
+    out = run_cli(cmd, fakebz)
+    tests.utils.diff_compare(out, "data/clioutput/test_query10.txt")
