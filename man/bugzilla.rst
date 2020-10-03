@@ -32,14 +32,22 @@ instance over REST or XMLRPC.
 | * info - get info about the given bugzilla instance
 
 
-GLOBAL OPTIONS
---------------
 
-- ``--help, -h``
+GLOBAL OPTIONS
+==============
+
+``--help, -h``
+^^^^^^^^^^^^^^
+
+**Syntax:** ``-h``
 
 show this help message and exit
 
-- ``--bugzilla=BUGZILLA``
+
+``--bugzilla``
+^^^^^^^^^^^^^^
+
+**Syntax:** ``--bugzilla`` BUGZILLA
 
 The bugzilla URL. Full API URLs are typically like:
 
@@ -54,61 +62,114 @@ preferring XMLRPC for backwards compatibility.
 
 The default URL https://bugzilla.redhat.com
 
-- ``--nosslverify``
+
+``--nosslverify``
+^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--nosslverify``
 
 Don't error on invalid bugzilla SSL certificate
 
-- ``--cert=CERTFILE``
+
+``--cert``
+^^^^^^^^^^
+
+**Syntax:** ``--cert`` CERTFILE
 
 client side certificate file needed by the webserver.
 
-- ``--login``
+
+``--login``
+^^^^^^^^^^^
+
+**Syntax:** ``--login``
 
 Run interactive "login" before performing the specified command.
 
-- ``--username=USERNAME``
+
+``--username``
+^^^^^^^^^^^^^^
+
+**Syntax:** ``--username`` USERNAME
 
 Log in with this username
 
-- ``--password=PASSWORD``
+
+``--password``
+^^^^^^^^^^^^^^
+
+**Syntax:** ``--password`` PASSWORD
 
 Log in with this password
 
-- ``--restrict-login``
+
+``--restrict-login``
+^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--restrict-login``
 
 The session (login token) will be restricted to the current IP
 address.
 
-- ``--ensure-logged-in``
+
+``--ensure-logged-in``
+^^^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--ensure-logged-in``
 
 Raise an error if we aren't logged in to bugzilla. Consider using
 this if you are depending on cached credentials, to ensure that when
 they expire the tool errors, rather than subtly change output.
 
-- ``--no-cache-credentials``
+
+``--no-cache-credentials``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--no-cache-credentials``
 
 Don't save any bugzilla cookies or tokens to disk, and don't use any
 pre-existing credentials.
 
-- ``--cookiefile=COOKIEFILE``
+
+``--cookiefile``
+^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--cookiefile`` COOKIEFILE
 
 cookie file to use for bugzilla authentication
 
-- ``--tokenfile=TOKENFILE``
+
+``--tokenfile``
+^^^^^^^^^^^^^^^
+
+**Syntax:** ``--tokenfile`` TOKENFILE
 
 token file to use for bugzilla authentication
 
-- ``--verbose``
+
+``--verbose``
+^^^^^^^^^^^^^
+
+**Syntax:** ``--verbose``
 
 give more info about what's going on
 
-- ``--debug``
+
+``--debug``
+^^^^^^^^^^^
+
+**Syntax:** ``--debug``
 
 output bunches of debugging info
 
-- ``--version``
+
+``--version``
+^^^^^^^^^^^^^
+
+**Syntax:** ``--version``
 
 show program's version number and exit
+
 
 
 Standard bugzilla options
@@ -117,133 +178,258 @@ Standard bugzilla options
 These options are shared by some combination of the 'new', 'query', and
 'modify' sub commands. Not every option works for each command though.
 
-- ``--product=PRODUCT, -p PRODUCT``
+
+``-p, --product``
+^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--product`` PRODUCT
 
 Product name
 
-- ``--version=VERSION, -v VERSION``
+
+``-v, --version``
+^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--version`` VERSION
 
 Product version
 
-- ``--component=COMPONENT, -c COMPONENT``
+
+``-c, --component``
+^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--component`` COMPONENT
 
 Component name
 
-- ``--summary=SUMMARY, -s SUMMARY, --short_desc=SUMMARY``
+
+``-s, --summary``
+^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--summary`` SUMMARY
 
 Bug summary
 
-- ``--comment=DESCRIPTION, -l DESCRIPTION``
+
+``-l, --comment``
+^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--comment`` DESCRIPTION
 
 Set initial bug comment/description
 
-- ``--comment-tag=TAG``
+
+``--comment-tag``
+^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--comment-tag`` TAG
 
 Comment tag for the new comment
 
-- ``--sub-component=SUB_COMPONENT``
+
+``--sub-component``
+^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--sub-component`` SUB_COMPONENT
 
 RHBZ sub component name
 
-- ``--os=OS, -o OS``
+
+``-o, --os``
+^^^^^^^^^^^^
+
+**Syntax:** ``--os`` OS
 
 Operating system
 
-- ``--arch=ARCH``
+
+``--arch``
+^^^^^^^^^^
+
+**Syntax:** ``--arch`` ARCH
 
 Arch this bug occurs on
 
-- ``--severity=SEVERITY, -x SEVERITY``
+
+``-x, --severity``
+^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--severity`` SEVERITY
 
 Bug severity
 
-- ``--priority=PRIORITY, -z PRIORITY``
+
+``-z, --priority``
+^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--priority`` PRIORITY
 
 Bug priority
 
-- ``--alias=ALIAS``
+
+``--alias``
+^^^^^^^^^^^
+
+**Syntax:** ``--alias`` ALIAS
 
 Bug alias (name)
 
-- ``--status=STATUS, -s STATUS, --bug_status=STATUS``
+
+``-s, --status``
+^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--status`` STATUS
 
 Bug status (NEW, ASSIGNED, etc.)
 
-- ``--url=URL, -u URL``
+
+``-u, --url``
+^^^^^^^^^^^^^
+
+**Syntax:** ``--url`` URL
 
 URL for further bug info
 
-- ``--target_milestone=TARGET_MILESTONE, -m TARGET_MILESTONE``
+
+``-m --target_milestone``
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--target_milestone`` TARGET_MILESTONE
 
 Target milestone
 
-- ``--target_release=TARGET_RELEASE``
+
+``--target_release``
+^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--target_release`` TARGET_RELEASE
 
 RHBZ Target release
 
-- ``--blocked=BUGID[, BUGID, ...]``
+
+``--blocked``
+^^^^^^^^^^^^^
+
+**Syntax:** ``...]``
 
 Bug IDs that this bug blocks
 
-- ``--dependson=BUGID[, BUGID, ...]``
+
+``--dependson``
+^^^^^^^^^^^^^^^
+
+**Syntax:** ``...]``
 
 Bug IDs that this bug depends on
 
-- ``--keywords=KEYWORD[, KEYWORD, ...]``
+
+``--keywords``
+^^^^^^^^^^^^^^
+
+**Syntax:** ``...]``
 
 Bug keywords
 
-- ``--groups=GROUP[, GROUP, ...]``
+
+``--groups``
+^^^^^^^^^^^^
+
+**Syntax:** ``...]``
 
 Which user groups can view this bug
 
-- ``--cc=CC[, CC, ...]``
+
+``--cc``
+^^^^^^^^
+
+**Syntax:** ``...]``
 
 CC list
 
-- ``--assigned_to=ASSIGNED_TO, -a ASSIGNED_TO, --assignee ASSIGNED_TO``
+
+``-a, --assignee, --assigned_to``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--assigned_to`` ASSIGNED_TO
 
 Bug assignee
 
-- ``--qa_contact=QA_CONTACT, -q QA_CONTACT``
+
+``-q, --qa_contact``
+^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--qa_contact`` QA_CONTACT
 
 QA contact
 
-- ``--flag=FLAG``
+
+``--flag``
+^^^^^^^^^^
+
+**Syntax:** ``--flag`` FLAG
 
 Set or unset a flag. For example, to set a flag named devel_ack, do
 --flag devel_ack+ Unset a flag with the 'X' value, like --flag
 needinfoX
 
-- ``--tags=TAG``
+
+``--tags``
+^^^^^^^^^^
+
+**Syntax:** ``--tags`` TAG
 
 Set (personal) tags field
 
-- ``--whiteboard WHITEBOARD, -w WHITEBOARD, --status_whiteboard WHITEBOARD``
+
+``-w, --whiteboard``
+^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--whiteboard`` WHITEBOARD
 
 Whiteboard field
 
-- ``--devel_whiteboard DEVEL_WHITEBOARD``
+
+``--devel_whiteboard``
+^^^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--devel_whiteboard`` DEVEL_WHITEBOARD
 
 RHBZ devel whiteboard field
 
-- ``--internal_whiteboard INTERNAL_WHITEBOARD``
+
+``--internal_whiteboard``
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--internal_whiteboard`` INTERNAL_WHITEBOARD
 
 RHBZ internal whiteboard field
 
-- ``--qa_whiteboard QA_WHITEBOARD``
+
+``--qa_whiteboard``
+^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--qa_whiteboard`` QA_WHITEBOARD
 
 RHBZ QA whiteboard field
 
-- ``--fixed_in FIXED_IN, -F FIXED_IN``
+
+``-F, --fixed_in``
+^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--fixed_in`` FIXED_IN
 
 RHBZ 'Fixed in version' field
 
-- ``--field=FIELD=VALUE``
+
+``--field``
+^^^^^^^^^^^
+
+**Syntax:** ``--field`` FIELD`` VALUE
 
 Manually specify a bugzilla API field. FIELD is the raw name used
 by the bugzilla instance. For example if your bugzilla instance has a
 custom field cf_my_field, do: --field cf_my_field=VALUE
+
 
 
 Output options
@@ -252,54 +438,94 @@ Output options
 These options are shared by several commands, for tweaking the text
 output of the command results.
 
-- ``--full, -f``
+
+``-f, --full``
+^^^^^^^^^^^^^^
+
+**Syntax:** ``--full``
 
 output detailed bug info
 
-- ``--ids, -i``
+
+``-i, --ids``
+^^^^^^^^^^^^^
+
+**Syntax:** ``--ids``
 
 output only bug IDs
 
-- ``--extra, -e``
+
+``-e, --extra``
+^^^^^^^^^^^^^^^
+
+**Syntax:** ``--extra``
 
 output additional bug information (keywords, Whiteboards, etc.)
 
-- ``--oneline``
+
+``--oneline``
+^^^^^^^^^^^^^
+
+**Syntax:** ``--oneline``
 
 one line summary of the bug (useful for scripts)
 
-- ``--json``
+
+``--json``
+^^^^^^^^^^
+
+**Syntax:** ``--json``
 
 output bug contents in JSON format
 
-- ``--includefield``
+
+``--includefield``
+^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--includefield``
 
 Pass the field name to bugzilla include_fields list.
 Only the fields passed to include_fields are returned
 by the bugzilla server.
 This can be specified multiple times.
 
-- ``--extrafield``
+
+``--extrafield``
+^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--extrafield``
 
 Pass the field name to bugzilla extra_fields list.
 When used with --json this can be used to request
 bugzilla to return values for non-default fields.
 This can be specified multiple times.
 
-- ``--excludefield``
+
+``--excludefield``
+^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--excludefield``
 
 Pass the field name to bugzilla exclude_fields list.
 When used with --json this can be used to request
 bugzilla to not return values for a field.
 This can be specified multiple times.
 
-- ``--raw``
+
+``--raw``
+^^^^^^^^^
+
+**Syntax:** ``--raw``
 
 raw output of the bugzilla contents. This format is unstable and
 difficult to parse. Please use the ``--json`` instead if you want
 maximum output from the `bugzilla`
 
-- ``--outputformat=OUTPUTFORMAT``
+
+``--outputformat``
+^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--outputformat`` OUTPUTFORMAT
 
 Print output in the form given. You can use RPM-style tags that match
 bug fields, e.g.: '%{id}: %{summary}'.
@@ -333,29 +559,53 @@ Note: querying via explicit command line options will only get you so
 far. See the --from-url option for a way to use powerful Web UI queries
 from the command line.
 
-- ``--id ID, -b ID, --bug_id ID``
+
+``-b, --bug_id, --id``
+^^^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--id`` ID
 
 specify individual bugs by IDs, separated with commas
 
-- ``--reporter REPORTER, -r REPORTER``
+
+``-r, --reporter``
+^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--reporter`` REPORTER
 
 Email: search reporter email for given address
 
-- ``--quicksearch QUICKSEARCH``
+
+``--quicksearch``
+^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--quicksearch`` QUICKSEARCH
 
 Search using bugzilla's quicksearch functionality.
 
-- ``--savedsearch SAVEDSEARCH``
+
+``--savedsearch``
+^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--savedsearch`` SAVEDSEARCH
 
 Name of a bugzilla saved search. If you don't own this saved search,
 you must passed --savedsearch_sharer_id.
 
-- ``--savedsearch-sharer-id SAVEDSEARCH_SHARER_ID``
+
+``--savedsearch-sharer-id``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--savedsearch-sharer-id`` SAVEDSEARCH_SHARER_ID
 
 Owner ID of the --savedsearch. You can get this ID from the URL
 bugzilla generates when running the saved search from the web UI.
 
-- ``--from-url WEB_QUERY_URL``
+
+``--from-url``
+^^^^^^^^^^^^^^
+
+**Syntax:** ``--from-url`` WEB_QUERY_URL
 
 Make a working query via bugzilla's 'Advanced search' web UI, grab
 the url from your browser (the string with query.cgi or buglist.cgi
@@ -376,67 +626,123 @@ Fields that take multiple values have a special input format.
 Options that accept this format: --cc, --blocked, --dependson, --groups,
 --tags, whiteboard fields.
 
-- ``--close RESOLUTION, -k RESOLUTION``
+
+``-k, --close RESOLUTION``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``RESOLUTION``
 
 Close with the given resolution (WONTFIX, NOTABUG, etc.)
 
-- ``--dupeid ORIGINAL, -d ORIGINAL``
+
+``-d, --dupeid``
+^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--dupeid`` ORIGINAL
 
 ID of original bug. Implies --close DUPLICATE
 
-- ``--private``
+
+``--private``
+^^^^^^^^^^^^^
+
+**Syntax:** ``--private``
 
 Mark new comment as private
 
-- ``--reset-assignee``
+
+``--reset-assignee``
+^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--reset-assignee``
 
 Reset assignee to component default
 
-- ``--reset-qa-contact``
+
+``--reset-qa-contact``
+^^^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--reset-qa-contact``
 
 Reset QA contact to component default
 
-- ``--minor-update``
+
+``--minor-update``
+^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--minor-update``
 
 Request bugzilla to not send any email about this change
+
 
 
 ‘new’ specific options
 ======================
 
-- ``--private``
+``--private``
+^^^^^^^^^^^^^
+
+**Syntax:** ``--private``
 
 Mark new comment as private
+
 
 
 ‘attach’ options
 ================
 
-- ``--file=FILENAME, -f FILENAME``
+``-f, --file``
+^^^^^^^^^^^^^^
+
+**Syntax:** ``--file`` FILENAME
 
 File to attach, or filename for data provided on stdin
 
-- ``--description=DESCRIPTION, -d DESCRIPTION``
+
+``-d, --description``
+^^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--description`` DESCRIPTION
 
 A short description of the file being attached
 
-- ``--type=MIMETYPE, -t MIMETYPE``
+
+``-t, --type``
+^^^^^^^^^^^^^^
+
+**Syntax:** ``--type`` MIMETYPE
 
 Mime-type for the file being attached
 
-- ``--get=ATTACHID, -g ATTACHID``
+
+``-g, --get``
+^^^^^^^^^^^^^
+
+**Syntax:** ``--get`` ATTACHID
 
 Download the attachment with the given ID
 
-- ``--getall=BUGID, --get-all=BUGID``
+
+``--getall``
+^^^^^^^^^^^^
+
+**Syntax:** ``--getall`` BUGID
 
 Download all attachments on the given bug
 
-- ``--ignore-obsolete``
+
+``--ignore-obsolete``
+^^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--ignore-obsolete``
 
 Do not download attachments marked as obsolete.
 
-- ``--comment=COMMENT, -l COMMENT``
+
+``-l, --comment``
+^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--comment`` COMMENT
 
 Add comment with attachment
 
@@ -444,23 +750,42 @@ Add comment with attachment
 ‘info’ options
 ==============
 
-- ``--products, -p``
+``-p, --products``
+^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--products``
 
 Get a list of products
 
-- ``--components=PRODUCT, -c PRODUCT``
+
+``-c, --components``
+^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--components`` PRODUCT
 
 List the components in the given product
 
-- ``--component_owners=PRODUCT, -o PRODUCT``
+
+``-o, --component_owners``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--component_owners`` PRODUCT
 
 List components (and their owners)
 
-- ``--versions=PRODUCT, -v PRODUCT``
+
+``-v, --versions``
+^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--versions`` PRODUCT
 
 List the versions for the given product
 
-- ``--active-components``
+
+``--active-components``
+^^^^^^^^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--active-components``
 
 Only show active components. Combine with --components*
 
