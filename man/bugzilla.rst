@@ -396,6 +396,10 @@ Reset assignee to component default
 
 Reset QA contact to component default
 
+- ``--minor-update``
+
+Request bugzilla to not send any email about this change
+
 
 ‘new’ specific options
 ======================

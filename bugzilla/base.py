@@ -1444,7 +1444,8 @@ class Bugzilla(object):
                      internal_whiteboard=None,
                      sub_component=None,
                      flags=None,
-                     comment_tags=None):
+                     comment_tags=None,
+                     minor_update=None):
         """
         Returns a python dict() with properly formatted parameters to
         pass to update_bugs(). See bugzilla documentation for the format
@@ -1531,6 +1532,7 @@ class Bugzilla(object):
         s("work_time", work_time, float)
         s("flags", flags)
         s("comment_tags", comment_tags, listify)
+        s("minor_update", minor_update, bool)
 
         add_dict("blocks", blocks_add, blocks_remove, blocks_set,
                  convert=int)

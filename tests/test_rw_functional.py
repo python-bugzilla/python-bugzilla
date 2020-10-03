@@ -96,7 +96,7 @@ def test03NewBugBasic(run_cli, backends):
     assert hasattr(bug, "bug_id")
 
     # Close the bug
-    run_cli("bugzilla modify --close NOTABUG %s" % bug.id, bz)
+    run_cli("bugzilla modify --close NOTABUG %s --minor-update" % bug.id, bz)
     bug.refresh()
     assert bug.status == "CLOSED"
     assert bug.resolution == "NOTABUG"

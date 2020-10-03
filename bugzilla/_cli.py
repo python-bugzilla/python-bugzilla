@@ -231,6 +231,10 @@ def _parser_add_bz_fields(rootp, command):
     p.add_argument('--cc', action="append", help="CC list")
     p.add_argument('-a', '--assigned_to', '--assignee', help="Bug assignee")
     p.add_argument('-q', '--qa_contact', help='QA contact')
+    if cmd_modify:
+        p.add_argument("--minor-update", action="store_true",
+                help="Request bugzilla to not send any "
+                     "email about this change")
 
     if not cmd_new:
         p.add_argument('-f', '--flag', action='append',
@@ -1028,6 +1032,8 @@ def _do_modify(bz, parser, opt):
         update_opts["flags"] = flags
     if opt.comment_tag:
         update_opts["comment_tags"] = opt.comment_tag
+    if opt.minor_update:
+        update_opts["minor_update"] = opt.minor_update
 
     update = bz.build_update(**update_opts)
 

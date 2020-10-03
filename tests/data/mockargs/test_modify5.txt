@@ -11,6 +11,7 @@
   'depends_on': {'add': [2234], 'remove': [2235], 'set': []},
   'groups': {'add': ['foogroup']},
   'keywords': {'add': ['newkeyword'], 'remove': ['byekeyword'], 'set': []},
+  'minor_update': True,
   'op_sys': 'windows',
   'platform': 'mips',
   'priority': 'high',
