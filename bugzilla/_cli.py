@@ -432,12 +432,9 @@ def setup_parser():
 # Command routines #
 ####################
 
-def _merge_field_opts(query, opt, parser):
+def _merge_field_opts(query, fields, parser):
     # Add any custom fields if specified
-    if opt.fields is None:
-        return
-
-    for f in opt.fields:
+    for f in fields:
         try:
             f, v = f.split('=', 1)
             query[f] = v
@@ -523,45 +520,83 @@ def _do_query(bz, opt, parser):
     if include_fields is not None:
         include_fields.sort()
 
-    built_query = bz.build_query(
-        product=opt.product or None,
-        component=opt.component or None,
-        sub_component=opt.sub_component or None,
-        version=opt.version or None,
-        reporter=opt.reporter or None,
-        bug_id=opt.id or None,
-        short_desc=opt.summary or None,
-        long_desc=opt.comment or None,
-        cc=opt.cc or None,
-        assigned_to=opt.assigned_to or None,
-        qa_contact=opt.qa_contact or None,
-        status=opt.status or None,
-        blocked=opt.blocked or None,
-        dependson=opt.dependson or None,
-        keywords=opt.keywords or None,
-        keywords_type=opt.keywords_type or None,
-        url=opt.url or None,
-        url_type=opt.url_type or None,
-        status_whiteboard=opt.whiteboard or None,
-        status_whiteboard_type=opt.status_whiteboard_type or None,
-        fixed_in=opt.fixed_in or None,
-        fixed_in_type=opt.fixed_in_type or None,
-        flag=opt.flag or None,
-        alias=opt.alias or None,
-        qa_whiteboard=opt.qa_whiteboard or None,
-        devel_whiteboard=opt.devel_whiteboard or None,
-        bug_severity=opt.severity or None,
-        priority=opt.priority or None,
-        target_release=opt.target_release or None,
-        target_milestone=opt.target_milestone or None,
-        emailtype=opt.emailtype or None,
-        include_fields=include_fields,
-        quicksearch=opt.quicksearch or None,
-        savedsearch=opt.savedsearch or None,
-        savedsearch_sharer_id=opt.savedsearch_sharer_id or None,
-        tags=opt.tags or None)
+    kwopts = {}
+    if opt.product:
+        kwopts["product"] = opt.product
+    if opt.component:
+        kwopts["component"] = opt.component
+    if opt.sub_component:
+        kwopts["sub_component"] = opt.sub_component
+    if opt.version:
+        kwopts["version"] = opt.version
+    if opt.reporter:
+        kwopts["reporter"] = opt.reporter
+    if opt.id:
+        kwopts["bug_id"] = opt.id
+    if opt.summary:
+        kwopts["short_desc"] = opt.summary
+    if opt.comment:
+        kwopts["long_desc"] = opt.comment
+    if opt.cc:
+        kwopts["cc"] = opt.cc
+    if opt.assigned_to:
+        kwopts["assigned_to"] = opt.assigned_to
+    if opt.qa_contact:
+        kwopts["qa_contact"] = opt.qa_contact
+    if opt.status:
+        kwopts["status"] = opt.status
+    if opt.blocked:
+        kwopts["blocked"] = opt.blocked
+    if opt.dependson:
+        kwopts["dependson"] = opt.dependson
+    if opt.keywords:
+        kwopts["keywords"] = opt.keywords
+    if opt.keywords_type:
+        kwopts["keywords_type"] = opt.keywords_type
+    if opt.url:
+        kwopts["url"] = opt.url
+    if opt.url_type:
+        kwopts["url_type"] = opt.url_type
+    if opt.whiteboard:
+        kwopts["status_whiteboard"] = opt.whiteboard
+    if opt.status_whiteboard_type:
+        kwopts["status_whiteboard_type"] = opt.status_whiteboard_type
+    if opt.fixed_in:
+        kwopts["fixed_in"] = opt.fixed_in
+    if opt.fixed_in_type:
+        kwopts["fixed_in_type"] = opt.fixed_in_type
+    if opt.flag:
+        kwopts["flag"] = opt.flag
+    if opt.alias:
+        kwopts["alias"] = opt.alias
+    if opt.qa_whiteboard:
+        kwopts["qa_whiteboard"] = opt.qa_whiteboard
+    if opt.devel_whiteboard:
+        kwopts["devel_whiteboard"] = opt.devel_whiteboard
+    if opt.severity:
+        kwopts["bug_severity"] = opt.severity
+    if opt.priority:
+        kwopts["priority"] = opt.priority
+    if opt.target_release:
+        kwopts["target_release"] = opt.target_release
+    if opt.target_milestone:
+        kwopts["target_milestone"] = opt.target_milestone
+    if opt.emailtype:
+        kwopts["emailtype"] = opt.emailtype
+    if include_fields:
+        kwopts["include_fields"] = include_fields
+    if opt.quicksearch:
+        kwopts["quicksearch"] = opt.quicksearch
+    if opt.savedsearch:
+        kwopts["savedsearch"] = opt.savedsearch
+    if opt.savedsearch_sharer_id:
+        kwopts["savedsearch_sharer_id"] = opt.savedsearch_sharer_id
+    if opt.tags:
+        kwopts["tags"] = opt.tags
 
-    _merge_field_opts(built_query, opt, parser)
+    built_query = bz.build_query(**kwopts)
+    if opt.fields:
+        _merge_field_opts(built_query, opt.fields, parser)
 
     built_query.update(q)
     q = built_query
@@ -823,31 +858,53 @@ def _do_new(bz, opt, parser):
         return _parse_triset(val, checkplus=False, checkminus=False,
                              checkequal=False, splitcomma=True)[0]
 
-    ret = bz.build_createbug(
-        blocks=parse_multi(opt.blocked) or None,
-        cc=parse_multi(opt.cc) or None,
-        component=opt.component or None,
-        depends_on=parse_multi(opt.dependson) or None,
-        description=opt.comment or None,
-        groups=parse_multi(opt.groups) or None,
-        keywords=parse_multi(opt.keywords) or None,
-        op_sys=opt.os or None,
-        platform=opt.arch or None,
-        priority=opt.priority or None,
-        product=opt.product or None,
-        severity=opt.severity or None,
-        summary=opt.summary or None,
-        url=opt.url or None,
-        version=opt.version or None,
-        assigned_to=opt.assigned_to or None,
-        qa_contact=opt.qa_contact or None,
-        sub_component=opt.sub_component or None,
-        alias=opt.alias or None,
-        comment_tags=opt.comment_tag or None,
-        comment_private=opt.private or None,
-    )
+    kwopts = {}
+    if opt.blocked:
+        kwopts["blocks"] = parse_multi(opt.blocked)
+    if opt.cc:
+        kwopts["cc"] = parse_multi(opt.cc)
+    if opt.component:
+        kwopts["component"] = opt.component
+    if opt.dependson:
+        kwopts["depends_on"] = parse_multi(opt.dependson)
+    if opt.comment:
+        kwopts["description"] = opt.comment
+    if opt.groups:
+        kwopts["groups"] = parse_multi(opt.groups)
+    if opt.keywords:
+        kwopts["keywords"] = parse_multi(opt.keywords)
+    if opt.os:
+        kwopts["op_sys"] = opt.os
+    if opt.arch:
+        kwopts["platform"] = opt.arch
+    if opt.priority:
+        kwopts["priority"] = opt.priority
+    if opt.product:
+        kwopts["product"] = opt.product
+    if opt.severity:
+        kwopts["severity"] = opt.severity
+    if opt.summary:
+        kwopts["summary"] = opt.summary
+    if opt.url:
+        kwopts["url"] = opt.url
+    if opt.version:
+        kwopts["version"] = opt.version
+    if opt.assigned_to:
+        kwopts["assigned_to"] = opt.assigned_to
+    if opt.qa_contact:
+        kwopts["qa_contact"] = opt.qa_contact
+    if opt.sub_component:
+        kwopts["sub_component"] = opt.sub_component
+    if opt.alias:
+        kwopts["alias"] = opt.alias
+    if opt.comment_tag:
+        kwopts["comment_tags"] = opt.comment_tag
+    if opt.private:
+        kwopts["comment_private"] = opt.private
 
-    _merge_field_opts(ret, opt, parser)
+    ret = bz.build_createbug(**kwopts)
+    if opt.fields:
+        _merge_field_opts(ret, opt.fields, parser)
 
     b = bz.createbug(ret)
     b.refresh()
@@ -885,50 +942,94 @@ def _do_modify(bz, parser, opt):
         for f in opt.flag:
             flags.append({"name": f[:-1], "status": f[-1]})
 
-    update = bz.build_update(
-        assigned_to=opt.assigned_to or None,
-        comment=opt.comment or None,
-        comment_private=opt.private or None,
-        component=opt.component or None,
-        product=opt.product or None,
-        blocks_add=add_blk or None,
-        blocks_remove=rm_blk or None,
-        blocks_set=set_blk,
-        url=opt.url or None,
-        cc_add=add_cc or None,
-        cc_remove=rm_cc or None,
-        depends_on_add=add_deps or None,
-        depends_on_remove=rm_deps or None,
-        depends_on_set=set_deps,
-        groups_add=add_groups or None,
-        groups_remove=rm_groups or None,
-        keywords_add=add_key or None,
-        keywords_remove=rm_key or None,
-        keywords_set=set_key,
-        op_sys=opt.os or None,
-        platform=opt.arch or None,
-        priority=opt.priority or None,
-        qa_contact=opt.qa_contact or None,
-        severity=opt.severity or None,
-        status=status,
-        summary=opt.summary or None,
-        version=opt.version or None,
-        reset_assigned_to=opt.reset_assignee or None,
-        reset_qa_contact=opt.reset_qa_contact or None,
-        resolution=opt.close or None,
-        target_release=opt.target_release or None,
-        target_milestone=opt.target_milestone or None,
-        dupe_of=opt.dupeid or None,
-        fixed_in=opt.fixed_in or None,
-        whiteboard=set_wb and set_wb[0] or None,
-        devel_whiteboard=set_devwb and set_devwb[0] or None,
-        internal_whiteboard=set_intwb and set_intwb[0] or None,
-        qa_whiteboard=set_qawb and set_qawb[0] or None,
-        sub_component=opt.sub_component or None,
-        alias=opt.alias or None,
-        flags=flags or None,
-        comment_tags=opt.comment_tag or None,
-    )
+    update_opts = {}
+
+    if opt.assigned_to:
+        update_opts["assigned_to"] = opt.assigned_to
+    if opt.comment:
+        update_opts["comment"] = opt.comment
+    if opt.private:
+        update_opts["comment_private"] = opt.private
+    if opt.component:
+        update_opts["component"] = opt.component
+    if opt.product:
+        update_opts["product"] = opt.product
+    if add_blk:
+        update_opts["blocks_add"] = add_blk
+    if rm_blk:
+        update_opts["blocks_remove"] = rm_blk
+    if set_blk is not None:
+        update_opts["blocks_set"] = set_blk
+    if opt.url:
+        update_opts["url"] = opt.url
+    if add_cc:
+        update_opts["cc_add"] = add_cc
+    if rm_cc:
+        update_opts["cc_remove"] = rm_cc
+    if add_deps:
+        update_opts["depends_on_add"] = add_deps
+    if rm_deps:
+        update_opts["depends_on_remove"] = rm_deps
+    if set_deps is not None:
+        update_opts["depends_on_set"] = set_deps
+    if add_groups:
+        update_opts["groups_add"] = add_groups
+    if rm_groups:
+        update_opts["groups_remove"] = rm_groups
+    if add_key:
+        update_opts["keywords_add"] = add_key
+    if rm_key:
+        update_opts["keywords_remove"] = rm_key
+    if set_key is not None:
+        update_opts["keywords_set"] = set_key
+    if opt.os:
+        update_opts["op_sys"] = opt.os
+    if opt.arch:
+        update_opts["platform"] = opt.arch
+    if opt.priority:
+        update_opts["priority"] = opt.priority
+    if opt.qa_contact:
+        update_opts["qa_contact"] = opt.qa_contact
+    if opt.severity:
+        update_opts["severity"] = opt.severity
+    if status:
+        update_opts["status"] = status
+    if opt.summary:
+        update_opts["summary"] = opt.summary
+    if opt.version:
+        update_opts["version"] = opt.version
+    if opt.reset_assignee:
+        update_opts["reset_assigned_to"] = opt.reset_assignee
+    if opt.reset_qa_contact:
+        update_opts["reset_qa_contact"] = opt.reset_qa_contact
+    if opt.close:
+        update_opts["resolution"] = opt.close
+    if opt.target_release:
+        update_opts["target_release"] = opt.target_release
+    if opt.target_milestone:
+        update_opts["target_milestone"] = opt.target_milestone
+    if opt.dupeid:
+        update_opts["dupe_of"] = opt.dupeid
+    if opt.fixed_in:
+        update_opts["fixed_in"] = opt.fixed_in
+    if set_wb and set_wb[0]:
+        update_opts["whiteboard"] = set_wb and set_wb[0]
+    if set_devwb and set_devwb[0]:
+        update_opts["devel_whiteboard"] = set_devwb and set_devwb[0]
+    if set_intwb and set_intwb[0]:
+        update_opts["internal_whiteboard"] = set_intwb and set_intwb[0]
+    if set_qawb and set_qawb[0]:
+        update_opts["qa_whiteboard"] = set_qawb and set_qawb[0]
+    if opt.sub_component:
+        update_opts["sub_component"] = opt.sub_component
+    if opt.alias:
+        update_opts["alias"] = opt.alias
+    if flags:
+        update_opts["flags"] = flags
+    if opt.comment_tag:
+        update_opts["comment_tags"] = opt.comment_tag
+
+    update = bz.build_update(**update_opts)
 
     # We make this a little convoluted to facilitate unit testing
     wbmap = {
@@ -942,7 +1043,8 @@ def _do_modify(bz, parser, opt):
         if not v[0] and not v[1]:
             del(wbmap[k])
 
-    _merge_field_opts(update, opt, parser)
+    if opt.fields:
+        _merge_field_opts(update, opt.fields, parser)
 
     log.debug("update bug dict=%s", update)
     log.debug("update whiteboard dict=%s", wbmap)
