@@ -35,7 +35,7 @@ class _BackendREST(_BackendBase):
 
     def _handle_response(self, response):
         response.raise_for_status()
-        text = response.text.encode("utf-8")
+        text = response.text
 
         try:
             ret = dict(json.loads(text))
