@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import sys
+import warnings
 
 import distutils.command.build
 from distutils.core import Command
@@ -82,7 +83,8 @@ class BuildCommand(distutils.command.build.build):
         if not rstbin:
             rstbin = shutil.which("rst2man.py")
         if not rstbin:
-            sys.exit("Didn't find rst2man or rst2man.py")
+            warnings.warn("Didn't find rst2man or rst2man.py. Installing without man pages")
+            return
 
         for path in glob.glob("man/*.rst"):
             base = os.path.basename(path)
