@@ -72,3 +72,24 @@ jobs:
         ./setup.py rpm
 
     - run: mock --root epel-8-x86_64 *.src.rpm
+
+  # Build and install on Windows
+  windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Build tarball & install
+      run: |
+        python setup.py sdist
+
+        pip install --find-links dist python-bugzilla
