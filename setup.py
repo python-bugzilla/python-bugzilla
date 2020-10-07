@@ -2,6 +2,7 @@
 
 import glob
 import os
+import shutil
 import subprocess
 import sys
 
@@ -77,10 +78,9 @@ class RPMCommand(Command):
 
 class BuildCommand(distutils.command.build.build):
     def _make_man_pages(self):
-        from distutils.spawn import find_executable
-        rstbin = find_executable("rst2man")
+        rstbin = shutil.which("rst2man")
         if not rstbin:
-            rstbin = find_executable("rst2man.py")
+            rstbin = shutil.which("rst2man.py")
         if not rstbin:
             sys.exit("Didn't find rst2man or rst2man.py")
 
