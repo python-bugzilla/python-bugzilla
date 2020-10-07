@@ -1,5 +1,8 @@
 # python-bugzilla release news
 
+## Release 3.0.1 (October 07, 2020)
+- Skip man page generation to fix build on Windows (Alexander Todorov)
+
 ## Release 3.0.0 (October 03, 2020)
 - Drop python2 support
 - New option `bugzilla modify --minor-update option`
