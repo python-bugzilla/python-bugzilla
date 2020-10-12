@@ -44,35 +44,6 @@ jobs:
         file: ./coverage.xml
         flags: unittests
 
-  # Build the RPM on latest fedora, centos7 and centos8
-  rpm:
-    runs-on: ubuntu-latest
-
-    container:
-      image: fedora:latest
-      # All this is needed to ensure 'mock' works in docker
-      options: --cap-add=SYS_ADMIN --security-opt label:disable --security-opt seccomp=unconfined --security-opt apparmor:unconfined
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Install deps
-      run: |
-        # glibc-langpacks-en needed to work around python locale issues
-        dnf install -y \
-          python3-pip \
-          rpm-build \
-          mock \
-          dnf-plugins-core \
-          glibc-langpack-en
-        dnf builddep -y ./*.spec
-
-    - name: Build RPM + SRPM
-      run: |
-        ./setup.py rpm
-
-    - run: mock --root epel-8-x86_64 *.src.rpm
-
   # Build and install on Windows
   windows:
     runs-on: windows-latest
