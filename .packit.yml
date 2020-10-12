@@ -3,7 +3,9 @@ upstream_project_url: https://github.com/python-bugzilla/python-bugzilla
 
 jobs:
   - job: copr_build
-    trigger: pull_request
+    trigger:
+      - pull_request
+      - commit
     metadata:
       targets:
         - fedora-all
