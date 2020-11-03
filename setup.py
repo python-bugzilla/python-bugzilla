@@ -5,9 +5,7 @@ import os
 import shutil
 import subprocess
 import sys
-import warnings
 
-import distutils.command.build
 from distutils.core import Command
 from setuptools import setup
 
@@ -77,14 +75,21 @@ class RPMCommand(Command):
         subprocess.check_call(cmd)
 
 
-class BuildCommand(distutils.command.build.build):
+class ManCommand(Command):
+    description = ("Regenerate manpages from rst")
+    user_options = []
+
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+
     def _make_man_pages(self):
         rstbin = shutil.which("rst2man")
         if not rstbin:
             rstbin = shutil.which("rst2man.py")
         if not rstbin:
-            warnings.warn("Didn't find rst2man or rst2man.py. Installing without man pages")
-            return
+            raise RuntimeError("Didn't find rst2man or rst2man.py")
 
         for path in glob.glob("man/*.rst"):
             base = os.path.basename(path)
@@ -101,7 +106,6 @@ class BuildCommand(distutils.command.build.build):
 
     def run(self):
         self._make_man_pages()
-        distutils.command.build.build.run(self)
 
 
 def _parse_requirements(fname):
@@ -135,14 +139,14 @@ setup(
         'Programming Language :: Python :: 3.9',
     ],
     packages=['bugzilla'],
-    data_files=[],
+    data_files=[('share/man/man1', ['man/bugzilla.1'])],
     entry_points={'console_scripts': ['bugzilla = bugzilla._cli:cli']},
 
     install_requires=_parse_requirements("requirements.txt"),
     tests_require=_parse_requirements("test-requirements.txt"),
 
     cmdclass={
-        "build": BuildCommand,
+        "regenerate_manpages": ManCommand,
         "pylint": PylintCommand,
         "rpm": RPMCommand,
     },

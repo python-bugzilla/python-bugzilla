@@ -9,7 +9,6 @@ Source0:        https://github.com/python-bugzilla/python-bugzilla/archive/v%{ve
 BuildArch:      noarch
 
 BuildRequires: python3-devel
-BuildRequires: python3-docutils
 BuildRequires: python3-requests
 BuildRequires: python3-setuptools
 BuildRequires: python3-pytest
