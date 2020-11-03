@@ -1,0 +1,621 @@
+.\" Man page generated from reStructuredText.
+.
+.TH BUGZILLA 1 "" "" "User Commands"
+.SH NAME
+bugzilla \- command line tool for interacting with Bugzilla
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH SYNOPSIS
+.sp
+\fBbugzilla\fP [\fIoptions\fP] [\fIcommand\fP] [\fIcommand\-options\fP]
+.SH DESCRIPTION
+.sp
+\fBbugzilla\fP is a command line tool for interacting with a Bugzilla
+instance over REST or XMLRPC.
+.nf
+
+\fIcommand\fP is one of:
+* login \- log into the given bugzilla instance
+* new \- create a new bug
+* query \- search for bugs matching given criteria
+* modify \- modify existing bugs
+* attach \- attach files to existing bugs, or get attachments
+* info \- get info about the given bugzilla instance
+.fi
+.sp
+.SH GLOBAL OPTIONS
+.SS \fB\-\-help, \-h\fP
+.sp
+\fBSyntax:\fP \fB\-h\fP
+.sp
+show this help message and exit
+.SS \fB\-\-bugzilla\fP
+.sp
+\fBSyntax:\fP \fB\-\-bugzilla\fP BUGZILLA
+.sp
+The bugzilla URL. Full API URLs are typically like:
+.nf
+
+* \fI\%https://bugzilla.example.com/xmlrpc.cgi\fP    # XMLRPC API
+* \fI\%https://bugzilla.example.com/rest/\fP         # REST API
+
+.fi
+.sp
+.sp
+If a non\-specific URL is passed, like \(aqbugzilla.redhat.com\(aq, \fBbugzilla\fP
+will try to probe whether the expected XMLRPC or REST path is available,
+preferring XMLRPC for backwards compatibility.
+.sp
+The default URL \fI\%https://bugzilla.redhat.com\fP
+.SS \fB\-\-nosslverify\fP
+.sp
+\fBSyntax:\fP \fB\-\-nosslverify\fP
+.sp
+Don\(aqt error on invalid bugzilla SSL certificate
+.SS \fB\-\-cert\fP
+.sp
+\fBSyntax:\fP \fB\-\-cert\fP CERTFILE
+.sp
+client side certificate file needed by the webserver.
+.SS \fB\-\-login\fP
+.sp
+\fBSyntax:\fP \fB\-\-login\fP
+.sp
+Run interactive "login" before performing the specified command.
+.SS \fB\-\-username\fP
+.sp
+\fBSyntax:\fP \fB\-\-username\fP USERNAME
+.sp
+Log in with this username
+.SS \fB\-\-password\fP
+.sp
+\fBSyntax:\fP \fB\-\-password\fP PASSWORD
+.sp
+Log in with this password
+.SS \fB\-\-restrict\-login\fP
+.sp
+\fBSyntax:\fP \fB\-\-restrict\-login\fP
+.sp
+The session (login token) will be restricted to the current IP
+address.
+.SS \fB\-\-ensure\-logged\-in\fP
+.sp
+\fBSyntax:\fP \fB\-\-ensure\-logged\-in\fP
+.sp
+Raise an error if we aren\(aqt logged in to bugzilla. Consider using
+this if you are depending on cached credentials, to ensure that when
+they expire the tool errors, rather than subtly change output.
+.SS \fB\-\-no\-cache\-credentials\fP
+.sp
+\fBSyntax:\fP \fB\-\-no\-cache\-credentials\fP
+.sp
+Don\(aqt save any bugzilla cookies or tokens to disk, and don\(aqt use any
+pre\-existing credentials.
+.SS \fB\-\-cookiefile\fP
+.sp
+\fBSyntax:\fP \fB\-\-cookiefile\fP COOKIEFILE
+.sp
+cookie file to use for bugzilla authentication
+.SS \fB\-\-tokenfile\fP
+.sp
+\fBSyntax:\fP \fB\-\-tokenfile\fP TOKENFILE
+.sp
+token file to use for bugzilla authentication
+.SS \fB\-\-verbose\fP
+.sp
+\fBSyntax:\fP \fB\-\-verbose\fP
+.sp
+give more info about what\(aqs going on
+.SS \fB\-\-debug\fP
+.sp
+\fBSyntax:\fP \fB\-\-debug\fP
+.sp
+output bunches of debugging info
+.SS \fB\-\-version\fP
+.sp
+\fBSyntax:\fP \fB\-\-version\fP
+.sp
+show program\(aqs version number and exit
+.SH STANDARD BUGZILLA OPTIONS
+.sp
+These options are shared by some combination of the \(aqnew\(aq, \(aqquery\(aq, and
+\(aqmodify\(aq sub commands. Not every option works for each command though.
+.SS \fB\-p, \-\-product\fP
+.sp
+\fBSyntax:\fP \fB\-\-product\fP PRODUCT
+.sp
+Product name
+.SS \fB\-v, \-\-version\fP
+.sp
+\fBSyntax:\fP \fB\-\-version\fP VERSION
+.sp
+Product version
+.SS \fB\-c, \-\-component\fP
+.sp
+\fBSyntax:\fP \fB\-\-component\fP COMPONENT
+.sp
+Component name
+.SS \fB\-s, \-\-summary\fP
+.sp
+\fBSyntax:\fP \fB\-\-summary\fP SUMMARY
+.sp
+Bug summary
+.SS \fB\-l, \-\-comment\fP
+.sp
+\fBSyntax:\fP \fB\-\-comment\fP DESCRIPTION
+.sp
+Set initial bug comment/description
+.SS \fB\-\-comment\-tag\fP
+.sp
+\fBSyntax:\fP \fB\-\-comment\-tag\fP TAG
+.sp
+Comment tag for the new comment
+.SS \fB\-\-sub\-component\fP
+.sp
+\fBSyntax:\fP \fB\-\-sub\-component\fP SUB_COMPONENT
+.sp
+RHBZ sub component name
+.SS \fB\-o, \-\-os\fP
+.sp
+\fBSyntax:\fP \fB\-\-os\fP OS
+.sp
+Operating system
+.SS \fB\-\-arch\fP
+.sp
+\fBSyntax:\fP \fB\-\-arch\fP ARCH
+.sp
+Arch this bug occurs on
+.SS \fB\-x, \-\-severity\fP
+.sp
+\fBSyntax:\fP \fB\-\-severity\fP SEVERITY
+.sp
+Bug severity
+.SS \fB\-z, \-\-priority\fP
+.sp
+\fBSyntax:\fP \fB\-\-priority\fP PRIORITY
+.sp
+Bug priority
+.SS \fB\-\-alias\fP
+.sp
+\fBSyntax:\fP \fB\-\-alias\fP ALIAS
+.sp
+Bug alias (name)
+.SS \fB\-s, \-\-status\fP
+.sp
+\fBSyntax:\fP \fB\-\-status\fP STATUS
+.sp
+Bug status (NEW, ASSIGNED, etc.)
+.SS \fB\-u, \-\-url\fP
+.sp
+\fBSyntax:\fP \fB\-\-url\fP URL
+.sp
+URL for further bug info
+.SS \fB\-m \-\-target_milestone\fP
+.sp
+\fBSyntax:\fP \fB\-\-target_milestone\fP TARGET_MILESTONE
+.sp
+Target milestone
+.SS \fB\-\-target_release\fP
+.sp
+\fBSyntax:\fP \fB\-\-target_release\fP TARGET_RELEASE
+.sp
+RHBZ Target release
+.SS \fB\-\-blocked\fP
+.sp
+\fBSyntax:\fP \fB\&...]\fP
+.sp
+Bug IDs that this bug blocks
+.SS \fB\-\-dependson\fP
+.sp
+\fBSyntax:\fP \fB\&...]\fP
+.sp
+Bug IDs that this bug depends on
+.SS \fB\-\-keywords\fP
+.sp
+\fBSyntax:\fP \fB\&...]\fP
+.sp
+Bug keywords
+.SS \fB\-\-groups\fP
+.sp
+\fBSyntax:\fP \fB\&...]\fP
+.sp
+Which user groups can view this bug
+.SS \fB\-\-cc\fP
+.sp
+\fBSyntax:\fP \fB\&...]\fP
+.sp
+CC list
+.SS \fB\-a, \-\-assignee, \-\-assigned_to\fP
+.sp
+\fBSyntax:\fP \fB\-\-assigned_to\fP ASSIGNED_TO
+.sp
+Bug assignee
+.SS \fB\-q, \-\-qa_contact\fP
+.sp
+\fBSyntax:\fP \fB\-\-qa_contact\fP QA_CONTACT
+.sp
+QA contact
+.SS \fB\-\-flag\fP
+.sp
+\fBSyntax:\fP \fB\-\-flag\fP FLAG
+.sp
+Set or unset a flag. For example, to set a flag named devel_ack, do
+\-\-flag devel_ack+ Unset a flag with the \(aqX\(aq value, like \-\-flag
+needinfoX
+.SS \fB\-\-tags\fP
+.sp
+\fBSyntax:\fP \fB\-\-tags\fP TAG
+.sp
+Set (personal) tags field
+.SS \fB\-w, \-\-whiteboard\fP
+.sp
+\fBSyntax:\fP \fB\-\-whiteboard\fP WHITEBOARD
+.sp
+Whiteboard field
+.SS \fB\-\-devel_whiteboard\fP
+.sp
+\fBSyntax:\fP \fB\-\-devel_whiteboard\fP DEVEL_WHITEBOARD
+.sp
+RHBZ devel whiteboard field
+.SS \fB\-\-internal_whiteboard\fP
+.sp
+\fBSyntax:\fP \fB\-\-internal_whiteboard\fP INTERNAL_WHITEBOARD
+.sp
+RHBZ internal whiteboard field
+.SS \fB\-\-qa_whiteboard\fP
+.sp
+\fBSyntax:\fP \fB\-\-qa_whiteboard\fP QA_WHITEBOARD
+.sp
+RHBZ QA whiteboard field
+.SS \fB\-F, \-\-fixed_in\fP
+.sp
+\fBSyntax:\fP \fB\-\-fixed_in\fP FIXED_IN
+.sp
+RHBZ \(aqFixed in version\(aq field
+.SS \fB\-\-field\fP
+.sp
+\fBSyntax:\fP \fB\-\-field\fP FIELD\(ga\(ga VALUE
+.sp
+Manually specify a bugzilla API field. FIELD is the raw name used
+by the bugzilla instance. For example if your bugzilla instance has a
+custom field cf_my_field, do: \-\-field cf_my_field=VALUE
+.SH OUTPUT OPTIONS
+.sp
+These options are shared by several commands, for tweaking the text
+output of the command results.
+.SS \fB\-f, \-\-full\fP
+.sp
+\fBSyntax:\fP \fB\-\-full\fP
+.sp
+output detailed bug info
+.SS \fB\-i, \-\-ids\fP
+.sp
+\fBSyntax:\fP \fB\-\-ids\fP
+.sp
+output only bug IDs
+.SS \fB\-e, \-\-extra\fP
+.sp
+\fBSyntax:\fP \fB\-\-extra\fP
+.sp
+output additional bug information (keywords, Whiteboards, etc.)
+.SS \fB\-\-oneline\fP
+.sp
+\fBSyntax:\fP \fB\-\-oneline\fP
+.sp
+one line summary of the bug (useful for scripts)
+.SS \fB\-\-json\fP
+.sp
+\fBSyntax:\fP \fB\-\-json\fP
+.sp
+output bug contents in JSON format
+.SS \fB\-\-includefield\fP
+.sp
+\fBSyntax:\fP \fB\-\-includefield\fP
+.sp
+Pass the field name to bugzilla include_fields list.
+Only the fields passed to include_fields are returned
+by the bugzilla server.
+This can be specified multiple times.
+.SS \fB\-\-extrafield\fP
+.sp
+\fBSyntax:\fP \fB\-\-extrafield\fP
+.sp
+Pass the field name to bugzilla extra_fields list.
+When used with \-\-json this can be used to request
+bugzilla to return values for non\-default fields.
+This can be specified multiple times.
+.SS \fB\-\-excludefield\fP
+.sp
+\fBSyntax:\fP \fB\-\-excludefield\fP
+.sp
+Pass the field name to bugzilla exclude_fields list.
+When used with \-\-json this can be used to request
+bugzilla to not return values for a field.
+This can be specified multiple times.
+.SS \fB\-\-raw\fP
+.sp
+\fBSyntax:\fP \fB\-\-raw\fP
+.sp
+raw output of the bugzilla contents. This format is unstable and
+difficult to parse. Please use the \fB\-\-json\fP instead if you want
+maximum output from the \fIbugzilla\fP
+.SS \fB\-\-outputformat\fP
+.sp
+\fBSyntax:\fP \fB\-\-outputformat\fP OUTPUTFORMAT
+.sp
+Print output in the form given. You can use RPM\-style tags that match
+bug fields, e.g.: \(aq%{id}: %{summary}\(aq.
+.sp
+The output of the bugzilla tool should NEVER BE PARSED unless you are
+using a custom \-\-outputformat. For everything else, just don\(aqt parse it,
+the formats are not stable and are subject to change.
+.sp
+\-\-outputformat allows printing arbitrary bug data in a user preferred
+format. For example, to print a returned bug ID, component, and product,
+separated with ::, do:
+.sp
+\-\-outputformat "%{id}::%{component}::%{product}"
+.sp
+The fields (like \(aqid\(aq, \(aqcomponent\(aq, etc.) are the names of the values
+returned by bugzilla\(aqs API. To see a list of all fields,
+check the API documentation in the \(aqSEE ALSO\(aq section. Alternatively,
+run a \(aqbugzilla \-\-debug query ...\(aq and look at the key names returned in
+the query results. Also, in most cases, using the name of the associated
+command line switch should work, like \-\-bug_status becomes
+%{bug_status}, etc.
+.SH ‘QUERY’ SPECIFIC OPTIONS
+.sp
+Certain options can accept a comma separated list to query multiple
+values, including \-\-status, \-\-component, \-\-product, \-\-version, \-\-id.
+.sp
+Note: querying via explicit command line options will only get you so
+far. See the \-\-from\-url option for a way to use powerful Web UI queries
+from the command line.
+.SS \fB\-b, \-\-bug_id, \-\-id\fP
+.sp
+\fBSyntax:\fP \fB\-\-id\fP ID
+.sp
+specify individual bugs by IDs, separated with commas
+.SS \fB\-r, \-\-reporter\fP
+.sp
+\fBSyntax:\fP \fB\-\-reporter\fP REPORTER
+.sp
+Email: search reporter email for given address
+.SS \fB\-\-quicksearch\fP
+.sp
+\fBSyntax:\fP \fB\-\-quicksearch\fP QUICKSEARCH
+.sp
+Search using bugzilla\(aqs quicksearch functionality.
+.SS \fB\-\-savedsearch\fP
+.sp
+\fBSyntax:\fP \fB\-\-savedsearch\fP SAVEDSEARCH
+.sp
+Name of a bugzilla saved search. If you don\(aqt own this saved search,
+you must passed \-\-savedsearch_sharer_id.
+.SS \fB\-\-savedsearch\-sharer\-id\fP
+.sp
+\fBSyntax:\fP \fB\-\-savedsearch\-sharer\-id\fP SAVEDSEARCH_SHARER_ID
+.sp
+Owner ID of the \-\-savedsearch. You can get this ID from the URL
+bugzilla generates when running the saved search from the web UI.
+.SS \fB\-\-from\-url\fP
+.sp
+\fBSyntax:\fP \fB\-\-from\-url\fP WEB_QUERY_URL
+.sp
+Make a working query via bugzilla\(aqs \(aqAdvanced search\(aq web UI, grab
+the url from your browser (the string with query.cgi or buglist.cgi
+in it), and \-\-from\-url will run it via the bugzilla API. Don\(aqt forget
+to quote the string! This only works for Bugzilla 5 and Red Hat
+bugzilla
+.SH ‘MODIFY’ SPECIFIC OPTIONS
+.sp
+Fields that take multiple values have a special input format.
+.nf
+Append: \fI\%\-\-cc=foo@example.com\fP
+Overwrite: \fI\%\-\-cc==foo@example.com\fP
+Remove: \fI\%\-\-cc=\-foo@example.com\fP
+.fi
+.sp
+.sp
+Options that accept this format: \-\-cc, \-\-blocked, \-\-dependson, \-\-groups,
+\-\-tags, whiteboard fields.
+.SS \fB\-k, \-\-close RESOLUTION\fP
+.sp
+\fBSyntax:\fP \fBRESOLUTION\fP
+.sp
+Close with the given resolution (WONTFIX, NOTABUG, etc.)
+.SS \fB\-d, \-\-dupeid\fP
+.sp
+\fBSyntax:\fP \fB\-\-dupeid\fP ORIGINAL
+.sp
+ID of original bug. Implies \-\-close DUPLICATE
+.SS \fB\-\-private\fP
+.sp
+\fBSyntax:\fP \fB\-\-private\fP
+.sp
+Mark new comment as private
+.SS \fB\-\-reset\-assignee\fP
+.sp
+\fBSyntax:\fP \fB\-\-reset\-assignee\fP
+.sp
+Reset assignee to component default
+.SS \fB\-\-reset\-qa\-contact\fP
+.sp
+\fBSyntax:\fP \fB\-\-reset\-qa\-contact\fP
+.sp
+Reset QA contact to component default
+.SS \fB\-\-minor\-update\fP
+.sp
+\fBSyntax:\fP \fB\-\-minor\-update\fP
+.sp
+Request bugzilla to not send any email about this change
+.SH ‘NEW’ SPECIFIC OPTIONS
+.SS \fB\-\-private\fP
+.sp
+\fBSyntax:\fP \fB\-\-private\fP
+.sp
+Mark new comment as private
+.SH ‘ATTACH’ OPTIONS
+.SS \fB\-f, \-\-file\fP
+.sp
+\fBSyntax:\fP \fB\-\-file\fP FILENAME
+.sp
+File to attach, or filename for data provided on stdin
+.SS \fB\-d, \-\-description\fP
+.sp
+\fBSyntax:\fP \fB\-\-description\fP DESCRIPTION
+.sp
+A short description of the file being attached
+.SS \fB\-t, \-\-type\fP
+.sp
+\fBSyntax:\fP \fB\-\-type\fP MIMETYPE
+.sp
+Mime\-type for the file being attached
+.SS \fB\-g, \-\-get\fP
+.sp
+\fBSyntax:\fP \fB\-\-get\fP ATTACHID
+.sp
+Download the attachment with the given ID
+.SS \fB\-\-getall\fP
+.sp
+\fBSyntax:\fP \fB\-\-getall\fP BUGID
+.sp
+Download all attachments on the given bug
+.SS \fB\-\-ignore\-obsolete\fP
+.sp
+\fBSyntax:\fP \fB\-\-ignore\-obsolete\fP
+.sp
+Do not download attachments marked as obsolete.
+.SS \fB\-l, \-\-comment\fP
+.sp
+\fBSyntax:\fP \fB\-\-comment\fP COMMENT
+.sp
+Add comment with attachment
+.SH ‘INFO’ OPTIONS
+.SS \fB\-p, \-\-products\fP
+.sp
+\fBSyntax:\fP \fB\-\-products\fP
+.sp
+Get a list of products
+.SS \fB\-c, \-\-components\fP
+.sp
+\fBSyntax:\fP \fB\-\-components\fP PRODUCT
+.sp
+List the components in the given product
+.SS \fB\-o, \-\-component_owners\fP
+.sp
+\fBSyntax:\fP \fB\-\-component_owners\fP PRODUCT
+.sp
+List components (and their owners)
+.SS \fB\-v, \-\-versions\fP
+.sp
+\fBSyntax:\fP \fB\-\-versions\fP PRODUCT
+.sp
+List the versions for the given product
+.SS \fB\-\-active\-components\fP
+.sp
+\fBSyntax:\fP \fB\-\-active\-components\fP
+.sp
+Only show active components. Combine with \-\-components*
+.SH AUTHENTICATION CACHE AND API KEYS
+.sp
+Some command usage will require an active login to the bugzilla
+instance. For example, if the bugzilla instance has some private bugs,
+those bugs will be missing from \(aqquery\(aq output if you do not have an
+active login.
+.sp
+If you are connecting to a bugzilla 5.0 or later instance, the best
+option is to use bugzilla API keys. From the bugzilla web UI, log in,
+navigate to Preferences\->API Keys, and generate a key (it will be a long
+string of characters and numbers). Then create a
+~/.config/python\-bugzilla/bugzillarc like this:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ cat ~/.config/python\-bugzilla/bugzillarc
+
+[bugzilla.example.com]
+api_key=YOUR_API_KEY
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Replace \(aqbugzilla.example.com\(aq with your bugzilla host name, and
+YOUR_API_KEY with the generated API Key from the Web UI.
+.sp
+Alternatively, you can use \(aqbugzilla login \-\-api\-key\(aq, which will ask
+for the API key, and save it to bugzillarc for you.
+.sp
+For older bugzilla instances, you will need to cache a login cookie or
+token with the "login" subcommand or the "\-\-login" argument.
+.sp
+Additionally, the \-\-no\-cache\-credentials option will tell the bugzilla
+tool to \fInot\fP save or use any authentication cache, including the
+bugzillarc file.
+.SH EXAMPLES
+.nf
+bugzilla query \-\-bug_id 62037
+
+bugzilla query \-\-version 15 \-\-component python\-bugzilla
+
+bugzilla login
+
+bugzilla new \-p Fedora \-v rawhide \-c python\-bugzilla \e
+.in +2
+\-\-summary "python\-bugzilla causes headaches" \e
+\-\-comment "python\-bugzilla made my brain hurt when I used it."
+
+.in -2
+bugzilla attach \-\-file ~/Pictures/cam1.jpg \-\-desc "me, in pain"
+$BUGID
+
+bugzilla attach \-\-getall $BUGID
+
+bugzilla modify \-\-close NOTABUG \-\-comment "Actually, you\(aqre
+hungover." $BUGID
+.fi
+.sp
+.SH EXIT STATUS
+.sp
+\fBbugzilla\fP normally returns 0 if the requested command was successful.
+Otherwise, exit status is 1 if \fBbugzilla\fP is interrupted by the user
+(or a login attempt fails), 2 if a socket error occurs (e.g. TCP
+connection timeout), and 3 if the Bugzilla server throws an error.
+.SH BUGS
+.sp
+Please report any bugs as github issues at
+\fI\%https://github.com/python\-bugzilla/python\-bugzilla\fP
+.SH SEE ALSO
+.sp
+\fI\%https://bugzilla.readthedocs.io/en/latest/api/index.html\fP
+\fI\%https://bugzilla.redhat.com/docs/en/html/api/Bugzilla/WebService/Bug.html\fP
+.\" Generated by docutils manpage writer.
+.

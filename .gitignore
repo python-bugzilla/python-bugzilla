@@ -7,4 +7,3 @@ build
 .coverage
 .tox
 .pytest_cache
-man/bugzilla.1
