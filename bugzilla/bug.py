@@ -1,5 +1,3 @@
-# base.py - the base classes etc. for a Python interface to bugzilla
-#
 # Copyright (C) 2007, 2008, 2009, 2010 Red Hat Inc.
 # Author: Will Woods <wwoods@redhat.com>
 #
