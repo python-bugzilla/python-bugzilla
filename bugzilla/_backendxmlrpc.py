@@ -22,7 +22,7 @@ class _BugzillaXMLRPCTransport(Transport):
             Transport.__init__(self, use_datetime=False)
 
         self.__bugzillasession = bugzillasession
-        self.__bugzillasession.set_content_type("text/xml")
+        self.__bugzillasession.set_xmlrpc_defaults()
         self.__seen_valid_xml = False
 
         # Override Transport.user_agent
@@ -43,9 +43,7 @@ class _BugzillaXMLRPCTransport(Transport):
         try:
             response = self.__bugzillasession.request(
                 "POST", url, data=request_body)
-            response.raise_for_status()
 
-            self.__bugzillasession.set_response_cookies(response)
             return self.parse_response(response)
         except RequestException as e:
             if not response:

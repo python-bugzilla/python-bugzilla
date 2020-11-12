@@ -25,6 +25,7 @@ class _BugzillaSession(object):
         self._cookiecache = cookiecache
         self._tokencache = tokencache
         self._api_key = api_key
+        self._is_xmlrpc = False
 
         if self._scheme not in ["http", "https"]:
             raise Exception("Invalid URL scheme: %s (%s)" % (
@@ -52,6 +53,12 @@ class _BugzillaSession(object):
         envtimeout = os.environ.get("PYTHONBUGZILLA_REQUESTS_TIMEOUT")
         return float(envtimeout or DEFAULT_TIMEOUT)
 
+    def set_rest_defaults(self):
+        self._session.headers["Content-Type"] = "application/json"
+    def set_xmlrpc_defaults(self):
+        self._is_xmlrpc = True
+        self._session.headers["Content-Type"] = "text/xml"
+
     def get_user_agent(self):
         return self._user_agent
     def get_scheme(self):
@@ -63,8 +70,6 @@ class _BugzillaSession(object):
     def set_token_value(self, value):
         self._tokencache.set_value(self._url, value)
         self._set_tokencache_param()
-    def set_content_type(self, value):
-        self._session.headers["Content-Type"] = value
 
     def _set_tokencache_param(self):
         if self._api_key:
@@ -89,4 +94,14 @@ class _BugzillaSession(object):
         timeout = self._get_timeout()
         if "timeout" not in kwargs:
             kwargs["timeout"] = timeout
-        return self._session.request(*args, **kwargs)
+        response = self._session.request(*args, **kwargs)
+
+        if self._is_xmlrpc:
+            # Yes this still appears to matter for properly decoding unicode
+            # code points in bugzilla.redhat.com content
+            response.encoding = "UTF-8"
+            # Set response cookies
+            self.set_response_cookies(response)
+
+        response.raise_for_status()
+        return response

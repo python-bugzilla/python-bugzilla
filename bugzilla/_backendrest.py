@@ -26,17 +26,14 @@ class _BackendREST(_BackendBase):
     """
     def __init__(self, url, bugzillasession):
         _BackendBase.__init__(self, url, bugzillasession)
-        self._bugzillasession.set_content_type("application/json")
+        self._bugzillasession.set_rest_defaults()
 
 
     #########################
     # Internal REST helpers #
     #########################
 
-    def _handle_response(self, response):
-        response.raise_for_status()
-        text = response.text
-
+    def _handle_response(self, text):
         try:
             ret = dict(json.loads(text))
         except Exception:
@@ -60,7 +57,7 @@ class _BackendREST(_BackendBase):
 
         response = self._bugzillasession.request(method, fullurl, data=data,
                 params=params)
-        return self._handle_response(response)
+        return self._handle_response(response.text)
 
     def _get(self, *args, **kwargs):
         return self._op("GET", *args, **kwargs)
