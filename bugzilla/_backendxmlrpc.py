@@ -43,11 +43,9 @@ class _BugzillaXMLRPCTransport(Transport):
         try:
             response = self.__bugzillasession.request(
                 "POST", url, data=request_body)
-
-            # update/set any cookies
-            self.__bugzillasession.set_response_cookies(response)
-
             response.raise_for_status()
+
+            self.__bugzillasession.set_response_cookies(response)
             return self.parse_response(response)
         except RequestException as e:
             if not response:
