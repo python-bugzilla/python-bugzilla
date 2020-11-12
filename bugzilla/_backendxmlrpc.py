@@ -44,9 +44,6 @@ class _BugzillaXMLRPCTransport(Transport):
             response = self.__bugzillasession.request(
                 "POST", url, data=request_body)
 
-            # We expect utf-8 from the server
-            response.encoding = 'UTF-8'
-
             # update/set any cookies
             self.__bugzillasession.set_response_cookies(response)
 
