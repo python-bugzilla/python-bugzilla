@@ -42,7 +42,6 @@ class _BugzillaSession(object):
         if sslverify is False:
             self._session.verify = False
         self._session.headers["User-Agent"] = self._user_agent
-        self._session.params["Bugzilla_api_key"] = self._api_key
         self._set_tokencache_param()
 
     def _get_timeout(self):
@@ -55,6 +54,10 @@ class _BugzillaSession(object):
 
     def set_rest_defaults(self):
         self._session.headers["Content-Type"] = "application/json"
+        # Bugzilla 5.0 only supports api_key as a query parameter.
+        # Bugzilla 5.1+ takes it as a X-BUGZILLA-API-KEY header as well,
+        # with query param taking preference.
+        self._session.params["Bugzilla_api_key"] = self._api_key
     def set_xmlrpc_defaults(self):
         self._is_xmlrpc = True
         self._session.headers["Content-Type"] = "text/xml"
