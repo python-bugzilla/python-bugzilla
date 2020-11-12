@@ -3,19 +3,13 @@ upstream_project_url: https://github.com/python-bugzilla/python-bugzilla
 
 jobs:
   - job: copr_build
-    trigger: pull_request
-    metadata:
-      targets:
-        - fedora-all
-        - epel-8-x86_64
-  - job: copr_build
     trigger: commit
     metadata:
       targets:
         - fedora-all
         - epel-8-x86_64
   - job: tests
-    trigger: pull_request
+    trigger: commit
     metadata:
       targets:
         - fedora-all
