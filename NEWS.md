@@ -1,5 +1,8 @@
 # python-bugzilla release news
 
+## Release 3.0.2 (November 12, 2020)
+- Fix API key leaking into requests exceptions
+
 ## Release 3.0.1 (October 07, 2020)
 - Skip man page generation to fix build on Windows (Alexander Todorov)
 
