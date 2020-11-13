@@ -6,12 +6,14 @@
 # This work is licensed under the GNU GPLv2 or later.
 # See the COPYING file in the top-level directory.
 
+import collections
 import getpass
 import locale
 from logging import getLogger
 import mimetypes
 import os
 import sys
+import urllib.parse
 
 from io import BytesIO
 
@@ -20,7 +22,6 @@ from ._authfiles import (_BugzillaRCFile,
 from .apiversion import __version__
 from ._backendrest import _BackendREST
 from ._backendxmlrpc import _BackendXMLRPC
-from ._compatimports import Mapping, urlparse, urlunparse, parse_qsl
 from .bug import Bug, Group, User
 from .exceptions import BugzillaError
 from ._rhconverters import _RHBugzillaConverters
@@ -34,7 +35,7 @@ log = getLogger(__name__)
 def _nested_update(d, u):
     # Helper for nested dict update()
     for k, v in list(u.items()):
-        if isinstance(v, Mapping):
+        if isinstance(v, collections.abc.Mapping):
             d[k] = _nested_update(d.get(k, {}), v)
         else:
             d[k] = v
@@ -110,13 +111,13 @@ class Bugzilla(object):
 
         # pylint: disable=unpacking-non-sequence
         (ignore1, ignore2, path,
-         ignore, query, ignore3) = urlparse(url)
+         ignore, query, ignore3) = urllib.parse.urlparse(url)
 
         base = os.path.basename(path)
         if base not in ('buglist.cgi', 'query.cgi'):
             return {}
 
-        for (k, v) in parse_qsl(query):
+        for (k, v) in urllib.parse.parse_qsl(query):
             if k not in q:
                 q[k] = v
             elif isinstance(q[k], list):
@@ -141,7 +142,8 @@ class Bugzilla(object):
 
         :param force_rest: If True, generate a REST API url
         """
-        scheme, netloc, path, params, query, fragment = urlparse(url)
+        (scheme, netloc, path,
+         params, query, fragment) = urllib.parse.urlparse(url)
         if not scheme:
             scheme = 'https'
 
@@ -154,7 +156,8 @@ class Bugzilla(object):
             if force_rest:
                 path = "rest/"
 
-        newurl = urlunparse((scheme, netloc, path, params, query, fragment))
+        newurl = urllib.parse.urlunparse(
+            (scheme, netloc, path, params, query, fragment))
         return newurl
 
     @staticmethod

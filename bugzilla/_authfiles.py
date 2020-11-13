@@ -1,11 +1,12 @@
 # This work is licensed under the GNU GPLv2 or later.
 # See the COPYING file in the top-level directory.
 
+import configparser
+import http.cookiejar
 import os
 from logging import getLogger
+import urllib.parse
 
-from ._compatimports import (ConfigParser, LoadError,
-                            MozillaCookieJar, urlparse)
 from .exceptions import BugzillaError
 from ._util import listify
 
@@ -15,7 +16,7 @@ log = getLogger(__name__)
 def _parse_hostname(url):
     # If http://example.com is passed, netloc=example.com path=""
     # If just example.com is passed, netloc="" path=example.com
-    parsedbits = urlparse(url)
+    parsedbits = urllib.parse.urlparse(url)
     return parsedbits.netloc or parsedbits.path
 
 
@@ -60,7 +61,7 @@ class _BugzillaRCFile(object):
         configpaths = [os.path.expanduser(p) for p in
                        listify(configpaths or [])]
 
-        cfg = ConfigParser()
+        cfg = configparser.ConfigParser()
         read_files = cfg.read(configpaths)
         if read_files:
             log.info("Found bugzillarc files: %s", read_files)
@@ -118,7 +119,7 @@ class _BugzillaRCFile(object):
 
         config_filename = configpaths[-1]
         section = _parse_hostname(url)
-        cfg = ConfigParser()
+        cfg = configparser.ConfigParser()
         cfg.read(config_filename)
 
         if section not in cfg.sections():
@@ -146,7 +147,7 @@ class _BugzillaTokenCache(object):
         self._cfg = None
 
     def _get_domain(self, url):
-        domain = urlparse(url)[1]
+        domain = urllib.parse.urlparse(url)[1]
         if domain and domain not in self._cfg.sections():
             self._cfg.add_section(domain)
         return domain
@@ -178,7 +179,7 @@ class _BugzillaTokenCache(object):
 
     def set_filename(self, filename):
         log.debug("Using tokenfile=%s", filename)
-        cfg = ConfigParser()
+        cfg = configparser.ConfigParser()
         if filename:
             cfg.read(filename)
         self._filename = filename
@@ -194,7 +195,7 @@ class _BugzillaCookieCache(object):
         self._cookiejar = None
 
     def _build_cookiejar(self, cookiefile):
-        cj = MozillaCookieJar(cookiefile)
+        cj = http.cookiejar.MozillaCookieJar(cookiefile)
         if (cookiefile is None or
             not os.path.exists(cookiefile)):
             return cj
@@ -202,7 +203,7 @@ class _BugzillaCookieCache(object):
         try:
             cj.load()
             return cj
-        except LoadError:
+        except http.cookiejar.LoadError:
             msg = "cookiefile=%s not in Mozilla format" % cookiefile
             raise BugzillaError(msg) from None
 

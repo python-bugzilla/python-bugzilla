@@ -21,11 +21,12 @@ import re
 import socket
 import sys
 import tempfile
+import urllib.parse
+import xmlrpc.client
 
 import requests.exceptions
 
 import bugzilla
-from bugzilla._compatimports import Fault, ProtocolError, urlparse
 
 
 DEFAULT_BZ = 'https://bugzilla.redhat.com'
@@ -1212,7 +1213,7 @@ def _handle_login(opt, action, bz):
                 print("You already have an API key configured for %s" % bz.url)
                 print("There is no need to cache a login token. Exiting.")
                 sys.exit(0)
-            print("Logging into %s" % urlparse(bz.url)[1])
+            print("Logging into %s" % urllib.parse.urlparse(bz.url)[1])
             bz.interactive_login(username, password,
                     restrict_login=opt.restrict_login)
     except bugzilla.BugzillaError as e:
@@ -1293,7 +1294,7 @@ def main(unittest_bz_instance=None):
     except KeyboardInterrupt:
         print("\nExited at user request.")
         sys.exit(1)
-    except (Fault, bugzilla.BugzillaError) as e:
+    except (xmlrpc.client.Fault, bugzilla.BugzillaError) as e:
         print("\nServer error: %s" % str(e))
         sys.exit(3)
     except requests.exceptions.SSLError as e:
@@ -1307,7 +1308,7 @@ def main(unittest_bz_instance=None):
             requests.exceptions.HTTPError,
             requests.exceptions.ConnectionError,
             requests.exceptions.InvalidURL,
-            ProtocolError) as e:
+            xmlrpc.client.ProtocolError) as e:
         print("\nConnection lost/failed: %s" % str(e))
         sys.exit(2)
 

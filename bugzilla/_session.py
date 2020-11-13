@@ -5,10 +5,9 @@ from logging import getLogger
 
 import os
 import sys
+import urllib.parse
 
 import requests
-
-from ._compatimports import urlparse
 
 
 log = getLogger(__name__)
@@ -23,7 +22,7 @@ class _BugzillaSession(object):
             tokencache, api_key, requests_session=None):
         self._url = url
         self._user_agent = user_agent
-        self._scheme = urlparse(url)[0]
+        self._scheme = urllib.parse.urlparse(url)[0]
         self._cookiecache = cookiecache
         self._tokencache = tokencache
         self._api_key = api_key

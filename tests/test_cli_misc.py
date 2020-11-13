@@ -12,12 +12,12 @@ Test miscellaneous CLI bits to get build out our code coverage
 import base64
 import datetime
 import json
+import xmlrpc.client
 
 import pytest
 import requests
 
 import bugzilla
-from bugzilla._compatimports import Binary, DateTime
 
 import tests
 import tests.mockbackend
@@ -111,8 +111,8 @@ def test_json_xmlrpc(run_cli):
     bugid = 1165434
     data = {"bugs": [{
         'id': bugid,
-        'timetest': DateTime(dateobj),
-        'binarytest': Binary(attachdata),
+        'timetest': xmlrpc.client.DateTime(dateobj),
+        'binarytest': xmlrpc.client.Binary(attachdata),
     }]}
 
     fakebz = tests.mockbackend.make_bz(

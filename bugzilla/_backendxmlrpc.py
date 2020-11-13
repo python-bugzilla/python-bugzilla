@@ -3,12 +3,12 @@
 
 from logging import getLogger
 import sys
+from xmlrpc.client import (Binary, Fault, ProtocolError,
+                           ServerProxy, Transport)
 
 from requests import RequestException
 
 from ._backendbase import _BackendBase
-from ._compatimports import (Binary, Fault, ProtocolError,
-                             ServerProxy, Transport)
 from .exceptions import BugzillaError
 from ._util import listify
 
