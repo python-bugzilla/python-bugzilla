@@ -4,6 +4,8 @@
 from logging import getLogger
 
 import os
+import sys
+
 import requests
 
 from ._compatimports import urlparse
@@ -97,6 +99,7 @@ class _BugzillaSession(object):
         timeout = self._get_timeout()
         if "timeout" not in kwargs:
             kwargs["timeout"] = timeout
+
         response = self._session.request(*args, **kwargs)
 
         if self._is_xmlrpc:
@@ -106,5 +109,11 @@ class _BugzillaSession(object):
             # Set response cookies
             self.set_response_cookies(response)
 
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except Exception as e:
+            # Scrape the api key out of the returned exception string
+            message = str(e).replace(self._api_key or "", "")
+            raise type(e)(message).with_traceback(sys.exc_info()[2])
+
         return response

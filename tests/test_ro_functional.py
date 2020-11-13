@@ -8,6 +8,7 @@
 """
 Unit tests that do readonly functional tests against real bugzilla instances.
 """
+import pytest
 
 import bugzilla
 import tests
@@ -61,6 +62,22 @@ def test_rest_xmlrpc_detection():
     # See /xmlrpc.cgi in the URL, so use XMLRPC
     bz = _open_bz("bugzilla.redhat.com/xmlrpc.cgi")
     assert bz.is_xmlrpc()
+
+
+def test_apikey_error_scraping():
+    # Ensure the API key does not leak into any requests exceptions
+    fakekey = "FOOBARMYKEY"
+    with pytest.raises(Exception) as e:
+        _open_bz("https://httpstat.us/502&foo",
+                force_xmlrpc=True, api_key=fakekey)
+    assert "400 Client Error" in str(e.value)
+    assert fakekey not in str(e.value)
+
+    with pytest.raises(Exception) as e:
+        _open_bz("https://httpstat.us/502&foo",
+                force_rest=True, api_key=fakekey)
+    assert "400 Client Error" in str(e.value)
+    assert fakekey not in str(e.value)
 
 
 ###################
