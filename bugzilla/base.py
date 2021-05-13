@@ -1990,7 +1990,7 @@ class Bugzilla(object):
         ExternalBugs::WebService::add_external_bug method.
 
         This is documented at
-        https://bugzilla.redhat.com/docs/en/html/api/extensions/ExternalBugs/lib/WebService.html#add_external_bug
+        https://bugzilla.redhat.com/docs/en/html/integrating/api/Bugzilla/Extension/ExternalBugs/WebService.html#add-external-bug
 
         bug_ids: A single bug id or list of bug ids to have external trackers
             added.
@@ -2033,7 +2033,7 @@ class Bugzilla(object):
         ExternalBugs::WebService::update_external_bug method.
 
         This is documented at
-        https://bugzilla.redhat.com/docs/en/html/api/extensions/ExternalBugs/lib/WebService.html#update_external_bug
+        https://bugzilla.redhat.com/docs/en/html/integrating/api/Bugzilla/Extension/ExternalBugs/WebService.html#update-external-bug
 
         ids: A single external tracker bug id or list of external tracker bug
             ids.
@@ -2078,7 +2078,7 @@ class Bugzilla(object):
         ExternalBugs::WebService::remove_external_bug method.
 
         This is documented at
-        https://bugzilla.redhat.com/docs/en/html/api/extensions/ExternalBugs/lib/WebService.html#remove_external_bug
+        https://bugzilla.redhat.com/docs/en/html/integrating/api/Bugzilla/Extension/ExternalBugs/WebService.html#remove-external-bug
 
         ids: A single external tracker bug id or list of external tracker bug
             ids.
