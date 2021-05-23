@@ -6,8 +6,7 @@ import shutil
 import subprocess
 import sys
 
-from distutils.core import Command
-from setuptools import setup
+import setuptools
 
 
 def get_version():
@@ -17,7 +16,7 @@ def get_version():
             return eval(line.split('=')[-1])  # pylint: disable=eval-used
 
 
-class PylintCommand(Command):
+class PylintCommand(setuptools.Command):
     user_options = []
 
     def initialize_options(self):
@@ -52,7 +51,7 @@ class PylintCommand(Command):
         pylint.lint.Run(files + pylint_opts)
 
 
-class RPMCommand(Command):
+class RPMCommand(setuptools.Command):
     description = ("Build src and binary rpms and output them "
         "in the source directory")
     user_options = []
@@ -75,7 +74,7 @@ class RPMCommand(Command):
         subprocess.check_call(cmd)
 
 
-class ManCommand(Command):
+class ManCommand(setuptools.Command):
     description = ("Regenerate manpages from rst")
     user_options = []
 
@@ -117,7 +116,7 @@ def _parse_requirements(fname):
     return ret
 
 
-setup(
+setuptools.setup(
     name='python-bugzilla',
     version=get_version(),
     description='Library and command line tool for interacting with Bugzilla',
