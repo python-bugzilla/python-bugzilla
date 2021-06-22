@@ -48,14 +48,6 @@ This package includes the 'bugzilla' command-line tool for interacting with bugz
 %install
 %{__python3} setup.py install -O1 --root %{buildroot}
 
-# Replace '#!/usr/bin/env python' with '#!/usr/bin/python2'
-# The format is ideal for upstream, but not a distro. See:
-# https://fedoraproject.org/wiki/Features/SystemPythonExecutablesUseSystemPython
-%global python_env_path %{__python3}
-for f in $(find %{buildroot} -type f -executable -print); do
-    sed -i "1 s|^#!/usr/bin/.*|#!%{python_env_path}|" $f || :
-done
-
 
 
 %check
