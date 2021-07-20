@@ -261,8 +261,9 @@ class Bugzilla(object):
         if self._is_redhat_bugzilla:
             return True
 
-        if "bugzilla.redhat.com" in self.url:
-            log.info("Using RHBugzilla for URL containing bugzilla.redhat.com")
+        match = ".redhat.com"
+        if match in self.url:
+            log.info("Using RHBugzilla for URL containing %s", match)
             return True
 
         return False
