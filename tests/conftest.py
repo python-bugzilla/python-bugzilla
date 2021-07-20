@@ -23,7 +23,7 @@ def pytest_addoption(parser):
     parser.addoption("--rw-functional", action="store_true", default=False,
             help=("Run read/write functional tests against actual bugzilla "
                   "instances. As of now this only runs against "
-                  "partner-bugzilla.redhat.com, which requires an RH "
+                  "bugzilla.stage.redhat.com, which requires an RH "
                   "bugzilla account with cached login creds. This will "
                   "also be very slow."))
     parser.addoption("--redhat-url",

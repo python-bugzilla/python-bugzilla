@@ -11,14 +11,14 @@ import pprint
 import bugzilla
 
 # public test instance of bugzilla.redhat.com. It's okay to make changes
-URL = "partner-bugzilla.redhat.com"
+URL = "bugzilla.stage.redhat.com"
 
 bzapi = bugzilla.Bugzilla(URL)
 
 # getbug() is just a simple wrapper around getbugs(), which takes a list
 # IDs, if you need to fetch multiple
 #
-# Example bug: https://partner-bugzilla.redhat.com/show_bug.cgi?id=427301
+# Example bug: https://bugzilla.stage.redhat.com/show_bug.cgi?id=427301
 bug = bzapi.getbug(427301)
 print("Fetched bug #%s:" % bug.id)
 print("  Product   = %s" % bug.product)

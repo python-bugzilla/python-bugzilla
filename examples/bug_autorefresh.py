@@ -9,7 +9,7 @@
 import bugzilla
 
 # public test instance of bugzilla.redhat.com. It's okay to make changes
-URL = "partner-bugzilla.redhat.com"
+URL = "bugzilla.stage.redhat.com"
 bzapi = bugzilla.Bugzilla(URL)
 
 # The Bugzilla.bug_autorefresh setting controls whether bugs will

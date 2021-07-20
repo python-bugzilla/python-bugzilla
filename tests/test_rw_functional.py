@@ -22,7 +22,7 @@ import tests.mockbackend
 import tests.utils
 
 
-RHURL = tests.CLICONFIG.REDHAT_URL or "partner-bugzilla.redhat.com"
+RHURL = tests.CLICONFIG.REDHAT_URL or "bugzilla.stage.redhat.com"
 
 
 def _split_int(s):

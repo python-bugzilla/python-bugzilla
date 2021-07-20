@@ -24,17 +24,17 @@ login account is required. Run them with:
 
 ## Read/Write Functional Tests.
 
-Read/Write functional tests use partner-bugzilla.redhat.com, which is a
+Read/Write functional tests use bugzilla.stage.redhat.com, which is a
 bugzilla instance specifically for this type of testing. Data is occasionally
 hard synced with regular bugzilla.redhat.com, and all local edits are
 removed. Login accounts are also synced. If you want access to
-partner-bugzilla.redhat.com, sign up for a regular bugzilla.redhat.com login
+bugzilla.stage.redhat.com, sign up for a regular bugzilla.redhat.com login
 and wait for the next sync period.
 
 Before running these tests, you'll need to cache login credentials.
 Example:
 
-    ./bugzilla-cli --bugzilla=partner-bugzilla.redhat.com --username=$USER login
+    ./bugzilla-cli --bugzilla=bugzilla.stage.redhat.com --username=$USER login
     pytest --rw-functional
 
 ## Testing across python versions

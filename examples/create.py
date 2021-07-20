@@ -12,8 +12,8 @@ import bugzilla
 # public test instance of bugzilla.redhat.com.
 #
 # Don't worry, changing things here is fine, and won't send any email to
-# users or anything. It's what partner-bugzilla.redhat.com is for!
-URL = "partner-bugzilla.redhat.com"
+# users or anything. It's what bugzilla.stage.redhat.com is for!
+URL = "bugzilla.stage.redhat.com"
 bzapi = bugzilla.Bugzilla(URL)
 if not bzapi.logged_in:
     print("This example requires cached login credentials for %s" % URL)

@@ -10,7 +10,7 @@ import time
 import bugzilla
 
 # public test instance of bugzilla.redhat.com. It's okay to make changes
-URL = "partner-bugzilla.redhat.com"
+URL = "bugzilla.stage.redhat.com"
 
 bzapi = bugzilla.Bugzilla(URL)
 
@@ -55,7 +55,7 @@ print("Quicker query processing time: %s" % (t2 - t1))
 
 # bugzilla.redhat.com, and bugzilla >= 5.0 support queries using the same
 # format as is used for 'advanced' search URLs via the Web UI. For example,
-# I go to partner-bugzilla.redhat.com -> Search -> Advanced Search, select
+# I go to bugzilla.stage.redhat.com -> Search -> Advanced Search, select
 #   Classification=Fedora
 #   Product=Fedora
 #   Component=python-bugzilla
@@ -65,7 +65,7 @@ print("Quicker query processing time: %s" % (t2 - t1))
 #
 # Run that, copy the URL and bring it here, pass it to url_to_query to
 # convert it to a dict(), and query as usual
-query = bzapi.url_to_query("https://partner-bugzilla.redhat.com/"
+query = bzapi.url_to_query("https://bugzilla.stage.redhat.com/"
     "buglist.cgi?classification=Fedora&component=python-bugzilla&"
     "f1=creation_ts&o1=lessthaneq&order=Importance&product=Fedora&"
     "query_format=advanced&v1=2010-01-01")

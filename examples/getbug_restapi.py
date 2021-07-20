@@ -10,7 +10,7 @@
 import bugzilla
 
 # public test instance of bugzilla.redhat.com. It's okay to make changes
-URL = "partner-bugzilla.redhat.com"
+URL = "bugzilla.stage.redhat.com"
 
 # By default, if plain Bugzilla(URL) is invoked, the Bugzilla class will
 # attempt to determine if XMLRPC or REST API is available, with a preference

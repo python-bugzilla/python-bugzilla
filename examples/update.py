@@ -10,7 +10,7 @@ import time
 import bugzilla
 
 # public test instance of bugzilla.redhat.com. It's okay to make changes
-URL = "partner-bugzilla.redhat.com"
+URL = "bugzilla.stage.redhat.com"
 bzapi = bugzilla.Bugzilla(URL)
 if not bzapi.logged_in:
     print("This example requires cached login credentials for %s" % URL)
@@ -23,9 +23,9 @@ if not bzapi.logged_in:
 # The param names map to those accepted by Bugzilla Bug.update:
 # https://bugzilla.readthedocs.io/en/latest/api/core/v1/bug.html#update-bug
 #
-# Example bug: https://partner-bugzilla.redhat.com/show_bug.cgi?id=427301
+# Example bug: https://bugzilla.stage.redhat.com/show_bug.cgi?id=427301
 # Don't worry, changing things here is fine, and won't send any email to
-# users or anything. It's what partner-bugzilla.redhat.com is for!
+# users or anything. It's what bugzilla.stage.redhat.com is for!
 bug = bzapi.getbug(427301)
 print("Bug id=%s original summary=%s" % (bug.id, bug.summary))
 
