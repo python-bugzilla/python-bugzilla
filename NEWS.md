@@ -1,5 +1,9 @@
 # python-bugzilla release news
 
+## Release 3.1.0 (July 27, 2021)
+- Detect bugzilla.stage.redhat.com as RHBugzilla
+- Add limit as option to build_query (Ivan Lausuch)
+
 ## Release 3.0.2 (November 12, 2020)
 - Fix API key leaking into requests exceptions
 
