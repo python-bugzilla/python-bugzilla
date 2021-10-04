@@ -58,7 +58,7 @@ def _test_attach_get(run_cli):
     assert "not used for" in out
 
     # Basic --get ATTID usage
-    filename = u"Klíč memorial test file.txt"
+    filename = "Klíč memorial test file.txt"
     cmd = "bugzilla attach --get 112233"
     fakebz = tests.mockbackend.make_bz(
         bug_attachment_get_args="data/mockargs/test_attach_get1.txt",
