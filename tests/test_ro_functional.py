@@ -235,7 +235,7 @@ def testQueryURL(run_cli, backends):
     qurl = ("/buglist.cgi?f1=creation_ts"
         "&list_id=973582&o1=greaterthaneq&classification=Fedora&"
         "o2=lessthaneq&query_format=advanced&f2=creation_ts"
-        "&v1=2010-01-01&component=python-bugzilla&v2=2011-01-01"
+        "&v1=2010-01-01&component=python-bugzilla&v2=2010-06-01"
         "&product=Fedora")
 
     url = REDHAT_URL
@@ -244,7 +244,7 @@ def testQueryURL(run_cli, backends):
     else:
         url += qurl
     out = run_cli("bugzilla query --from-url \"%s\"" % url, bz)
-    _check(out, 22, "#553878 CLOSED")
+    _check(out, 10, "#553878 CLOSED")
 
 
 def testQueryFixedIn(run_cli, backends):
