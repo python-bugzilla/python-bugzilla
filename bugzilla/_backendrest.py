@@ -49,14 +49,14 @@ class _BackendREST(_BackendBase):
         log.debug("Bugzilla REST %s %s params=%s", method, fullurl, paramdict)
 
         data = None
-        params = None
+        authparams = self._bugzillasession.get_auth_params()
         if method == "GET":
-            params = paramdict
+            authparams.update(paramdict or {})
         else:
             data = json.dumps(paramdict or {})
 
         response = self._bugzillasession.request(method, fullurl, data=data,
-                params=params)
+                params=authparams)
         return self._handle_response(response.text)
 
     def _get(self, *args, **kwargs):

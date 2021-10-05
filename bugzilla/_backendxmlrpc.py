@@ -118,18 +118,12 @@ class _BugzillaXMLRPCProxy(ServerProxy, object):
         newparams = params and params[0].copy() or {}
 
         log.debug("XMLRPC call: %s(%s)", methodname, newparams)
-        api_key = self.__bugzillasession.get_api_key()
-        token_value = self.__bugzillasession.get_token_value()
-
-        if api_key is not None:
-            if 'Bugzilla_api_key' not in newparams:
-                newparams['Bugzilla_api_key'] = api_key
-        elif token_value is not None:
-            if 'Bugzilla_token' not in newparams:
-                newparams['Bugzilla_token'] = token_value
+        authparams = self.__bugzillasession.get_auth_params()
+        authparams.update(newparams)
 
         # pylint: disable=no-member
-        ret = ServerProxy._ServerProxy__request(self, methodname, (newparams,))
+        ret = ServerProxy._ServerProxy__request(
+            self, methodname, (authparams,))
         # pylint: enable=no-member
 
         if isinstance(ret, dict) and 'token' in ret.keys():

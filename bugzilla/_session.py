@@ -40,7 +40,6 @@ class _BugzillaSession(object):
         if sslverify is False:
             self._session.verify = False
         self._session.headers["User-Agent"] = self._user_agent
-        self._set_tokencache_param()
 
     def _get_timeout(self):
         # Default to 5 minutes. This is longer than bugzilla.redhat.com's
@@ -52,10 +51,6 @@ class _BugzillaSession(object):
 
     def set_rest_defaults(self):
         self._session.headers["Content-Type"] = "application/json"
-        # Bugzilla 5.0 only supports api_key as a query parameter.
-        # Bugzilla 5.1+ takes it as a X-BUGZILLA-API-KEY header as well,
-        # with query param taking preference.
-        self._session.params["Bugzilla_api_key"] = self._api_key
     def set_xmlrpc_defaults(self):
         self._is_xmlrpc = True
         self._session.headers["Content-Type"] = "text/xml"
@@ -64,23 +59,25 @@ class _BugzillaSession(object):
         return self._user_agent
     def get_scheme(self):
         return self._scheme
-    def get_api_key(self):
-        return self._api_key
-    def get_token_value(self):
-        return self._tokencache.get_value(self._url)
     def set_token_value(self, value):
         self._tokencache.set_value(self._url, value)
-        self._set_tokencache_param()
 
-    def _set_tokencache_param(self):
+    def get_auth_params(self):
+        # Don't add a token to the params list if an API key is set.
+        # Keeping API key solo means bugzilla will definitely fail
+        # if the key expires. Passing in a token could hide that
+        # fact, which could make it confusing to pinpoint the issue.
         if self._api_key:
-            # Don't add a token to the params list if an API key is set.
-            # Keeping API key solo means bugzilla will definitely fail
-            # if the key expires. Passing in a token could hide that
-            # fact, which could make it confusing to pinpoint the issue.
-            return
-        token = self.get_token_value()
-        self._session.params["Bugzilla_token"] = token
+            # Bugzilla 5.0 only supports api_key as a query parameter.
+            # Bugzilla 5.1+ takes it as a X-BUGZILLA-API-KEY header as well,
+            # with query param taking preference.
+            return {"Bugzilla_api_key": self._api_key}
+
+        token = self._tokencache.get_value(self._url)
+        if token:
+            return {"Bugzilla_token": token}
+
+        return {}
 
     def get_requests_session(self):
         return self._session
