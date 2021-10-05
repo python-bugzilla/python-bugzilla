@@ -10,8 +10,6 @@ import pprint
 import shlex
 import sys
 
-import pytest
-
 import bugzilla._cli
 
 import tests
@@ -50,11 +48,6 @@ def open_functional_bz(bzclass, url, kwargs):
     # Set a request timeout of 60 seconds
     os.environ["PYTHONBUGZILLA_REQUESTS_TIMEOUT"] = "60"
     return bz
-
-
-def skip_if_rest(bz, msg):
-    if bz.is_rest():
-        pytest.skip(msg)
 
 
 def diff_compare(inputdata, filename, expect_out=None):

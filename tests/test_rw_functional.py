@@ -747,6 +747,15 @@ def test11UserUpdate(backends):
     user.refresh()
     assert user.groupnames == origgroups
 
+    # Try user create
+    try:
+        name = "pythonbugzilla-%s" % datetime.datetime.today()
+        bz.createuser(name + "@example.com", name, name)
+    except Exception as e:
+        if have_admin:
+            raise
+        assert "Sorry, you aren't a member" in str(e)
+
 
 def test11ComponentEditing(backends):
     bz = _open_bz(**backends)
@@ -798,10 +807,6 @@ def test11ComponentEditing(backends):
             # bugzilla 5 error string
             ("You are not allowed" in str(e)))
 
-    # bugzilla.redhat.com doesn't have REST editcomponent yet
-    tests.utils.skip_if_rest(
-        bz, "editcomponent not supported for redhat REST API")
-
     # Edit component
     data = basedata.copy()
     data.update({
@@ -817,11 +822,15 @@ def test11ComponentEditing(backends):
         if newid is not None:
             compare(data, newid)
     except Exception as e:
-        if have_admin:
+        if bz.is_rest():
+            # redhat REST does not support component editing
+            assert "A REST API resource was not found" in str(e)
+        elif have_admin:
             raise
-        assert (("Sorry, you aren't a member" in str(e)) or
-            # bugzilla 5 error string
-            ("You are not allowed" in str(e)))
+        else:
+            assert (("Sorry, you aren't a member" in str(e)) or
+                # bugzilla 5 error string
+                ("You are not allowed" in str(e)))
 
 
 def test13SubComponents(backends):
@@ -843,13 +852,9 @@ def test13SubComponents(backends):
         "Default / Unclassified (RHEL5)"]}
 
 
-def test14ExternalTrackersAddUpdateRemoveQuery(backends):
-    bz = _open_bz(**backends)
+def _testExternalTrackers(bz):
     bugid = 461686
     ext_bug_id = 380489
-
-    tests.utils.skip_if_rest(
-        bz, "unknown if REST API has externaltrackers support")
 
     # Delete any existing external trackers to get to a known state
     ids = [bug['id'] for bug in bz.getbug(bugid).external_bugs]
@@ -895,6 +900,16 @@ def test14ExternalTrackersAddUpdateRemoveQuery(backends):
     assert len(ids) == 0
 
 
+def test14ExternalTrackersAddUpdateRemoveQuery(backends):
+    bz = _open_bz(**backends)
+    try:
+        _testExternalTrackers(bz)
+    except Exception as e:
+        if not bz.is_rest():
+            raise
+        assert "No REST API available" in str(e)
+
+
 def test15EnsureLoggedIn(run_cli, backends):
     bz = _open_bz(**backends)
     comm = "bugzilla --ensure-logged-in query --bug_id 979546"
@@ -913,24 +928,27 @@ def test16ModifyTags(run_cli, backends):
     bz = _open_bz(**backends)
     bug = bz.getbug(bugid)
 
-    tests.utils.skip_if_rest(bz, "update_tags not supported for REST API")
+    try:
+        if bug.tags:
+            bz.update_tags(bug.id, tags_remove=bug.tags)
+            bug.refresh()
+            assert bug.tags == []
 
-    if bug.tags:
+        run_cli(cmd + "--tags foo --tags +bar --tags baz", bz)
+        bug.refresh()
+        assert bug.tags == ["foo", "bar", "baz"]
+
+        run_cli(cmd + "--tags=-bar", bz)
+        bug.refresh()
+        assert bug.tags == ["foo", "baz"]
+
         bz.update_tags(bug.id, tags_remove=bug.tags)
         bug.refresh()
         assert bug.tags == []
-
-    run_cli(cmd + "--tags foo --tags +bar --tags baz", bz)
-    bug.refresh()
-    assert bug.tags == ["foo", "bar", "baz"]
-
-    run_cli(cmd + "--tags=-bar", bz)
-    bug.refresh()
-    assert bug.tags == ["foo", "baz"]
-
-    bz.update_tags(bug.id, tags_remove=bug.tags)
-    bug.refresh()
-    assert bug.tags == []
+    except Exception as e:
+        if not bz.is_rest():
+            raise
+        assert "No REST API available" in str(e)
 
 
 def test17LoginAPIKey(backends):

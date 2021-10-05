@@ -48,7 +48,7 @@ class _BugzillaXMLRPCTransport(Transport):
         except RequestException as e:
             if not response:
                 raise
-            raise ProtocolError(
+            raise ProtocolError(  # pragma: no cover
                 url, response.status_code, str(e), response.headers)
         except Fault:
             raise
@@ -75,7 +75,7 @@ class _BugzillaXMLRPCTransport(Transport):
         msg = response.text.encode('utf-8')
         try:
             parser.feed(msg)
-        except Exception:
+        except Exception:  # pragma: no cover
             log.debug("Failed to parse this XMLRPC response:\n%s", msg)
             raise
 

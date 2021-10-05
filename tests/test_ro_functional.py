@@ -58,10 +58,14 @@ def test_rest_xmlrpc_detection():
     # See /rest in the URL, so use REST
     bz = _open_bz("bugzilla.redhat.com/rest")
     assert bz.is_rest()
+    with pytest.raises(bugzilla.BugzillaError) as e:
+        dummy = bz._proxy  # pylint: disable=protected-access
+    assert "raw XMLRPC access is not provided" in str(e)
 
     # See /xmlrpc.cgi in the URL, so use XMLRPC
     bz = _open_bz("bugzilla.redhat.com/xmlrpc.cgi")
     assert bz.is_xmlrpc()
+    assert bz._proxy  # pylint: disable=protected-access
 
 
 def test_apikey_error_scraping():
@@ -78,6 +82,12 @@ def test_apikey_error_scraping():
                 force_rest=True, api_key=fakekey)
     assert "400 Client Error" in str(e.value)
     assert fakekey not in str(e.value)
+
+
+def test_xmlrpc_bad_url():
+    with pytest.raises(bugzilla.BugzillaError) as e:
+        _open_bz("https://example.com/#xmlrpc")
+    assert "URL may not be an XMLRPC URL" in str(e)
 
 
 ###################
@@ -288,8 +298,6 @@ def testGetBugAlias(backends):
 def testQuerySubComponent(run_cli, backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
-    tests.utils.skip_if_rest(bz, "Not working on REST, not sure why yet")
-
     # Test special error wrappers in bugzilla/_cli.py
     out = run_cli("bugzilla query --product 'Red Hat Enterprise Linux 7' "
         "--component lvm2 --sub-component 'Thin Provisioning'", bz)
@@ -304,6 +312,13 @@ def testBugFields(backends):
     assert fields == ["product"]
     bz.getbugfields(names=["product", "bug_status"], force_refresh=True)
     assert set(bz.bugfields) == set(["product", "bug_status"])
+
+
+def testProductGetMisc(backends):
+    bz = _open_bz(REDHAT_URL, **backends)
+
+    assert bz.product_get(ptype="enterable", include_fields=["id"])
+    assert bz.product_get(ptype="selectable", include_fields=["name"])
 
 
 def testBugAutoRefresh(backends):
@@ -379,6 +394,18 @@ def testFaults(run_cli, backends):
         "query --bug_id 1234", None, expectfail=True)
     assert "trust the remote server" in out
     assert "--nosslverify" in out
+
+
+def test_login_stubs(backends):
+    bz = _open_bz(REDHAT_URL, **backends)
+
+    # Failed login, verifies our backends are calling the correct API
+    with pytest.raises(bugzilla.BugzillaError) as e:
+        bz.login("foo", "bar")
+    assert "Login failed" in str(e)
+
+    # Works fine when not logged in
+    bz.logout()
 
 
 def test_redhat_version(backends):

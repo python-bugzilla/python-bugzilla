@@ -36,7 +36,7 @@ class _BackendREST(_BackendBase):
     def _handle_response(self, text):
         try:
             ret = dict(json.loads(text))
-        except Exception:
+        except Exception:  # pragma: no cover
             log.debug("Failed to parse REST response. Output is:\n%s", text)
             raise
 
@@ -148,19 +148,19 @@ class _BackendREST(_BackendBase):
         return self._post("/component", paramdict)
     def component_update(self, paramdict):
         if "ids" in paramdict:
-            apiurl = str(listify(paramdict["ids"])[0])
+            apiurl = str(listify(paramdict["ids"])[0])  # pragma: no cover
         if "names" in paramdict:
             apiurl = ("%(product)s/%(component)s" %
                     listify(paramdict["names"])[0])
         return self._put("/component/%s" % apiurl, paramdict)
 
-    def externalbugs_add(self, paramdict):
+    def externalbugs_add(self, paramdict):  # pragma: no cover
         raise BugzillaError(
             "No REST API available yet for externalbugs_add")
-    def externalbugs_remove(self, paramdict):
+    def externalbugs_remove(self, paramdict):  # pragma: no cover
         raise BugzillaError(
             "No REST API available yet for externalbugs_remove")
-    def externalbugs_update(self, paramdict):
+    def externalbugs_update(self, paramdict):  # pragma: no cover
         raise BugzillaError(
             "No REST API available yet for externalbugs_update")
 
@@ -187,7 +187,7 @@ class _BackendREST(_BackendBase):
     def user_update(self, paramdict):
         urlid = None
         if "ids" in paramdict:
-            urlid = listify(paramdict["ids"])[0]
+            urlid = listify(paramdict["ids"])[0]  # pragma: no cover
         if "names" in paramdict:
             urlid = listify(paramdict["names"])[0]
         return self._put("/user/%s" % urlid, paramdict)
