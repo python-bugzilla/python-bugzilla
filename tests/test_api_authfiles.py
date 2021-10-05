@@ -13,8 +13,6 @@ import os
 import shutil
 import tempfile
 
-import requests
-
 import tests
 import tests.mockbackend
 import tests.utils
@@ -116,13 +114,17 @@ def test_authfiles_saving(monkeypatch):
         bzapi.cert = "foo-fake-path"
         backend = bzapi._backend  # pylint: disable=protected-access
         bsession = backend._bugzillasession  # pylint: disable=protected-access
+        btokencache = bzapi._tokencache   # pylint: disable=protected-access
 
         # token testing, with repetitions to hit various code paths
-        bsession.set_token_value(None)
-        bsession.set_token_value("MY-FAKE-TOKEN")
-        bsession.set_token_value("MY-FAKE-TOKEN")
-        bsession.set_token_value(None)
-        bsession.set_token_value("MY-FAKE-TOKEN")
+        btokencache.set_value(bzapi.url, None)
+        assert "Bugzilla_token" not in bsession.get_auth_params()
+        btokencache.set_value(bzapi.url, "MY-FAKE-TOKEN")
+        assert bsession.get_auth_params()["Bugzilla_token"] == "MY-FAKE-TOKEN"
+        btokencache.set_value(bzapi.url, "MY-FAKE-TOKEN")
+        btokencache.set_value(bzapi.url, None)
+        assert "Bugzilla_token" not in bsession.get_auth_params()
+        btokencache.set_value(bzapi.url, "MY-FAKE-TOKEN")
 
         dirname = os.path.dirname(__file__) + "/data/authfiles/"
         output_token = dirname + "output-token.txt"
@@ -155,9 +157,8 @@ def test_authfiles_nowrite():
     # Setting values tokenfile is None, should be fine
     bzapi = tests.mockbackend.make_bz(bz_kwargs={"use_creds": False})
     bzapi.connect("https://example.com/foo")
-    backend = bzapi._backend  # pylint: disable=protected-access
-    bsession = backend._bugzillasession  # pylint: disable=protected-access
+    btokencache = bzapi._tokencache   # pylint: disable=protected-access
     rcfile = bzapi._rcfile  # pylint: disable=protected-access
 
-    bsession.set_token_value("NEW-TOKEN-VALUE")
+    btokencache.set_value(bzapi.url, "NEW-TOKEN-VALUE")
     assert rcfile.save_api_key(bzapi.url, "fookey") is None

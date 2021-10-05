@@ -147,7 +147,7 @@ class _BugzillaTokenCache(object):
 
     def get_value(self, url):
         domain = self._get_domain(url)
-        if self._cfg.has_option(domain, 'token'):
+        if domain and self._cfg.has_option(domain, 'token'):
             return self._cfg.get(domain, 'token')
         return None
 

@@ -609,6 +609,8 @@ class Bugzilla(object):
             ret = self._backend.user_login(payload)
             self.password = ''
             log.info("login succeeded for user=%s", self.user)
+            if "token" in ret:
+                self._tokencache.set_value(self.url, ret["token"])
             return ret
         except Exception as e:
             log.debug("Login exception: %s", str(e), exc_info=True)
@@ -666,8 +668,13 @@ class Bugzilla(object):
         log.info('Logging in... ')
         out = self.login(user, password, restrict_login)
         msg = "Login successful."
-        if "token" in out and self.tokenfile:
-            msg += " Token cache saved to %s" % self.tokenfile
+        if "token" not in out:
+            msg += " However no token was returned."
+        else:
+            if not self.tokenfile:
+                msg += " Token not saved to disk."
+            else:
+                msg += " Token cache saved to %s" % self.tokenfile
             if self._get_version() >= 5.0:
                 msg += "\nToken usage is deprecated. "
                 msg += "Consider using bugzilla API keys instead. "

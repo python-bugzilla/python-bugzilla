@@ -66,8 +66,6 @@ class _BugzillaSession(object):
         return self._user_agent
     def get_scheme(self):
         return self._scheme
-    def set_token_value(self, value):
-        self._tokencache.set_value(self._url, value)
 
     def get_auth_params(self):
         # bugzilla.redhat.com will error if there's auth bits in params

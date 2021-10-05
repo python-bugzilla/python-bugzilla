@@ -61,16 +61,32 @@ def test_login(run_cli):
     # Returns success for logged_in check and hits a tokenfile line
     cmd = "bugzilla --ensure-logged-in "
     cmd += "login FOO BAR"
+    tmp = tempfile.NamedTemporaryFile()
     fakebz = tests.mockbackend.make_bz(
-        bz_kwargs={"use_creds": True},
+        bz_kwargs={"use_creds": True, "tokenfile": tmp.name},
+        user_login_args="data/mockargs/test_login.txt",
+        user_login_return={'id': 1234, 'token': 'my-fake-token'},
+        user_get_args=None,
+        user_get_return={})
+    fakebz.connect("https://example.com")
+    out = run_cli(cmd, fakebz)
+    assert "Token cache saved" in out
+    assert fakebz.tokenfile in out
+    assert "Consider using bugzilla API" in out
+    tests.utils.diff_compare(open(tmp.name).read(),
+            "data/clioutput/tokenfile.txt")
+
+    # Returns success for logged_in check and hits another tokenfile line
+    cmd = "bugzilla --ensure-logged-in "
+    cmd += "login FOO BAR"
+    fakebz = tests.mockbackend.make_bz(
+        bz_kwargs={"use_creds": True, "tokenfile": None},
         user_login_args="data/mockargs/test_login.txt",
         user_login_return={'id': 1234, 'token': 'my-fake-token'},
         user_get_args=None,
         user_get_return={})
     out = run_cli(cmd, fakebz)
-    assert "Token cache saved" in out
-    assert fakebz.tokenfile in out
-    assert "Consider using bugzilla API" in out
+    assert "Token not saved" in out
 
 
 def test_interactive_login(monkeypatch, run_cli):

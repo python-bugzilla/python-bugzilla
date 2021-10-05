@@ -126,8 +126,6 @@ class _BugzillaXMLRPCProxy(ServerProxy, object):
             self, methodname, (authparams,))
         # pylint: enable=no-member
 
-        if isinstance(ret, dict) and 'token' in ret.keys():
-            self.__bugzillasession.set_token_value(ret.get('token'))
         return ret
 
 
