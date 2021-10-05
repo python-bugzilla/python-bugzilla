@@ -18,14 +18,16 @@ class _BugzillaSession(object):
     Class to handle the backend agnostic 'requests' setup
     """
     def __init__(self, url, user_agent,
-            sslverify, cert,
-            tokencache, api_key, requests_session=None):
+            sslverify, cert, tokencache, api_key,
+            is_redhat_bugzilla,
+            requests_session=None):
         self._url = url
         self._user_agent = user_agent
         self._scheme = urllib.parse.urlparse(url)[0]
         self._tokencache = tokencache
         self._api_key = api_key
         self._is_xmlrpc = False
+        self._use_auth_bearer = False
 
         if self._scheme not in ["http", "https"]:
             raise Exception("Invalid URL scheme: %s (%s)" % (
@@ -40,6 +42,11 @@ class _BugzillaSession(object):
         if sslverify is False:
             self._session.verify = False
         self._session.headers["User-Agent"] = self._user_agent
+
+        if is_redhat_bugzilla and self._api_key:
+            self._use_auth_bearer = True
+            self._session.headers["Authorization"] = (
+                "Bearer %s" % self._api_key)
 
     def _get_timeout(self):
         # Default to 5 minutes. This is longer than bugzilla.redhat.com's
@@ -63,6 +70,11 @@ class _BugzillaSession(object):
         self._tokencache.set_value(self._url, value)
 
     def get_auth_params(self):
+        # bugzilla.redhat.com will error if there's auth bits in params
+        # when Authorization header is used
+        if self._use_auth_bearer:
+            return {}
+
         # Don't add a token to the params list if an API key is set.
         # Keeping API key solo means bugzilla will definitely fail
         # if the key expires. Passing in a token could hide that

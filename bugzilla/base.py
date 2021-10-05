@@ -504,11 +504,15 @@ class Bugzilla(object):
         # we've changed URLs - reload config
         self.readconfig(overwrite=False)
 
+        # Detect if connecting to redhat bugzilla
+        self._init_class_from_url()
+
         self._session = _BugzillaSession(self.url, self.user_agent,
                 sslverify=self._sslverify,
                 cert=self.cert,
                 tokencache=self._tokencache,
                 api_key=self.api_key,
+                is_redhat_bugzilla=self._is_redhat_bugzilla,
                 requests_session=self._user_requests_session)
         self._backend = backendclass(self.url, self._session)
 
@@ -522,7 +526,6 @@ class Bugzilla(object):
         version = self._backend.bugzilla_version()["version"]
         log.debug("Bugzilla version string: %s", version)
         self._set_bz_version(version)
-        self._init_class_from_url()
 
 
     @property
