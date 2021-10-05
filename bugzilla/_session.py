@@ -18,12 +18,11 @@ class _BugzillaSession(object):
     Class to handle the backend agnostic 'requests' setup
     """
     def __init__(self, url, user_agent,
-            cookiecache, sslverify, cert,
+            sslverify, cert,
             tokencache, api_key, requests_session=None):
         self._url = url
         self._user_agent = user_agent
         self._scheme = urllib.parse.urlparse(url)[0]
-        self._cookiecache = cookiecache
         self._tokencache = tokencache
         self._api_key = api_key
         self._is_xmlrpc = False
@@ -38,8 +37,6 @@ class _BugzillaSession(object):
 
         if cert:
             self._session.cert = cert
-        if self._cookiecache:
-            self._session.cookies = self._cookiecache.get_cookiejar()
         if sslverify is False:
             self._session.verify = False
         self._session.headers["User-Agent"] = self._user_agent
@@ -85,12 +82,6 @@ class _BugzillaSession(object):
         token = self.get_token_value()
         self._session.params["Bugzilla_token"] = token
 
-    def set_response_cookies(self, response):
-        """
-        Save any cookies received from the passed requests response
-        """
-        self._cookiecache.set_cookies(response.cookies)
-
     def get_requests_session(self):
         return self._session
 
@@ -105,8 +96,6 @@ class _BugzillaSession(object):
             # Yes this still appears to matter for properly decoding unicode
             # code points in bugzilla.redhat.com content
             response.encoding = "UTF-8"
-            # Set response cookies
-            self.set_response_cookies(response)
 
         try:
             response.raise_for_status()

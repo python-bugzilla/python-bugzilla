@@ -127,16 +127,8 @@ they expire the tool errors, rather than subtly change output.
 
 **Syntax:** ``--no-cache-credentials``
 
-Don't save any bugzilla cookies or tokens to disk, and don't use any
+Don't save any bugzilla tokens to disk, and don't use any
 pre-existing credentials.
-
-
-``--cookiefile``
-^^^^^^^^^^^^^^^^
-
-**Syntax:** ``--cookiefile`` COOKIEFILE
-
-cookie file to use for bugzilla authentication
 
 
 ``--tokenfile``
@@ -817,8 +809,8 @@ YOUR_API_KEY with the generated API Key from the Web UI.
 Alternatively, you can use 'bugzilla login --api-key', which will ask
 for the API key, and save it to bugzillarc for you.
 
-For older bugzilla instances, you will need to cache a login cookie or
-token with the "login" subcommand or the "--login" argument.
+For older bugzilla instances, you will need to cache a login token
+with the "login" subcommand or the "--login" argument.
 
 Additionally, the --no-cache-credentials option will tell the bugzilla
 tool to *not* save or use any authentication cache, including the

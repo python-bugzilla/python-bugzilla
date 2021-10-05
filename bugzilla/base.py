@@ -17,8 +17,7 @@ import urllib.parse
 
 from io import BytesIO
 
-from ._authfiles import (_BugzillaRCFile,
-        _BugzillaCookieCache, _BugzillaTokenCache)
+from ._authfiles import _BugzillaRCFile, _BugzillaTokenCache
 from .apiversion import __version__
 from ._backendrest import _BackendREST
 from ._backendxmlrpc import _BackendXMLRPC
@@ -87,7 +86,7 @@ class Bugzilla(object):
         bzapi = Bugzilla("http://bugzilla.example.com")
 
     If you have previously logged into that URL, and have cached login
-    cookies/tokens, you will automatically be logged in. Otherwise to
+    tokens, you will automatically be logged in. Otherwise to
     log in, you can either pass auth options to __init__, or call a login
     helper like interactive_login().
 
@@ -185,18 +184,14 @@ class Bugzilla(object):
         :param password: optional password for the connecting user
         :param cert: optional certificate file for client side certificate
             authentication
-        :param cookiefile: Location to cache the login session cookies so you
-            don't have to keep specifying username/password. Bugzilla 5+ will
-            use tokens instead of cookies.
-            If -1, use the default path. If None, don't use or save
-            any cookiefile.
+        :param cookiefile: Deprecated, raises an error if not -1 or None
         :param sslverify: Set this to False to skip SSL hostname and CA
             validation checks, like out of date certificate
         :param tokenfile: Location to cache the API login token so youi
             don't have to keep specifying username/password.
             If -1, use the default path. If None, don't use
             or save any tokenfile.
-        :param use_creds: If False, this disables cookiefile, tokenfile,
+        :param use_creds: If False, this disables tokenfile
             and configpaths by default. This is a convenience option to
             unset those values at init time. If those values are later
             changed, they may be used for future operations.
@@ -232,25 +227,23 @@ class Bugzilla(object):
         self._is_redhat_bugzilla = False
 
         self._rcfile = _BugzillaRCFile()
-        self._cookiecache = _BugzillaCookieCache()
         self._tokencache = _BugzillaTokenCache()
 
         self._force_rest = force_rest
         self._force_xmlrpc = force_xmlrpc
 
+        if cookiefile not in [None, -1]:
+            raise TypeError("cookiefile is deprecated, don't pass any value.")
+
         if not use_creds:
-            cookiefile = None
             tokenfile = None
             configpaths = []
 
-        if cookiefile == -1:
-            cookiefile = self._cookiecache.get_default_path()
         if tokenfile == -1:
             tokenfile = self._tokencache.get_default_path()
         if configpaths == -1:
             configpaths = _BugzillaRCFile.get_default_configpaths()
 
-        self._setcookiefile(cookiefile)
         self._settokenfile(tokenfile)
         self._setconfigpath(configpaths)
 
@@ -368,12 +361,8 @@ class Bugzilla(object):
     #################
 
     def _getcookiefile(self):
-        return self._cookiecache.get_filename()
-    def _delcookiefile(self):
-        self._setcookiefile(None)
-    def _setcookiefile(self, cookiefile):
-        self._cookiecache.set_filename(cookiefile)
-    cookiefile = property(_getcookiefile, _setcookiefile, _delcookiefile)
+        return None
+    cookiefile = property(_getcookiefile)
 
     def _gettokenfile(self):
         return self._tokencache.get_filename()
@@ -516,7 +505,6 @@ class Bugzilla(object):
         self.readconfig(overwrite=False)
 
         self._session = _BugzillaSession(self.url, self.user_agent,
-                cookiecache=self._cookiecache,
                 sslverify=self._sslverify,
                 cert=self.cert,
                 tokencache=self._tokencache,
@@ -686,7 +674,7 @@ class Bugzilla(object):
     def logout(self):
         """
         Log out of bugzilla. Drops server connection and user info, and
-        destroys authentication cookies.
+        destroys authentication cache
         """
         self._backend.user_logout()
         self.disconnect()

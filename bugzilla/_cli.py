@@ -125,8 +125,7 @@ def _setup_root_parser():
         help="Don't save any bugzilla cookies or tokens to disk, and "
              "don't use any pre-existing credentials.")
 
-    p.add_argument('--cookiefile', default=None,
-            help="cookie file to use for bugzilla authentication")
+    p.add_argument('--cookiefile', default=None, help=argparse.SUPPRESS)
     p.add_argument('--tokenfile', default=None,
             help="token file to use for bugzilla authentication")
 

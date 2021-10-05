@@ -38,6 +38,13 @@ def testVersion(run_cli):
     assert out.strip() == bugzilla.__version__
 
 
+def testCookiefileDeprecated(run_cli):
+    with pytest.raises(TypeError) as e:
+        run_cli("bugzilla --cookiefile foobar login",
+                None, expectfail=True)
+    assert "cookiefile is deprecated" in str(e)
+
+
 def testPositionalArgs(run_cli):
     # Make sure cli correctly rejects ambiguous positional args
     out = run_cli("bugzilla login --xbadarg foo",

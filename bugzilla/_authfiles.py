@@ -2,12 +2,10 @@
 # See the COPYING file in the top-level directory.
 
 import configparser
-import http.cookiejar
 import os
 from logging import getLogger
 import urllib.parse
 
-from .exceptions import BugzillaError
 from ._util import listify
 
 log = getLogger(__name__)
@@ -26,17 +24,12 @@ def _makedirs(path):
     os.makedirs(os.path.dirname(path), 0o700)
 
 
-def _default_location(filename, kind):
-    """
-    Determine default location for passed filename and xdg kind,
-    example: ~/.cache/python-bugzilla/bugzillacookies
-    """
-    xdgpath = os.path.expanduser("~/.%s/python-bugzilla/%s" % (kind, filename))
-    return xdgpath
-
-
 def _default_cache_location(filename):
-    return _default_location(filename, 'cache')
+    """
+    Determine default location for passed xdg filename.
+    example: ~/.cache/python-bugzilla/bugzillarc
+    """
+    return os.path.expanduser("~/.cache/python-bugzilla/%s" % filename)
 
 
 class _BugzillaRCFile(object):
@@ -184,51 +177,3 @@ class _BugzillaTokenCache(object):
             cfg.read(filename)
         self._filename = filename
         self._cfg = cfg
-
-
-class _BugzillaCookieCache(object):
-    @staticmethod
-    def get_default_path():
-        return _default_cache_location("bugzillacookies")
-
-    def __init__(self):
-        self._cookiejar = None
-
-    def _build_cookiejar(self, cookiefile):
-        cj = http.cookiejar.MozillaCookieJar(cookiefile)
-        if (cookiefile is None or
-            not os.path.exists(cookiefile)):
-            return cj
-
-        try:
-            cj.load()
-            return cj
-        except http.cookiejar.LoadError:
-            msg = "cookiefile=%s not in Mozilla format" % cookiefile
-            raise BugzillaError(msg) from None
-
-    def set_filename(self, cookiefile):
-        log.debug("Using cookiefile=%s", cookiefile)
-        self._cookiejar = self._build_cookiejar(cookiefile)
-
-    def get_filename(self):
-        return self._cookiejar.filename
-
-    def get_cookiejar(self):
-        return self._cookiejar
-
-    def set_cookies(self, cookies):
-        for cookie in cookies:
-            self._cookiejar.set_cookie(cookie)
-
-        cookiefile = self._cookiejar.filename
-        if not cookiefile:
-            return
-
-        if not os.path.exists(cookiefile):
-            _makedirs(cookiefile)
-            # Make sure a new file has correct permissions
-            open(cookiefile, 'a').close()
-            os.chmod(cookiefile, 0o600)
-
-        self._cookiejar.save()

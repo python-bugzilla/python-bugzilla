@@ -20,6 +20,6 @@ api_key = input("Enter Bugzilla API Key: ")
 
 # API key usage assumes the API caller is storing the API key; if you would
 # like to use one of the login options that stores credentials on-disk for
-# command-line usage, use tokens or cookies.
+# command-line usage, use login tokens.
 bzapi = bugzilla.Bugzilla(URL, api_key=api_key)
 assert bzapi.logged_in
