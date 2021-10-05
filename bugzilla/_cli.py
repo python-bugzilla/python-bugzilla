@@ -662,7 +662,7 @@ def _do_info(bz, opt):
     elif opt.component_owners:
         details = bz.getcomponentsdetails(productname)
         for c in sorted(_filter_components(details)):
-            print(u"%s: %s" % (c, details[c]['default_assigned_to']))
+            print("%s: %s" % (c, details[c]['default_assigned_to']))
 
 
 def _convert_to_outputformat(output):
