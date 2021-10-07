@@ -1,4 +1,5 @@
 [![CI](https://github.com/python-bugzilla/python-bugzilla/workflows/CI/badge.svg)](https://github.com/python-bugzilla/python-bugzilla/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/python-bugzilla/python-bugzilla/branch/master/graph/badge.svg?token=4R3FR4RVH4)](https://codecov.io/gh/python-bugzilla/python-bugzilla)
 [![PyPI](https://img.shields.io/pypi/v/python-bugzilla)](https://pypi.org/project/python-bugzilla/)
 
 # python-bugzilla
