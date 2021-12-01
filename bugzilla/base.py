@@ -1173,6 +1173,7 @@ class Bugzilla(object):
             params["j_top"] = q.connector
 
         i = 1
+
         def traverse(root):
             nonlocal i
             for node in root.children:
@@ -1180,7 +1181,8 @@ class Bugzilla(object):
                     key, value = node
                     op = "equals"
 
-                    # workaround because we cannot use dots in Python variable names
+                    # workaround because we cannot use dots in
+                    # Python variable names
                     key = key.replace("___", ".")
 
                     # custom operator (specified with field_name__operator)

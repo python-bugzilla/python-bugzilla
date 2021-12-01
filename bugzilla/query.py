@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2021 Django Software Foundation and individual contributors.
+# Copyright (c) Django Software Foundation and individual contributors.
 # License: BSD-3-Clause
 #
 # both classes are extracted from:
@@ -42,13 +42,15 @@ class Node:
 
     def __str__(self):
         template = '(NOT (%s: %s))' if self.negated else '(%s: %s)'
-        return template % (self.connector, ', '.join(str(c) for c in self.children))
+        return template % (self.connector,
+                           ', '.join(str(c) for c in self.children))
 
     def __repr__(self):
         return "<%s: %s>" % (self.__class__.__name__, self)
 
     def __deepcopy__(self, memodict):
         obj = Node(connector=self.connector, negated=self.negated)
+        # pylint: disable=invalid-class-object
         obj.__class__ = self.__class__
         obj.children = copy.deepcopy(self.children, memodict)
         return obj
@@ -84,7 +86,8 @@ class Node:
         node other got squashed or not.
         """
         if self.connector != conn_type:
-            obj = self._new_instance(self.children, self.connector, self.negated)
+            obj = self._new_instance(self.children, self.connector,
+                                     self.negated)
             self.connector = conn_type
             self.children = [obj, data]
             return data
@@ -123,15 +126,18 @@ class Q(Node):
     conditional = True
 
     def __init__(self, *args, _connector=None, _negated=False, **kwargs):
-        super().__init__(children=[*args, *sorted(kwargs.items())], connector=_connector, negated=_negated)
+        super().__init__(children=[*args, *sorted(kwargs.items())],
+                         connector=_connector, negated=_negated)
 
     def _combine(self, other, conn):
-        if not(isinstance(other, Q) or getattr(other, 'conditional', False) is True):
+        if not(isinstance(other, Q) or
+               getattr(other, 'conditional', False) is True):
             raise TypeError(other)
 
         if not self:
             return other.copy() if hasattr(other, 'copy') else copy.copy(other)
         elif isinstance(other, Q) and not other:
+            # pylint: disable=unused-variable
             _, args, kwargs = self.deconstruct()
             return type(self)(*args, **kwargs)
 
@@ -150,9 +156,10 @@ class Q(Node):
     def __invert__(self):
         obj = type(self)()
         # note: the following lines differs from upstream Django
-        # ~OR(...) in Django gives (NOT (AND: (OR: (...)))) instead of (NOT (OR: (...)))
-        # which is logical equivalent, but not desired in this case
-        #obj.add(self, self.AND)
+        # ~OR(...) in Django gives (NOT (AND: (OR: (...)))) instead of
+        # (NOT (OR: (...))). This is logical equivalent, but not desired
+        # in this case
+        # obj.add(self, self.AND)
         obj.connector = self.connector
         obj.add(self, self.connector)
         obj.negate()
@@ -161,7 +168,8 @@ class Q(Node):
     def deconstruct(self):
         path = '%s.%s' % (self.__class__.__module__, self.__class__.__name__)
         if path.startswith('django.db.models.query_utils'):
-            path = path.replace('django.db.models.query_utils', 'django.db.models')
+            path = path.replace('django.db.models.query_utils',
+                                'django.db.models')
         args = tuple(self.children)
         kwargs = {}
         if self.connector != self.default:

@@ -59,7 +59,9 @@ print("Quicker query processing time: %s" % (t2 - t1))
 # negated (~). More examples of complex queries can be found in the
 # test_custom_search.py unit tests.
 # The following query searches for
-# product = "Fedora" AND component = "python-bugzilla" AND (Fixed in Version = "1" OR Fixed in Version contains the string "2.")
+# product = "Fedora" AND component = "python-bugzilla" AND (
+#   Fixed in Version = "1" OR Fixed in Version contains the string "2."
+# )
 query = bzapi.build_query(
     product="Fedora",
     component="python-bugzilla",
