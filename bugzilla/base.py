@@ -1158,6 +1158,61 @@ class Bugzilla(object):
     # query methods #
     #################
 
+    _custom_field_aliases = {
+        "pool": "agile_pool.name",
+        "itr": "cf_internal_target_release",
+        "itm": "cf_internal_target_milestone",
+        "dtm": "cf_dev_target_milestone",
+    }
+    def _build_custom_search_query(self, q):
+        params = {
+            "query_format": "advanced"
+        }
+
+        if q.connector == "OR":
+            params["j_top"] = q.connector
+
+        i = 1
+        def traverse(root):
+            nonlocal i
+            for node in root.children:
+                if isinstance(node, tuple):
+                    key, value = node
+                    op = "equals"
+
+                    # workaround because we cannot use dots in Python variable names
+                    key = key.replace("___", ".")
+
+                    # custom operator (specified with field_name__operator)
+                    if "__" in key:
+                        key, op = key.rsplit("__", 1)
+
+                    key = self._custom_field_aliases.get(key, key)
+                    if not isinstance(value, str):
+                        if isinstance(value, collections.abc.Iterable):
+                            value = ",".join(map(str, value))
+                        else:
+                            value = str(value)
+
+                    params[f"f{i}"] = key
+                    params[f"o{i}"] = op
+                    if op not in ["isempty", "isnotempty"]:
+                        params[f"v{i}"] = value
+                    i += 1
+                else:
+                    params[f"f{i}"] = "OP"
+                    params[f"j{i}"] = node.connector
+                    if node.negated:
+                        params[f"n{i}"] = 1
+                    i += 1
+                    traverse(node)
+                    params[f"f{i}"] = "CP"
+                    i += 1
+
+        traverse(q)
+        return params
+
+
     def build_query(self,
                     product=None,
                     component=None,
@@ -1197,7 +1252,8 @@ class Bugzilla(object):
                     tags=None,
                     exclude_fields=None,
                     extra_fields=None,
-                    limit=None):
+                    limit=None,
+                    custom=None):
         """
         Build a query string from passed arguments. Will handle
         query parameter differences between various bugzilla versions.
@@ -1303,6 +1359,9 @@ class Bugzilla(object):
         for k, v in query.copy().items():
             if v is None:
                 del(query[k])
+
+        if custom:
+            query.update(self._build_custom_search_query(custom))
 
         self.pre_translation(query)
         return query

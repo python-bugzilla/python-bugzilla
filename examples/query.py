@@ -8,6 +8,7 @@
 import time
 
 import bugzilla
+from bugzilla.query import Q
 
 # public test instance of bugzilla.redhat.com. It's okay to make changes
 URL = "bugzilla.stage.redhat.com"
@@ -52,6 +53,18 @@ bugs = bzapi.query(query)
 t2 = time.time()
 print("Quicker query processing time: %s" % (t2 - t1))
 
+
+# You can run custom search queries by using the bugzilla.query.Q class
+# This class can be chained with & (AND) and | (OR) and queries can be
+# negated (~). More examples of complex queries can be found in the
+# test_custom_search.py unit tests.
+# The following query searches for
+# product = "Fedora" AND component = "python-bugzilla" AND (Fixed in Version = "1" OR Fixed in Version contains the string "2.")
+query = bzapi.build_query(
+    product="Fedora",
+    component="python-bugzilla",
+    custom=Q(cf_fixed_in="1") | Q(cf_fixed_in__substring="2."))
+bugs = bzapi.query(query)
 
 # bugzilla.redhat.com, and bugzilla >= 5.0 support queries using the same
 # format as is used for 'advanced' search URLs via the Web UI. For example,
