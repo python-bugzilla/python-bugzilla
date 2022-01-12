@@ -74,13 +74,13 @@ def test_apikey_error_scraping():
     with pytest.raises(Exception) as e:
         _open_bz("https://httpstat.us/502&foo",
                 force_xmlrpc=True, api_key=fakekey)
-    assert "400 Client Error" in str(e.value)
+    assert "Client Error" in str(e.value)
     assert fakekey not in str(e.value)
 
     with pytest.raises(Exception) as e:
         _open_bz("https://httpstat.us/502&foo",
                 force_rest=True, api_key=fakekey)
-    assert "400 Client Error" in str(e.value)
+    assert "Client Error" in str(e.value)
     assert fakekey not in str(e.value)
 
 
