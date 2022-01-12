@@ -1,5 +1,9 @@
 # python-bugzilla release news
 
+## Release 3.2.0 (January 12, 2022)
+- Use soon-to-be-required Authorization header for RH bugzilla
+- Remove cookie auth support
+
 ## Release 3.1.0 (July 27, 2021)
 - Detect bugzilla.stage.redhat.com as RHBugzilla
 - Add limit as option to build_query (Ivan Lausuch)
