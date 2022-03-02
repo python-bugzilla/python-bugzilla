@@ -1118,7 +1118,12 @@ class Bugzilla(object):
 
         This logic is called from Bug() too
         """
-        return self._getbugs([objid], permissive=False, **kwargs)[0]
+        bugs = self._getbugs([objid], permissive=False, **kwargs)
+        # Check if the list isn't empty
+        if not bugs:
+            return None
+        
+        return bugs[0]
 
     def getbug(self, objid,
                include_fields=None, exclude_fields=None, extra_fields=None):
@@ -1129,6 +1134,9 @@ class Bugzilla(object):
         data = self._getbug(objid,
             include_fields=include_fields, exclude_fields=exclude_fields,
             extra_fields=extra_fields)
+        if not data:
+            return None
+        
         return Bug(self, dict=data, autorefresh=self.bug_autorefresh)
 
     def getbugs(self, idlist,
