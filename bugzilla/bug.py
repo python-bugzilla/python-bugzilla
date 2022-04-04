@@ -277,11 +277,10 @@ class Bug(object):
         comment as private.
         """
         # Note: fedora bodhi uses this function
-        vals = self.bugzilla.build_update(comment=comment,
-                                          comment_private=private)
+        vals = {'comment': comment, 'is_private': private}
         log.debug("addcomment: update=%s", vals)
 
-        return self.bugzilla.update_bugs(self.bug_id, vals)
+        return self.bugzilla.add_comment(self.bug_id, vals)
 
     def getcomments(self):
         """

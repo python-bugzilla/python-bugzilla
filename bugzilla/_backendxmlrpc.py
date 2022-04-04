@@ -145,6 +145,9 @@ class _BackendXMLRPC(_BackendBase):
     def bugzilla_version(self):
         return self._xmlrpc_proxy.Bugzilla.version()
 
+    def bug_add_comment(self, paramdict):
+        data = paramdict.copy()
+        return self._xmlrpc_proxy.Bug.add_comment(data)
     def bug_attachment_get(self, attachment_ids, paramdict):
         data = paramdict.copy()
         data["attachment_ids"] = listify(attachment_ids)

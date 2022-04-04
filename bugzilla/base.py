@@ -1365,6 +1365,14 @@ class Bugzilla(object):
 
     # Bug() also has individual methods for many ops, like setassignee()
 
+    def add_comment(self, bug_id, update):
+        """
+        Adds a comment to a bug.
+        """
+        tmp = update.copy()
+        tmp['id'] = bug_id
+        return self._backend.bug_add_comment(tmp)
+
     def update_bugs(self, ids, updates):
         """
         A thin wrapper around bugzilla Bug.update(). Used to update all
