@@ -1134,6 +1134,11 @@ class Bugzilla(object):
             extra_fields=extra_fields)
         return Bug(self, dict=data, autorefresh=self.bug_autorefresh)
 
+    def _to_bug(self, bug_data):
+        if bug_data:
+            return Bug(self, dict=bug_data, autorefresh=self.bug_autorefresh)
+        return None
+
     def getbugs(self, idlist,
                 include_fields=None, exclude_fields=None, extra_fields=None,
                 permissive=True, limit=None):
@@ -1144,10 +1149,37 @@ class Bugzilla(object):
         """
         data = self._getbugs(idlist, include_fields=include_fields,
             exclude_fields=exclude_fields, extra_fields=extra_fields,
-            permissive=permissive)
-        return [(b and Bug(self, dict=b,
-                           autorefresh=self.bug_autorefresh)) or None
-                for b in data]
+            permissive=permissive, limit=limit)
+        return [self._to_bug(b) for b in data]
+
+    def iterbugs(self, idlist,
+                 include_fields=None, exclude_fields=None, extra_fields=None,
+                 permissive=True, limit=None):
+        """
+        Return a generator of chunks of Bug object generators.
+
+        This method essentially performs automatic pagination of bugs, each
+        "page" or chunk is a generator of Bug objects, this can be especially
+        useful when dealing with large amounts of data.
+
+        e.g.:
+            bz_api = Bugzilla(...)
+            for page in bz_api.iterbugs([...], limit=100):
+                for bug in page:
+                    print(bug.summary)
+        """
+        for i in range(0, len(idlist), limit):
+            yield (
+                self._to_bug(bug)
+                for bug in self._getbugs(
+                    idlist[i:i + limit],
+                    include_fields=include_fields,
+                    exclude_fields=exclude_fields,
+                    extra_fields=extra_fields,
+                    permissive=permissive,
+                    limit=limit,
+                )
+            )
 
     def get_comments(self, idlist):
         """
