@@ -1061,7 +1061,8 @@ class Bugzilla(object):
 
 
     def _getbugs(self, idlist, permissive,
-            include_fields=None, exclude_fields=None, extra_fields=None):
+            include_fields=None, exclude_fields=None, extra_fields=None,
+            limit=None):
         """
         Return a list of dicts of full bug info for each given bug id.
         bug ids that couldn't be found will return None instead of a dict.
@@ -1087,6 +1088,8 @@ class Bugzilla(object):
         getbugdata = {}
         if permissive:
             getbugdata["permissive"] = 1
+        if limit:
+            getbugdata["limit"] = limit
 
         getbugdata.update(self._process_include_fields(
             include_fields, exclude_fields, extra_fields))
@@ -1133,7 +1136,7 @@ class Bugzilla(object):
 
     def getbugs(self, idlist,
                 include_fields=None, exclude_fields=None, extra_fields=None,
-                permissive=True):
+                permissive=True, limit=None):
         """
         Return a list of Bug objects with the full complement of bug data
         already loaded. If there's a problem getting the data for a given id,
