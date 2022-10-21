@@ -50,8 +50,8 @@ def _check_have_admin(bz):
     return ret
 
 
-def test0LoggedInNoCreds():
-    bz = _open_bz(use_creds=False)
+def test0LoggedInNoCreds(backends):
+    bz = _open_bz(**backends, use_creds=False)
     assert not bz.logged_in
 
 
