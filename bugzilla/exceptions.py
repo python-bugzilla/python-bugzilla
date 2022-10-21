@@ -1,5 +1,6 @@
 # This work is licensed under the GNU GPLv2 or later.
 # See the COPYING file in the top-level directory.
+from requests import HTTPError
 
 
 class BugzillaError(Exception):
@@ -36,3 +37,7 @@ class BugzillaError(Exception):
         if self.code:
             message += " (code=%s)" % self.code
         Exception.__init__(self, message)
+
+
+class BugzillaHTTPError(HTTPError):
+    """Error raised in the Bugzilla session"""

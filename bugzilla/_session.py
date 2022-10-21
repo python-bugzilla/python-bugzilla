@@ -9,6 +9,7 @@ import urllib.parse
 
 import requests
 
+from .exceptions import BugzillaHTTPError
 
 log = getLogger(__name__)
 
@@ -106,9 +107,12 @@ class _BugzillaSession(object):
 
         try:
             response.raise_for_status()
-        except Exception as e:
+        except requests.HTTPError as e:
             # Scrape the api key out of the returned exception string
             message = str(e).replace(self._api_key or "", "")
-            raise type(e)(message).with_traceback(sys.exc_info()[2])
+            response = getattr(e, "response", None)
+            raise BugzillaHTTPError(message, response=response).with_traceback(
+                sys.exc_info()[2]
+            )
 
         return response
