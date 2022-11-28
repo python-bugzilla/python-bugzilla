@@ -76,6 +76,30 @@ class _BugzillaAPICache(object):
         self.version_parsed = (0, 0)
 
 
+class _BugzillaQueryProxy(object):
+    """
+    Helper class to wrap query (search results) and provide additional
+    properties available in some Bugzilla installations.
+
+    Implements part of the iterator protocol so it can be used as a
+    direct substitute for the previous 'list of bugs' returned by the
+    query method.
+    """
+
+    def __init__(self, results, total_matches=None):
+        self.results = results
+        self.total_matches = total_matches
+
+    def __iter__(self):
+        return iter(self.results)
+
+    def __len__(self):
+        return len(self.results)
+
+    def __getitem__(self, key):
+        return self.results[key]
+
+
 class Bugzilla(object):
     """
     The main API object. Connects to a bugzilla instance over XMLRPC, and
@@ -1330,8 +1354,11 @@ class Bugzilla(object):
                 "web URL queries." % e) from None
 
         log.debug("Query returned %s bugs", len(r['bugs']))
-        return [Bug(self, dict=b,
-                autorefresh=self.bug_autorefresh) for b in r['bugs']]
+        total_matches = r.get('total_matches', None)
+        return _BugzillaQueryProxy([Bug(self, dict=b,
+                                        autorefresh=self.bug_autorefresh)
+                                    for b in r['bugs']],
+                                   total_matches=total_matches)
 
     def pre_translation(self, query):
         """
