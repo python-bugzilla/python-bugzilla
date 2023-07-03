@@ -184,3 +184,12 @@ def test_bug_apis():
     attachments = bug.get_attachments()
     bug.attachments = attachments
     assert [469147, 470041, 502352] == bug.get_attachment_ids()
+
+
+def test_bug_weburl():
+    fakebz = tests.mockbackend.make_bz(
+        bug_get_args=None,
+        bug_get_return="data/mockreturn/test_getbug_rhel.txt")
+    bug_id = 1165434
+    bug = fakebz.getbug(bug_id)
+    assert bug.weburl == f"https:///show_bug.cgi?id={bug_id}"

@@ -6,6 +6,7 @@
 
 import copy
 from logging import getLogger
+from urllib.parse import urlparse, urlunparse
 
 
 log = getLogger(__name__)
@@ -39,8 +40,16 @@ class Bug(object):
             dict["id"] = bug_id
 
         self._update_dict(dict)
-        self.weburl = bugzilla.url.replace('xmlrpc.cgi',
-                                           'show_bug.cgi?id=%i' % self.bug_id)
+        self.weburl = self._generate_weburl()
+
+    def _generate_weburl(self):
+        """
+        Generate the URL to the bug in the web UI
+        """
+        parsed = urlparse(self.bugzilla.url)
+        return urlunparse((parsed.scheme, parsed.netloc,
+                           'show_bug.cgi', '', 'id=%s' % self.bug_id,
+                           ''))
 
     def __str__(self):
         """
