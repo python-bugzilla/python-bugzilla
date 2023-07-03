@@ -57,7 +57,7 @@ ATTRIBUTE[target_milestone]: rc
 ATTRIBUTE[target_release]: ['---']
 ATTRIBUTE[url]: 
 ATTRIBUTE[version]: ['5.8']
-ATTRIBUTE[weburl]: https:///TESTSUITEMOCK
+ATTRIBUTE[weburl]: https:///show_bug.cgi?id=1165434
 ATTRIBUTE[whiteboard]: genericwhiteboard
 
 
