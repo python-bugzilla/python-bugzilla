@@ -8,16 +8,19 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # We stick with 20.04 to get access to python 3.6
+    # https://github.com/actions/setup-python/issues/544
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [3.5, 3.6, 3.7, 3.8]
+        # python 3.6 is for rhel/centos8 compat
+        python-version: ["3.6", "3.x"]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -39,23 +42,21 @@ jobs:
         pytest --cov --cov-report=xml
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
-      with:
-        file: ./coverage.xml
-        flags: unittests
+      uses: codecov/codecov-action@v3
+
 
   # Build and install on Windows
   windows:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: ["3.x"]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
