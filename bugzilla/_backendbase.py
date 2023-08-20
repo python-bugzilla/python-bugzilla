@@ -22,7 +22,7 @@ class _BackendBase(object):
     @staticmethod
     def probe(url):
         try:
-            requests.head(url).raise_for_status()
+            requests.head(url, timeout=10).raise_for_status()
             return True  # pragma: no cover
         except Exception as e:
             log.debug("Failed to probe url=%s : %s", url, str(e))
