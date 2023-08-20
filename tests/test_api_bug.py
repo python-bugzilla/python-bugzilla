@@ -106,7 +106,7 @@ def test_bug_getattr():
 
     bug.autorefresh = True
     summary = bug.summary
-    del(bug.__dict__["summary"])
+    del bug.__dict__["summary"]
     # Trigger autorefresh
     assert bug.summary == summary
 

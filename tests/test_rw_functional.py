@@ -363,6 +363,7 @@ def test07ModifyMultiFlags(run_cli, backends):
         bz.update_flags(bug2.id, cleardict_new(bug2))
     bug2.refresh()
 
+    # pylint: disable=use-implicit-booleaness-not-comparison
     assert cleardict_old(bug1) == {}
     assert cleardict_old(bug2) == {}
 

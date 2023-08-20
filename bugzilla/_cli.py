@@ -1047,7 +1047,7 @@ def _do_modify(bz, parser, opt):
 
     for k, v in wbmap.copy().items():
         if not v[0] and not v[1]:
-            del(wbmap[k])
+            del wbmap[k]
 
     if opt.fields:
         _merge_field_opts(update, opt.fields, parser)

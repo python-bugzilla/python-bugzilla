@@ -31,7 +31,7 @@ class _BugzillaSession(object):
         self._use_auth_bearer = False
 
         if self._scheme not in ["http", "https"]:
-            raise Exception("Invalid URL scheme: %s (%s)" % (
+            raise ValueError("Invalid URL scheme: %s (%s)" % (
                 self._scheme, url))
 
         self._session = requests_session

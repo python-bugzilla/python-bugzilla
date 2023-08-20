@@ -1302,7 +1302,7 @@ class Bugzilla(object):
         # Strip out None elements in the dict
         for k, v in query.copy().items():
             if v is None:
-                del(query[k])
+                del query[k]
 
         self.pre_translation(query)
         return query
@@ -1799,7 +1799,7 @@ class Bugzilla(object):
 
         # Back compat handling for check_args
         if "check_args" in data:
-            del(data["check_args"])
+            del data["check_args"]
 
         return data
 

@@ -26,7 +26,7 @@ def test_tokenfile(monkeypatch):
     token = dirname + "/data/homedir/.cache/python-bugzilla/bugzillatoken"
 
     assert token == bz.tokenfile
-    del(bz.tokenfile)
+    del bz.tokenfile
     assert bz.tokenfile is None
     assert bz.cookiefile is None
 
@@ -96,7 +96,7 @@ cert=/newpath
 
     # Test confipath overwrite
     assert [temp.name] == bzapi.configpath
-    del(bzapi.configpath)
+    del bzapi.configpath
     assert [] == bzapi.configpath
     bzapi.readconfig()
     _check(None, None, None, None)

@@ -136,7 +136,7 @@ class Bug(object):
                           "d[%s]=%s and d[%s]=%s , dropping the value "
                           "d[%s]", newname, newdict[newname], oldname,
                         newdict[oldname], oldname)
-            del(newdict[oldname])
+            del newdict[oldname]
 
 
     def _update_dict(self, newdict):

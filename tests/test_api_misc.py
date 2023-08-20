@@ -164,6 +164,7 @@ def testStandardQuery():
     }
     assert bz4.url_to_query(url) == query
 
+    # pylint: disable=use-implicit-booleaness-not-comparison
     # Test with unknown URL
     assert bz4.url_to_query("https://example.com") == {}
 
