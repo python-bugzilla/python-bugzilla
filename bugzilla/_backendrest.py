@@ -35,7 +35,7 @@ class _BackendREST(_BackendBase):
     def _handle_error(self, e):
         response = getattr(e, "response", None)
         if response is None:
-            raise e
+            raise e  # pragma: no cover
 
         if response.status_code in [400, 401, 404]:
             self._handle_error_response(response.text)
@@ -57,7 +57,7 @@ class _BackendREST(_BackendBase):
             log.debug("Failed to parse REST response. Output is:\n%s", text)
             raise
 
-        if ret.get("error", False):
+        if ret.get("error", False):  # pragma: no cover
             raise BugzillaError(ret["message"], code=ret["code"])
         return ret
 
