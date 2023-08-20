@@ -696,8 +696,8 @@ def test11UserUpdate(backends):
 
     # Test group_get
     try:
-        group = bz.getgroup("fedora_contrib")
-        group.refresh()
+        groupobj = bz.getgroup(group)
+        groupobj.refresh()
     except Exception as e:
         if have_admin:
             raise
