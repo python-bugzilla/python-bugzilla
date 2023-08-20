@@ -1,4 +1,6 @@
-# The files aren't interesting for the unit tests run in CI
+# These files will only get full coverage from running the functional
+# tests, but those aren't run from CI
 ignore:
   - "bugzilla/_backendrest.py"
   - "bugzilla/_backendxmlrpc.py"
+  - "bugzilla/_session.py"
