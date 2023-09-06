@@ -414,3 +414,12 @@ def test_redhat_version(backends):
 
     if not tests.CLICONFIG.REDHAT_URL:
         _test_version(bz, bzversion)
+
+
+def test_bug_misc(backends):
+    bz = _open_bz(REDHAT_URL, **backends)
+
+    # Ensure weburl is generated consistently whether
+    # we are using XMLRPC or REST
+    bug = bz.getbug(720773)
+    assert bug.weburl == "https://bugzilla.redhat.com/show_bug.cgi?id=720773"
