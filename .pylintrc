@@ -7,7 +7,7 @@ persistent=no
 # can either give multiple identifier separated by comma (,) or put this option
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once).
-disable=Design,Format,Similarities,invalid-name,missing-docstring,locally-disabled,unnecessary-lambda,fixme,global-statement,broad-except,bare-except,wrong-import-position,consider-using-ternary,len-as-condition,no-else-return,useless-object-inheritance,inconsistent-return-statements,consider-using-dict-comprehension,import-outside-toplevel,use-a-generator,consider-using-with,consider-using-f-string,unspecified-encoding
+disable=Design,Format,Similarities,invalid-name,missing-docstring,locally-disabled,unnecessary-lambda,fixme,global-statement,broad-except,bare-except,wrong-import-position,consider-using-ternary,len-as-condition,no-else-return,useless-object-inheritance,inconsistent-return-statements,consider-using-dict-comprehension,import-outside-toplevel,use-a-generator,consider-using-with,consider-using-f-string,unspecified-encoding,use-implicit-booleaness-not-comparison
 enable=fixme
 
 
