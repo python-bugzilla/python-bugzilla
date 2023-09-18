@@ -111,6 +111,11 @@ class _BackendREST(_BackendBase):
         alias_list = listify(aliases)
         data = paramdict.copy()
 
+        # FYI: The high-level API expects the backends to raise an exception
+        # when retrieval of a single bug fails (default behavior of the XMLRPC
+        # API), but the REST API simply returns an empty search result set.
+        # To ensure compliant behavior, the REST backend needs to use the
+        # explicit URL to get a single bug.
         if len(bug_list or []) + len(alias_list or []) == 1:
             for id_list in (bug_list, alias_list):
                 if id_list:

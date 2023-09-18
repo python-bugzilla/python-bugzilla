@@ -8,9 +8,12 @@
 """
 Unit tests that do readonly functional tests against real bugzilla instances.
 """
+from xmlrpc.client import Fault
+
 import pytest
 
 import bugzilla
+from bugzilla.exceptions import BugzillaError
 import tests
 
 
@@ -293,6 +296,38 @@ def testGetBugAlias(backends):
 
     bug = bz.getbug("CVE-2011-2527")
     assert bug.bug_id == 720773
+
+
+def testGetBug404(backends):
+    """
+    getbug() is expected to raise an error, if a bug ID or alias does not exist
+    """
+    bz = _open_bz(REDHAT_URL, **backends)
+
+    try:
+        bz.getbug(100000000)
+    except Fault as error:          # XMLRPC API
+        assert error.faultCode == 101
+    except BugzillaError as error:  # REST API
+        assert error.code == 101
+    else:
+        raise AssertionError("No exception raised")
+
+
+def testGetBugAlias404(backends):
+    """
+    getbug() is expected to raise an error, if a bug ID or alias does not exist
+    """
+    bz = _open_bz(REDHAT_URL, **backends)
+
+    try:
+        bz.getbug("CVE-1234-4321")
+    except Fault as error:          # XMLRPC API
+        assert error.faultCode == 100
+    except BugzillaError as error:  # REST API
+        assert error.code == 100
+    else:
+        raise AssertionError("No exception raised")
 
 
 def testQuerySubComponent(run_cli, backends):

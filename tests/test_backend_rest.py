@@ -5,20 +5,21 @@ from bugzilla._session import _BugzillaSession
 
 
 def test_getbug():
+    session = _BugzillaSession(url="http://example.com",
+                               user_agent="py-bugzilla-test",
+                               sslverify=False,
+                               cert=None,
+                               tokencache={},
+                               api_key="",
+                               is_redhat_bugzilla=False)
     backend = _BackendREST(url="http://example.com",
-                           bugzillasession=_BugzillaSession(url="http://example.com",
-                                                            user_agent="py-bugzilla-test",
-                                                            sslverify=False,
-                                                            cert=None,
-                                                            tokencache={},
-                                                            api_key="",
-                                                            is_redhat_bugzilla=False))
+                           bugzillasession=session)
 
-    def _assertion(self, *args, **kwargs):
+    def _assertion(self, *args):
         self.assertion_called = True
         assert args and args[0] == url
 
-    backend._get = MethodType(_assertion, backend)
+    setattr(backend, "_get", MethodType(_assertion, backend))
 
     for _ids, aliases, url in (
             (1, None, "/bug/1"),
