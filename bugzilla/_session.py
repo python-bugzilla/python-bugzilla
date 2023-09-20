@@ -98,14 +98,14 @@ class _BugzillaSession(object):
         if "timeout" not in kwargs:
             kwargs["timeout"] = timeout
 
-        response = self._session.request(*args, **kwargs)
-
-        if self._is_xmlrpc:
-            # Yes this still appears to matter for properly decoding unicode
-            # code points in bugzilla.redhat.com content
-            response.encoding = "UTF-8"
-
         try:
+            response = self._session.request(*args, **kwargs)
+
+            if self._is_xmlrpc:
+                # This still appears to matter for properly decoding unicode
+                # code points in bugzilla.redhat.com content
+                response.encoding = "UTF-8"
+
             response.raise_for_status()
         except requests.HTTPError as e:
             # Scrape the api key out of the returned exception string
