@@ -113,7 +113,10 @@ def test_getbug_alias():
 
     backend = getattr(fakebz, "_backend")
     setattr(backend, "bug_get", mock_bug_get)
-    bug = fakebz.getbug("CVE-1234-5678", include_fields=["id"])
+
+    fakebz.getbug("CVE-1234-5678", include_fields=["id"])
+    fakebz.getbug("CVE-1234-5678", include_fields="id")
+    fakebz.getbug("CVE-1234-5678", include_fields=("id",))
 
 
 def test_bug_getattr():
