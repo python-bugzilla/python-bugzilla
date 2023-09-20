@@ -1081,12 +1081,14 @@ class Bugzilla(object):
             else:
                 ids.append(idstr)
 
-        if include_fields is not None and aliases and "alias" not in include_fields:
+        if (include_fields is not None and aliases
+                and "alias" not in include_fields):
             # Extra field to prevent sorting (see below) from cause an error
             try:
                 include_fields.append("alias")
             except AttributeError:
-                # Just in case somebody passed in a tuple or another non-list type
+                # Just in case somebody passed in a tuple or another non-list
+                # type
                 include_fields = list(include_fields) + ["alias"]
 
         extra_fields = listify(extra_fields or [])
