@@ -1493,19 +1493,13 @@ class Bugzilla(object):
             if add is remove is _set is None:
                 return
 
-            def c(val):
-                val = listify(val)
-                if convert:
-                    val = [convert(v) for v in val]
-                return val
-
             newdict = {}
             if add is not None:
-                newdict["add"] = c(add)
+                newdict["add"] = listify(add)
             if remove is not None:
-                newdict["remove"] = c(remove)
+                newdict["remove"] = listify(remove)
             if _set is not None:
-                newdict["set"] = c(_set)
+                newdict["set"] = listify(_set)
             ret[key] = newdict
 
 
@@ -1539,10 +1533,8 @@ class Bugzilla(object):
         s("comment_tags", comment_tags, listify)
         s("minor_update", minor_update, bool)
 
-        add_dict("blocks", blocks_add, blocks_remove, blocks_set,
-                 convert=int)
-        add_dict("depends_on", depends_on_add, depends_on_remove,
-                 depends_on_set, convert=int)
+        add_dict("blocks", blocks_add, blocks_remove, blocks_set)
+        add_dict("depends_on", depends_on_add, depends_on_remove, depends_on_set)
         add_dict("cc", cc_add, cc_remove)
         add_dict("groups", groups_add, groups_remove)
         add_dict("keywords", keywords_add, keywords_remove, keywords_set)
