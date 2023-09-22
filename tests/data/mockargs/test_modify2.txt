@@ -1,5 +1,5 @@
 (['123456'],
- {'blocks': {'set': [123456, 445566]},
+ {'blocks': {'set': ['123456', '445566']},
   'comment': {'comment': 'some example comment', 'is_private': True},
   'component': 'NEWCOMP',
   'dupe_of': 555666,
