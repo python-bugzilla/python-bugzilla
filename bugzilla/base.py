@@ -1099,7 +1099,7 @@ class Bugzilla(object):
         for idval in idlist:
             idint, alias = _alias_or_int(idval)
             for bugdict in r["bugs"]:
-                if idint and idint != bugdict.get("id", None):
+                if idint is not None and idint != bugdict.get("id", None):
                     continue
                 aliaslist = listify(bugdict.get("alias", None) or [])
                 if alias and alias not in aliaslist:
