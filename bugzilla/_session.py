@@ -107,12 +107,15 @@ class _BugzillaSession(object):
                 response.encoding = "UTF-8"
 
             response.raise_for_status()
-        except requests.HTTPError as e:
+        except Exception as e:
             # Scrape the api key out of the returned exception string
             message = str(e).replace(self._api_key or "", "")
-            response = getattr(e, "response", None)
-            raise BugzillaHTTPError(message, response=response).with_traceback(
-                sys.exc_info()[2]
-            )
+            if isinstance(e, requests.HTTPError):
+                response = getattr(e, "response", None)
+                raise BugzillaHTTPError(
+                    message, response=response).with_traceback(
+                        sys.exc_info()[2])
+            raise type(e)(message).with_traceback(sys.exc_info()[2])
+
 
         return response
