@@ -74,6 +74,17 @@ def test_rest_xmlrpc_detection():
 def test_apikey_error_scraping():
     # Ensure the API key does not leak into any requests exceptions
     fakekey = "FOOBARMYKEY"
+
+    with pytest.raises(Exception) as e:
+        _open_bz("https://bugzilla.redhat.nopedontexist",
+                 force_rest=True, api_key=fakekey)
+    assert fakekey not in str(e.value)
+
+    with pytest.raises(Exception) as e:
+        _open_bz("https://bugzilla.redhat.nopedontexist",
+                 force_xmlrpc=True, api_key=fakekey)
+    assert fakekey not in str(e.value)
+
     with pytest.raises(Exception) as e:
         _open_bz("https://httpstat.us/502&foo",
                 force_xmlrpc=True, api_key=fakekey)
