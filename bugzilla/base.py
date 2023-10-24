@@ -1489,7 +1489,7 @@ class Bugzilla(object):
                 val = convert(val)
             ret[key] = val
 
-        def add_dict(key, add, remove, _set=None, convert=None):
+        def add_dict(key, add, remove, _set=None):
             if add is remove is _set is None:
                 return
 
