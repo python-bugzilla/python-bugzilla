@@ -1203,6 +1203,7 @@ def _handle_login(opt, action, bz):
     username = getattr(opt, "pos_username", None) or opt.username
     password = getattr(opt, "pos_password", None) or opt.password
     use_key = getattr(opt, "api_key", False)
+    use_key = use_key or "redhat.com" in bz.url
 
     try:
         if use_key:
