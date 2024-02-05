@@ -41,6 +41,7 @@ def test_new(run_cli):
     cmd += "--assignee foo@example.com --qa_contact qa@example.com "
     cmd += "--comment-tag FOO "
     cmd += "--field foo=bar "
+    cmd += '--field-json \'{"cf_verified": ["Tested"], "cf_blah": {"1": 2}}\' '
 
     fakebz = tests.mockbackend.make_bz(
         bug_create_args="data/mockargs/test_new2.txt",

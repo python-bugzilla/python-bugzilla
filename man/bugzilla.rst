@@ -416,11 +416,20 @@ RHBZ 'Fixed in version' field
 ``--field``
 ^^^^^^^^^^^
 
-**Syntax:** ``--field`` FIELD`` VALUE
+**Syntax:** ``--field`` FIELD=VALUE
 
 Manually specify a bugzilla API field. FIELD is the raw name used
 by the bugzilla instance. For example if your bugzilla instance has a
 custom field cf_my_field, do: --field cf_my_field=VALUE
+
+
+``--field-json``
+^^^^^^^^^^^^^^^^
+
+**Syntax:** ``--field-json`` JSONSTRING
+
+Specify --field data as a JSON string. Example:
+--field-json '{"cf_my_field": "VALUE", "cf_array_field": [1, 2]}'
 
 
 

@@ -263,6 +263,10 @@ def _parser_add_bz_fields(rootp, command):
         "the raw name used by the bugzilla instance. For example, if your "
         "bugzilla instance has a custom field cf_my_field, do:\n"
         "  --field cf_my_field=VALUE")
+    p.add_argument('--field-json',
+        metavar="JSONSTRING", action="append", dest="field_jsons",
+        help="Specify --field data as a JSON string. Example: --field-json "
+             '\'{"cf_my_field": "VALUE", "cf_array_field": [1, 2]}\'')
 
     if not cmd_modify:
         _parser_add_output_options(rootp)
@@ -436,14 +440,27 @@ def setup_parser():
 # Command routines #
 ####################
 
-def _merge_field_opts(query, fields, parser):
+def _merge_field_opts(query, fields, field_jsons, parser):
+    values = {}
+
     # Add any custom fields if specified
-    for f in fields:
+    for f in (fields or []):
         try:
             f, v = f.split('=', 1)
-            query[f] = v
+            values[f] = v
         except Exception:
             parser.error("Invalid field argument provided: %s" % (f))
+
+    for j in (field_jsons or []):
+        try:
+            jvalues = json.loads(j)
+            values.update(jvalues)
+        except Exception as e:
+            parser.error("Invalid field-json value=%s: %s" % (j, e))
+
+    if values:
+        log.debug("parsed --field* values: %s", values)
+        query.update(values)
 
 
 def _do_query(bz, opt, parser):
@@ -599,8 +616,7 @@ def _do_query(bz, opt, parser):
         kwopts["tags"] = opt.tags
 
     built_query = bz.build_query(**kwopts)
-    if opt.fields:
-        _merge_field_opts(built_query, opt.fields, parser)
+    _merge_field_opts(built_query, opt.fields, opt.field_jsons, parser)
 
     built_query.update(q)
     q = built_query
@@ -907,8 +923,7 @@ def _do_new(bz, opt, parser):
         kwopts["comment_private"] = opt.private
 
     ret = bz.build_createbug(**kwopts)
-    if opt.fields:
-        _merge_field_opts(ret, opt.fields, parser)
+    _merge_field_opts(ret, opt.fields, opt.field_jsons, parser)
 
     b = bz.createbug(ret)
     b.refresh()
@@ -1049,8 +1064,7 @@ def _do_modify(bz, parser, opt):
         if not v[0] and not v[1]:
             del wbmap[k]
 
-    if opt.fields:
-        _merge_field_opts(update, opt.fields, parser)
+    _merge_field_opts(update, opt.fields, opt.field_jsons, parser)
 
     log.debug("update bug dict=%s", update)
     log.debug("update whiteboard dict=%s", wbmap)
