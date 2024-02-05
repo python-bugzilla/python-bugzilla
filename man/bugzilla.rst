@@ -859,4 +859,5 @@ SEE ALSO
 ========
 
 https://bugzilla.readthedocs.io/en/latest/api/index.html
+
 https://bugzilla.redhat.com/docs/en/html/api/core/v1/bug.html
