@@ -2,6 +2,8 @@
  'assigned_to': 'foo@example.com',
  'blocks': ['12345', '6789'],
  'cc': ['foo@example.com', 'bar@example.com'],
+ 'cf_blah': {'1': 2},
+ 'cf_verified': ['Tested'],
  'comment_is_private': True,
  'comment_tags': ['FOO'],
  'component': 'FOOCOMP',

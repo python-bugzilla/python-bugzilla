@@ -15,11 +15,17 @@ import tests.utils
 #################################
 
 def test_query(run_cli):
-    # bad field option
+    # bad --field option
     fakebz = tests.mockbackend.make_bz()
     cmd = "bugzilla query --field FOO"
     out = run_cli(cmd, fakebz, expectfail=True)
     assert "Invalid field argument" in out
+
+    # bad --field-json option
+    fakebz = tests.mockbackend.make_bz()
+    cmd = "bugzilla query --field-json='{1: 2}'"
+    out = run_cli(cmd, fakebz, expectfail=True)
+    assert "Invalid field-json" in out
 
     # Simple query with some comma opts
     cmd = "bugzilla query "
@@ -104,6 +110,7 @@ def test_query(run_cli):
     # Test --status EOL and --oneline, and some --field usage
     cmd = "bugzilla query --status EOL --oneline "
     cmd += "--field FOO=1 --field=BAR=WIBBLE "
+    cmd += '--field-json \'{"cf_verified": ["Tested"], "cf_blah": {"1": 2}}\' '
     fakebz = tests.mockbackend.make_bz(
         bug_search_args="data/mockargs/test_query6.txt",
         bug_search_return="data/mockreturn/test_getbug_rhel.txt",

@@ -85,6 +85,7 @@ def test_modify(run_cli):
     cmd += "--devel_whiteboard =DEVBOARD --internal_whiteboard =INTBOARD "
     cmd += "--qa_whiteboard =QABOARD "
     cmd += "--comment-tag FOOTAG --field bar=foo "
+    cmd += '--field-json \'{"cf_verified": ["Tested"], "cf_blah": {"1": 2}}\' '
     cmd += "--minor-update "
     fakebz = tests.mockbackend.make_bz(rhbz=True,
         bug_update_args="data/mockargs/test_modify5.txt",
