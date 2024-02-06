@@ -185,6 +185,20 @@ def _parser_add_output_options(p):
                  "section 'Output options' for more details.")
 
 
+def _parser_add_field_passthrough_opts(p):
+    # Put this at the end, so it sticks out more
+    p.add_argument('--field',
+        metavar="FIELD=VALUE", action="append", dest="fields",
+        help="Manually specify a bugzilla API field. FIELD is "
+        "the raw name used by the bugzilla instance. For example, if your "
+        "bugzilla instance has a custom field cf_my_field, do:\n"
+        "  --field cf_my_field=VALUE")
+    p.add_argument('--field-json',
+        metavar="JSONSTRING", action="append", dest="field_jsons",
+        help="Specify --field data as a JSON string. Example: --field-json "
+             '\'{"cf_my_field": "VALUE", "cf_array_field": [1, 2]}\'')
+
+
 def _parser_add_bz_fields(rootp, command):
     cmd_new = (command == "new")
     cmd_query = (command == "query")
@@ -256,17 +270,7 @@ def _parser_add_bz_fields(rootp, command):
         p.add_argument('-F', '--fixed_in',
             help="RHBZ 'Fixed in version' field")
 
-    # Put this at the end, so it sticks out more
-    p.add_argument('--field',
-        metavar="FIELD=VALUE", action="append", dest="fields",
-        help="Manually specify a bugzilla API field. FIELD is "
-        "the raw name used by the bugzilla instance. For example, if your "
-        "bugzilla instance has a custom field cf_my_field, do:\n"
-        "  --field cf_my_field=VALUE")
-    p.add_argument('--field-json',
-        metavar="JSONSTRING", action="append", dest="field_jsons",
-        help="Specify --field data as a JSON string. Example: --field-json "
-             '\'{"cf_my_field": "VALUE", "cf_array_field": [1, 2]}\'')
+    _parser_add_field_passthrough_opts(p)
 
     if not cmd_modify:
         _parser_add_output_options(rootp)
@@ -404,6 +408,8 @@ bugzilla attach --type=TYPE BUGID [BUGID...]"""
             help="Add comment with attachment")
     p.add_argument('--private', action='store_true', default=False,
         help='Mark new comment as private')
+
+    _parser_add_field_passthrough_opts(p)
 
 
 def _setup_action_login_parser(subparsers):
@@ -1171,6 +1177,8 @@ def _do_set_attach(bz, opt, parser):
     if opt.private:
         kwargs["is_private"] = True
     desc = opt.desc or os.path.basename(fileobj.name)
+
+    _merge_field_opts(kwargs, opt.fields, opt.field_jsons, parser)
 
     # Upload attachments
     for bugid in opt.ids:
