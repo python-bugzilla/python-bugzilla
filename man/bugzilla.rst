@@ -355,8 +355,8 @@ Bug assignee
 QA contact
 
 
-``--flag``
-^^^^^^^^^^
+``-f, --flag``
+^^^^^^^^^^^^^^
 
 **Syntax:** ``--flag`` FLAG
 
@@ -431,8 +431,8 @@ These options are shared by several commands, for tweaking the text
 output of the command results.
 
 
-``-f, --full``
-^^^^^^^^^^^^^^
+``--full``
+^^^^^^^^^^
 
 **Syntax:** ``--full``
 
@@ -859,4 +859,5 @@ SEE ALSO
 ========
 
 https://bugzilla.readthedocs.io/en/latest/api/index.html
+
 https://bugzilla.redhat.com/docs/en/html/api/core/v1/bug.html
