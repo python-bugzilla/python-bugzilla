@@ -330,6 +330,13 @@ def testGetBugAlias404(backends):
         raise AssertionError("No exception raised")
 
 
+def testGetBugAliasIncludedField(backends):
+    bz = _open_bz(REDHAT_URL, **backends)
+
+    bug = bz.getbug("CVE-2011-2527", include_fields=["id"])
+    assert bug.bug_id == 720773
+
+
 def testQuerySubComponent(run_cli, backends):
     bz = _open_bz(REDHAT_URL, **backends)
 

@@ -1081,6 +1081,11 @@ class Bugzilla(object):
             else:
                 ids.append(idstr)
 
+        if (include_fields is not None and aliases
+                and "alias" not in include_fields):
+            # Extra field to prevent sorting (see below) from causing an error
+            include_fields.append("alias")
+
         extra_fields = listify(extra_fields or [])
         extra_fields += self._getbug_extra_fields()
 

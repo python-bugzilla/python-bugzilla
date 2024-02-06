@@ -94,6 +94,29 @@ def test_api_getbugs():
     assert fakebz.getbugs(["123456", "CVE-1234-FAKE"]) == []
 
 
+def test_getbug_alias():
+    """
+    Test that `getbug(<alias>)` includes the alias in `include_fields`
+    """
+    fakebz = tests.mockbackend.make_bz(
+        bug_get_args=None,
+        bug_get_return="data/mockreturn/test_query_cve_getbug.txt")
+    bug = fakebz.getbug("CVE-1234-5678", include_fields=["id"])
+    assert bug.alias == ["CVE-1234-5678"]
+    assert bug.id == 123456
+
+    def mock_bug_get(bug_ids, aliases, paramdict):
+        assert bug_ids == []
+        assert aliases == ["CVE-1234-5678"]
+        assert "alias" in paramdict.get("include_fields", [])
+        return {"bugs": [bug.get_raw_data()]}
+
+    backend = getattr(fakebz, "_backend")
+    setattr(backend, "bug_get", mock_bug_get)
+
+    fakebz.getbug("CVE-1234-5678", include_fields=["id"])
+
+
 def test_bug_getattr():
     fakebz = tests.mockbackend.make_bz(
         bug_get_args=None,
