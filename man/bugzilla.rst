@@ -791,6 +791,46 @@ List the versions for the given product
 Only show active components. Combine with --components*
 
 
+``bugzillarc`` CONFIG FILE
+==========================
+
+Both ``bugzilla`` and the python-bugzilla library will read
+a ``bugzillarc`` config file if it is present in the following
+locations:
+
+- /etc/bugzillarc
+- ~/.bugzillarc
+- ~/.config/python-bugzilla/bugzillarc
+
+The contents of the files are processed and merged together
+in the order they are listed above.
+
+The main usage for ``bugzillarc`` is to store API keys for your
+bugzilla URLs:
+
+::
+
+  [bugzilla.example.com]
+  api_key=INSERT-YOUR-API-KEY-HERE
+
+  [bugzilla.redhat.com]
+  api_key=MY-REDHAT-API-KEY-BLAH
+
+
+The sections must be hostnames. Other values that can be
+set per hostname section are
+
+- ``user``: default auth username
+- ``password``: default auth password
+- ``cert``: default client side certificate
+
+
+A ``[DEFAULTS]`` section is also accepted, which takes the following
+values:
+
+- ``url``: default bugzilla URL
+
+
 AUTHENTICATION CACHE AND API KEYS
 =================================
 
@@ -802,28 +842,17 @@ active login.
 If you are connecting to a bugzilla 5.0 or later instance, the best
 option is to use bugzilla API keys. From the bugzilla web UI, log in,
 navigate to Preferences->API Keys, and generate a key (it will be a long
-string of characters and numbers). Then create a
-~/.config/python-bugzilla/bugzillarc like this:
+string of characters and numbers).
 
-::
-
-  $ cat ~/.config/python-bugzilla/bugzillarc
-
-  [bugzilla.example.com]
-  api_key=YOUR_API_KEY
-
-Replace 'bugzilla.example.com' with your bugzilla host name, and
-YOUR_API_KEY with the generated API Key from the Web UI.
-
-Alternatively, you can use 'bugzilla login --api-key', which will ask
-for the API key, and save it to bugzillarc for you.
+Then use 'bugzilla --bugzilla URL login --api-key', which will ask
+for the API key, and save it to ``bugzillarc`` for you.
 
 For older bugzilla instances, you will need to cache a login token
 with the "login" subcommand or the "--login" argument.
 
 Additionally, the --no-cache-credentials option will tell the bugzilla
 tool to *not* save or use any authentication cache, including the
-bugzillarc file.
+``bugzillarc`` file.
 
 
 EXAMPLES
