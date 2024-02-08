@@ -1,2 +1,4 @@
 # additional packages needed for testing
 pytest
+pylint<3.1
+pycodestyle<2.12

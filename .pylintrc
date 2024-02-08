@@ -19,7 +19,7 @@ score=no
 
 [FORMAT]
 # Maximum number of characters on a single line.
-max-line-length=80
+max-line-length=100
 
 # String used as indentation unit. This is usually " " (4 spaces) or "\t" (1
 # tab).
