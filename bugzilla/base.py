@@ -1312,13 +1312,14 @@ class Bugzilla(object):
         self.pre_translation(query)
         return query
 
-    def query(self, query):
-        """
-        Pass search terms to bugzilla and and return a list of matching
-        Bug objects.
 
-        See `build_query` for more details about constructing the
-        `query` dict parameter.
+    def query_return_extra(self, query):
+        """
+        Same as `query()`, but the return value is altered to be
+        (buglist, values), where `values` is raw dictionary output from
+        the API call, excluding the bug content. For example this may
+        include a `limit` value if the bugzilla instance puts an implied
+        limit on returned result numbers.
         """
         try:
             r = self._backend.bug_search(query)
@@ -1334,9 +1335,23 @@ class Bugzilla(object):
                 "appear to support API queries derived from bugzilla "
                 "web URL queries." % e) from None
 
-        log.debug("Query returned %s bugs", len(r['bugs']))
-        return [Bug(self, dict=b,
-                autorefresh=self.bug_autorefresh) for b in r['bugs']]
+        rawbugs = r.pop("bugs")
+        log.debug("Query returned %s bugs", len(rawbugs))
+        bugs = [Bug(self, dict=b,
+                autorefresh=self.bug_autorefresh) for b in rawbugs]
+
+        return bugs, r
+
+    def query(self, query):
+        """
+        Pass search terms to bugzilla and and return a list of matching
+        Bug objects.
+
+        See `build_query` for more details about constructing the
+        `query` dict parameter.
+        """
+        bugs, dummy = self.query_return_extra(query)
+        return bugs
 
     def pre_translation(self, query):
         """
