@@ -1314,11 +1314,11 @@ class Bugzilla(object):
 
     def query(self, query):
         """
-        Query bugzilla and return a list of matching bugs.
-        query must be a dict with fields like those in in querydata['fields'].
-        Returns a list of Bug objects.
-        Also see the _query() method for details about the underlying
-        implementation.
+        Pass search terms to bugzilla and and return a list of matching
+        Bug objects.
+
+        See `build_query` for more details about constructing the
+        `query` dict parameter.
         """
         try:
             r = self._backend.bug_search(query)
