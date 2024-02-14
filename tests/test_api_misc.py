@@ -305,3 +305,12 @@ def test_query_url_fail():
         bz.query(query)
     except Exception as e:
         assert checkstr not in str(e)
+
+
+def test_query_return_extra():
+    bz = tests.mockbackend.make_bz(version="5.1.0",
+            bug_search_args=None,
+            bug_search_return="data/mockreturn/test_query1.txt")
+    dummy, extra = bz.query_return_extra({})
+    assert extra['limit'] == 0
+    assert extra['FOOFAKEVALUE'] == "hello"
