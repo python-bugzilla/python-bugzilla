@@ -49,6 +49,18 @@ def test_attach(run_cli):
     out = run_cli(cmd, fakebz, stdin=attachcontent)
     assert "Created attachment 1557949 on bug 123456" in out
 
+    # Test --field passthrough
+    cmd = "bugzilla attach 123456 --file=%s " % attachfile
+    cmd += "--field=is_obsolete=1 "
+    cmd += "--field-json "
+    cmd += ('\'{"flags": [{"name": "review"'
+            ', "requestee": "crobinso@redhat.com", "status": "-"}]}\'')
+    fakebz = tests.mockbackend.make_bz(
+        bug_attachment_create_args="data/mockargs/test_attach3.txt",
+        bug_attachment_create_return={'ids': [1557949]})
+    out = run_cli(cmd, fakebz)
+    assert "Created attachment 1557949 on bug 123456" in out
+
 
 def _test_attach_get(run_cli):
     # Hit error when using ids with --get*

@@ -1,0 +1,9 @@
+(['123456'],
+ 'STRIPPED-BY-TESTSUITE',
+ {'content_type': 'text/plain',
+  'file_name': 'bz-attach-get1.txt',
+  'flags': [{'name': 'review',
+             'requestee': 'crobinso@redhat.com',
+             'status': '-'}],
+  'is_obsolete': '1',
+  'summary': 'bz-attach-get1.txt'})
