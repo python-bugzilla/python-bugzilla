@@ -186,7 +186,6 @@ def _parser_add_output_options(p):
 
 
 def _parser_add_field_passthrough_opts(p):
-    # Put this at the end, so it sticks out more
     p.add_argument('--field',
         metavar="FIELD=VALUE", action="append", dest="fields",
         help="Manually specify a bugzilla API field. FIELD is "
