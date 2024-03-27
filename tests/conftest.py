@@ -4,8 +4,10 @@
 import locale
 import logging
 import os
+import re
 
 import pytest
+import responses
 
 import tests
 import tests.utils
@@ -17,6 +19,8 @@ import bugzilla
 # https://docs.pytest.org/en/latest/writing_plugins.html
 
 def pytest_addoption(parser):
+    parser.addoption("--ro-integration", action="store_true", default=False,
+                     help="Run readonly tests against local Bugzilla instance.")
     parser.addoption("--ro-functional", action="store_true", default=False,
             help=("Run readonly functional tests against actual "
                   "bugzilla instances. This will be very slow."))
@@ -40,11 +44,17 @@ def pytest_addoption(parser):
 
 def pytest_ignore_collect(path, config):
     has_ro = config.getoption("--ro-functional")
+    has_ro_i = config.getoption("--ro-integration")
     has_rw = config.getoption("--rw-functional")
 
     base = os.path.basename(str(path))
     is_ro = base == "test_ro_functional.py"
+    is_ro_i = "tests/integration/ro" in str(path)
     is_rw = base == "test_rw_functional.py"
+
+    if is_ro_i and not has_ro_i:
+        return True
+
     if is_ro and not has_ro:
         return True
     if is_rw and not has_rw:
@@ -107,3 +117,47 @@ def run_cli(capsys, monkeypatch):
     def _do_run(*args, **kwargs):
         return tests.utils.do_run_cli(capsys, monkeypatch, *args, **kwargs)
     return _do_run
+
+
+@pytest.fixture
+def mocked_responses():
+    """
+    Mock responses
+
+    * Quickly return error responses
+    * Pass through requests to live instances
+    * Provide an incorrect XMLRPC response
+    """
+    passthrough = ()
+    status_pattern = re.compile(r"https://httpstat.us/(?P<status>\d+).*")
+
+    def status_callback(request):
+        match = status_pattern.match(request.url)
+        status_code = 400
+        if match:
+            status_code = int(match.group("status"))
+
+        return status_code, {}, "<html><body><h1>Lorem ipsum</h1></body></html>"
+
+    test_url = os.getenv("BUGZILLA_URL")
+    if test_url:
+        passthrough += (test_url, )
+    with responses.RequestsMock(passthru_prefixes=passthrough,
+                                assert_all_requests_are_fired=False) as mock:
+        mock.add_callback(
+            method=responses.GET,
+            url=status_pattern,
+            callback=status_callback
+        )
+        mock.add_callback(
+            method=responses.POST,
+            url=status_pattern,
+            callback=status_callback
+        )
+        mock.add(
+            method=responses.POST,
+            url="https://example.com/#xmlrpc",
+            status=200,
+            body="This is no XML"
+        )
+        yield mock

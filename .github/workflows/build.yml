@@ -66,6 +66,49 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
 
+  # Run functional tests
+  integrationRO:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:latest
+        env:
+          MARIADB_USER: bugs
+          MARIADB_DATABASE: bugs
+          MARIADB_PASSWORD: secret
+          MARIADB_ROOT_PASSWORD: supersecret
+        ports:
+          - 3306:3306
+      bugzilla:
+        image: ghcr.io/crazyscientist/bugzilla:test
+        ports:
+          - 80:80
+    strategy:
+      matrix:
+        python-version: ["3.x"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install MariaDB utils
+        run: sudo apt install --no-install-recommends -q -y mariadb-client
+      - name: Restore DB dump
+        run: mariadb -h 127.0.0.1 -P 3306 --password=secret -u bugs bugs < tests/services/bugs.sql
+      - name: Store API key
+        run: |
+          mkdir -p ~/.config/python-bugzilla/
+          cp tests/services/bugzillarc ~/.config/python-bugzilla/
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov
+          pip install -r requirements.txt -r test-requirements.txt
+      - name: Test with pytest
+        run: pytest --ro-integration
+        env:
+          BUGZILLA_URL: http://localhost
 
   # Build and install on Windows
   windows:
