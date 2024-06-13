@@ -1,5 +1,18 @@
 # python-bugzilla release news
 
+## Release 3.3.0 (June, 2024)
+- Expose error codes from the REST API (Stanislav Levin)
+- Fixed broken link in documentation (Danilo C. L. de Paula)
+- Set `Bug.weburl` that is compatible with the REST API 
+- Do not convert 'blocks' or 'depends' to int in `Bugzilla.build_update` (Adam Williamson)
+- Use proper REST API route for getting a single bug
+- Avoid duplicate entries when one id is 0 (Ricardo Branco)
+- Removed unused argument from `Bugzilla.add_dict`
+- Fixed API key leak (Ricardo Branco)
+- Automatically include alias in include_fields in `Bugzilla._getbugs`
+- Added method `Bugzilla.query_return_extra`
+- cli: Support --field and --field-json for bugzilla attach
+
 ## Release 3.2.0 (January 12, 2022)
 - Use soon-to-be-required Authorization header for RH bugzilla
 - Remove cookie auth support
