@@ -1761,7 +1761,7 @@ class Bugzilla(object):
             localdict["cc"] = listify(cc)
         if depends_on:
             localdict["depends_on"] = listify(depends_on)
-        if groups:
+        if groups is not None:
             localdict["groups"] = listify(groups)
         if keywords:
             localdict["keywords"] = listify(keywords)
