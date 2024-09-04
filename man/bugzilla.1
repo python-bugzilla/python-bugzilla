@@ -1,8 +1,5 @@
 .\" Man page generated from reStructuredText.
 .
-.TH BUGZILLA 1 "" "" "User Commands"
-.SH NAME
-bugzilla \- command line tool for interacting with Bugzilla
 .
 .nr rst2man-indent-level 0
 .
@@ -30,6 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
+.TH "BUGZILLA" 1 "" "" "User Commands"
+.SH NAME
+bugzilla \- command line tool for interacting with Bugzilla
 .SH SYNOPSIS
 .sp
 \fBbugzilla\fP [\fIoptions\fP] [\fIcommand\fP] [\fIcommand\-options\fP]
@@ -86,7 +86,7 @@ client side certificate file needed by the webserver.
 .sp
 \fBSyntax:\fP \fB\-\-login\fP
 .sp
-Run interactive "login" before performing the specified command.
+Run interactive \(dqlogin\(dq before performing the specified command.
 .SS \fB\-\-username\fP
 .sp
 \fBSyntax:\fP \fB\-\-username\fP USERNAME
@@ -114,13 +114,8 @@ they expire the tool errors, rather than subtly change output.
 .sp
 \fBSyntax:\fP \fB\-\-no\-cache\-credentials\fP
 .sp
-Don\(aqt save any bugzilla cookies or tokens to disk, and don\(aqt use any
+Don\(aqt save any bugzilla tokens to disk, and don\(aqt use any
 pre\-existing credentials.
-.SS \fB\-\-cookiefile\fP
-.sp
-\fBSyntax:\fP \fB\-\-cookiefile\fP COOKIEFILE
-.sp
-cookie file to use for bugzilla authentication
 .SS \fB\-\-tokenfile\fP
 .sp
 \fBSyntax:\fP \fB\-\-tokenfile\fP TOKENFILE
@@ -260,7 +255,7 @@ Bug assignee
 \fBSyntax:\fP \fB\-\-qa_contact\fP QA_CONTACT
 .sp
 QA contact
-.SS \fB\-\-flag\fP
+.SS \fB\-f, \-\-flag\fP
 .sp
 \fBSyntax:\fP \fB\-\-flag\fP FLAG
 .sp
@@ -299,16 +294,22 @@ RHBZ QA whiteboard field
 RHBZ \(aqFixed in version\(aq field
 .SS \fB\-\-field\fP
 .sp
-\fBSyntax:\fP \fB\-\-field\fP FIELD\(ga\(ga VALUE
+\fBSyntax:\fP \fB\-\-field\fP FIELD=VALUE
 .sp
 Manually specify a bugzilla API field. FIELD is the raw name used
 by the bugzilla instance. For example if your bugzilla instance has a
 custom field cf_my_field, do: \-\-field cf_my_field=VALUE
+.SS \fB\-\-field\-json\fP
+.sp
+\fBSyntax:\fP \fB\-\-field\-json\fP JSONSTRING
+.sp
+Specify \-\-field data as a JSON string. Example:
+\-\-field\-json \(aq{\(dqcf_my_field\(dq: \(dqVALUE\(dq, \(dqcf_array_field\(dq: [1, 2]}\(aq
 .SH OUTPUT OPTIONS
 .sp
 These options are shared by several commands, for tweaking the text
 output of the command results.
-.SS \fB\-f, \-\-full\fP
+.SS \fB\-\-full\fP
 .sp
 \fBSyntax:\fP \fB\-\-full\fP
 .sp
@@ -379,7 +380,7 @@ the formats are not stable and are subject to change.
 format. For example, to print a returned bug ID, component, and product,
 separated with ::, do:
 .sp
-\-\-outputformat "%{id}::%{component}::%{product}"
+\-\-outputformat \(dq%{id}::%{component}::%{product}\(dq
 .sp
 The fields (like \(aqid\(aq, \(aqcomponent\(aq, etc.) are the names of the values
 returned by bugzilla\(aqs API. To see a list of all fields,
@@ -542,6 +543,57 @@ List the versions for the given product
 \fBSyntax:\fP \fB\-\-active\-components\fP
 .sp
 Only show active components. Combine with \-\-components*
+.SH BUGZILLARC CONFIG FILE
+.sp
+Both \fBbugzilla\fP and the python\-bugzilla library will read
+a \fBbugzillarc\fP config file if it is present in the following
+locations:
+.INDENT 0.0
+.IP \(bu 2
+/etc/bugzillarc
+.IP \(bu 2
+~/.bugzillarc
+.IP \(bu 2
+~/.config/python\-bugzilla/bugzillarc
+.UNINDENT
+.sp
+The contents of the files are processed and merged together
+in the order they are listed above.
+.sp
+The main usage for \fBbugzillarc\fP is to store API keys for your
+bugzilla URLs:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+[bugzilla.example.com]
+api_key=INSERT\-YOUR\-API\-KEY\-HERE
+
+[bugzilla.redhat.com]
+api_key=MY\-REDHAT\-API\-KEY\-BLAH
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The sections must be hostnames. Other values that can be
+set per hostname section are
+.INDENT 0.0
+.IP \(bu 2
+\fBuser\fP: default auth username
+.IP \(bu 2
+\fBpassword\fP: default auth password
+.IP \(bu 2
+\fBcert\fP: default client side certificate
+.UNINDENT
+.sp
+A \fB[DEFAULTS]\fP section is also accepted, which takes the following
+values:
+.INDENT 0.0
+.IP \(bu 2
+\fBurl\fP: default bugzilla URL
+.UNINDENT
 .SH AUTHENTICATION CACHE AND API KEYS
 .sp
 Some command usage will require an active login to the bugzilla
@@ -552,34 +604,17 @@ active login.
 If you are connecting to a bugzilla 5.0 or later instance, the best
 option is to use bugzilla API keys. From the bugzilla web UI, log in,
 navigate to Preferences\->API Keys, and generate a key (it will be a long
-string of characters and numbers). Then create a
-~/.config/python\-bugzilla/bugzillarc like this:
-.INDENT 0.0
-.INDENT 3.5
+string of characters and numbers).
 .sp
-.nf
-.ft C
-$ cat ~/.config/python\-bugzilla/bugzillarc
-
-[bugzilla.example.com]
-api_key=YOUR_API_KEY
-.ft P
-.fi
-.UNINDENT
-.UNINDENT
+Then use \(aqbugzilla \-\-bugzilla URL login \-\-api\-key\(aq, which will ask
+for the API key, and save it to \fBbugzillarc\fP for you.
 .sp
-Replace \(aqbugzilla.example.com\(aq with your bugzilla host name, and
-YOUR_API_KEY with the generated API Key from the Web UI.
-.sp
-Alternatively, you can use \(aqbugzilla login \-\-api\-key\(aq, which will ask
-for the API key, and save it to bugzillarc for you.
-.sp
-For older bugzilla instances, you will need to cache a login cookie or
-token with the "login" subcommand or the "\-\-login" argument.
+For older bugzilla instances, you will need to cache a login token
+with the \(dqlogin\(dq subcommand or the \(dq\-\-login\(dq argument.
 .sp
 Additionally, the \-\-no\-cache\-credentials option will tell the bugzilla
 tool to \fInot\fP save or use any authentication cache, including the
-bugzillarc file.
+\fBbugzillarc\fP file.
 .SH EXAMPLES
 .nf
 bugzilla query \-\-bug_id 62037
@@ -590,17 +625,17 @@ bugzilla login
 
 bugzilla new \-p Fedora \-v rawhide \-c python\-bugzilla \e
 .in +2
-\-\-summary "python\-bugzilla causes headaches" \e
-\-\-comment "python\-bugzilla made my brain hurt when I used it."
+\-\-summary \(dqpython\-bugzilla causes headaches\(dq \e
+\-\-comment \(dqpython\-bugzilla made my brain hurt when I used it.\(dq
 
 .in -2
-bugzilla attach \-\-file ~/Pictures/cam1.jpg \-\-desc "me, in pain"
+bugzilla attach \-\-file ~/Pictures/cam1.jpg \-\-desc \(dqme, in pain\(dq
 $BUGID
 
 bugzilla attach \-\-getall $BUGID
 
-bugzilla modify \-\-close NOTABUG \-\-comment "Actually, you\(aqre
-hungover." $BUGID
+bugzilla modify \-\-close NOTABUG \-\-comment \(dqActually, you\(aqre
+hungover.\(dq $BUGID
 .fi
 .sp
 .SH EXIT STATUS
@@ -616,6 +651,7 @@ Please report any bugs as github issues at
 .SH SEE ALSO
 .sp
 \fI\%https://bugzilla.readthedocs.io/en/latest/api/index.html\fP
-\fI\%https://bugzilla.redhat.com/docs/en/html/api/Bugzilla/WebService/Bug.html\fP
+.sp
+\fI\%https://bugzilla.redhat.com/docs/en/html/api/core/v1/bug.html\fP
 .\" Generated by docutils manpage writer.
 .
