@@ -87,7 +87,7 @@ jobs:
       matrix:
         python-version: ["3.x"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install MariaDB utils
         run: sudo apt install --no-install-recommends -q -y mariadb-client
       - name: Restore DB dump
