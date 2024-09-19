@@ -44,6 +44,7 @@ def test_fixurl():
         "https://example.com/xmlrpc.cgi")
     assert (bugzilla.Bugzilla.fix_url("http://example.com/somepath.cgi") ==
         "http://example.com/somepath.cgi")
+    assert bugzilla.Bugzilla.fix_url("http:///foo") == "http:///foo"
 
 
 def testPostTranslation():
