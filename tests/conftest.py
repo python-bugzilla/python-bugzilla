@@ -42,14 +42,14 @@ def pytest_addoption(parser):
     parser.addoption("--only-xmlrpc", action="store_true", default=False)
 
 
-def pytest_ignore_collect(path, config):
+def pytest_ignore_collect(collection_path, config):
     has_ro = config.getoption("--ro-functional")
     has_ro_i = config.getoption("--ro-integration")
     has_rw = config.getoption("--rw-functional")
 
-    base = os.path.basename(str(path))
+    base = os.path.basename(str(collection_path))
     is_ro = base == "test_ro_functional.py"
-    is_ro_i = "tests/integration/ro" in str(path)
+    is_ro_i = "tests/integration/ro" in str(collection_path)
     is_rw = base == "test_rw_functional.py"
 
     if is_ro_i and not has_ro_i:
