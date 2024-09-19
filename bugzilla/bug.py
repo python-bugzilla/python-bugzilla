@@ -48,7 +48,7 @@ class Bug(object):
         """
         parsed = urlparse(self.bugzilla.url)
         return urlunparse((parsed.scheme, parsed.netloc,
-                           'show_bug.cgi', '', 'id=%s' % self.bug_id,
+                           '/show_bug.cgi', '', 'id=%s' % self.bug_id,
                            ''))
 
     def __str__(self):

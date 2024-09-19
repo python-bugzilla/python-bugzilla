@@ -155,6 +155,9 @@ class Bugzilla(object):
             if force_rest:
                 path = "rest/"
 
+        if not path.startswith("/"):
+            path = "/" + path
+
         newurl = urllib.parse.urlunparse(
             (scheme, netloc, path, params, query, fragment))
         return newurl
