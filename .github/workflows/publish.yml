@@ -1,0 +1,32 @@
+# This workflow will publish the package on PyPI
+# For more information see: https://github.com/pypa/gh-action-pypi-publish
+
+name: Publish
+on:
+  release:
+    types: [released]
+
+jobs:
+  publish:
+    name: Upload release to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/python-bugzilla
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install pypa/build
+        run: pip install build
+      - name: Build a source tarball
+        run: python -m build --sdist
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: false
+          verbose: false
