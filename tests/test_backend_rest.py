@@ -42,3 +42,26 @@ class TestGetBug:
             backend.bug_get(_ids, aliases, {})
 
             assert backend.assertion_called is True
+
+    def test_getbug__permissive(self):
+        backend = self.backend
+
+        def _assertion(self, *args):
+            self.assertion_called = True
+            assert args and args[0] == url and args[1] == params
+
+        setattr(backend, "_get", MethodType(_assertion, backend))
+
+        for _ids, aliases, url, params in (
+                (1, None, "/bug", {"id": [1], "alias": None}),
+                ([1], [], "/bug", {"id": [1], "alias": []}),
+                (None, "CVE-1999-0001", "/bug", {"alias": ["CVE-1999-0001"], "id": None}),
+                ([], ["CVE-1999-0001"], "/bug", {"alias": ["CVE-1999-0001"], "id": []}),
+                (1, "CVE-1999-0001", "/bug", {"id": [1], "alias": ["CVE-1999-0001"]}),
+                ([1, 2], None, "/bug", {"id": [1, 2], "alias": None})
+        ):
+            backend.assertion_called = False
+
+            backend.bug_get(_ids, aliases, {"permissive": True})
+
+            assert backend.assertion_called is True

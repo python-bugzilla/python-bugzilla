@@ -109,6 +109,7 @@ class _BackendREST(_BackendBase):
     def bug_get(self, bug_ids, aliases, paramdict):
         bug_list = listify(bug_ids)
         alias_list = listify(aliases)
+        permissive = paramdict.pop("permissive", False)
         data = paramdict.copy()
 
         # FYI: The high-level API expects the backends to raise an exception
@@ -116,7 +117,7 @@ class _BackendREST(_BackendBase):
         # API), but the REST API simply returns an empty search result set.
         # To ensure compliant behavior, the REST backend needs to use the
         # explicit URL to get a single bug.
-        if len(bug_list or []) + len(alias_list or []) == 1:
+        if not permissive and len(bug_list or []) + len(alias_list or []) == 1:
             for id_list in (bug_list, alias_list):
                 if id_list:
                     return self._get("/bug/%s" % id_list[0], data)
