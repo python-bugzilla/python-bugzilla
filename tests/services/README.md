@@ -47,7 +47,7 @@ Bugzilla container and edit the data in Bugzilla. Once done, one needs to dump t
 the file again:
 
 ```shell
-$ mariadb-dump -u bugs -h 127.0.0.1 -P 3306 --password=secret bugs > bugs.qql
+$ mariadb-dump -u bugs -h 127.0.0.1 -P 3306 --password=secret bugs > bugs.sql
 ```
 
 ## Testing

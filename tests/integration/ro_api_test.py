@@ -1,5 +1,7 @@
 # Ignoring pytest-related warnings:
 # pylint: disable=redefined-outer-name,unused-argument
+from xmlrpc.client import Fault
+
 import pytest
 
 from bugzilla import BugzillaError
@@ -85,7 +87,7 @@ def test_query(mocked_responses, backends):
     assert bugs[0].summary == "Expect the Spanish inquisition"
 
     bz = open_bz(url=TEST_URL, **backends)
-    query = bz.build_query(product="SUSE Linux Enterprise Server 15 SP6")
+    query = bz.build_query(product="SUSE Linux Enterprise Server 15 SP6", component="Containers")
     bugs = bz.query(query=query)
 
     assert len(bugs) == 1
@@ -94,8 +96,54 @@ def test_query(mocked_responses, backends):
 
 
 def test_get_bug_alias(mocked_responses, backends):
+    bug_id, alias = 1, "FOO-1"
     bz = open_bz(url=TEST_URL, **backends)
-    bug = bz.getbug("FOO-1")
+    bug = bz.getbug(alias)
 
-    assert bug.id == 1
+    assert bug.id == bug_id
+    assert bug.bug_id == bug_id
+    assert bug.alias == [alias]
     assert bug.summary == "ZeroDivisionError in function foo_bar()"
+
+
+def test_get_bug_alias_included_field(mocked_responses, backends):
+    bug_id, alias = 1, "FOO-1"
+    bz = open_bz(url=TEST_URL, **backends)
+    bug = bz.getbug(alias, include_fields=["id"])
+
+    assert bug.id == bug_id
+    assert bug.bug_id == bug_id
+    assert bug.alias == [alias]
+    assert not hasattr(bug, "summary")
+
+
+def test_get_bug_404(mocked_responses, backends):
+    bz = open_bz(url=TEST_URL, **backends)
+    try:
+        bz.getbug(666)
+    except Fault as error:          # XMLRPC API
+        assert error.faultCode == 101
+    except BugzillaError as error:  # REST API
+        assert error.code == 101
+    else:
+        raise AssertionError("No exception raised")
+
+
+def test_get_bug_alias_404(mocked_responses, backends):
+    bz = open_bz(url=TEST_URL, **backends)
+    try:
+        bz.getbug("CVE-1234-4321")
+    except Fault as error:          # XMLRPC API
+        assert error.faultCode == 100
+    except BugzillaError as error:  # REST API
+        assert error.code == 100
+    else:
+        raise AssertionError("No exception raised")
+
+
+def test_get_bug_fields(mocked_responses, backends):
+    bz = open_bz(url=TEST_URL, **backends)
+    fields = bz.getbugfields(names=["product"])
+    assert fields == ["product"]
+    bz.getbugfields(names=["product", "bug_status"], force_refresh=True)
+    assert set(bz.bugfields) == {"product", "bug_status"}

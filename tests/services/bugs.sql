@@ -1,4 +1,5 @@
--- MariaDB dump 10.19  Distrib 10.6.12-MariaDB, for debian-linux-gnu (x86_64)
+/*!999999\- enable the sandbox mode */ 
+-- MariaDB dump 10.19  Distrib 10.6.18-MariaDB, for debian-linux-gnu (x86_64)
 --
 -- Host: 127.0.0.1    Database: bugs
 -- ------------------------------------------------------
@@ -104,7 +105,7 @@ CREATE TABLE `audit_log` (
 
 LOCK TABLES `audit_log` WRITE;
 /*!40000 ALTER TABLE `audit_log` DISABLE KEYS */;
-INSERT INTO `audit_log` VALUES (NULL,'Bugzilla::Field',1,'__create__',NULL,'bug_id','2023-09-20 13:12:34'),(NULL,'Bugzilla::Field',2,'__create__',NULL,'short_desc','2023-09-20 13:12:34'),(NULL,'Bugzilla::Field',3,'__create__',NULL,'classification','2023-09-20 13:12:34'),(NULL,'Bugzilla::Field',4,'__create__',NULL,'product','2023-09-20 13:12:34'),(NULL,'Bugzilla::Field',5,'__create__',NULL,'version','2023-09-20 13:12:34'),(NULL,'Bugzilla::Field',6,'__create__',NULL,'rep_platform','2023-09-20 13:12:34'),(NULL,'Bugzilla::Field',7,'__create__',NULL,'bug_file_loc','2023-09-20 13:12:34'),(NULL,'Bugzilla::Field',8,'__create__',NULL,'op_sys','2023-09-20 13:12:34'),(NULL,'Bugzilla::Field',9,'__create__',NULL,'bug_status','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',10,'__create__',NULL,'status_whiteboard','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',11,'__create__',NULL,'keywords','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',12,'__create__',NULL,'resolution','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',13,'__create__',NULL,'bug_severity','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',14,'__create__',NULL,'priority','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',15,'__create__',NULL,'component','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',16,'__create__',NULL,'assigned_to','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',17,'__create__',NULL,'reporter','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',18,'__create__',NULL,'qa_contact','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',19,'__create__',NULL,'assigned_to_realname','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',20,'__create__',NULL,'reporter_realname','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',21,'__create__',NULL,'qa_contact_realname','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',22,'__create__',NULL,'cc','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',23,'__create__',NULL,'dependson','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',24,'__create__',NULL,'blocked','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',25,'__create__',NULL,'attachments.description','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',26,'__create__',NULL,'attachments.filename','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',27,'__create__',NULL,'attachments.mimetype','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',28,'__create__',NULL,'attachments.ispatch','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',29,'__create__',NULL,'attachments.isobsolete','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',30,'__create__',NULL,'attachments.isprivate','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',31,'__create__',NULL,'attachments.submitter','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',32,'__create__',NULL,'target_milestone','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',33,'__create__',NULL,'creation_ts','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',34,'__create__',NULL,'delta_ts','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',35,'__create__',NULL,'longdesc','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',36,'__create__',NULL,'longdescs.isprivate','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',37,'__create__',NULL,'longdescs.count','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',38,'__create__',NULL,'alias','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',39,'__create__',NULL,'everconfirmed','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',40,'__create__',NULL,'reporter_accessible','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',41,'__create__',NULL,'cclist_accessible','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',42,'__create__',NULL,'bug_group','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',43,'__create__',NULL,'estimated_time','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',44,'__create__',NULL,'remaining_time','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',45,'__create__',NULL,'deadline','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',46,'__create__',NULL,'commenter','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',47,'__create__',NULL,'flagtypes.name','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',48,'__create__',NULL,'requestees.login_name','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',49,'__create__',NULL,'setters.login_name','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',50,'__create__',NULL,'work_time','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',51,'__create__',NULL,'percentage_complete','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',52,'__create__',NULL,'content','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',53,'__create__',NULL,'attach_data.thedata','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',54,'__create__',NULL,'owner_idle_time','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',55,'__create__',NULL,'see_also','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',56,'__create__',NULL,'tag','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',57,'__create__',NULL,'last_visit_ts','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',58,'__create__',NULL,'comment_tag','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',59,'__create__',NULL,'days_elapsed','2023-09-20 13:12:35'),(NULL,'Bugzilla::Classification',1,'__create__',NULL,'Unclassified','2023-09-20 13:12:35'),(NULL,'Bugzilla::Group',1,'__create__',NULL,'admin','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',2,'__create__',NULL,'tweakparams','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',3,'__create__',NULL,'editusers','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',4,'__create__',NULL,'creategroups','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',5,'__create__',NULL,'editclassifications','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',6,'__create__',NULL,'editcomponents','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',7,'__create__',NULL,'editkeywords','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',8,'__create__',NULL,'editbugs','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',9,'__create__',NULL,'canconfirm','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',10,'__create__',NULL,'bz_canusewhineatothers','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',11,'__create__',NULL,'bz_canusewhines','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',12,'__create__',NULL,'bz_sudoers','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',13,'__create__',NULL,'bz_sudo_protect','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',14,'__create__',NULL,'bz_quip_moderators','2023-09-20 13:12:40'),(NULL,'Bugzilla::User',1,'__create__',NULL,'andreas@hasenkopf.xyz','2023-09-20 13:12:55'),(NULL,'Bugzilla::Product',1,'__create__',NULL,'TestProduct','2023-09-20 13:12:55'),(NULL,'Bugzilla::Version',1,'__create__',NULL,'unspecified','2023-09-20 13:12:55'),(NULL,'Bugzilla::Milestone',1,'__create__',NULL,'---','2023-09-20 13:12:55'),(NULL,'Bugzilla::Component',1,'__create__',NULL,'TestComponent','2023-09-20 13:12:55'),(1,'Bugzilla::Product',2,'__create__',NULL,'Red Hat Enterprise Linux 9','2023-11-27 12:25:54'),(1,'Bugzilla::Version',2,'__create__',NULL,'unspecified','2023-11-27 12:25:54'),(1,'Bugzilla::Milestone',2,'__create__',NULL,'---','2023-11-27 12:25:54'),(1,'Bugzilla::Component',2,'__create__',NULL,'python-bugzilla','2023-11-27 12:25:54'),(1,'Bugzilla::Version',3,'__create__',NULL,'9.0','2023-11-27 12:26:06'),(1,'Bugzilla::Version',4,'__create__',NULL,'9.1','2023-11-27 12:26:14'),(1,'Bugzilla::Product',3,'__create__',NULL,'SUSE Linux Enterprise Server 15 SP6','2023-11-27 12:29:18'),(1,'Bugzilla::Version',5,'__create__',NULL,'unspecified','2023-11-27 12:29:18'),(1,'Bugzilla::Milestone',3,'__create__',NULL,'---','2023-11-27 12:29:18'),(1,'Bugzilla::Component',3,'__create__',NULL,'Kernel','2023-11-27 12:29:18'),(1,'Bugzilla::Component',4,'__create__',NULL,'Containers','2023-11-27 12:29:46');
+INSERT INTO `audit_log` VALUES (NULL,'Bugzilla::Field',1,'__create__',NULL,'bug_id','2023-09-20 13:12:34'),(NULL,'Bugzilla::Field',2,'__create__',NULL,'short_desc','2023-09-20 13:12:34'),(NULL,'Bugzilla::Field',3,'__create__',NULL,'classification','2023-09-20 13:12:34'),(NULL,'Bugzilla::Field',4,'__create__',NULL,'product','2023-09-20 13:12:34'),(NULL,'Bugzilla::Field',5,'__create__',NULL,'version','2023-09-20 13:12:34'),(NULL,'Bugzilla::Field',6,'__create__',NULL,'rep_platform','2023-09-20 13:12:34'),(NULL,'Bugzilla::Field',7,'__create__',NULL,'bug_file_loc','2023-09-20 13:12:34'),(NULL,'Bugzilla::Field',8,'__create__',NULL,'op_sys','2023-09-20 13:12:34'),(NULL,'Bugzilla::Field',9,'__create__',NULL,'bug_status','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',10,'__create__',NULL,'status_whiteboard','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',11,'__create__',NULL,'keywords','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',12,'__create__',NULL,'resolution','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',13,'__create__',NULL,'bug_severity','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',14,'__create__',NULL,'priority','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',15,'__create__',NULL,'component','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',16,'__create__',NULL,'assigned_to','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',17,'__create__',NULL,'reporter','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',18,'__create__',NULL,'qa_contact','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',19,'__create__',NULL,'assigned_to_realname','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',20,'__create__',NULL,'reporter_realname','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',21,'__create__',NULL,'qa_contact_realname','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',22,'__create__',NULL,'cc','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',23,'__create__',NULL,'dependson','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',24,'__create__',NULL,'blocked','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',25,'__create__',NULL,'attachments.description','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',26,'__create__',NULL,'attachments.filename','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',27,'__create__',NULL,'attachments.mimetype','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',28,'__create__',NULL,'attachments.ispatch','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',29,'__create__',NULL,'attachments.isobsolete','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',30,'__create__',NULL,'attachments.isprivate','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',31,'__create__',NULL,'attachments.submitter','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',32,'__create__',NULL,'target_milestone','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',33,'__create__',NULL,'creation_ts','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',34,'__create__',NULL,'delta_ts','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',35,'__create__',NULL,'longdesc','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',36,'__create__',NULL,'longdescs.isprivate','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',37,'__create__',NULL,'longdescs.count','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',38,'__create__',NULL,'alias','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',39,'__create__',NULL,'everconfirmed','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',40,'__create__',NULL,'reporter_accessible','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',41,'__create__',NULL,'cclist_accessible','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',42,'__create__',NULL,'bug_group','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',43,'__create__',NULL,'estimated_time','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',44,'__create__',NULL,'remaining_time','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',45,'__create__',NULL,'deadline','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',46,'__create__',NULL,'commenter','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',47,'__create__',NULL,'flagtypes.name','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',48,'__create__',NULL,'requestees.login_name','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',49,'__create__',NULL,'setters.login_name','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',50,'__create__',NULL,'work_time','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',51,'__create__',NULL,'percentage_complete','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',52,'__create__',NULL,'content','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',53,'__create__',NULL,'attach_data.thedata','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',54,'__create__',NULL,'owner_idle_time','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',55,'__create__',NULL,'see_also','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',56,'__create__',NULL,'tag','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',57,'__create__',NULL,'last_visit_ts','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',58,'__create__',NULL,'comment_tag','2023-09-20 13:12:35'),(NULL,'Bugzilla::Field',59,'__create__',NULL,'days_elapsed','2023-09-20 13:12:35'),(NULL,'Bugzilla::Classification',1,'__create__',NULL,'Unclassified','2023-09-20 13:12:35'),(NULL,'Bugzilla::Group',1,'__create__',NULL,'admin','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',2,'__create__',NULL,'tweakparams','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',3,'__create__',NULL,'editusers','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',4,'__create__',NULL,'creategroups','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',5,'__create__',NULL,'editclassifications','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',6,'__create__',NULL,'editcomponents','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',7,'__create__',NULL,'editkeywords','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',8,'__create__',NULL,'editbugs','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',9,'__create__',NULL,'canconfirm','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',10,'__create__',NULL,'bz_canusewhineatothers','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',11,'__create__',NULL,'bz_canusewhines','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',12,'__create__',NULL,'bz_sudoers','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',13,'__create__',NULL,'bz_sudo_protect','2023-09-20 13:12:40'),(NULL,'Bugzilla::Group',14,'__create__',NULL,'bz_quip_moderators','2023-09-20 13:12:40'),(NULL,'Bugzilla::User',1,'__create__',NULL,'andreas@hasenkopf.xyz','2023-09-20 13:12:55'),(NULL,'Bugzilla::Product',1,'__create__',NULL,'TestProduct','2023-09-20 13:12:55'),(NULL,'Bugzilla::Version',1,'__create__',NULL,'unspecified','2023-09-20 13:12:55'),(NULL,'Bugzilla::Milestone',1,'__create__',NULL,'---','2023-09-20 13:12:55'),(NULL,'Bugzilla::Component',1,'__create__',NULL,'TestComponent','2023-09-20 13:12:55'),(1,'Bugzilla::Product',2,'__create__',NULL,'Red Hat Enterprise Linux 9','2023-11-27 12:25:54'),(1,'Bugzilla::Version',2,'__create__',NULL,'unspecified','2023-11-27 12:25:54'),(1,'Bugzilla::Milestone',2,'__create__',NULL,'---','2023-11-27 12:25:54'),(1,'Bugzilla::Component',2,'__create__',NULL,'python-bugzilla','2023-11-27 12:25:54'),(1,'Bugzilla::Version',3,'__create__',NULL,'9.0','2023-11-27 12:26:06'),(1,'Bugzilla::Version',4,'__create__',NULL,'9.1','2023-11-27 12:26:14'),(1,'Bugzilla::Product',3,'__create__',NULL,'SUSE Linux Enterprise Server 15 SP6','2023-11-27 12:29:18'),(1,'Bugzilla::Version',5,'__create__',NULL,'unspecified','2023-11-27 12:29:18'),(1,'Bugzilla::Milestone',3,'__create__',NULL,'---','2023-11-27 12:29:18'),(1,'Bugzilla::Component',3,'__create__',NULL,'Kernel','2023-11-27 12:29:18'),(1,'Bugzilla::Component',4,'__create__',NULL,'Containers','2023-11-27 12:29:46'),(1,'Bugzilla::Keyword',1,'__create__',NULL,'FooBar','2024-10-15 13:05:27'),(1,'Bugzilla::Keyword',2,'__create__',NULL,'LoremIpsum','2024-10-15 13:05:52'),(1,'Bugzilla::FlagType',1,'__create__',NULL,'needinfo','2024-10-15 13:26:28'),(1,'Bugzilla::User',2,'__create__',NULL,'nemo@example.com','2024-10-15 13:28:58');
 /*!40000 ALTER TABLE `audit_log` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -266,7 +267,7 @@ CREATE TABLE `bug_user_last_visit` (
   KEY `fk_bug_user_last_visit_bug_id_bugs_bug_id` (`bug_id`),
   CONSTRAINT `fk_bug_user_last_visit_bug_id_bugs_bug_id` FOREIGN KEY (`bug_id`) REFERENCES `bugs` (`bug_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_bug_user_last_visit_user_id_profiles_userid` FOREIGN KEY (`user_id`) REFERENCES `profiles` (`userid`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -275,7 +276,7 @@ CREATE TABLE `bug_user_last_visit` (
 
 LOCK TABLES `bug_user_last_visit` WRITE;
 /*!40000 ALTER TABLE `bug_user_last_visit` DISABLE KEYS */;
-INSERT INTO `bug_user_last_visit` VALUES (1,1,1,'2023-11-27 15:53:08'),(2,1,2,'2023-11-27 15:38:47');
+INSERT INTO `bug_user_last_visit` VALUES (1,1,1,'2024-10-15 14:00:54'),(2,1,2,'2024-10-15 14:00:49'),(3,1,3,'2024-10-15 13:45:42');
 /*!40000 ALTER TABLE `bug_user_last_visit` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -333,7 +334,7 @@ CREATE TABLE `bugs` (
   CONSTRAINT `fk_bugs_product_id_products_id` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON UPDATE CASCADE,
   CONSTRAINT `fk_bugs_qa_contact_profiles_userid` FOREIGN KEY (`qa_contact`) REFERENCES `profiles` (`userid`) ON UPDATE CASCADE,
   CONSTRAINT `fk_bugs_reporter_profiles_userid` FOREIGN KEY (`reporter`) REFERENCES `profiles` (`userid`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -342,7 +343,7 @@ CREATE TABLE `bugs` (
 
 LOCK TABLES `bugs` WRITE;
 /*!40000 ALTER TABLE `bugs` DISABLE KEYS */;
-INSERT INTO `bugs` VALUES (1,1,'','major','IN_PROGRESS','2023-11-27 15:35:33','2023-11-27 15:53:04','ZeroDivisionError in function foo_bar()','Linux','---',3,'PC',1,'unspecified',4,'','---',NULL,'AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:N/A:L','2023-11-27 15:53:04',1,1,1,0.00,0.00,NULL),(2,1,'','enhancement','CONFIRMED','2023-11-27 15:38:45','2023-11-27 15:38:45','Expect the Spanish inquisition','Linux','---',2,'PC',1,'9.1',2,'','---',NULL,'','2023-11-27 15:38:45',1,1,1,0.00,0.00,NULL);
+INSERT INTO `bugs` VALUES (1,1,'','major','IN_PROGRESS','2023-11-27 15:35:33','2023-11-27 15:53:04','ZeroDivisionError in function foo_bar()','Linux','---',3,'PC',1,'unspecified',4,'','---',NULL,'AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:N/A:L','2023-11-27 15:53:04',1,1,1,0.00,0.00,NULL),(2,1,'','enhancement','CONFIRMED','2023-11-27 15:38:45','2024-10-15 13:29:13','Expect the Spanish inquisition','Linux','---',2,'PC',1,'9.1',2,'','---',NULL,'lorem ipsum','2024-10-15 13:29:13',1,1,1,0.00,0.00,NULL),(3,1,'','enhancement','CONFIRMED','2024-10-15 13:45:40','2024-10-15 13:45:40','Kernel Panic in the Discothek','Linux','---',3,'PC',1,'unspecified',3,'','---',NULL,'','2024-10-15 13:45:40',1,1,1,0.00,0.00,NULL);
 /*!40000 ALTER TABLE `bugs` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -377,7 +378,7 @@ CREATE TABLE `bugs_activity` (
   CONSTRAINT `fk_bugs_activity_comment_id_longdescs_comment_id` FOREIGN KEY (`comment_id`) REFERENCES `longdescs` (`comment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_bugs_activity_fieldid_fielddefs_id` FOREIGN KEY (`fieldid`) REFERENCES `fielddefs` (`id`) ON UPDATE CASCADE,
   CONSTRAINT `fk_bugs_activity_who_profiles_userid` FOREIGN KEY (`who`) REFERENCES `profiles` (`userid`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -386,7 +387,7 @@ CREATE TABLE `bugs_activity` (
 
 LOCK TABLES `bugs_activity` WRITE;
 /*!40000 ALTER TABLE `bugs_activity` DISABLE KEYS */;
-INSERT INTO `bugs_activity` VALUES (1,1,NULL,1,'2023-11-27 15:45:09',9,'IN_PROGRESS','CONFIRMED',NULL),(2,1,NULL,1,'2023-11-27 15:47:58',10,'AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:N/A:L','',NULL),(3,1,NULL,1,'2023-11-27 15:53:04',38,'FOO-1','',NULL);
+INSERT INTO `bugs_activity` VALUES (1,1,NULL,1,'2023-11-27 15:45:09',9,'IN_PROGRESS','CONFIRMED',NULL),(2,1,NULL,1,'2023-11-27 15:47:58',10,'AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:N/A:L','',NULL),(3,1,NULL,1,'2023-11-27 15:53:04',38,'FOO-1','',NULL),(4,2,NULL,1,'2024-10-15 13:08:14',10,'lorem ipsum','',NULL),(5,2,NULL,1,'2024-10-15 13:08:14',11,'FooBar','',NULL),(6,2,NULL,1,'2024-10-15 13:29:13',47,'needinfo?(nemo@example.com)','',NULL),(7,2,NULL,1,'2024-10-15 13:29:13',22,'nemo@example.com','',NULL);
 /*!40000 ALTER TABLE `bugs_activity` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -442,7 +443,7 @@ CREATE TABLE `bugs_fulltext` (
 
 LOCK TABLES `bugs_fulltext` WRITE;
 /*!40000 ALTER TABLE `bugs_fulltext` DISABLE KEYS */;
-INSERT INTO `bugs_fulltext` VALUES (1,'ZeroDivisionError in function foo_bar()','Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.\n\nAt vero eos et accusam et justo duo dolores et ea rebum.\nStet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.','Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.\n\nAt vero eos et accusam et justo duo dolores et ea rebum.\nStet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.'),(2,'Expect the Spanish inquisition','Nobody expects the Spanish Inquisition! \n\nOur chief weapon is surprise, surprise and fear, fear and surprise. \n\nOur two weapons are fear and surprise, and ruthless efficiency. \n\nOur three weapons are fear and surprise and ruthless efficiency and an almost fanatical dedication to the pope.','Nobody expects the Spanish Inquisition! \n\nOur chief weapon is surprise, surprise and fear, fear and surprise. \n\nOur two weapons are fear and surprise, and ruthless efficiency. \n\nOur three weapons are fear and surprise and ruthless efficiency and an almost fanatical dedication to the pope.');
+INSERT INTO `bugs_fulltext` VALUES (1,'ZeroDivisionError in function foo_bar()','Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.\n\nAt vero eos et accusam et justo duo dolores et ea rebum.\nStet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.','Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.\n\nAt vero eos et accusam et justo duo dolores et ea rebum.\nStet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.'),(2,'Expect the Spanish inquisition','Nobody expects the Spanish Inquisition! \n\nOur chief weapon is surprise, surprise and fear, fear and surprise. \n\nOur two weapons are fear and surprise, and ruthless efficiency. \n\nOur three weapons are fear and surprise and ruthless efficiency and an almost fanatical dedication to the pope.','Nobody expects the Spanish Inquisition! \n\nOur chief weapon is surprise, surprise and fear, fear and surprise. \n\nOur two weapons are fear and surprise, and ruthless efficiency. \n\nOur three weapons are fear and surprise and ruthless efficiency and an almost fanatical dedication to the pope.'),(3,'Kernel Panic in the Discothek','lorem ipsum dolor sit amet','lorem ipsum dolor sit amet');
 /*!40000 ALTER TABLE `bugs_fulltext` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -518,6 +519,7 @@ CREATE TABLE `cc` (
 
 LOCK TABLES `cc` WRITE;
 /*!40000 ALTER TABLE `cc` DISABLE KEYS */;
+INSERT INTO `cc` VALUES (2,2);
 /*!40000 ALTER TABLE `cc` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -710,7 +712,7 @@ CREATE TABLE `email_setting` (
 
 LOCK TABLES `email_setting` WRITE;
 /*!40000 ALTER TABLE `email_setting` DISABLE KEYS */;
-INSERT INTO `email_setting` VALUES (1,0,0),(1,0,1),(1,0,2),(1,0,3),(1,0,4),(1,0,5),(1,0,6),(1,0,7),(1,0,9),(1,0,10),(1,0,11),(1,0,50),(1,1,0),(1,1,1),(1,1,2),(1,1,3),(1,1,4),(1,1,5),(1,1,6),(1,1,7),(1,1,9),(1,1,10),(1,1,11),(1,1,50),(1,2,0),(1,2,1),(1,2,2),(1,2,3),(1,2,4),(1,2,5),(1,2,6),(1,2,7),(1,2,8),(1,2,9),(1,2,10),(1,2,11),(1,2,50),(1,3,0),(1,3,1),(1,3,2),(1,3,3),(1,3,4),(1,3,5),(1,3,6),(1,3,7),(1,3,9),(1,3,10),(1,3,11),(1,3,50),(1,5,0),(1,5,1),(1,5,2),(1,5,3),(1,5,4),(1,5,5),(1,5,6),(1,5,7),(1,5,9),(1,5,10),(1,5,11),(1,5,50),(1,100,100),(1,100,101);
+INSERT INTO `email_setting` VALUES (1,0,0),(1,0,1),(1,0,2),(1,0,3),(1,0,4),(1,0,5),(1,0,6),(1,0,7),(1,0,9),(1,0,10),(1,0,11),(1,0,50),(1,1,0),(1,1,1),(1,1,2),(1,1,3),(1,1,4),(1,1,5),(1,1,6),(1,1,7),(1,1,9),(1,1,10),(1,1,11),(1,1,50),(1,2,0),(1,2,1),(1,2,2),(1,2,3),(1,2,4),(1,2,5),(1,2,6),(1,2,7),(1,2,8),(1,2,9),(1,2,10),(1,2,11),(1,2,50),(1,3,0),(1,3,1),(1,3,2),(1,3,3),(1,3,4),(1,3,5),(1,3,6),(1,3,7),(1,3,9),(1,3,10),(1,3,11),(1,3,50),(1,5,0),(1,5,1),(1,5,2),(1,5,3),(1,5,4),(1,5,5),(1,5,6),(1,5,7),(1,5,9),(1,5,10),(1,5,11),(1,5,50),(1,100,100),(1,100,101),(2,0,0),(2,0,1),(2,0,2),(2,0,3),(2,0,4),(2,0,5),(2,0,6),(2,0,7),(2,0,9),(2,0,10),(2,0,11),(2,0,50),(2,1,0),(2,1,1),(2,1,2),(2,1,3),(2,1,4),(2,1,5),(2,1,6),(2,1,7),(2,1,9),(2,1,10),(2,1,11),(2,1,50),(2,2,0),(2,2,1),(2,2,2),(2,2,3),(2,2,4),(2,2,5),(2,2,6),(2,2,7),(2,2,8),(2,2,9),(2,2,10),(2,2,11),(2,2,50),(2,3,0),(2,3,1),(2,3,2),(2,3,3),(2,3,4),(2,3,5),(2,3,6),(2,3,7),(2,3,9),(2,3,10),(2,3,11),(2,3,50),(2,5,0),(2,5,1),(2,5,2),(2,5,3),(2,5,4),(2,5,5),(2,5,6),(2,5,7),(2,5,9),(2,5,10),(2,5,11),(2,5,50),(2,100,100),(2,100,101);
 /*!40000 ALTER TABLE `email_setting` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -838,6 +840,7 @@ CREATE TABLE `flaginclusions` (
 
 LOCK TABLES `flaginclusions` WRITE;
 /*!40000 ALTER TABLE `flaginclusions` DISABLE KEYS */;
+INSERT INTO `flaginclusions` VALUES (1,NULL,NULL);
 /*!40000 ALTER TABLE `flaginclusions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -869,7 +872,7 @@ CREATE TABLE `flags` (
   CONSTRAINT `fk_flags_requestee_id_profiles_userid` FOREIGN KEY (`requestee_id`) REFERENCES `profiles` (`userid`) ON UPDATE CASCADE,
   CONSTRAINT `fk_flags_setter_id_profiles_userid` FOREIGN KEY (`setter_id`) REFERENCES `profiles` (`userid`) ON UPDATE CASCADE,
   CONSTRAINT `fk_flags_type_id_flagtypes_id` FOREIGN KEY (`type_id`) REFERENCES `flagtypes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -878,6 +881,7 @@ CREATE TABLE `flags` (
 
 LOCK TABLES `flags` WRITE;
 /*!40000 ALTER TABLE `flags` DISABLE KEYS */;
+INSERT INTO `flags` VALUES (1,1,'?',2,NULL,'2024-10-15 13:29:13','2024-10-15 13:29:13',1,2);
 /*!40000 ALTER TABLE `flags` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -906,7 +910,7 @@ CREATE TABLE `flagtypes` (
   KEY `fk_flagtypes_grant_group_id_groups_id` (`grant_group_id`),
   CONSTRAINT `fk_flagtypes_grant_group_id_groups_id` FOREIGN KEY (`grant_group_id`) REFERENCES `groups` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_flagtypes_request_group_id_groups_id` FOREIGN KEY (`request_group_id`) REFERENCES `groups` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -915,6 +919,7 @@ CREATE TABLE `flagtypes` (
 
 LOCK TABLES `flagtypes` WRITE;
 /*!40000 ALTER TABLE `flagtypes` DISABLE KEYS */;
+INSERT INTO `flagtypes` VALUES (1,'needinfo','Need more Info','','b',1,1,1,1,0,NULL,NULL);
 /*!40000 ALTER TABLE `flagtypes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1022,7 +1027,7 @@ CREATE TABLE `keyworddefs` (
   `description` mediumtext NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `keyworddefs_name_idx` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1031,6 +1036,7 @@ CREATE TABLE `keyworddefs` (
 
 LOCK TABLES `keyworddefs` WRITE;
 /*!40000 ALTER TABLE `keyworddefs` DISABLE KEYS */;
+INSERT INTO `keyworddefs` VALUES (1,'FooBar','This needs no explanation'),(2,'LoremIpsum','dolor sit amet ...');
 /*!40000 ALTER TABLE `keyworddefs` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1057,6 +1063,7 @@ CREATE TABLE `keywords` (
 
 LOCK TABLES `keywords` WRITE;
 /*!40000 ALTER TABLE `keywords` DISABLE KEYS */;
+INSERT INTO `keywords` VALUES (2,1);
 /*!40000 ALTER TABLE `keywords` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1110,7 +1117,7 @@ CREATE TABLE `logincookies` (
 
 LOCK TABLES `logincookies` WRITE;
 /*!40000 ALTER TABLE `logincookies` DISABLE KEYS */;
-INSERT INTO `logincookies` VALUES ('Ypt6rPqHjG',1,NULL,'2023-11-27 15:53:08');
+INSERT INTO `logincookies` VALUES ('StQdHXDOZ2',1,NULL,'2024-10-15 14:02:53');
 /*!40000 ALTER TABLE `logincookies` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1138,7 +1145,7 @@ CREATE TABLE `longdescs` (
   KEY `longdescs_bug_when_idx` (`bug_when`),
   CONSTRAINT `fk_longdescs_bug_id_bugs_bug_id` FOREIGN KEY (`bug_id`) REFERENCES `bugs` (`bug_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_longdescs_who_profiles_userid` FOREIGN KEY (`who`) REFERENCES `profiles` (`userid`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1147,7 +1154,7 @@ CREATE TABLE `longdescs` (
 
 LOCK TABLES `longdescs` WRITE;
 /*!40000 ALTER TABLE `longdescs` DISABLE KEYS */;
-INSERT INTO `longdescs` VALUES (1,1,1,'2023-11-27 15:35:33',0.00,'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.\n\nAt vero eos et accusam et justo duo dolores et ea rebum.',0,0,0,NULL),(2,1,1,'2023-11-27 15:37:05',0.00,'Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.',0,0,0,NULL),(3,2,1,'2023-11-27 15:38:45',0.00,'Nobody expects the Spanish Inquisition! \n\nOur chief weapon is surprise, surprise and fear, fear and surprise. \n\nOur two weapons are fear and surprise, and ruthless efficiency. \n\nOur three weapons are fear and surprise and ruthless efficiency and an almost fanatical dedication to the pope.',0,0,0,NULL);
+INSERT INTO `longdescs` VALUES (1,1,1,'2023-11-27 15:35:33',0.00,'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.\n\nAt vero eos et accusam et justo duo dolores et ea rebum.',0,0,0,NULL),(2,1,1,'2023-11-27 15:37:05',0.00,'Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.',0,0,0,NULL),(3,2,1,'2023-11-27 15:38:45',0.00,'Nobody expects the Spanish Inquisition! \n\nOur chief weapon is surprise, surprise and fear, fear and surprise. \n\nOur two weapons are fear and surprise, and ruthless efficiency. \n\nOur three weapons are fear and surprise and ruthless efficiency and an almost fanatical dedication to the pope.',0,0,0,NULL),(4,3,1,'2024-10-15 13:45:40',0.00,'lorem ipsum dolor sit amet',0,0,0,NULL);
 /*!40000 ALTER TABLE `longdescs` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1474,7 +1481,7 @@ CREATE TABLE `profile_search` (
   PRIMARY KEY (`id`),
   KEY `profile_search_user_id_idx` (`user_id`),
   CONSTRAINT `fk_profile_search_user_id_profiles_userid` FOREIGN KEY (`user_id`) REFERENCES `profiles` (`userid`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1483,7 +1490,7 @@ CREATE TABLE `profile_search` (
 
 LOCK TABLES `profile_search` WRITE;
 /*!40000 ALTER TABLE `profile_search` DISABLE KEYS */;
-INSERT INTO `profile_search` VALUES (1,1,'1','bug_status,priority,assigned_to,bug_id');
+INSERT INTO `profile_search` VALUES (1,1,'1','bug_status,priority,assigned_to,bug_id'),(2,1,'1,2','priority,bug_severity'),(3,1,'2','bug_status,priority,assigned_to,bug_id');
 /*!40000 ALTER TABLE `profile_search` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1535,7 +1542,7 @@ CREATE TABLE `profiles` (
   PRIMARY KEY (`userid`),
   UNIQUE KEY `profiles_login_name_idx` (`login_name`),
   UNIQUE KEY `profiles_extern_id_idx` (`extern_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1544,7 +1551,7 @@ CREATE TABLE `profiles` (
 
 LOCK TABLES `profiles` WRITE;
 /*!40000 ALTER TABLE `profiles` DISABLE KEYS */;
-INSERT INTO `profiles` VALUES (1,'andreas@hasenkopf.xyz','2207pp7o,ialUTtf7x78ge5SbbN7+W+1lXGJBXmMlYt26C1egd4g{SHA-256}','Andreas','',0,1,NULL,1,'2023-11-27 00:00:00');
+INSERT INTO `profiles` VALUES (1,'andreas@hasenkopf.xyz','2207pp7o,ialUTtf7x78ge5SbbN7+W+1lXGJBXmMlYt26C1egd4g{SHA-256}','Andreas','',0,1,NULL,1,'2024-10-15 00:00:00'),(2,'nemo@example.com','rimPrF6O,Y0jPDDD1IeOR5myBbCCkt5rW36hOlVe7k/IH8wG513Y{SHA-256}','Nemo','',1,1,NULL,1,NULL);
 /*!40000 ALTER TABLE `profiles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1571,7 +1578,7 @@ CREATE TABLE `profiles_activity` (
   CONSTRAINT `fk_profiles_activity_fieldid_fielddefs_id` FOREIGN KEY (`fieldid`) REFERENCES `fielddefs` (`id`) ON UPDATE CASCADE,
   CONSTRAINT `fk_profiles_activity_userid_profiles_userid` FOREIGN KEY (`userid`) REFERENCES `profiles` (`userid`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_profiles_activity_who_profiles_userid` FOREIGN KEY (`who`) REFERENCES `profiles` (`userid`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1580,7 +1587,7 @@ CREATE TABLE `profiles_activity` (
 
 LOCK TABLES `profiles_activity` WRITE;
 /*!40000 ALTER TABLE `profiles_activity` DISABLE KEYS */;
-INSERT INTO `profiles_activity` VALUES (1,1,1,'2023-09-20 13:12:55',33,NULL,'2023-09-20 13:12:55');
+INSERT INTO `profiles_activity` VALUES (1,1,1,'2023-09-20 13:12:55',33,NULL,'2023-09-20 13:12:55'),(2,2,1,'2024-10-15 13:28:58',33,NULL,'2024-10-15 13:28:58');
 /*!40000 ALTER TABLE `profiles_activity` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1916,7 +1923,7 @@ CREATE TABLE `tokens` (
 
 LOCK TABLES `tokens` WRITE;
 /*!40000 ALTER TABLE `tokens` DISABLE KEYS */;
-INSERT INTO `tokens` VALUES (1,'2023-11-27 15:46:15','5HVJhRRo6t','session','edit_parameters'),(1,'2023-11-27 12:25:54','a9MgwT7N7x','session','edit_product'),(1,'2023-11-27 15:42:50','CRSwDhzaXc','session','edit_parameters'),(1,'2023-11-27 12:29:18','DXFuAIZ5GH','session','edit_product'),(1,'2023-09-20 13:13:14','ery9F3ZaAV','session','edit_user_prefs'),(1,'2023-11-27 15:44:26','gnPazrbni2','session','edit_product'),(1,'2023-11-27 15:43:10','GZT1mYgIAF','session','edit_settings'),(1,'2023-11-27 15:42:57','hYkjAGXNIj','session','add_field'),(1,'2023-11-27 15:46:35','ibDe8MPzGE','session','edit_parameters'),(1,'2023-09-20 13:13:14','oukIJJwYod','api_token',''),(1,'2023-11-27 12:26:29','PIjhZLJ29K','session','edit_product'),(1,'2023-11-27 12:23:39','pIrqNpsRDo','api_token',''),(1,'2023-11-27 15:44:36','rkyOtDBxr4','session','edit_group_controls'),(1,'2023-09-20 13:13:20','VLrgLovfH9','session','edit_user_prefs'),(1,'2023-11-27 15:45:59','xgQpxIS10M','session','edit_user_prefs');
+INSERT INTO `tokens` VALUES (1,'2023-11-27 15:46:15','5HVJhRRo6t','session','edit_parameters'),(1,'2024-10-15 13:06:14','5NG9DysR5W','session','edit_parameters'),(1,'2024-10-15 13:10:16','6m73C0nqfo','session','edit_parameters'),(1,'2024-10-15 13:10:09','7RlXVAQiOb','session','edit_parameters'),(1,'2023-11-27 12:25:54','a9MgwT7N7x','session','edit_product'),(1,'2024-10-15 13:27:02','bSVcXqgap4','session','edit_flagtype'),(1,'2024-10-15 13:06:09','BWsu8P8e2D','session','edit_parameters'),(1,'2023-11-27 15:42:50','CRSwDhzaXc','session','edit_parameters'),(1,'2024-10-15 14:02:08','dAVlRMDOg7','session','edit_component'),(1,'2023-11-27 12:29:18','DXFuAIZ5GH','session','edit_product'),(1,'2023-09-20 13:13:14','ery9F3ZaAV','session','edit_user_prefs'),(1,'2024-10-15 12:46:48','gEsxMu9BHz','api_token',''),(1,'2023-11-27 15:44:26','gnPazrbni2','session','edit_product'),(1,'2023-11-27 15:43:10','GZT1mYgIAF','session','edit_settings'),(1,'2023-11-27 15:42:57','hYkjAGXNIj','session','add_field'),(1,'2024-10-15 13:15:12','I9aiLWHFRJ','session','workflow_edit'),(1,'2023-11-27 15:46:35','ibDe8MPzGE','session','edit_parameters'),(1,'2024-10-15 14:00:21','ITqzn9Ed9n','session','edit_product'),(1,'2024-10-15 13:06:33','jK4PGdugR8','session','edit_parameters'),(1,'2024-10-15 14:02:05','JOhZj5gVqg','session','edit_product'),(1,'2023-09-20 13:13:14','oukIJJwYod','api_token',''),(1,'2023-11-27 12:26:29','PIjhZLJ29K','session','edit_product'),(1,'2023-11-27 12:23:39','pIrqNpsRDo','api_token',''),(1,'2024-10-15 13:28:58','qO1ZPdshDu','session','edit_user'),(1,'2023-11-27 15:44:36','rkyOtDBxr4','session','edit_group_controls'),(1,'2023-09-20 13:13:20','VLrgLovfH9','session','edit_user_prefs'),(1,'2024-10-15 13:10:07','w7KWafB5zu','session','edit_parameters'),(1,'2023-11-27 15:45:59','xgQpxIS10M','session','edit_user_prefs'),(1,'2024-10-15 14:02:53','YnDsGT0jbR','session','add_component');
 /*!40000 ALTER TABLE `tokens` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2112,7 +2119,7 @@ CREATE TABLE `user_group_map` (
 
 LOCK TABLES `user_group_map` WRITE;
 /*!40000 ALTER TABLE `user_group_map` DISABLE KEYS */;
-INSERT INTO `user_group_map` VALUES (1,1,0,0),(1,1,1,0),(1,3,0,0),(1,8,0,2);
+INSERT INTO `user_group_map` VALUES (1,1,0,0),(1,1,1,0),(1,3,0,0),(1,8,0,2),(2,8,0,2);
 /*!40000 ALTER TABLE `user_group_map` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2267,4 +2274,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-11-27 16:56:56
+-- Dump completed on 2024-10-15 16:07:04

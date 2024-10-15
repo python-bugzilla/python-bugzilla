@@ -51,6 +51,7 @@ def test_bugzilla_override():
     assert bz._is_redhat_bugzilla is True  # pylint: disable=protected-access
 
 
+# See also: tests/integration/ro_api_test.py::test_rest_xmlrpc_detection
 def test_rest_xmlrpc_detection():
     # The default: use XMLRPC
     bz = _open_bz("bugzilla.redhat.com")
@@ -71,6 +72,7 @@ def test_rest_xmlrpc_detection():
     assert bz._proxy  # pylint: disable=protected-access
 
 
+# See also: tests/integration/ro_api_test.py::test_apikey_error_scraping
 def test_apikey_error_scraping():
     # Ensure the API key does not leak into any requests exceptions
     fakekey = "FOOBARMYKEY"
@@ -98,6 +100,7 @@ def test_apikey_error_scraping():
     assert fakekey not in str(e.value)
 
 
+# See also: tests/integration/ro_api_test.py::test_xmlrpc_bad_url
 def test_xmlrpc_bad_url():
     with pytest.raises(bugzilla.BugzillaError) as e:
         _open_bz("https://example.com/#xmlrpc")
@@ -142,6 +145,7 @@ def test_gentoo(backends):
 ##################
 
 
+# See also: tests/integration/ro_cli_test.py::test_get_products
 def testInfoProducts(run_cli, backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -149,6 +153,7 @@ def testInfoProducts(run_cli, backends):
     _check(out, 123, "Virtualization Tools")
 
 
+# See also: tests/integration/ro_cli_test.py::test_get_components
 def testInfoComps(run_cli, backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -156,6 +161,7 @@ def testInfoComps(run_cli, backends):
     _check(out, 8, "virtinst")
 
 
+# See also: tests/integration/ro_cli_test.py::test_get_versions
 def testInfoVers(run_cli, backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -163,6 +169,7 @@ def testInfoVers(run_cli, backends):
     _check(out, 17, "rawhide")
 
 
+# See also: tests/integration/ro_cli_test.py::test_get_component_owners
 def testInfoCompOwners(run_cli, backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -171,6 +178,7 @@ def testInfoCompOwners(run_cli, backends):
     _check(out, None, "libvirt: Libvirt Maintainers")
 
 
+# See also: tests/integration/ro_cli_test.py::test_query
 def testQuery(run_cli, backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -191,6 +199,7 @@ def testQuery(run_cli, backends):
                  l2 == expectbug])
 
 
+# See also: tests/integration/ro_cli_test.py::test_query_full
 def testQueryFull(run_cli, backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -199,6 +208,7 @@ def testQueryFull(run_cli, backends):
     _check(out, 60, "end-of-life (EOL)")
 
 
+# See also: tests/integration/ro_cli_test.py::test_query_raw
 def testQueryRaw(run_cli, backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -207,6 +217,7 @@ def testQueryRaw(run_cli, backends):
     _check(out, 70, "ATTRIBUTE[whiteboard]:  bzcl34nup")
 
 
+# See also: tests/integration/ro_cli_test.py::test_query_oneline
 def testQueryOneline(run_cli, backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -223,6 +234,7 @@ def testQueryOneline(run_cli, backends):
     assert " CVE-2011-2527" in out
 
 
+# See also: tests/integration/ro_cli_test.py::test_query_extra
 def testQueryExtra(run_cli, backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -232,6 +244,7 @@ def testQueryExtra(run_cli, backends):
     assert " +Status Whiteboard:  bzcl34nup" in out
 
 
+# See also: tests/integration/ro_cli_test.py::test_query_format
 def testQueryFormat(run_cli, backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -253,6 +266,7 @@ def testQueryFormat(run_cli, backends):
     assert "V34 — system" in out
 
 
+# See also: tests/integration/ro_cli_test.py::test_query_url
 def testQueryURL(run_cli, backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -290,6 +304,7 @@ def testQueryExtrafieldPool(run_cli, backends):
     assert "current_sprint_id" in out2
 
 
+# See also: tests/integration/ro_api_test.py::test_get_component_detail
 def testComponentsDetails(backends):
     """
     Fresh call to getcomponentsdetails should properly refresh
@@ -299,6 +314,7 @@ def testComponentsDetails(backends):
     assert bool(bz.getcomponentsdetails("Red Hat Developer Toolset"))
 
 
+# See also: tests/integration/ro_api_test.py::test_get_bug_alias
 def testGetBugAlias(backends):
     """
     getbug() works if passed an alias
@@ -309,6 +325,7 @@ def testGetBugAlias(backends):
     assert bug.bug_id == 720773
 
 
+# See also: tests/integration/ro_api_test.py::test_get_bug_404
 def testGetBug404(backends):
     """
     getbug() is expected to raise an error, if a bug ID or alias does not exist
@@ -325,6 +342,7 @@ def testGetBug404(backends):
         raise AssertionError("No exception raised")
 
 
+# See also: tests/integration/ro_api_test.py::test_get_bug_alias_404
 def testGetBugAlias404(backends):
     """
     getbug() is expected to raise an error, if a bug ID or alias does not exist
@@ -341,6 +359,7 @@ def testGetBugAlias404(backends):
         raise AssertionError("No exception raised")
 
 
+# See also: tests/integration/ro_api_test.py::test_get_bug_alias_included_field
 def testGetBugAliasIncludedField(backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -358,6 +377,7 @@ def testQuerySubComponent(run_cli, backends):
     assert "#1060931 " in out
 
 
+# See also: tests/integration/ro_api_test.py::test_get_bug_fields
 def testBugFields(backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
