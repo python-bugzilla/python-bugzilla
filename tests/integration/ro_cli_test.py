@@ -1,10 +1,32 @@
 # Ignoring pytest-related warnings:
 # pylint: disable=unused-argument
 import re
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse, urlunparse
 
 from ..utils import open_bz
 from . import TEST_URL, TEST_PRODUCTS, TEST_SUSE_COMPONENTS, TEST_OWNER
+
+
+def test_fails(mocked_responses, run_cli, backends):
+    bz = open_bz(url=TEST_URL, **backends)
+    out = run_cli("bugzilla query --field=IDONTEXIST=FOO", bzinstance=bz, expectfail=True)
+    assert "Server error:" in out
+
+    out = run_cli("bugzilla --bugzilla https://example.com/xmlrpc.cgi query --field=IDONTEXIST=FOO",
+                  bzinstance=None, expectfail=True)
+    assert "Connection lost/failed" in out
+
+    parsed = urlparse(TEST_URL)
+    netloc = parsed.netloc
+    if not re.search(r":\d+$", netloc):
+        netloc += ":80"
+
+    https_test_url = urlunparse(("https", netloc, parsed.path, parsed.params, parsed.query,
+                                 parsed.fragment))
+    out = run_cli(f"bugzilla --bugzilla {https_test_url} query --bug_id 1234",
+                  bzinstance=None, expectfail=True)
+    assert "trust the remote server" in out
+    assert "--nosslverify" in out
 
 
 def test_get_products(mocked_responses, run_cli, backends):
@@ -22,6 +44,14 @@ def test_get_components(mocked_responses, run_cli, backends):
     assert len(out.strip().split("\n")) == 2
     for comp in TEST_SUSE_COMPONENTS:
         assert comp in out
+
+
+def test_get_active_components(mocked_responses, run_cli, backends):
+    bz = open_bz(url=TEST_URL, **backends)
+    out = run_cli("bugzilla info --components 'SUSE Linux Enterprise Server 15 SP6' "
+                  "--active-components", bzinstance=bz)
+    assert "Containers" in out
+    assert "Kernel" in out
 
 
 def test_get_component_owners(mocked_responses, run_cli, backends):

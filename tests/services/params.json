@@ -69,7 +69,7 @@
    "quip_list_entry_control" : "open",
    "rememberlogin" : "on",
    "requirelogin" : "0",
-   "search_allow_no_criteria" : "1",
+   "search_allow_no_criteria" : "0",
    "shadowdb" : "",
    "shadowdbhost" : "",
    "shadowdbport" : "3306",

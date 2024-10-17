@@ -141,7 +141,7 @@ def mocked_responses():
 
     test_url = os.getenv("BUGZILLA_URL")
     if test_url:
-        passthrough += (test_url, )
+        passthrough += (test_url, test_url.replace("http://", "https://"))
     with responses.RequestsMock(passthru_prefixes=passthrough,
                                 assert_all_requests_are_fired=False) as mock:
         mock.add_callback(
