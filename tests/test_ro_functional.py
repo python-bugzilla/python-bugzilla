@@ -387,6 +387,7 @@ def testBugFields(backends):
     assert set(bz.bugfields) == set(["product", "bug_status"])
 
 
+# See also: tests/integration/ro_api_test.py::test_get_product
 def testProductGetMisc(backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -394,6 +395,7 @@ def testProductGetMisc(backends):
     assert bz.product_get(ptype="selectable", include_fields=["name"])
 
 
+# See also: tests/integration/ro_api_test.py::test_query_autorefresh
 def testBugAutoRefresh(backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -415,6 +417,7 @@ def testBugAutoRefresh(backends):
         assert "adjust your include_fields" in str(e)
 
 
+# See also (in part): tests/integration/ro_api_test.py::test_get_bug_exclude_fields
 def testExtraFields(backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -438,6 +441,7 @@ def testExternalBugsOutput(run_cli, backends):
     assert "External bug: https://bugs.launchpad.net/bugs/1203576" in out
 
 
+# See also: tests/integration/ro_cli_test.py::test_get_active_components
 def testActiveComps(run_cli, backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -449,6 +453,7 @@ def testActiveComps(run_cli, backends):
     assert "virtinst" not in out
 
 
+# See also: tests/integration/ro_cli_test.py::test_fails
 def testFaults(run_cli, backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -469,6 +474,7 @@ def testFaults(run_cli, backends):
     assert "--nosslverify" in out
 
 
+# See also: tests/integration/ro_api_test.py::test_login_stubs
 def test_login_stubs(backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
@@ -489,6 +495,7 @@ def test_redhat_version(backends):
         _test_version(bz, bzversion)
 
 
+# See also: tests/integration/ro_api_test.py::test_bug_url
 def test_bug_misc(backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
