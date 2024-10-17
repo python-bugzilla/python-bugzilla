@@ -1,5 +1,6 @@
 # Ignoring pytest-related warnings:
 # pylint: disable=redefined-outer-name,unused-argument
+from urllib.parse import urljoin
 from xmlrpc.client import Fault
 
 import pytest
@@ -62,6 +63,18 @@ def test_get_products(mocked_responses, backends):
     assert {v["name"] for v in rhel["versions"]} == {"9.0", "9.1", "unspecified"}
 
 
+def test_get_product(mocked_responses, backends):
+    bz = open_bz(url=TEST_URL, **backends)
+
+    product_ids = {product["id"] for product in bz.product_get(ptype="enterable",
+                                                               include_fields=["id"])}
+    product_names = {product["name"] for product in bz.product_get(ptype="selectable",
+                                                                   include_fields=["name"])}
+    assert product_ids == {1, 2, 3}
+    assert product_names == {'Red Hat Enterprise Linux 9', 'SUSE Linux Enterprise Server 15 SP6',
+                             'TestProduct'}
+
+
 def test_get_components(mocked_responses, backends):
     bz = open_bz(url=TEST_URL, **backends)
     components = bz.getcomponents(product="SUSE Linux Enterprise Server 15 SP6")
@@ -106,6 +119,16 @@ def test_get_bug_alias(mocked_responses, backends):
     assert bug.summary == "ZeroDivisionError in function foo_bar()"
 
 
+def test_bug_url(mocked_responses, backends):
+    bz = open_bz(url=TEST_URL, **backends)
+    bug_id = 2
+
+    # Ensure weburl is generated consistently whether
+    # we are using XMLRPC or REST
+    bug = bz.getbug(bug_id)
+    assert bug.weburl == urljoin(TEST_URL, f"/show_bug.cgi?id={bug_id}")
+
+
 def test_get_bug_alias_included_field(mocked_responses, backends):
     bug_id, alias = 1, "FOO-1"
     bz = open_bz(url=TEST_URL, **backends)
@@ -115,6 +138,18 @@ def test_get_bug_alias_included_field(mocked_responses, backends):
     assert bug.bug_id == bug_id
     assert bug.alias == [alias]
     assert not hasattr(bug, "summary")
+
+
+def test_get_bug_exclude_fields(mocked_responses, backends):
+    bz = open_bz(url=TEST_URL, **backends)
+
+    # Check default extra_fields will pull in comments
+    bug = bz.getbug(2, exclude_fields=["product"])
+    assert not hasattr(bug, "product")
+
+    # Ensure that include_fields overrides default extra_fields
+    bug = bz.getbug(2)
+    assert hasattr(bug, "product")
 
 
 def test_get_bug_404(mocked_responses, backends):
@@ -147,3 +182,39 @@ def test_get_bug_fields(mocked_responses, backends):
     assert fields == ["product"]
     bz.getbugfields(names=["product", "bug_status"], force_refresh=True)
     assert set(bz.bugfields) == {"product", "bug_status"}
+
+
+def test_query_autorefresh(mocked_responses, backends):
+    bz = open_bz(url=TEST_URL, **backends)
+
+    bz.bug_autorefresh = True
+    bug = bz.query(bz.build_query(bug_id=1, include_fields=["summary"]))[0]
+    assert hasattr(bug, "component")
+    assert bool(bug.component)
+
+    bz.bug_autorefresh = False
+    bug = bz.query(bz.build_query(bug_id=1, include_fields=["summary"]))[0]
+    assert not hasattr(bug, "component")
+    try:
+        assert bool(bug.component)
+    except Exception as e:
+        assert "adjust your include_fields" in str(e)
+
+
+def test_login_stubs(mocked_responses, backends):
+    # Explicitly set configpaths to avoid interference with an API key set by another test
+    bz = open_bz(url=TEST_URL, configpaths="/dev/null", **backends)
+    bz_apikey = open_bz(url=TEST_URL, api_key="random-and-secure-api-key", **backends)
+
+    # Failed login, verifies our backends are calling the correct API
+    with pytest.raises(BugzillaError) as e:
+        bz.login("foo", "bar")
+    assert "Login failed" in str(e)
+
+    # Login is prohibited, when an API key is defined
+    with pytest.raises(ValueError) as e:
+        bz_apikey.login("foo", "bar")
+    assert "cannot login when using an API key" in str(e)
+
+    # Works fine when not logged in
+    bz.logout()
