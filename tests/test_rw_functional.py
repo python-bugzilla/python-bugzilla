@@ -322,6 +322,7 @@ def test05ModifyStatus(run_cli, backends):
     assert bug.comments == bug.get_comments()
     # This method will be removed in a future version
     assert bug.comments == bug.getcomments()
+    assert bug.get_comments == bug.getcomments()
 
     # Reset state
     run_cli(cmd + "--status %s" % origstatus, bz)
