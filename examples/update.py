@@ -38,7 +38,7 @@ print("Bug id=%s new summary=%s" % (bug.id, bug.summary))
 
 
 # Now let's add a comment
-comments = bug.getcomments()
+comments = bug.get_comments()
 print("Bug originally has %d comments" % len(comments))
 
 update = bzapi.build_update(comment="new example comment %s" % time.time())
@@ -46,7 +46,7 @@ bzapi.update_bugs([bug.id], update)
 
 # refresh() actually isn't required here because comments are fetched
 # on demand
-comments = bug.getcomments()
+comments = bug.get_comments()
 print("Bug now has %d comments. Last comment=%s" % (len(comments),
     comments[-1]["text"]))
 

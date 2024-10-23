@@ -292,7 +292,7 @@ class Bug(object):
 
         return self.bugzilla.update_bugs(self.bug_id, vals)
 
-    def getcomments(self):
+    def get_comments(self):
         """
         Returns an array of comment dictionaries for this bug
         """

@@ -200,7 +200,7 @@ def test_bug_apis():
     # Stub API testing
     bug = fakebz.getbug(1165434)
     bug.get_history_raw()
-    bug.getcomments()
+    bug.get_comments()
 
     # Some hackery to hit a few attachment code paths
     bug.id = 663674
