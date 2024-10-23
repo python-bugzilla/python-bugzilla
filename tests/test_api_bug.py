@@ -201,6 +201,7 @@ def test_bug_apis():
     bug = fakebz.getbug(1165434)
     bug.get_history_raw()
     bug.get_comments()
+    bug.getcomments()
 
     # Some hackery to hit a few attachment code paths
     bug.id = 663674

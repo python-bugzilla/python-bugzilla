@@ -36,5 +36,5 @@ print("  Summary   = %s" % bug.summary)
 comments = bug.getcomments()
 print("\nLast comment data:\n%s" % pprint.pformat(comments[-1]))
 
-# getcomments is just a wrapper around bzapi.get_comments(), which can be
+# getcomments is just a wrapper around bzapi.getcomments(), which can be
 # used for bulk comments fetching
