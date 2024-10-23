@@ -309,7 +309,7 @@ class Bug(object):
         DeprecationWarning,
         stacklevel=2
     )
-        return self.getcomment()
+        return self.get_comments()
     #####################
     # Get/Set bug flags #
     #####################
