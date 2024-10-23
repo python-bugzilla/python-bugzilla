@@ -320,6 +320,8 @@ def test05ModifyStatus(run_cli, backends):
 
     # Confirm comments is same as get_comments
     assert bug.comments == bug.get_comments()
+    # This method will be removed in a future version
+    assert bug.comments == bug.getcomments()
 
     # Reset state
     run_cli(cmd + "--status %s" % origstatus, bz)
