@@ -4,6 +4,7 @@
 # This work is licensed under the GNU GPLv2 or later.
 # See the COPYING file in the top-level directory.
 
+import warnings
 import copy
 from logging import getLogger
 from urllib.parse import urlparse, urlunparse
@@ -292,14 +293,23 @@ class Bug(object):
 
         return self.bugzilla.update_bugs(self.bug_id, vals)
 
-    def getcomments(self):
+    def get_comments(self):
         """
         Returns an array of comment dictionaries for this bug
         """
         comment_list = self.bugzilla.get_comments([self.bug_id])
         return comment_list['bugs'][str(self.bug_id)]['comments']
 
-
+    def getcomments(self):
+        """
+        Returns an array of comment dictionaries for this bug just 
+        """
+        warnings.warn(
+        "getcomments() is deprecated and will be removed in a future version. Use get_comments() instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+        return self.get_comments()
     #####################
     # Get/Set bug flags #
     #####################
