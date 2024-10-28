@@ -4,7 +4,6 @@
 # This work is licensed under the GNU GPLv2 or later.
 # See the COPYING file in the top-level directory.
 
-import warnings
 import copy
 from logging import getLogger
 from urllib.parse import urlparse, urlunparse
@@ -302,13 +301,10 @@ class Bug(object):
 
     def getcomments(self):
         """
+        Some code bases still use this method. So, for the sake of backward compatibility this method
+        stays in the class' interface.
         Returns an array of comment dictionaries for this bug just 
         """
-        warnings.warn(
-        "getcomments() is deprecated and will be removed in a future version. Use get_comments() instead.",
-        DeprecationWarning,
-        stacklevel=2
-    )
         return self.get_comments()
     #####################
     # Get/Set bug flags #
