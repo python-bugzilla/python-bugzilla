@@ -299,13 +299,7 @@ class Bug(object):
         comment_list = self.bugzilla.get_comments([self.bug_id])
         return comment_list['bugs'][str(self.bug_id)]['comments']
 
-    def getcomments(self):
-        """
-        Some code bases still use this method. So, for the sake of backward compatibility this method
-        stays in the class' interface.
-        Returns an array of comment dictionaries for this bug just 
-        """
-        return self.get_comments()
+    getcomments = get_comments
     #####################
     # Get/Set bug flags #
     #####################
