@@ -33,8 +33,8 @@ print("  Summary   = %s" % bug.summary)
 
 # comments must be fetched separately on stock bugzilla. this just returns
 # a raw dict with all the info.
-comments = bug.getcomments()
+comments = bug.get_comments()
 print("\nLast comment data:\n%s" % pprint.pformat(comments[-1]))
 
-# getcomments is just a wrapper around bzapi.get_comments(), which can be
+# get_comments is just a wrapper around bzapi.get_comments(), which can be
 # used for bulk comments fetching

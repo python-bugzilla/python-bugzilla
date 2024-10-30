@@ -318,8 +318,11 @@ def test05ModifyStatus(run_cli, backends):
     assert bug.longdescs[-1]["text"] == comment
     assert bug.longdescs[-1]["is_private"] == 0
 
-    # Confirm comments is same as getcomments
+    # Confirm comments is same as get_comments
+    assert bug.comments == bug.get_comments()
+    # This method will be removed in a future version
     assert bug.comments == bug.getcomments()
+    assert bug.get_comments() == bug.getcomments()
 
     # Reset state
     run_cli(cmd + "--status %s" % origstatus, bz)
