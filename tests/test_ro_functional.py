@@ -478,13 +478,26 @@ def testFaults(run_cli, backends):
 def test_login_stubs(backends):
     bz = _open_bz(REDHAT_URL, **backends)
 
-    # Failed login, verifies our backends are calling the correct API
+    # In 2024 bugzilla.redhat.com disabled User.login and User.logout APIs
+    # for xmlrpc API
+
     with pytest.raises(bugzilla.BugzillaError) as e:
         bz.login("foo", "bar")
     assert "Login failed" in str(e)
 
-    # Works fine when not logged in
-    bz.logout()
+    is_rest = bz.is_rest()
+    is_xmlrpc = bz.is_xmlrpc()
+
+    msg = None
+    try:
+        bz.logout()
+    except Exception as error:
+        msg = str(error)
+
+    if is_rest and msg:
+        raise AssertionError("didn't expect exception: %s" % msg)
+    if is_xmlrpc:
+        assert "'User.logout' was not found" in str(msg)
 
 
 def test_redhat_version(backends):
