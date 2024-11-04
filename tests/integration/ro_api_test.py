@@ -201,6 +201,11 @@ def test_query_autorefresh(mocked_responses, backends):
         assert "adjust your include_fields" in str(e)
 
 
+def test_logged_in_no_creds(mocked_responses, backends):
+    bz = open_bz(url=TEST_URL, use_creds=False, **backends)
+    assert not bz.logged_in
+
+
 def test_login_stubs(mocked_responses, backends):
     # Explicitly set configpaths to avoid interference with an API key set by another test
     bz = open_bz(url=TEST_URL, configpaths="/dev/null", **backends)

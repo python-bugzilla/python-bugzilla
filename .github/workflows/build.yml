@@ -67,7 +67,7 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
 
   # Run functional tests
-  integrationRO:
+  integration:
     runs-on: ubuntu-latest
     services:
       mariadb:
@@ -106,7 +106,7 @@ jobs:
           pip install pytest pytest-cov
           pip install -r requirements.txt -r test-requirements.txt
       - name: Test with pytest
-        run: pytest --ro-integration
+        run: pytest --ro-integration --rw-integration
         env:
           BUGZILLA_URL: http://localhost
 

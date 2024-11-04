@@ -21,6 +21,8 @@ import bugzilla
 def pytest_addoption(parser):
     parser.addoption("--ro-integration", action="store_true", default=False,
                      help="Run readonly tests against local Bugzilla instance.")
+    parser.addoption("--rw-integration", action="store_true", default=False,
+                     help="Run read-write tests against local Bugzilla instance.")
     parser.addoption("--ro-functional", action="store_true", default=False,
             help=("Run readonly functional tests against actual "
                   "bugzilla instances. This will be very slow."))
@@ -46,13 +48,17 @@ def pytest_ignore_collect(collection_path, config):
     has_ro = config.getoption("--ro-functional")
     has_ro_i = config.getoption("--ro-integration")
     has_rw = config.getoption("--rw-functional")
+    has_rw_i = config.getoption("--rw-integration")
 
     base = os.path.basename(str(collection_path))
     is_ro = base == "test_ro_functional.py"
     is_ro_i = "tests/integration/ro" in str(collection_path)
     is_rw = base == "test_rw_functional.py"
+    is_rw_i = "tests/integration/rw" in str(collection_path)
 
     if is_ro_i and not has_ro_i:
+        return True
+    if is_rw_i and not has_rw_i:
         return True
 
     if is_ro and not has_ro:
