@@ -534,8 +534,10 @@ def test071ModifyMisc(run_cli, backends):
         assert targetbug.target_milestone == "rc"
         assert targetbug.target_release == ["6.10"]
     except RuntimeError as e:
-        if have_dev:
-            raise
+        # As of Nov 2024 this needs even extra permissions, probably
+        # due to RHEL products being locked down
+        # if have_dev:
+        #    raise
         assert perm_error in str(e)
 
     try:
