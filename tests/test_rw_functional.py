@@ -191,6 +191,7 @@ def _make_subcomponent_bug(run_cli, bz):
 # test cases #
 ##############
 
+# See also: tests/integration/rw_api_test.py::test_logged_in_no_creds
 def test0LoggedInNoCreds(backends):
     bz = _open_bz(**backends, use_creds=False)
     assert not bz.logged_in
@@ -201,6 +202,9 @@ def test0ClassDetection():
     assert bz.__class__ is bugzilla.RHBugzilla
 
 
+# See also: tests/integration/rw_api_test.py::test_create_bug
+#           tests/integration/rw_api_test.py::test_create_bug_alias
+#           tests/integration/rw_api_test.py::test_update_bug
 def test04NewBugAllFields(run_cli, backends):
     """
     Create a bug using all 'new' fields, check some values, close it
@@ -303,6 +307,7 @@ def test05ModifyStatus(run_cli, backends):
             raise
         assert perm_error in str(e)
 
+    # See also: tests/integration/rw_api_test.py::test_close_bug
     # bz.close test
     fixed_in = str(datetime.datetime.today())
     bug.close("ERRATA", fixedin=fixed_in)
@@ -311,6 +316,7 @@ def test05ModifyStatus(run_cli, backends):
     assert bug.resolution == "ERRATA"
     assert bug.fixed_in == fixed_in
 
+    # See also: tests/integration/rw_api_test.py::test_add_comment
     # bz.addcomment test
     comment = ("yet another test comment %s" % datetime.datetime.today())
     bug.addcomment(comment, private=False)
@@ -330,6 +336,7 @@ def test05ModifyStatus(run_cli, backends):
     assert bug.status == origstatus
 
 
+# See also: tests/integration/rw_api_test.py::test_update_bug
 def test06ModifyEmails(run_cli, backends):
     """
     Modify cc, assignee, qa_contact for existing bug
@@ -391,6 +398,7 @@ def test06ModifyEmails(run_cli, backends):
         assert perm_error in str(e)
 
 
+# See also: tests/integration/rw_api_test.py::test_update_flags
 def test070ModifyMultiFlags(run_cli, backends):
     """
     Modify flags and fixed_in for 2 bugs

@@ -44,7 +44,7 @@
    "font_file" : "",
    "globalwatchers" : "",
    "inbound_proxies" : "",
-   "insidergroup" : "",
+   "insidergroup" : "editbugs",
    "last_visit_keep_days" : "10",
    "letsubmitterchoosemilestone" : "1",
    "letsubmitterchoosepriority" : "1",
