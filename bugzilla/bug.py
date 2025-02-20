@@ -360,6 +360,22 @@ class Bug(object):
             self.bugzilla.build_update(flags=flaglist))
 
 
+    #######################
+    # Bug fields handling #
+    #######################
+
+    def setsummary(self, summary):
+        """
+        Set the summary of bug to the given summary string
+        """
+        # Create update object
+        vals = self.bugzilla.build_update(summary=summary)
+
+        log.debug("setsummary: update=%s", vals)
+
+        # Send update to bugzilla and return
+        return self.bugzilla.update_bugs(self.bug_id, vals)
+
     ########################
     # Experimental methods #
     ########################

@@ -184,6 +184,10 @@ def test_bug_apis():
     assert bug.get_flags("NOPE") is None
     assert bug.get_flag_status("NOPE") is None
 
+    # bug.setsummary test
+    bug = _get_fake_bug("setsummary")
+    bug.setsummary("My new summary")
+
     # Minor get_history_raw wrapper
     fakebz = tests.mockbackend.make_bz(rhbz=True,
         bug_history_args="data/mockargs/test_bug_api_history.txt",
