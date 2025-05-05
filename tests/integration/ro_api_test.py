@@ -223,3 +223,16 @@ def test_login_stubs(mocked_responses, backends):
 
     # Works fine when not logged in
     bz.logout()
+
+
+def test_query_resolution(mocked_responses, backends):
+    bz = open_bz(url=TEST_URL, **backends)
+
+    bugs = bz.query(bz.build_query(short_desc="ZeroDivisionError", resolution=None))
+    assert len(bugs) == 1
+
+    bugs = bz.query(bz.build_query(short_desc="ZeroDivisionError", resolution="---"))
+    assert len(bugs) == 1
+
+    bugs = bz.query(bz.build_query(short_desc="ZeroDivisionError", resolution="DUPLICATE"))
+    assert len(bugs) == 0

@@ -1205,7 +1205,8 @@ class Bugzilla(object):
                     tags=None,
                     exclude_fields=None,
                     extra_fields=None,
-                    limit=None):
+                    limit=None,
+                    resolution=None):
         """
         Build a query string from passed arguments. Will handle
         query parameter differences between various bugzilla versions.
@@ -1239,6 +1240,7 @@ class Bugzilla(object):
             "savedsearch": savedsearch,
             "sharer_id": savedsearch_sharer_id,
             "limit": limit,
+            "resolution": resolution,
 
             # RH extensions... don't add any more. See comment below
             "sub_components": listify(sub_component),
