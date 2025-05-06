@@ -26,15 +26,30 @@ jobs:
         run: |
           pylint --output-format colorized --rcfile .pylintrc \
           bugzilla-cli setup.py bugzilla examples tests
+  test_3_6:
+    # python 3.6 is for rhel/centos8/sles15 compat
+    runs-on: ubuntu-latest
+    container:
+      image: python:3.6
+    steps:
+      - uses: actions/checkout@v4
 
-  build:
-    # We stick with 20.04 to get access to python 3.6
-    # https://github.com/actions/setup-python/issues/544
-    runs-on: ubuntu-20.04
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          pip install -r requirements.txt -r test-requirements.txt
+
+      - name: Test with pytest
+        run: |
+          pytest
+
+
+  test:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        # python 3.6 is for rhel/centos8/sles15 compat
-        python-version: ["3.6", "3.9", "3.10", "3.11", "3.12", "3.13.0-rc.2"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
     steps:
     - uses: actions/checkout@v4
