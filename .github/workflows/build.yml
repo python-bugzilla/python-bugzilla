@@ -13,7 +13,7 @@ jobs:
       matrix:
         python-version: ["3.x"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -32,7 +32,7 @@ jobs:
     container:
       image: python:3.6
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install dependencies
         run: |
@@ -52,7 +52,7 @@ jobs:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -102,7 +102,7 @@ jobs:
       matrix:
         python-version: ["3.x"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install MariaDB utils
         run: sudo apt install --no-install-recommends -q -y mariadb-client
       - name: Restore DB dump
@@ -133,7 +133,7 @@ jobs:
         python-version: ["3.x"]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
