@@ -825,7 +825,7 @@ set per hostname section are
 - ``cert``: default client side certificate
 
 
-A ``[DEFAULTS]`` section is also accepted, which takes the following
+A ``[DEFAULT]`` section is also accepted, which takes the following
 values:
 
 - ``url``: default bugzilla URL
