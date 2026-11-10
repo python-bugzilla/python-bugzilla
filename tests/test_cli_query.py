@@ -5,6 +5,19 @@ import json
 import os
 import re
 
+
+def test_query_missing_components_file(run_cli):
+    # A missing --components-file must be a clean CLI error,
+    # not an unhandled traceback
+    fakebz = tests.mockbackend.make_bz()
+    cmd = ("bugzilla query "
+           "--components_file /nonexistent-components-file.txt")
+    out = run_cli(cmd, fakebz, expectfail=True)
+    assert "nonexistent-components-file.txt" in out
+    assert "Traceback" not in out
+    # A missing local file must not be misreported as a network problem
+    assert "Connection lost/failed" not in out
+
 import tests
 import tests.mockbackend
 import tests.utils
