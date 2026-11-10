@@ -480,7 +480,11 @@ def _do_query(bz, opt, parser):
         # Components slurped in from file (one component per line)
         # This can be made more robust
         clist = []
-        f = open(opt.components_file, 'r')
+        try:
+            f = open(opt.components_file, 'r')
+        except OSError as e:
+            parser.error("Error opening components file '%s': %s" %
+                         (opt.components_file, e.strerror or e))
         for line in f.readlines():
             line = line.rstrip("\n")
             clist.append(line)
